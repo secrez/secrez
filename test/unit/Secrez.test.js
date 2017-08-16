@@ -13,10 +13,12 @@ const fs = rRequire('./lib/utils/fs')
 const Crypto = rRequire('./lib/utils/Crypto')
 const {status, keys} = rRequire('./lib/config/constants')
 const Manifest = rRequire('./lib/models/Manifest')
+const Secrez = rRequire('./lib/Secrez')
 
 describe('Secrez', function () {
 
   let secrez
+  let datadir = path.resolve(__dirname, '../../tmp/.secrez')
   let password = 'a very yellow trip on a ferryboat in alaska'
   let secretOptions = {
     name: 'MyBank',
@@ -29,15 +31,15 @@ describe('Secrez', function () {
   let secretId
 
   before(function () {
-    return fs.emptyDirAsync(path.resolve(__dirname, '../../tmp/.secrez'))
+    return fs.emptyDirAsync(datadir)
   })
 
   after(function () {
-    return fs.emptyDirAsync(path.resolve(__dirname, '../../tmp/.secrez'))
+    return fs.emptyDirAsync(datadir)
   })
 
   it('should construct the instance', () => {
-    return Promise.resolve(rRequire('./lib/Secrez'))
+    return Promise.resolve(new Secrez(datadir))
         .then(s => {
           assert(s.db)
           assert(/\.secrez/.test(s.datadir))

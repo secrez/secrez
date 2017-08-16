@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
     "test": "rm -rf tmp && mkdir tmp && export NODE_ENV=test && istanbul cover ./node_modules/.bin/_mocha test/unit/**/*.js test/unit/*.js",
-    "posttest": "istanbul check-coverage --statements 85 --branches 85 --functions 85 --lines 85"
+    "posttest": "istanbul check-coverage --statements 75 --branches 60 --functions 75 --lines 75"
   },
   "dependencies": {
     "bcrypt": "1.0.2",
