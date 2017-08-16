@@ -1,4 +1,4 @@
-# secrez
+# Secrez
 
 Secrez (pronounce secrets) is a secrets manager in times of crypto coins.
 

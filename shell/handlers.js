@@ -1,11 +1,11 @@
 /* globals Promise */
 
-module.exports = function (psswrd) {
+module.exports = function (secrez) {
 
   class Handlers {
     login(cmd, options, ctx) {
       const password = options.password;
-      psswrd.login(password)
+      secrez.login(password)
           .then(() => {
             return Promise.resolve(console.log('Your data are available.'))
           })
@@ -13,7 +13,7 @@ module.exports = function (psswrd) {
 
     signup(cmd, options, ctx) {
       const password = options.password;
-      psswrd.signup(password)
+      secrez.signup(password)
           .then(() => {
             return Promise.resolve(console.log('Your data are available.'))
           })
@@ -21,7 +21,7 @@ module.exports = function (psswrd) {
 
     newSecret(cmd, options, ctx) {
       const name = options.name
-      psswrd.newSecret(name)
+      secrez.newSecret(name)
           .then(() => {
             return Promise.resolve(console.log(''))
           })
@@ -31,16 +31,16 @@ module.exports = function (psswrd) {
     // control methods
 
     isInitiated() {
-      return psswrd.isInitiated()
+      return secrez.isInitiated()
     }
 
 
     isReady() {
-      return psswrd.isAccountEmpty()
+      return secrez.isAccountEmpty()
     }
 
     isOperative(ctx) {
-      return psswrd.isOperative()
+      return secrez.isOperative()
     }
 
   }

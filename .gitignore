@@ -1,6 +1,5 @@
 node_modules
 xunit.xml
-debug
 .sass-cache
 npm-debug.log
 .DS_Store
@@ -12,5 +11,5 @@ coverage
 .idea
 *.swp
 /tmp
-/log
+log
 yarn.lock

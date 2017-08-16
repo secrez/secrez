@@ -14,9 +14,9 @@ const Crypto = rRequire('./lib/utils/Crypto')
 const {status, keys} = rRequire('./lib/config/constants')
 const Manifest = rRequire('./lib/models/Manifest')
 
-describe('Psswrd', function () {
+describe('Secrez', function () {
 
-  let psswrd
+  let secrez
   let password = 'a very yellow trip on a ferryboat in alaska'
   let secretOptions = {
     name: 'MyBank',
@@ -29,44 +29,44 @@ describe('Psswrd', function () {
   let secretId
 
   before(function () {
-    return fs.emptyDirAsync(path.resolve(__dirname, '../../tmp/.psswrd'))
+    return fs.emptyDirAsync(path.resolve(__dirname, '../../tmp/.secrez'))
   })
 
   after(function () {
-    // return fs.emptyDirAsync(path.resolve(__dirname, '../../tmp/.psswrd'))
+    return fs.emptyDirAsync(path.resolve(__dirname, '../../tmp/.secrez'))
   })
 
   it('should construct the instance', () => {
-    return Promise.resolve(rRequire('./lib/Psswrd'))
-        .then(p => {
-          assert(p.db)
-          assert(/\.psswrd$/.test(p.rootdir))
-          assert(p.db.dir === path.join(p.rootdir, 'database'))
-          assert(p.status === status.CONSTRUCTED)
-          psswrd = p
+    return Promise.resolve(rRequire('./lib/Secrez'))
+        .then(s => {
+          assert(s.db)
+          assert(/\.secrez/.test(s.datadir))
+          assert(s.db.dir === path.join(s.datadir, 'database'))
+          assert(s.status === status.CONSTRUCTED)
+          secrez = s
         })
   })
 
   it('should initialize the store', () => {
-    return psswrd.init()
+    return secrez.init()
         .then(() => {
-          assert(psswrd.manifest instanceof Manifest)
-          assert(psswrd.status === status.INITIATED)
+          assert(secrez.manifest instanceof Manifest)
+          assert(secrez.status === status.INITIATED)
         })
   })
 
   it('should return an error trying to login', () => {
-    return psswrd.login(password)
+    return secrez.login(password)
         .catch(err => {
           assert(err)
         })
   })
 
   it('should signup and set up the master key', () => {
-    return psswrd.signup(password)
+    return secrez.signup(password)
         .then(() => {
-          assert(psswrd.manifest.updatedAt > Crypto.timestamp() - 1)
-          return psswrd.db.get(keys.MASTERKEY)
+          assert(secrez.manifest.updatedAt > Crypto.timestamp() - 1)
+          return secrez.db.get(keys.MASTERKEY)
         })
         .then(encryptedMasterKey => {
           assert(encryptedMasterKey)
@@ -74,32 +74,32 @@ describe('Psswrd', function () {
   })
 
   it('should logout', () => {
-    return psswrd.logout()
+    return secrez.logout()
         .then(() => {
-          assert(psswrd.is(status.READY))
+          assert(secrez.is(status.READY))
         })
   })
 
   it('should login and recover the master key', () => {
-    return psswrd.login(password)
+    return secrez.login(password)
         .then(() => {
-          assert(psswrd.manifest.secrets)
+          assert(secrez.manifest.secrets)
         })
   })
 
   it('should add a secret', () => {
-    return psswrd.setSecret(secretOptions)
+    return secrez.setSecret(secretOptions)
         .then(() => {
-          assert(psswrd.manifest.toJSON().s[0].n === secretOptions.name)
-          secretId = psswrd.manifest.toJSON().s[0].i
+          assert(secrez.manifest.toJSON().s[0].n === secretOptions.name)
+          secretId = secrez.manifest.toJSON().s[0].i
         })
   })
 
   it('should logout and after logging in again recover the secret', () => {
-    return psswrd.logout()
-        .then(() => psswrd.login(password))
+    return secrez.logout()
+        .then(() => secrez.login(password))
         .then(() => {
-          assert(psswrd.manifest.secrets[secretId])
+          assert(secrez.manifest.secrets[secretId])
         })
   })
 

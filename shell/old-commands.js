@@ -1,7 +1,7 @@
 
-module.exports = function (psswrd) {
+module.exports = function (secrez) {
 
-  const handlers = require('./handlers')(psswrd)
+  const handlers = require('./handlers')(secrez)
 
   return [
     {

@@ -1,7 +1,5 @@
-// psswrd
+// secrez
 // (c) 2017 Francesco Sullo
 // francesco@sullo.co
 
-
-
-require('./lib/console/commands').start();
+require('./lib/commands').start();

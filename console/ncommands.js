@@ -8,7 +8,7 @@ const _ = require('lodash')
 
 const pkg = require('../../package')
 
-const psswrd = require('../Psswrd')
+const secrez = require('../Secrez')
 const Secret = require('../models/Secret')
 const Db = require('../utils/Db')
 const Shell = require('./Shell')
@@ -109,11 +109,11 @@ class Commands {
     if (!started) {
 
       started = true
-      shell.log('\n\npsswrd v' + pkg.version, 'grey', 'bold')
+      shell.log('\n\nSecrez v' + pkg.version, 'grey', 'bold')
 
-      return psswrd.init()
+      return secrez.init()
           .then(() => {
-            if (psswrd.isReady()) {
+            if (secrez.isReady()) {
               shell.log('Welcome back. Please login into your local account', 'green')
               return self.login()
                   .then(() => this.start())
@@ -308,7 +308,7 @@ class Commands {
   //     }
   //   }
   //
-  //   psswrd.list(filter)
+  //   secrez.list(filter)
   //       .then(list => {
   //         console.log(this.formatLs(list))
   //         return this.menu()
@@ -362,7 +362,7 @@ class Commands {
 
   save() {
 
-    return psswrd.setSecret(this.currentSecret)
+    return secrez.setSecret(this.currentSecret)
         .then(() => {
           this.setContext(context.HOME)
           return this.menu()
@@ -422,7 +422,7 @@ class Commands {
   //
   //   const list = chalk.green('list') + '\n' + chalk.grey('  lists the secrets')
   //   const help = chalk.green('<command> ?') + '\n' + chalk.grey(`  shows command's help if available`)
-  //   const quit = chalk.green('quit') + '\n' + chalk.grey('  quits psswrd')
+  //   const quit = chalk.green('quit') + '\n' + chalk.grey('  quits secrez')
   //
   //   switch (this.context) {
   //     case context.HOME:
@@ -434,7 +434,7 @@ class Commands {
   // }
   //
   // quit() {
-  //   psswrd.onClose()
+  //   secrez.onClose()
   //   // setTimeout(clear, 300)
   //   console.log(chalk.green('Good bye!'))
   // }
@@ -452,7 +452,7 @@ class Commands {
           }
         })
         .then(answer => {
-              return psswrd.login(answer || self.options.answer)
+              return secrez.login(answer || self.options.answer)
                   .catch(err => {
                     console.log(err.stack)
                     shell.log('The password you typed is wrong. Try again or Ctrl-Z to exit.', 'red')
@@ -477,7 +477,7 @@ class Commands {
     //   }
     // ]
     // return inquirer.prompt(questions)
-    //     .then(p => psswrd.login(p.password))
+    //     .then(p => secrez.login(p.password))
     //     .catch(err => {
     //       red('The password you typed is wrong. Try again or Ctrl-C to exit.')
     //       return this.login()
@@ -515,7 +515,7 @@ class Commands {
         })
         .then(() => {
           if (password === self.options.answer) {
-            return psswrd.signup(password)
+            return secrez.signup(password)
           } else {
             shell.log('The two passwords do not match. Try again or Ctrl-Z to exit.', 'red')
             return this.signup()
@@ -551,7 +551,7 @@ class Commands {
     // return inquirer.prompt(questions)
     //     .then(p => {
     //       if (p.password === p.retype) {
-    //         return psswrd.signup(p.password)
+    //         return secrez.signup(p.password)
     //       } else {
     //         red('The two passwords do not match. Try again')
     //         return this.signup()

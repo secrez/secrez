@@ -10,7 +10,6 @@ function rRequire(m) {
 }
 
 const Crypto = rRequire('./lib/utils/Crypto')
-const {SYNC} = rRequire('./lib/config/constants')
 
 describe('Crypto', function () {
 
