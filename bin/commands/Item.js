@@ -3,8 +3,8 @@
 const _ = require('lodash')
 const chalk = require('chalk')
 const inquirer = require('inquirer')
-const Secret = require('../models/Secret')
-const {SYNC} = require('../config/constants')
+const Secret = require('../../lib/models/Secret')
+const {SYNC} = require('../../lib/config/constants')
 
 class Item extends require('./Section') {
 
@@ -41,6 +41,8 @@ class Item extends require('./Section') {
 
   add() {
 
+    let cancel = 0
+
     return inquirer
         .prompt([
           {
@@ -51,17 +53,22 @@ class Item extends require('./Section') {
               if (_.trim(value).length) {
                 return true;
               } else {
-                return 'Please enter the name.';
+                if (++cancel > 1) return true
+                return 'Please enter the name, or press ENTER again to cancel';
               }
             }
           },
         ])
         .then(p => {
-          this.currentSecret = {
-            name: _.trim(p.name),
-            content: {}
+          if (cancel > 1) {
+            return Promise.resolve()
+          } else {
+            this.currentSecret = {
+              name: _.trim(p.name),
+              content: {}
+            }
+            return this.menu()
           }
-          return this.menu()
         })
   }
 
@@ -78,7 +85,7 @@ class Item extends require('./Section') {
 
     return this.secrez.setSecret(this.currentSecret)
         .then(() => {
-          this.print('green','The secret has been saved.')
+          this.print('green', 'The secret has been saved.')
           return Promise.resolve()
         })
   }

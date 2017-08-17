@@ -50,12 +50,12 @@ describe('Crypto', function () {
         })
   })
 
-  it('should return a sha3 of a string', () => {
-    return Crypto.toSHA3(plainStr, 'hex')
-        .then(hash3 => {
-          assert(hash3 === hashStr3)
-        })
-  })
+  // it('should return a sha3 of a string', () => {
+  //   return Crypto.toSHA3(plainStr, 'hex')
+  //       .then(hash3 => {
+  //         assert(hash3 === hashStr3)
+  //       })
+  // })
 
   it('should encode a string to AES 256', () => {
     return Crypto.toAES(plainStr, password)

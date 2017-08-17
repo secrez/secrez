@@ -1,10 +1,11 @@
 /* globals Promise */
 
+
 const _ = require('lodash')
 const chalk = require('chalk')
 
 const pkg = require('../../package')
-const Secrez = require('../Secrez')
+const Secrez = require('../../lib/Secrez')
 const Welcome = require('./Welcome')
 const Home = require('./Home')
 
@@ -12,12 +13,6 @@ class Commands {
 
   constructor() {
     let datadir
-    const p = process.argv
-    for (let i=0;i<p.length;i++) {
-      if (i && (p[i-1] === '--datadir')) {
-        datadir = p[i]
-      }
-    }
     this.secrez = new Secrez(datadir)
   }
 

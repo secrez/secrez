@@ -7,7 +7,7 @@ const inquirer = require('inquirer')
 const InquirerCommandPrompt = require('inquirer-command-prompt')
 inquirer.registerPrompt('command', InquirerCommandPrompt)
 
-const constants = require('../config/constants')
+const constants = require('../../lib/config/constants')
 
 class Section {
 

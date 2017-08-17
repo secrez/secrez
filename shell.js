@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const p = process.argv
 for (let i=0;i<p.length;i++) {
   if (i && (p[i-1] === '--datadir')) {
@@ -7,4 +5,4 @@ for (let i=0;i<p.length;i++) {
   }
 }
 
-require('./commands').start()
+require('./bin/commands').start()
