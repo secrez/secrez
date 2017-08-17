@@ -8,7 +8,7 @@
     "build": "npm run clean && babel src --out-dir build",
     "update": "npm version patch && npm publish",
     "test": "rm -rf tmp && mkdir tmp && export NODE_ENV=test && istanbul cover ./node_modules/.bin/_mocha test/unit/**/*.js test/unit/*.js",
-    "posttest": "istanbul check-coverage --statements 75 --branches 60 --functions 75 --lines 75"
+    "posttest": "istanbul check-coverage --statements 80 --branches 60 --functions 70 --lines 80"
   },
   "dependencies": {
     "bluebird": "^3.5.0",

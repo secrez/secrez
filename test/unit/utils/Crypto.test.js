@@ -9,7 +9,7 @@ function rRequire(m) {
   return require(path.resolve(process.cwd(), m))
 }
 
-const Crypto = rRequire('./lib/utils/Crypto')
+const Crypto = rRequire('./src/utils/Crypto')
 
 describe('Crypto', function () {
 

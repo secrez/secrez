@@ -8,11 +8,11 @@ function rRequire (m) {
   return require(path.resolve(process.cwd(), m))
 }
 
-const fs = rRequire('./lib/utils/fs')
-const { SYNC } = rRequire('./lib/config/constants')
-const Manifest = rRequire('./lib/models/Manifest')
-const Db = rRequire('./lib/utils/Db')
-const Crypto = rRequire('./lib/utils/Crypto')
+const fs = rRequire('./src/utils/fs')
+const { SYNC } = rRequire('./src/config/constants')
+const Manifest = rRequire('./src/models/Manifest')
+const Db = rRequire('./src/utils/Db')
+const Crypto = rRequire('./src/utils/Crypto')
 
 describe('Manifest', function () {
 
