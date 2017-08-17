@@ -5,13 +5,12 @@ const _ = require('lodash')
 const chalk = require('chalk')
 
 const pkg = require('../../package')
-const Secrez = require('../../lib/Secrez')
 const Welcome = require('./Welcome')
 const Home = require('./Home')
 
-class Commands {
+class Shell {
 
-  constructor() {
+  constructor(Secrez) {
     let datadir
     this.secrez = new Secrez(datadir)
   }
@@ -30,4 +29,4 @@ class Commands {
 
 }
 
-module.exports = new Commands
+module.exports = Shell

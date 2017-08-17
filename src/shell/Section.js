@@ -7,8 +7,6 @@ const inquirer = require('inquirer')
 const InquirerCommandPrompt = require('inquirer-command-prompt')
 inquirer.registerPrompt('command', InquirerCommandPrompt)
 
-const constants = require('../../lib/config/constants')
-
 class Section {
 
   constructor(secrez) {
@@ -22,8 +20,12 @@ class Section {
     this.availableCommands = _.defaults({}, this.defaultCommands)
     this.ifTabsAndNoSuggestions = '?'
     this.basePrompt = '>'
-    this.context = -1
-    this.contexts = constants.contexts
+    this.contexts = {
+      DEF: -1,
+      HOME: 0,
+      ITEM: 1
+    }
+    this.context = this.contexts.DEF
     this.commandBlacklist = []
   }
 

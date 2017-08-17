@@ -5,8 +5,8 @@
 const path = require('path')
 const assert = require('assert')
 
-const fs = require('../../../lib/utils/fs')
-const Db = require('../../../lib/utils/Db')
+const fs = require('../../../src/utils/fs')
+const Db = require('../../../src/utils/Db')
 const db = new Db
 
 describe('Db', function () {

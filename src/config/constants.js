@@ -24,15 +24,10 @@ const constants = {
     MASTERKEY:'MSTRKY'
   },
 
-  SYNC: 1,
-  ASYNC: 2,
+  SYNC: 'sync',
+  ASYNC: 'async',
 
-  DEFSALT: '0xPSSWRD',
-
-  contexts: {
-    HOME: 0,
-    ITEM: 1
-  }
+  DEFSALT: '0xPSSWRD'
 }
 
 module.exports = constants

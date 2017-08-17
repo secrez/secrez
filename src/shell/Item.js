@@ -3,8 +3,7 @@
 const _ = require('lodash')
 const chalk = require('chalk')
 const inquirer = require('inquirer')
-const Secret = require('../../lib/models/Secret')
-const {SYNC} = require('../../lib/config/constants')
+const contentFields = require('../Secrez').defaultSecretContentFields()
 
 class Item extends require('./Section') {
 
@@ -31,7 +30,7 @@ class Item extends require('./Section') {
       }
     }, this.defaultCommands)
 
-    for (let f of _.values(Secret.contentFields())) {
+    for (let f of _.values(contentFields)) {
       this.availableCommands.set.subCommands.push('set ' + f)
       this.availableCommands.delete.subCommands.push('delete ' + f)
     }
@@ -107,8 +106,6 @@ class Item extends require('./Section') {
 
   set (param) {
 
-    const fields = Secret.contentFields()
-
     if (!param) {
       this.error('You should specify what to set. Press tab to autocomplete')
       return this.menu()
@@ -118,11 +115,6 @@ class Item extends require('./Section') {
         return this.menu()
       }
     }
-    // Selse if (param.split(' ')[0] === '?') {
-    //
-    //   this.printList(_.values(fields))
-    //   return this.menu()
-    // }
 
     let currentValue = this.currentSecret.content[param]
     if (currentValue) {

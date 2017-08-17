@@ -2,4 +2,4 @@
 // (c) 2017 Francesco Sullo
 // francesco@sullo.co
 
-module.exports = require('./lib/Secrez')
+module.exports = require('./build/Secrez')

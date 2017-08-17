@@ -7,4 +7,4 @@ for (let i=0;i<p.length;i++) {
   }
 }
 
-require('./commands').start()
+require('../build/shell')

@@ -3,6 +3,7 @@ const pkg = require('../package')
 const fs = require('./utils/fs')
 const Crypto = require('./utils/Crypto')
 const Manifest = require('./models/Manifest')
+const Secret = require('./models/Secret')
 const Db = require('./utils/Db')
 const {status, errors, keys, SYNC, DEFSALT} = require('./config/constants')
 const {CONSTRUCTED, INITIATED, READY, OPERATIVE} = status
@@ -28,9 +29,11 @@ class Secrez {
   constructor(datadir) {
 
     this.db = new Db
-    this.datadir = process.env.NODE_ENV === 'test'
-        ? path.resolve(__dirname, '../tmp/.secrez')
-        : datadir || process.env.DATADIR || path.join(process.env.HOME, '.secrez')
+    this.datadir = path.join(
+        process.env.NODE_ENV === 'test'
+            ? path.resolve(__dirname, '../tmp')
+            : datadir || process.env.DATADIR || process.env.HOME
+        , '.secrez')
     this.db.init(path.join(this.datadir, 'database'), SYNC)
     this.set(CONSTRUCTED)
 
@@ -175,6 +178,10 @@ Be careful and don't touch anything!
 
   isOperative() {
     return this.is(OPERATIVE)
+  }
+
+  static defaultSecretContentFields() {
+    return Secret.contentFields()
   }
 }
 
