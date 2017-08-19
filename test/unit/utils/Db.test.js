@@ -21,7 +21,7 @@ describe('Db', function () {
 
   it('should start the db', () => {
     db.init(dbDir)
-    assert(fs.existsDir(dbDir))
+    assert(fs.existsSync(dbDir))
     return Promise.resolve()
   })
 

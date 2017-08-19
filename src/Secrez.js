@@ -14,16 +14,22 @@ class Secrez {
 
     this.db = new Db
     this.datadir = path.join(datadir || process.env.DATADIR || process.env.HOME, '.secrez')
+    if (!/^\//.test(this.datadir)) {
+      this.datadir = path.resolve(__dirname, '..', this.datadir)
+    }
+    if (!fs.existsSync(this.datadir)) {
+      fs.ensureDirSync(this.datadir)
+      fs.chmodSync(this.datadir, 0o700)
+    }
     this.db.init(path.join(this.datadir, 'database'))
     this.set(CONSTRUCTED)
   }
 
   init() {
 
-    // console.log('init this.status', this.status)
     if (this.status === CONSTRUCTED) {
+
       return Promise.resolve()
-          .then(() => fs.ensureDirAsync(this.datadir))
           .then(() => {
             const readmePath = path.join(this.datadir, 'README')
             if (!fs.existsSync(readmePath)) {

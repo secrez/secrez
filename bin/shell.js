@@ -8,7 +8,4 @@ for (let i=0;i<p.length;i++) {
   }
 }
 
-const Secrez = require('../src/Secrez')
-const Shell = require('../src/shell/Shell')
-
-new Shell(Secrez).start()
+require('../src/shell')
