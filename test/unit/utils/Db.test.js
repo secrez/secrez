@@ -20,22 +20,21 @@ describe('Db', function () {
   })
 
   it('should start the db', () => {
-    return db.init(dbDir)
-        .then(() => assert(fs.existsDir(dbDir)))
+    db.init(dbDir)
+    assert(fs.existsDir(dbDir))
+    return Promise.resolve()
   })
 
   it('should return a new id', () => {
-
-    return db.newId()
-        .then(newId => {
-          return Promise.resolve(assert(id = newId))
-        })
+    assert(id = db.newId())
+    return Promise.resolve()
   })
 
   it('should save some data', () => {
     return db.put(id, someEncryptedData)
         .then(() => {
           assert(fs.existsSync(path.join(dbDir, id)))
+          return Promise.resolve()
         })
   })
 
@@ -43,6 +42,7 @@ describe('Db', function () {
     return db.get(id)
         .then(data => {
           assert(data === someEncryptedData)
+          return Promise.resolve()
         })
   })
 })

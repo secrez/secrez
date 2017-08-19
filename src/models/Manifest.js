@@ -2,7 +2,7 @@ const _ = require('lodash')
 const Crypto = require('../utils/Crypto')
 const Secret = require('./Secret')
 // const minimatch = require('minimatch')
-const {errors, keys, SYNC, ASYNC} = require('../config/constants')
+const {errors, keys} = require('../config/constants')
 
 class Manifest {
 
@@ -21,7 +21,7 @@ class Manifest {
     return this.db.get(keys.MANIFEST)
         .then(encryptedManifest => {
           if (encryptedManifest) {
-            return Crypto.fromAES(encryptedManifest, masterKey)
+            return Promise.resolve(Crypto.fromAES(encryptedManifest, masterKey))
           } else {
             return this.save()
           }
@@ -54,7 +54,7 @@ class Manifest {
     if (Array.isArray(json.s)) {
       for (let s of json.s) {
         this.secrets[s.i] = new Secret(this.db)
-        this.secrets[s.i].init(s, SYNC)
+        this.secrets[s.i].init(s)
       }
     }
   }
@@ -74,7 +74,7 @@ class Manifest {
 
   save() {
     const data = this.toJSON(true)
-    return Crypto.toAES(data, this.masterKey)
+    return Promise.resolve(Crypto.toAES(data, this.masterKey))
         .then(encryptedManifest => {
           return this.db.put(keys.MANIFEST, encryptedManifest)
         })
@@ -102,7 +102,7 @@ class Manifest {
       secret.update(options)
     } else {
       secret = new Secret(this.db)
-      secret.init(options, SYNC)
+      secret.init(options)
     }
     this.secrets[secret.id] = secret
     let promises = []
@@ -113,7 +113,7 @@ class Manifest {
     return Promise.all(promises)
   }
 
-  ls(filter, mode = ASYNC) {
+  ls(filter) {
     let list = {}
     // if (filter) {
     //   filter = '*' + filter.toLowerCase() + '*'
@@ -124,11 +124,7 @@ class Manifest {
         list[id] = _.pick(secret, ['name', 'createdAt', 'updatedAt'])
       }
     }
-    if (mode === SYNC) {
-      return list
-    } else {
-      return Promise.resolve(list)
-    }
+    return list
   }
 
 }

@@ -1,17 +1,15 @@
 const path = require('path')
 const fs = require('./fs')
 const Crypto = require('./Crypto')
-const {keys, SYNC, ASYNC} = require('../config/constants')
 
 class Db {
 
-  init(dir, mode = ASYNC) {
+  init(dir) {
     this.dir = dir
-    if (mode === SYNC) {
-      fs.ensureDirSync(dir)
-    } else {
-      return fs.ensureDirAsync(dir)
-    }
+
+    // console.log('dir in db >>>', dir, '<<<')
+
+    fs.ensureDirSync(dir)
   }
 
   file(key) {
@@ -39,15 +37,11 @@ class Db {
     return /^[a-zA-Z0-9\$\+]{6}$/.test('' + id)
   }
 
-  newId(mode = ASYNC) {
+  newId() {
     while (true) {
-      let id = Crypto.getRandomString(6, 'base64', SYNC).replace(/\/|\+/g, '0').toUpperCase().substring(0, 6)
+      let id = Crypto.getRandomString(6, 'base64').replace(/\/|\+/g, '0').toUpperCase().substring(0, 6)
       if (Db.isValidId(id) && !fs.existsSync(this.get(id))) {
-        if (mode === SYNC) {
-          return id
-        } else {
-          return Promise.resolve(id)
-        }
+        return id
       }
     }
   }

@@ -1,7 +1,6 @@
 const _ = require('lodash')
 const path = require('path')
 const Crypto = require('../utils/Crypto')
-const {SYNC, ASYNC} = require('../config/constants')
 
 class Secret {
 
@@ -9,17 +8,13 @@ class Secret {
     this.db = db
   }
 
-  init(options, mode = ASYNC) {
+  init(options) {
 
     if (options.i) {
-      if (mode === SYNC) {
-        this.fromJSON(options)
-      } else {
-        return Promise.resolve(this.fromJSON(options))
-      }
+      this.fromJSON(options)
     } else {
-      this.key = Crypto.getRandomString(32, null, SYNC)
-      this.salt = Crypto.getRandomString(12, null, SYNC)
+      this.key = Crypto.getRandomString(32)
+      this.salt = Crypto.getRandomString(12)
       this.name = options.name
       this.tags = options.tags
       this.createdAt = Crypto.timestamp()
@@ -27,24 +22,17 @@ class Secret {
       this.version = 0
       this.content = options.content
       this.modified = true
-      if (mode === SYNC) {
-        this.id = this.db.newId(SYNC)
-      } else {
-        return this.db.newId()
-            .then(id => {
-              return Promise.resolve(this.id = id)
-            })
-      }
+      this.id = this.db.newId()
     }
   }
 
   load() {
-    return this.getVersionedFilename()
+    return Promise.resolve(this.getVersionedFilename())
         .then(key => this.db.get(key))
         .then(data => {
           if (data) {
-            return this.getKey()
-                .then(key => Crypto.fromAES(data, key))
+            return Promise.resolve(this.getKey())
+                .then(key => Promise.resolve(Crypto.fromAES(data, key)))
                 .then(content => {
                   this.fromContentJSON(content)
                   return Promise.resolve(true)
@@ -61,8 +49,8 @@ class Secret {
     }
     this.id = json.i
     this.name = json.n
-    this.key = Crypto.fromBase64(json.k, SYNC)
-    this.salt = Crypto.fromBase64(json.s, SYNC)
+    this.key = Crypto.fromBase64(json.k)
+    this.salt = Crypto.fromBase64(json.s)
     this.tags = json.t
     this.version = json.v
     this.createdAt = json.c
@@ -80,8 +68,8 @@ class Secret {
     const secret = {
       i: this.id,
       n: this.name,
-      k: Crypto.toBase64(this.key, SYNC),
-      s: Crypto.toBase64(this.salt, SYNC),
+      k: Crypto.toBase64(this.key),
+      s: Crypto.toBase64(this.salt),
       v: this.version,
       c: this.createdAt,
       u: this.updatedAt
@@ -140,7 +128,7 @@ class Secret {
     // This saves only the content. The primary part is saved in the Manifest
     // console.info('TRACE: Secret.save', this)
     const content = JSON.stringify(this.contentToJSON())
-    return this.getKey()
+    return Promise.resolve(this.getKey())
         .then(derivedKey => {
           return Promise.all([
             this.getVersionedFilename(),
@@ -158,27 +146,19 @@ class Secret {
   }
 
   getDerivedKey() {
-    return Crypto.deriveKey(this.key, this.salt, this.version + 1, 32, SYNC)
+    return Crypto.toSHA3(Crypto.deriveKey(this.key, this.salt, this.version + 1, 32), null)
   }
 
-  getKey(mode = ASYNC) {
+  getKey() {
     const loopedHash = this.getDerivedKey()
-    const key = Crypto.toSHA256(loopedHash, this.salt, null, SYNC)
-    if (mode === SYNC) {
-      return key
-    } else {
-      return Promise.resolve(key)
-    }
+    const key = Crypto.toSHA3(loopedHash, this.salt, null)
+    return key
   }
 
-  getVersionedFilename(mode = ASYNC) {
-    const loopedHash = this.getDerivedKey()
-    const filename = path.join(this.id, Crypto.toSHA256(loopedHash, this.salt, 'base64', SYNC).replace(/\//g, '$').substring(0, 12))
-    if (mode === SYNC) {
-      return filename
-    } else {
-      return Promise.resolve(filename)
-    }
+  getVersionedFilename() {
+    const loopedHash = Crypto.toSHA3(this.getDerivedKey(), this.salt, 'base64')
+    const filename = path.join(this.id, Crypto.toSHA3(loopedHash, this.salt, 'base64').replace(/\//g, '$').substring(0, 12))
+    return filename
   }
 
   rename(name) {

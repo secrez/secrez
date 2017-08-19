@@ -5,15 +5,16 @@
 const path = require('path')
 const assert = require('assert')
 
-function rRequire (m) {
+function rRequire(m) {
   return require(path.resolve(process.cwd(), m))
 }
 
 const fs = rRequire('./src/utils/fs')
 const Crypto = rRequire('./src/utils/Crypto')
-const {status, keys} = rRequire('./src/config/constants')
+const {status, keys, errors} = rRequire('./src/config/constants')
 const Manifest = rRequire('./src/models/Manifest')
 const Secrez = rRequire('./src/Secrez')
+const Secret = rRequire('./src/models/Secret')
 
 describe('Secrez', function () {
 
@@ -38,22 +39,59 @@ describe('Secrez', function () {
     return fs.emptyDirAsync(datadir)
   })
 
-  it('should construct the instance', () => {
-    return Promise.resolve(new Secrez(datadir))
-        .then(s => {
-          assert(s.db)
-          assert(/\.secrez/.test(s.datadir))
-          assert(s.db.dir === path.join(s.datadir, 'database'))
-          assert(s.status === status.CONSTRUCTED)
-          secrez = s
+  it('should construct the instance if process.env.DATADIR', () => {
+    process.env.DATADIR = datadir
+    const s = new Secrez()
+    assert(s.status === status.CONSTRUCTED)
+    delete process.env.DATADIR
+  })
+
+  it('should construct the instance if process.env.HOME', () => {
+    const home = process.env.HOME
+    process.env.HOME = datadir
+    const s = new Secrez()
+    assert(s.status === status.CONSTRUCTED)
+    process.env.HOME = home
+  })
+
+  it('should throw an error if trying to signup a not initialized secrez', () => {
+    const s = new Secrez(datadir)
+    return s.signup(password)
+        .catch(err => {
+          assert(err === errors.NotInitialized)
         })
+  })
+
+  it('should throw an error if trying to login a not initialized secrez', () => {
+    const s = new Secrez(datadir)
+    return s.login(password)
+        .catch(err => {
+          assert(err === errors.NotReady)
+        })
+  })
+
+
+  it('should construct the instance passing datadir', () => {
+    const s = new Secrez(datadir)
+    assert(s.db)
+    assert(/\.secrez/.test(s.datadir))
+    assert(s.db.dir === path.join(s.datadir, 'database'))
+    assert(s.status === status.CONSTRUCTED)
+    secrez = s
   })
 
   it('should initialize the store', () => {
     return secrez.init()
         .then(() => {
           assert(secrez.manifest instanceof Manifest)
-          assert(secrez.status === status.INITIATED)
+          assert(secrez.isInitiated())
+        })
+  })
+
+  it('should proceed if the store if initiated', () => {
+    return secrez.init()
+        .then(() => {
+          assert(secrez.manifest instanceof Manifest)
         })
   })
 
@@ -72,13 +110,29 @@ describe('Secrez', function () {
         })
         .then(encryptedMasterKey => {
           assert(encryptedMasterKey)
+          assert(secrez.isOperative())
         })
   })
+
+  it('should not init if the status is ready', () => {
+    return secrez.init()
+        .then(result => {
+          assert(result === false)
+        })
+  })
+
 
   it('should logout', () => {
     return secrez.logout()
         .then(() => {
-          assert(secrez.is(status.READY))
+          assert(secrez.isReady())
+        })
+  })
+
+  it('should throw an error trying to logout after logout', () => {
+    return secrez.logout()
+        .catch(err => {
+          assert(err === errors.NotOperative)
         })
   })
 
@@ -94,6 +148,21 @@ describe('Secrez', function () {
         .then(() => {
           assert(secrez.manifest.toJSON().s[0].n === secretOptions.name)
           secretId = secrez.manifest.toJSON().s[0].i
+          return secrez.getSecret(secretId)
+        })
+        .then(secret => {
+          assert(secret.name === secretOptions.name)
+          return secrez.getSecret('someInvalidId')
+        })
+        .catch(err => {
+          assert(err === errors.InvalidID)
+        })
+  })
+
+  it('should return a secret list', () => {
+    return secrez.ls()
+        .then(list => {
+          assert(list[secretId].name === secretOptions.name)
         })
   })
 
@@ -103,6 +172,16 @@ describe('Secrez', function () {
         .then(() => {
           assert(secrez.manifest.secrets[secretId])
         })
+  })
+
+  it('should empty onClose', () => {
+    secrez.onClose()
+    assert(secrez.manifest === undefined)
+    assert(secrez.db === undefined)
+  })
+
+  it('should return default Secret Content Fields', () => {
+    assert(Secrez.defaultSecretContentFields().length === Secret.contentFields().length)
   })
 
 

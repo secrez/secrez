@@ -8,7 +8,8 @@ const constants = {
     NotReady: 'Not ready.',
     SecretNotFound: 'Secret not found.',
     WrongId: 'The id is wrong.',
-    InvalidID: 'Invalid id.'
+    InvalidID: 'Invalid id.',
+    NotOperative: 'Not operative'
   },
 
   status: {
@@ -23,9 +24,6 @@ const constants = {
     MANIFEST: 'MNIFST',
     MASTERKEY:'MSTRKY'
   },
-
-  SYNC: 'sync',
-  ASYNC: 'async',
 
   DEFSALT: '0xPSSWRD'
 }

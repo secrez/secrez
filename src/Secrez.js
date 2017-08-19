@@ -5,44 +5,23 @@ const Crypto = require('./utils/Crypto')
 const Manifest = require('./models/Manifest')
 const Secret = require('./models/Secret')
 const Db = require('./utils/Db')
-const {status, errors, keys, SYNC, DEFSALT} = require('./config/constants')
+const {status, errors, keys, DEFSALT} = require('./config/constants')
 const {CONSTRUCTED, INITIATED, READY, OPERATIVE} = status
-
-// private methods
-
-function getEncryptedMasterKey() {
-
-  return this.db.get(keys.MASTERKEY)
-      .then(key => {
-        if (key) {
-          this.encryptedMasterKey = key
-          this.set(READY)
-        }
-        return Promise.resolve()
-      })
-}
-
-// public class
 
 class Secrez {
 
   constructor(datadir) {
 
     this.db = new Db
-    this.datadir = path.join(
-        process.env.NODE_ENV === 'test'
-            ? path.resolve(__dirname, '../tmp')
-            : datadir || process.env.DATADIR || process.env.HOME
-        , '.secrez')
-    this.db.init(path.join(this.datadir, 'database'), SYNC)
+    this.datadir = path.join(datadir || process.env.DATADIR || process.env.HOME, '.secrez')
+    this.db.init(path.join(this.datadir, 'database'))
     this.set(CONSTRUCTED)
-
-    getEncryptedMasterKey = getEncryptedMasterKey.bind(this)
   }
 
   init() {
-    if (this.status === CONSTRUCTED && !this.initializingNow) {
-      this.initializingNow = true
+
+    // console.log('init this.status', this.status)
+    if (this.status === CONSTRUCTED) {
       return Promise.resolve()
           .then(() => fs.ensureDirAsync(this.datadir))
           .then(() => {
@@ -62,33 +41,44 @@ Be careful and don't touch anything!
           .then(() => {
             this.manifest = new Manifest(this.db)
             this.set(INITIATED)
-            delete this.initializingNow
-            return getEncryptedMasterKey()
+            return this.getEncryptedMasterKey()
           })
-          .catch(err => delete this.initializingNow)
+          // .catch(err => console.error(err.stack))
     } else if (this.status === INITIATED) {
-      return getEncryptedMasterKey()
+      return this.getEncryptedMasterKey()
     } else {
-      return Promise.resolve()
+      return Promise.resolve(false)
     }
   }
 
-  gitInit(remoteRepo) {
-    // TODO
-    // associate the store to a remote repo
-    return Promise.resolve()
-        .then(() => {
+  getEncryptedMasterKey() {
 
-          if (fs.existsSync(path.join(this.datadir, '.git'))) {
-            // repo exists
-            return Promise.reject(errors.RepoExists)
-          } else {
-            // associate the remoteRepo
-
-            return Promise.resolve()
+    return this.db.get(keys.MASTERKEY)
+        .then(key => {
+          if (key) {
+            this.encryptedMasterKey = key
+            this.set(READY)
           }
+          return Promise.resolve()
         })
   }
+
+  // gitInit(remoteRepo) {
+  //   // TODO
+  //   // associate the store to a remote repo
+  //   return Promise.resolve()
+  //       .then(() => {
+  //
+  //         if (fs.existsSync(path.join(this.datadir, '.git'))) {
+  //           // repo exists
+  //           return Promise.reject(errors.RepoExists)
+  //         } else {
+  //           // associate the remoteRepo
+  //
+  //           return Promise.resolve()
+  //         }
+  //       })
+  // }
 
   set (status) {
     this.status = status
@@ -99,14 +89,14 @@ Be careful and don't touch anything!
   }
 
   signup(password) {
-    if (this.is(INITIATED)) {
+    if (this.isInitiated()) {
       let masterKey
-      return Crypto.getRandomString(64)
+      return Promise.resolve(Crypto.getRandomString(64))
           .then(randomString => {
             masterKey = randomString
-            return this.hashPassword(password)
+            return Promise.resolve(this.hashPassword(password))
           })
-          .then(hashedPassword => Crypto.toAES(masterKey, hashedPassword))
+          .then(hashedPassword => Promise.resolve(Crypto.toAES(masterKey, hashedPassword)))
           .then(encryptedMasterKey => {
             this.encryptedMasterKey = encryptedMasterKey
             return this.db.put(keys.MASTERKEY, encryptedMasterKey)
@@ -119,9 +109,9 @@ Be careful and don't touch anything!
   }
 
   login(password) {
-    if (this.is(READY)) {
-      return this.hashPassword(password)
-          .then(hashedPassword => Crypto.fromAES(this.encryptedMasterKey, hashedPassword))
+    if (this.isReady()) {
+      return Promise.resolve(this.hashPassword(password))
+          .then(hashedPassword => Promise.resolve(Crypto.fromAES(this.encryptedMasterKey, hashedPassword)))
           .then(key => {
             this.manifest = new Manifest(this.db)
             return this.manifest.init(key)
@@ -133,21 +123,25 @@ Be careful and don't touch anything!
   }
 
   logout() {
-    if (this.is(OPERATIVE)) {
+    if (this.isOperative()) {
       delete this.manifest
       this.set(CONSTRUCTED)
       return this.init()
+          .then(() => {
+            // console.log('logout this.status', this.status)
+            return Promise.resolve()
+          })
     } else {
-      return Promise.resolve()
+      return Promise.resolve(errors.NotOperative)
     }
   }
 
   hashPassword(password) {
-    return Crypto.deriveKey(password, DEFSALT)
+    return Promise.resolve(Crypto.deriveKey(password, DEFSALT))
   }
 
   ls(params) {
-    return this.manifest.ls(params)
+    return Promise.resolve(this.manifest.ls(params))
   }
 
   setSecret(options) {

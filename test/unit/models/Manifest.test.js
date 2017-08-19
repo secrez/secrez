@@ -9,7 +9,6 @@ function rRequire (m) {
 }
 
 const fs = rRequire('./src/utils/fs')
-const { SYNC } = rRequire('./src/config/constants')
 const Manifest = rRequire('./src/models/Manifest')
 const Db = rRequire('./src/utils/Db')
 const Crypto = rRequire('./src/utils/Crypto')
@@ -19,7 +18,7 @@ describe('Manifest', function () {
   let dbDir = path.resolve(__dirname, '../../../tmp/.manifest')
   let db = new Db
   let manifest = new Manifest(db)
-  let masterKey = Crypto.getRandomString(64, null, SYNC)
+  let masterKey = Crypto.getRandomString(64)
   let secretId
 
   let secretOptions = {
@@ -31,7 +30,7 @@ describe('Manifest', function () {
   }
 
   before(function () {
-    db.init(dbDir, SYNC)
+    db.init(dbDir)
   })
 
   after(function () {
@@ -43,6 +42,7 @@ describe('Manifest', function () {
     return manifest.init(masterKey)
         .then(() => {
           assert(manifest.updatedAt > Crypto.timestamp() - 1)
+          return Promise.resolve()
         })
   })
 
@@ -52,6 +52,7 @@ describe('Manifest', function () {
         .then(() => {
           assert(manifest.toJSON().s[0].n === secretOptions.name)
           secretId = manifest.toJSON().s[0].i
+          return Promise.resolve()
         })
   })
 
@@ -62,6 +63,7 @@ describe('Manifest', function () {
           for (let id in manifest.secrets) {
             assert(id === secretId)
           }
+          return Promise.resolve()
         })
 
   })

@@ -5,12 +5,12 @@
 const _ = require('lodash')
 const path = require('path')
 const assert = require('assert')
-function rRequire (m) {
+
+function rRequire(m) {
   return require(path.resolve(process.cwd(), m))
 }
 
 const fs = rRequire('./src/utils/fs')
-const { SYNC } = rRequire('./src/config/constants')
 const Secret = rRequire('./src/models/Secret')
 const Db = rRequire('./src/utils/Db')
 const Crypto = rRequire('./src/utils/Crypto')
@@ -30,7 +30,7 @@ describe('Secret', function () {
   let secret
 
   before(function () {
-    db.init(dbDir, SYNC)
+    db.init(dbDir)
   })
 
   after(function () {
@@ -39,32 +39,30 @@ describe('Secret', function () {
 
   it('should construct a Secret instance', () => {
     secret = new Secret(db)
-    return secret.init(options)
-        .then(() => {
-          assert(_.isEqual(secret.content, options.content))
-          assert(secret.id)
-          assert(secret.key)
-          assert(secret.salt)
-        })
+    secret.init(options)
+    assert(_.isEqual(secret.content, options.content))
+    assert(secret.id)
+    assert(secret.key)
+    assert(secret.salt)
+    return Promise.resolve()
   })
 
   it('should instantiate an existent secret', () => {
     const json = {
       n: options.name,
       i: secret.id,
-      k: Crypto.toBase64(secret.key, SYNC),
-      s: Crypto.toBase64(secret.salt, SYNC),
+      k: Crypto.toBase64(secret.key),
+      s: Crypto.toBase64(secret.salt),
       c: Crypto.timestamp(),
       v: secret.version
     }
 
     secret = new Secret(db)
-    return secret.init(json)
-        .then(() => {
-          assert(secret.id === json.i)
-          assert(Crypto.toBase64(secret.key, SYNC) === json.k)
-          assert(Crypto.toBase64(secret.salt, SYNC) === json.s)
-        })
+    secret.init(json)
+    assert(secret.id === json.i)
+    assert(Crypto.toBase64(secret.key) === json.k)
+    assert(Crypto.toBase64(secret.salt) === json.s)
+    return Promise.resolve()
   })
 
 
@@ -72,13 +70,15 @@ describe('Secret', function () {
     return Promise.resolve(secret.update(options))
         .then(() => {
           assert(secret.version === 1)
+          return Promise.resolve()
         })
   })
 
   it('should save the secret content', () => {
     return secret.save()
         .then(s => {
-          assert(fs.existsSync(path.join(dbDir, secret.getVersionedFilename(SYNC))))
+          assert(fs.existsSync(path.join(dbDir, secret.getVersionedFilename())))
+          return Promise.resolve()
         })
   })
 
@@ -87,6 +87,7 @@ describe('Secret', function () {
     return secret.load()
         .then(s => {
           assert(secret.content.email === options.content.email)
+          return Promise.resolve()
         })
   })
 
@@ -103,6 +104,7 @@ describe('Secret', function () {
         })
         .then(() => {
           assert(_.isEqual(secret.content, options.content))
+          return Promise.resolve()
         })
   })
 
@@ -110,9 +112,8 @@ describe('Secret', function () {
   it('should empty the secret onClose', () => {
     secret.onClose()
     assert(secret.id === undefined)
+    return Promise.resolve()
   })
-
-
 
 
 })
