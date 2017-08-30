@@ -15,8 +15,7 @@ describe('Crypto', function () {
 
   let plainStr = 'sometimes it rains'
   let base64Str = 'c29tZXRpbWVzIGl0IHJhaW5z'
-  let salt = 'a bit of salt'
-  let hashStr3 = 'bac951c96d4b7dfa3c2b12c135718498fe8211487f72b8d3b968b634319ba74f52b87e7d00176dd430acabff55f5d8f999c195487c7916e3fb32bd6edb5a70d7'
+  let hashStr3 = 'wrrDiVHDiW1LfcO6PCsSw4E1ccKEwpjDvsKCEUh/csK4w5PCuWjCtjQxwpvCp09Swrh+fQAXbcOUMMKswqvDv1XDtcOYw7nCmcOBwpVIfHkWw6PDuzLCvW7Dm1pww5c='
   let password = 'a very yellow trip on a ferryboat in alaska'
   let encryptedStr = 'hEkTA4f7BMFpkWXcCcBdDS4jE8PqaFpwog6mhQZF8FU='
 
@@ -30,7 +29,7 @@ describe('Crypto', function () {
   })
 
   it('should return a sha3 of a string', () => {
-    assert(Crypto.toSHA3(plainStr, 'hex') === hashStr3)
+    assert(Crypto.SHA3(plainStr, 'base64') === hashStr3)
   })
 
   it('should encode a string to AES 256', () => {

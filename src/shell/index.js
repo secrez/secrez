@@ -23,6 +23,9 @@ class Shell {
     return this.secrez.init()
         .then(() => new Welcome(this.secrez).start(this.home))
         .then(() => new Home(this.secrez).menu())
+        .catch(err => {
+          console.log(err)
+        })
 
   }
 

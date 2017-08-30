@@ -18,6 +18,7 @@ class Db {
 
   get (key) {
     const file = this.file(key)
+    // console.log('file', file)
     if (fs.existsSync(file)) {
       return fs.readFileAsync(file, 'utf-8')
     } else {

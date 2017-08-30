@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
@@ -30,6 +30,7 @@
     "sha3": "^1.2.0",
     "simple-git": "^1.40.0",
     "touch": "^1.0.0",
+    "ursa": "^0.9.4",
     "uuid": "^2.0.3"
   },
   "devDependencies": {

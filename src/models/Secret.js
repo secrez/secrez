@@ -146,19 +146,15 @@ class Secret {
   }
 
   getDerivedKey() {
-    return Crypto.toSHA3(Crypto.deriveKey(this.key, this.salt, this.version + 1, 32), null)
+    return Crypto.SHA3(Crypto.deriveKey(this.key, this.salt, 5 * (this.version + 1), 32))
   }
 
   getKey() {
-    const loopedHash = this.getDerivedKey()
-    const key = Crypto.toSHA3(loopedHash, this.salt, null)
-    return key
+    return Crypto.SHA3(this.getDerivedKey() + this.salt + this.version)
   }
 
   getVersionedFilename() {
-    const loopedHash = Crypto.toSHA3(this.getDerivedKey(), this.salt, 'base64')
-    const filename = path.join(this.id, Crypto.toSHA3(loopedHash, this.salt, 'base64').replace(/\//g, '$').substring(0, 12))
-    return filename
+    return path.join(this.id, Crypto.SHA3(this.getDerivedKey() + this.version + this.salt, 'base64').replace(/[^\w]/g, '0').substring(0, 12))
   }
 
   rename(name) {

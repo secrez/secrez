@@ -19,8 +19,13 @@ const Secret = rRequire('./src/models/Secret')
 describe('Secrez', function () {
 
   let secrez
-  let datadir = path.resolve(__dirname, '../../tmp/.secrez')
-  let password = 'a very yellow trip on a ferryboat in alaska'
+  let dataParentDir = path.resolve(__dirname, '../../tmp/.secrez')
+
+  // Using private and public keys in fixtures. The private key does not have any password.
+  process.env.PRIVATE_KEY = path.resolve(__dirname, '../fixtures/id_rsa')
+  process.env.PUBLIC_KEY = path.resolve(__dirname, '../fixtures/id_rsa.pub')
+  let password = 'the jumping in the sea'
+
   let secretOptions = {
     name: 'MyBank',
     content: {
@@ -32,30 +37,30 @@ describe('Secrez', function () {
   let secretId
 
   before(function () {
-    return fs.emptyDirAsync(datadir)
+    return fs.emptyDirAsync(dataParentDir)
   })
 
   after(function () {
-    return fs.emptyDirAsync(datadir)
+    // return fs.emptyDirAsync(dataParentDir)
   })
 
-  it('should construct the instance if process.env.DATADIR', () => {
-    process.env.DATADIR = datadir
+  it('should construct the instance if process.env.DATA_PARENT_DIR', () => {
+    process.env.DATA_PARENT_DIR = dataParentDir
     const s = new Secrez()
     assert(s.status === status.CONSTRUCTED)
-    delete process.env.DATADIR
+    delete process.env.DATA_PARENT_DIR
   })
 
   it('should construct the instance if process.env.HOME', () => {
     const home = process.env.HOME
-    process.env.HOME = datadir
+    process.env.HOME = dataParentDir
     const s = new Secrez()
     assert(s.status === status.CONSTRUCTED)
     process.env.HOME = home
   })
 
   it('should throw an error if trying to signup a not initialized secrez', () => {
-    const s = new Secrez(datadir)
+    const s = new Secrez(dataParentDir)
     return s.signup(password)
         .catch(err => {
           assert(err === errors.NotInitialized)
@@ -63,19 +68,18 @@ describe('Secrez', function () {
   })
 
   it('should throw an error if trying to login a not initialized secrez', () => {
-    const s = new Secrez(datadir)
+    const s = new Secrez(dataParentDir)
     return s.login(password)
         .catch(err => {
           assert(err === errors.NotReady)
         })
   })
 
-
-  it('should construct the instance passing datadir', () => {
-    const s = new Secrez(datadir)
+  it('should construct the instance passing dataParentDir', () => {
+    const s = new Secrez(dataParentDir)
     assert(s.db)
-    assert(/\.secrez/.test(s.datadir))
-    assert(s.db.dir === path.join(s.datadir, 'database'))
+    assert(/\.secrez/.test(s.dataParentDir))
+    assert(s.db.dir === path.join(s.dataParentDir, 'database'))
     assert(s.status === status.CONSTRUCTED)
     secrez = s
   })

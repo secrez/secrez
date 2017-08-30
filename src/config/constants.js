@@ -1,8 +1,9 @@
-
 const constants = {
 
   errors: {
     DbNotFound: 'Db not found.',
+    KeysNotFound: 'Private and public keys not found',
+    BadKeys: 'Either bad format or wrong password',
     RepoExists: 'Repo already exists.',
     NotInitialized: 'The database has not been initialized.',
     NotReady: 'Not ready.',
@@ -20,9 +21,9 @@ const constants = {
   },
 
   keys: {
-    // just for fun and consistency with other keys :-)
-    MANIFEST: 'MNIFST',
-    MASTERKEY:'MSTRKY'
+    MANIFEST: '.MANIFEST',
+    MASTERKEY: '.MASTERKEY',
+    CONFIG: '.CONFIG'
   },
 
   DEFSALT: '0xPSSWRD'

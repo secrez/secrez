@@ -28,11 +28,14 @@ class Crypto {
     return encrypted
   }
 
-  static toSHA3(data, encode) {
+  static SHA3(data, encode) {
     const d = new SHA3.SHA3Hash()
     d.update(data)
-    const hash = d.digest(encode)
-    return hash
+    if (encode === 'base64') {
+      return Crypto.toBase64(d.digest())
+    } else {
+      return d.digest(encode)
+    }
   }
 
   static getRandomString(length, encode) {
