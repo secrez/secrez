@@ -1,8 +1,8 @@
 const inquirer = require('inquirer')
 
 // eslint-disable-next-line node/no-unpublished-require
-const inquirerCommandPrompt = require('../../../inquirer-command-prompt')
-// const inquirerCommandPrompt = require('inquirer-command-prompt')
+// const inquirerCommandPrompt = require('../../../inquirer-command-prompt')
+const inquirerCommandPrompt = require('inquirer-command-prompt')
 
 const pkg = require('../package')
 
