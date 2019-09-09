@@ -10,7 +10,7 @@ class FileSystem {
 
   constructor(secrez) {
     this.secrez = secrez
-    this.itemId = 0
+    this.itemId = 1
   }
 
   static preParseCommandLine(commandLine) {
@@ -75,8 +75,8 @@ class FileSystem {
   async init(callback) {
     this.encodedTree = await this.buildTree(config.dataPath)
     this.decodedTree = await this.decodeTree(this.encodedTree)
-    // debug(33, this.encodedTree)
-    // debug(33, this.decodedTree)
+  // debug(33, this.encodedTree)
+  // debug(33, this.decodedTree)
     callback()
   }
 
@@ -124,7 +124,10 @@ class FileSystem {
   }
 
   getId(parent, d) {
-    let [p] = this.pickDir(parent, d)
+    let p = parent
+    if (d) {
+      p = this.pickDir(parent, d)[0]
+    }
     if (p) {
       return parseInt(p.split(';')[0])
     }
@@ -138,7 +141,10 @@ class FileSystem {
   }
 
   getName(parent, id) {
-    let [p] = this.pickDir(parent, null, id)
+    let p = parent
+    if (id) {
+      p = this.pickDir(parent, null, id)
+    }
     if (p) {
       return p.replace(/^\d+;(.+)/, '$1')
     }
@@ -207,6 +213,7 @@ class FileSystem {
     let encodedPath = ''
     for (let id of ids) {
       let [p, dirObj] = this.pickDir(parent, null, id)
+      // debug(p, dirObj)
       if (dirObj) {
         parent = dirObj
         encodedPath += `/${p.replace(/^\d+;/, '')}`
@@ -215,7 +222,7 @@ class FileSystem {
     return [parent, encodedPath]
   }
 
-  dirExists(decParent, dirname) {
+  exists(decParent, dirname) {
     for (let d in decParent) {
       // debug('d', d)
       d = d.replace(/^\d+;/, '')
@@ -226,40 +233,37 @@ class FileSystem {
     return false
   }
 
-  async fileCompletion(files) {
+  async fileCompletion(files = '') {
     let originalFiles = files
-
+    // debug('originalFiles', originalFiles)
+    if (!files) files = './'
+    // debug('files', files)
     let dir = this.getDirPath(files)
+    // debug('dir', dir)
     let dirObj = this.getDir(dir, true)
-
+    // debug('dirObj', dirObj)
     if (dirObj) {
-      let list = Object.keys(dirObj).map(e => e.replace(/^\d+;/, ''))
-      let dirname = path.basename(dir)
+      let list = []
+      for (let e in dirObj) {
+        list.push(e.replace(/^\d+;/, '') + (dirObj[e] === true ? '' : '/'))
+      }
       // debug(list)
-      // debug('dirname', dirname)
-      let addFilter = false
       let prefix
-
-      list = _.filter(list, e => {
-        if (dirname) {
-          // debug(e, e.indexOf(dirname))
-          return !e.indexOf(dirname)
-        } else {
-          return true
-        }
-      }).map(e => {
-        // debug(originalFiles, path.dirname(originalFiles))
-
-        if (/\//.test(originalFiles) && path.dirname(originalFiles) !== '/') {
-          addFilter = true
+      // debug('list1', list)
+      list = list.map(e => {
+        if (/(^\.|\/)/.test(originalFiles)) {
           if (!prefix) {
-            prefix = originalFiles.replace(/\/[^/]*$/, '')
+            prefix = originalFiles.replace(/(\/)[^/]*$/, '$1')
+            if (/^\.+$/.test(prefix)) {
+              prefix += '/'
+            }
           }
-          return path.join(prefix, e)
+          return prefix + e
         } else {
           return e
         }
       })
+      // debug('list', list)
       return list
     } else {
       return []
@@ -268,91 +272,19 @@ class FileSystem {
 
   getParents(dir) {
     let parent = path.dirname(dir)
+  // debug('dir, parent', dir, parent)
     let [decParent, ids] = this.getParent(parent)
-    // debug('decParent, ids', parent, decParent, ids)
+  // debug('decParent, ids', dir, decParent, ids)
     let [encParent, encParentPath] = this.getEncParent(ids)
+  // debug(encParent, encParentPath)
     return [decParent, encParent, encParentPath]
   }
 
-  getEncPath(decParent, encParent, encParentPath, dir) {
-    let id = this.getId(decParent, dir)
-    let encName = this.getName(encParent, id)
-    return path.join(encParentPath, encName)
-  }
-
-  async ls(files) {
-    let dirObj
-    if (files) {
-      files = files ? path.resolve(config.workingDir, `./${files}`) : config.workingDir
-      // debug('files', files)
-      dirObj = this.getDir(files)
-      // debug('dirObj', dirObj)
-    } else {
-      dirObj = this.workingDirObj || this.decodedTree
-    }
-    if (dirObj) {
-      return Object.keys(dirObj).map(e => e.replace(/^\d+;/, ''))
-    }
-  }
-
-  async cd(dir) {
-    // debug('normalize', this.normalize(dir))
-    dir = this.getDirPath(dir)
-    let dirObj = this.getDir(dir)
-    if (dirObj) {
-      config.workingDir = dir
-      this.workingDirObj = dirObj
-    } else {
-      Logger.red('No such file or directory')
-    }
-  }
-
-  async mkdir(dir, parents) {
-    dir = path.resolve(config.workingDir, dir)
-
-    // debug('dir', dir)
-    // debug('normalize', this.normalize(dir))
-
-    let [decParent, encParent, encParentPath] = this.getParents(dir)
-    if (decParent) {
-
-      // debug('decParent', decParent)
-
-      let dirname = path.basename(dir)
-      // debug('dirname', dirname)
-
-      if (!this.dirExists(decParent, dirname)) {
-        let encDir = await this.secrez.encryptItem(dirname)
-        if (encDir.length > 255) {
-          Logger.red('The directory name is too long (when encrypted is larger than 255 chars.)')
-        } else {
-          let fullPath = path.join(encParentPath || '/', encDir)
-          // debug('encParentPath', encParentPath)
-          // debug('fullPath', fullPath)
-          try {
-            let realPath = this.realPath(fullPath)
-            await fs.ensureDirAsync(realPath)
-            encParent[`${this.itemId};${encDir}`] = {}
-            decParent[`${this.itemId++};${dirname}`] = {}
-          } catch (e) {
-            Logger.red(e.message)
-            return false
-          }
-          //
-          // debug(33, this.encodedTree)
-          // debug(33, this.decodedTree)
-          //
-          return true
-        }
-      } else {
-        Logger.red('The directory already exist.')
-      }
-
-    } else {
-      Logger.red('Parent directory not found. Use "-p" to create the parent directories too.')
-    }
-    return false
-  }
+  // getEncPath(decParent, encParent, encParentPath, dir) {
+  //   let id = this.getId(decParent, dir)
+  //   let encName = this.getName(encParent, id)
+  //   return path.join(encParentPath, encName)
+  // }
 
   realPath(p) {
     if (p === '~') {

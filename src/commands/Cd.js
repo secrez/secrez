@@ -8,8 +8,8 @@ class Cd extends require('../Command') {
     this.config.completion.help.cd = true
     this.optionDefinitions = [
       {
-        name: 'directory',
-        alias: 'd',
+        name: 'path',
+        alias: 'p',
         defaultOption: true,
         type: String,
         defaultValue: '/'
@@ -29,8 +29,21 @@ class Cd extends require('../Command') {
     }
   }
 
+  async cd(fileSystem, dir) {
+    // debug('normalize', this.normalize(dir))
+    dir = fileSystem.getDirPath(dir)
+    let dirObj = fileSystem.getDir(dir)
+    if (dirObj) {
+      this.config.workingDir = dir
+      fileSystem.workingDirObj = dirObj
+    } else {
+      this.Logger.red('No such file or directory')
+    }
+  }
+
+
   async exec(options) {
-    await this.prompt.fileSystem.cd(options.directory)
+    await this.cd(this.prompt.fileSystem, options.path)
     this.prompt.run()
   }
 }

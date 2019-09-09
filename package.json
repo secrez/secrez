@@ -24,7 +24,7 @@
     "github": "^14.0.0",
     "homedir": "^0.6.0",
     "inquirer": "^7.0.0",
-    "inquirer-command-prompt": "0.0.15",
+    "inquirer-command-prompt": "0.0.18",
     "lodash": "^4.17.15",
     "minimist": "^1.2.0",
     "node-rsa": "^1.0.5",

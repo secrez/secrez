@@ -17,15 +17,20 @@ class _Completion {
     return this.commands
   }
 
-  async subCommands(line) {
+  async subCommands(line, forceCommand) {
     line = _.trim(line).replace(/ +/g, ' ')
     const params = line.split(' ')
     const normalizedParams = params.map(e => e.split('=')[0])
     const command = params[0]
-    if (typeof this.completion[command] === 'object') {
+    let c = this.completion[command]
+    if (!c && forceCommand) {
+      c = this.completion[forceCommand]
+      line = forceCommand + ' ' + line
+    }
+    if (typeof c === 'object') {
       let commands
-      let c = this.completion[command]
       if (c._func) {
+        // console.log('line', line)
         commands = await c._func(line)
       } else {
         commands = _.filter(
@@ -42,18 +47,18 @@ class _Completion {
             prefix.push(param)
           }
         }
-        commands = commands.map(e => `${prefix.join` `} ${e}`)
+        commands = commands.map(e => `${prefix.join` `} ${e.replace(/ /g, '\\ ')}`)
         return commands
       }
     }
   }
 }
 
-function Completion(completion) {
+function Completion(completion, forceCommand) {
   const instance = new _Completion(completion)
 
   return async line => {
-    let subCommands = await instance.subCommands(line)
+    let subCommands = await instance.subCommands(line, forceCommand)
     if (subCommands) {
       return subCommands
     }

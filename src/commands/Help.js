@@ -3,6 +3,17 @@ const chalk = require('chalk')
 
 class Help extends require('../Command') {
 
+  setHelpAndCompletion() {
+    this.optionDefinitions = [
+      {
+        name: 'command',
+        alias: 'c',
+        defaultOption: true,
+        type: String
+      }
+    ]
+  }
+
   help() {
     if (!this.helpDescription) {
       this.helpDescription = ['Available commands:']
@@ -42,18 +53,23 @@ class Help extends require('../Command') {
       data.description.slice(1).map(e => this.Logger.black(`  ${e}`))
     }
     if (command) {
-      let completion = this.config.completion[command]
-      let commandNames = Object.keys(completion).sort()
-      if(commandNames.length) {
-        const completionTypesByNumber = _.invert(this.config.completionTypes)
+      let optionDefinitions = this.prompt.commands[command].optionDefinitions
+      let commandNames = optionDefinitions.map(e => e.name)
+      if (commandNames.length) {
         this.Logger.black('Available options:')
         let max = 0
         for (let c of commandNames) {
           max = Math.max(max, c.length)
         }
-        for (let c of commandNames) {
-          let type = completionTypesByNumber[`${completion[c]}`]
-          this.Logger.log('black', spacer + c + ' '.repeat(max - c.length + 3), 'grey', type.toLowerCase())
+        for (let c of optionDefinitions) {
+          let type = c.type === Boolean ? 'Boolean' : c.type === Number ? 'Number' : 'String'
+          this.Logger.log(
+              'black',
+              spacer + '-' + c.alias + ', --' + c.name + ' '.repeat(max - c.name.length + 3),
+              'grey', type + (c.defaultOption
+                  ? (type !== 'Boolean' ? '    ' : '  ') + '(default)'
+                  : ''
+          ))
         }
       }
     }
@@ -81,9 +97,9 @@ class Help extends require('../Command') {
     }
   }
 
-  async exec(params) {
+  async exec(options) {
     let help
-    let command = params[0]
+    let command = options.command
     if (command) {
       if (this.prompt.commands[command]) {
         help = this.prompt.commands[command].help()

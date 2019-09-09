@@ -1,13 +1,15 @@
 const inquirer = require('inquirer')
+
+// eslint-disable-next-line node/no-unpublished-require
+const inquirerCommandPrompt = require('../../../inquirer-command-prompt')
 // const inquirerCommandPrompt = require('inquirer-command-prompt')
-const inquirerCommandPrompt = require('../../inquirer-command-prompt')
+
 const pkg = require('../package')
-const commandLineArgs = require('command-line-args')
 
 const homedir = require('homedir')
 const chalk = require('chalk')
 const path = require('path')
-// const _ = require('lodash')
+const _ = require('lodash')
 
 const Utils = require('./utils')
 const Logger = require('./utils/Logger')
@@ -59,6 +61,33 @@ class Prompt {
     }
   }
 
+  short(l, m) {
+    let res = []
+    if (l) {
+      l = _.trim(l)
+      let r = l.split('/')
+      if (r.length !== 1) {
+        r.pop()
+        r = r.join('/') + '/'
+      } else {
+        r = l
+      }
+      for (let i = 0; i < m.length; i++) {
+        // console.log(m[i])
+        try {
+          if (m[i] !== l) {
+            m[i] = m[i].split(r)[1]
+            if (m[i]) {
+              res.push(m[i])
+            }
+          }
+        } catch(e) {
+        }
+      }
+    }
+    return res
+  }
+
   async run() {
     if (!this.loggedIn) {
       this.getCommands = Completion(config.completion)
@@ -75,19 +104,17 @@ class Prompt {
         {
           type: 'command',
           name: 'cmd',
-          asyncAutoCompletion: Completion(config.completion),
-          wordsFilter: function (str) {
-            return str.replace(/^.*\/([^/]+)$/, '$1')
-          },
+          autoCompletion: this.getCommands,
+          short: this.short,
           prefix: Utils.capitalize(pkg.name),
+          noColorOnAnswered: true,
           message: `${chalk.reset(`[${path.basename(config.workingDir) || '~'}]`)}$`,
           context: 0,
           validate: val => {
             return val
                 ? true
                 : chalk.grey('Press TAB for suggestions.')
-          },
-          short: true
+          }
         }
       ])
       await this.exec([answers.cmd])
