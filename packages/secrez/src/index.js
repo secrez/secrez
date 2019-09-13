@@ -5,6 +5,7 @@ const Logger = require('./utils/Logger')
 const chalk = require('chalk')
 const {Secrez, InternalFileSystem, version} = require('@secrez/core')
 const config = require('./config')
+const Prompt = require('./Prompt')
 
 const optionDefinitions = [
   {
@@ -80,14 +81,9 @@ Examples:
 `)
 }
 
-console.log(config)
-
 config.setPaths(options.container)
 
-
 const secrez = new Secrez(options)
-
-const Prompt = require('./Prompt')
 const prompt = new Prompt(secrez)
 
 prompt.run()
