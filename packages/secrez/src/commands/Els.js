@@ -35,7 +35,7 @@ class Els extends require('../Command') {
   }
 
   async exec(options) {
-    let list = await this.prompt.externalFileSystem.els(options.path)
+    let list = await this.prompt.externalFileSystem.ls(options.path)
     if (list) {
       if (list.length) {
         this.Logger.dim(options.list

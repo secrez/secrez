@@ -16,19 +16,7 @@ const Logger = require('./utils/Logger')
 const Completion = require('./Completion')
 const config = require('./config')
 const Commands = require('./commands')
-
 const welcome = require('./Welcome')
-
-const preferencesDir = path.join(homedir(), config.root)
-
-inquirerCommandPrompt.setConfig({
-  history: {
-    save: true,
-    folder: preferencesDir,
-    limit: 100,
-    blacklist: ['exit']
-  }
-})
 
 inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('editor2', EditorPrompt)
@@ -37,7 +25,6 @@ class Prompt {
 
   constructor(secrez) {
     this.commands = (new Commands(this, config)).getCommands()
-    this.preferencesDir = preferencesDir
     this.inquirer = inquirer
     this.commandPrompt = inquirerCommandPrompt
     this.getHistory = inquirerCommandPrompt.getHistory
@@ -45,6 +32,14 @@ class Prompt {
     this.internalFileSystem = new InternalFileSystem(secrez)
     this.externalFileSystem = new ExternalFileSystem()
 
+    inquirerCommandPrompt.setConfig({
+      history: {
+        save: true,
+        folder: path.join(homedir(), config.root),
+        limit: 100,
+        blacklist: ['exit']
+      }
+    })
   }
 
   async loading() {
