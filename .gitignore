@@ -1,13 +1,13 @@
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
 
 # testing
-/coverage
+coverage
 
 # production
-/build
+build
 
 # misc
 .DS_Store
@@ -31,6 +31,4 @@ tmp
 logs
 *_temp
 
-/rust/target
-**/*.rs.bk
 .nyc_output
