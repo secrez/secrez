@@ -1,68 +1,16 @@
 {
-  "name": "secrez",
-  "version": "0.2.2",
-  "license": "MIT",
-  "scripts": {
-    "lint": "eslint -c .eslintrc 'src/**/*.js'",
-    "clean": "rm -rf build",
-    "update": "npm version patch && npm publish",
-    "test": "rm -rf tmp && mkdir tmp && mocha test/src/*.js",
-    "coverage": "rm -rf tmp && mkdir tmp && cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/*.js",
-    "posttest": "istanbul check-coverage --statements 85 --branches 70 --functions 85 --lines 85",
-    "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3"
-  },
-  "dependencies": {
-    "base58": "^2.0.1",
-    "bluebird": "^3.5.3",
-    "bs58": "^4.0.1",
-    "chalk": "^2.4.2",
-    "change-case": "^3.1.0",
-    "command-line-args": "^5.1.1",
-    "ellipsize": "^0.1.0",
-    "fs-extra": "^8.1.0",
-    "fuzzy": "^0.1.3",
-    "homedir": "^0.6.0",
-    "inquirer": "^7.0.0",
-    "inquirer-command-prompt": "0.0.19",
-    "lodash": "^4.17.15",
-    "minimist": "^1.2.0",
-    "node-rsa": "^1.0.5",
-    "pbkdf2": "^3.0.17",
-    "sha3": "^2.0.7",
-    "simple-git": "^1.126.0",
-    "superagent": "^5.1.0",
-    "touch": "^3.1.0",
-    "uuid": "^3.3.3"
-  },
+  "name": "root",
+  "private": true,
   "devDependencies": {
-    "chai": "^4.2.0",
-    "cross-env": "^5.2.1",
-    "eslint": "^6.2.2",
-    "eslint-plugin-node": "^9.2.0",
-    "istanbul": "^0.4.5",
-    "log": "^6.0.0",
-    "mocha": "^6.2.0",
-    "nyc": "^14.1.1"
+    "lerna": "^3.4.3"
   },
-  "bin": {
-    "secrez": "cli/secrez"
-  },
-  "preferGlobal": "true",
-  "description": "A secrets manager in times of crypto coins.",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sullof/secrez.git"
-  },
-  "author": {
-    "name": "Francesco Sullo",
-    "email": "francesco@sullo.co"
-  },
-  "bugs": {
-    "url": "https://github.com/sullof/secrez/issues"
-  },
-  "homepage": "https://github.com/sullof/secrez#readme",
-  "engines": {
-    "node": ">=10.0.0"
+  "workspaces": {
+  "packages": [
+    "packages/*"
+  ]
+},
+  "scripts": {
+    "test": "lerna run test --stream -- --colors",
+    "re-install": "scripts/clean-all-modules.sh && lerna bootstrap"
   }
 }
