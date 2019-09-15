@@ -1,9 +1,9 @@
-
 class Ecd extends require('../Command') {
 
   setHelpAndCompletion() {
     this.config.completion.ecd = {
-      _func: this.fileCompletion(this, this.config.onlyDir)
+      _func: this.fileCompletion(this, this.config.onlyDir),
+      _self: this
     }
     this.config.completion.help.ecd = true
     this.optionDefinitions = [
@@ -31,7 +31,11 @@ class Ecd extends require('../Command') {
   }
 
   async exec(options) {
-    await this.prompt.externalFileSystem.cd(options.path)
+    try {
+      await this.prompt.externalFileSystem.cd(options.path)
+    } catch (e) {
+      this.Logger.red(e.message)
+    }
     this.prompt.run()
   }
 }

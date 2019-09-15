@@ -1,9 +1,9 @@
-
 class Mkdir extends require('../Command') {
 
   setHelpAndCompletion() {
     this.config.completion.mkdir = {
-      _func: this.pseudoFileCompletion(this)
+      _func: this.pseudoFileCompletion(this),
+      _self: this
     }
     this.config.completion.help.mkdir = true
     this.optionDefinitions = [
@@ -32,7 +32,11 @@ class Mkdir extends require('../Command') {
     if (!options.path) {
       this.Logger.red('Directory name not specified.')
     } else {
-      await this.prompt.internalFileSystem.mkdir(options.path)
+      try {
+        await this.prompt.internalFileSystem.mkdir(options.path)
+      } catch (e) {
+        this.Logger.red(e.message)
+      }
     }
     this.prompt.run()
   }

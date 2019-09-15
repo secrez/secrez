@@ -49,7 +49,7 @@ class Help extends require('../Command') {
     console.info()
     this.Logger.bold(data.description[0])
     if (data.description[1]) {
-      data.description.slice(1).map(e => this.Logger.dim(`  ${e}`))
+      data.description.slice(1).map(e => this.Logger.reset(`  ${e}`))
     }
     if (command) {
       let optionDefinitions = this.prompt.commands[command].optionDefinitions

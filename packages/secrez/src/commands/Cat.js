@@ -4,7 +4,8 @@ class Cat extends require('../Command') {
 
   setHelpAndCompletion() {
     this.config.completion.cat = {
-      _func: this.pseudoFileCompletion(this)
+      _func: this.pseudoFileCompletion(this),
+      _self: this
     }
     this.config.completion.help.cat = true
     this.optionDefinitions = [
@@ -28,6 +29,11 @@ class Cat extends require('../Command') {
         name: 'all',
         alias: 'a',
         type: Boolean
+      },
+      {
+        name: 'utf8',
+        alias: 'u',
+        type: Boolean
       }
     ]
   }
@@ -40,25 +46,41 @@ class Cat extends require('../Command') {
         ['cat wallet -m', 'shows metadata: version and creation date'],
         ['cat etherWallet -v 2', 'shows the version 2 of the secret, if exists'],
         ['cat etherWallet -a', 'lists all the versions'],
-        'cat etherWallet -mv 1'
+        'cat etherWallet -mv 1',
+        ['cat wallet -au', 'lists all the versions showing not-visible utf8 chars']
       ]
     }
   }
 
+  getContent(content, options) {
+    if (options.utf8) {
+      content = JSON.stringify(content).replace(/(^"|"$)/g, '')
+    }
+    return content
+  }
+
   async exec(options) {
-    // eslint-disable-next-line no-unused-vars
     try {
-      let [content, a, ver, ts] = await this.prompt.internalFileSystem.cat(options)
-      if (content) {
-        if (typeof content === 'string') {
-          if (options.metadata) {
-            this.Logger.yellow(`Version: v${ver} - Date: ${Crypto.dateFromB58(ts)}`)
+      let data = await this.prompt.internalFileSystem.cat(options)
+      if (data) {
+        if (Array.isArray(data[0])) {
+          for (let d of data) {
+            // eslint-disable-next-line no-unused-vars
+            let [content, a, ver, ts] = d
+            this.Logger.yellow(`Version: ${ver} - Date: ${Crypto.dateFromB58(ts)}`)
+            this.Logger.reset(this.getContent(content, options))
           }
-          this.Logger.dim(content)
+        } else {
+          // eslint-disable-next-line no-unused-vars
+          let [content, a, ver, ts] = data
+          if (options.metadata) {
+            this.Logger.yellow(`Version: ${ver} - Date: ${Crypto.dateFromB58(ts)}`)
+          }
+          this.Logger.reset(this.getContent(content, options))
         }
       }
     } catch (e) {
-      console.error(e)
+      this.Logger.red(e.message)
     }
     this.prompt.run()
   }

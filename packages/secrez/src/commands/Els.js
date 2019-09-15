@@ -1,9 +1,9 @@
-
 class Els extends require('../Command') {
 
   setHelpAndCompletion() {
     this.config.completion.els = {
-      _func: this.fileCompletion(this)
+      _func: this.fileCompletion(this),
+      _self: this
     }
     this.config.completion.help.els = true
     this.optionDefinitions = [
@@ -35,16 +35,20 @@ class Els extends require('../Command') {
   }
 
   async exec(options) {
-    let list = await this.prompt.externalFileSystem.ls(options.path)
-    if (list) {
-      if (list.length) {
-        this.Logger.dim(options.list
-            ? list.join('\n')
-            : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
-        )
+    try {
+      let list = await this.prompt.externalFileSystem.ls(options.path)
+      if (list) {
+        if (list.length) {
+          this.Logger.reset(options.list
+              ? list.join('\n')
+              : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
+          )
+        }
+      } else {
+        this.Logger.reset(`els: ${options.path}: No such file or directory`)
       }
-    } else {
-      this.Logger.dim(`els: ${options.path}: No such file or directory`)
+    } catch (e) {
+      this.Logger.red(e.message)
     }
     this.prompt.run()
   }

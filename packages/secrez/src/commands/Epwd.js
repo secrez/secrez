@@ -17,7 +17,11 @@ class Epwd extends require('../Command') {
   }
 
   async exec() {
-    this.Logger.log(`${this.config.localWorkingDir}`)
+    try {
+      this.Logger.log(`${this.config.localWorkingDir}`)
+    } catch (e) {
+      this.Logger.red(e.message)
+    }
     this.prompt.run()
   }
 }

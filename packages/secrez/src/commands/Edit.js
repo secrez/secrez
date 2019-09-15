@@ -4,7 +4,8 @@ class Edit extends require('../Command') {
 
   setHelpAndCompletion() {
     this.config.completion.edit = {
-      _func: this.pseudoFileCompletion(this)
+      _func: this.pseudoFileCompletion(this),
+      _self: this
     }
     this.config.completion.help.edit = true
     this.optionDefinitions = [
@@ -33,9 +34,9 @@ class Edit extends require('../Command') {
         'WARNING: Do not quit forcely because a temp file can remain on disk, unencrypted. If for any reason you do it, launch Secrez again because at start it empties the temp folder.'
       ],
       examples: [
-        'edit ../coins/ether2-pwd',
-        ['edit ../bitcoin/seed -e *', 'tells Secrez to use the default editor'],
-        ['edit ../bitcoin/seed -e nano', 'tells Secrez to use nano as editor']
+        ['edit ../coins/ether2-pwd', 'uses tiny-cli-editor'],
+        ['edit ../bitcoin/seed -e *', 'uses the OS default editor'],
+        ['edit ../bitcoin/seed -e nano', 'uses nano as editor']
 
       ]
     }
@@ -44,52 +45,67 @@ class Edit extends require('../Command') {
   async edit(internalFileSystem, options) {
     let file = options.path
     let [content, filePath, ver] = await internalFileSystem.cat({path: file})
-    if (content) {
+    let extraMessage = this.chalk.dim('Press <enter> to launch ')
+        + (
+            !options.editor ? 'the editor.'
+                : options.editor !== '*' ? `${options.editor}.`
+                : 'your OS default editor.'
+        )
+        + this.chalk.reset(
+            options.editor ? '' : this.chalk.grey('\n  Ctrl-d to save the changes. Ctrl-c to abort.')
+        )
 
-      let message = this.chalk.dim('Press <enter> to launch ')
-          + (
-              !options.editor ? 'tiny-cli-editor.'
-                  : options.editor !== '*' ? `${options.editor}.`
-                  : 'your OS default editor.'
-          )
+    let {newContent} = await this.prompt.inquirer.prompt([{
+      type: 'multiEditor',
+      name: 'newContent',
+      message: 'Editing...',
+      default: content,
+      tempDir: this.config.tmpPath,
+      validate: function (text) {
+        return true
+      },
+      extraMessage
+    }])
 
-      let extraMessage = options.editor ? '' : this.chalk.grey('\n  Ctrl-d to save the changes. Ctrl-c to cancel.')
-
-      let {newContent} = await this.prompt.inquirer.prompt([{
-        type: 'editor2',
-        name: 'newContent',
-        message,
-        default: content,
-        tempDir: this.config.tmpPath,
-        validate: function (text) {
-          return true
-        },
-        extraMessage
-      }])
-      if (newContent !== content) {
-        let encContent = await internalFileSystem.secrez.encryptItem(newContent)
-        ver++
-        await this.fs.appendFileAsync(filePath, `\n${ver};${Crypto.timestamp(true)};${encContent}`)
-        this.Logger.dim(`File saved. Version: ${ver}`)
-      } else {
-        this.Logger.dim('File not changed')
-      }
+    if (newContent !== content) {
+      let encContent = await internalFileSystem.secrez.encryptItem(newContent)
+      ver++
+      await this.fs.appendFileAsync(filePath, `\n${ver};${Crypto.timestamp(true)};${encContent}`)
+      this.Logger.reset(`File saved. Version: ${ver}`)
     } else {
-      this.Logger.red('No such file or directory')
+      this.Logger.reset('Changes aborted or file not changed')
     }
   }
 
+  getTinyCliEditorBinPath() {
+    if (!this.editorBinPath) {
+      let bin = this.path.resolve(__dirname, '../../node_modules/tiny-cli-editor/bin.js')
+      if (!this.fs.existsSync(bin)) {
+        bin = this.path.resolve(__dirname, '../../../../node_modules/tiny-cli-editor/bin.js')
+      }
+      if (!this.fs.existsSync(bin)) {
+        throw new Error('Default editor not found')
+      }
+      this.editorBinPath = bin
+    }
+    return this.editorBinPath
+  }
+
   async exec(options) {
-    let currentEditor
-    if (!options.editor || options.editor !== '*') {
-      currentEditor = process.env.EDITOR
-      process.env.EDITOR = options.editor || this.path.resolve(__dirname, '../../node_modules/tiny-cli-editor/bin.js')
+    let currentEditor = process.env.EDITOR
+    if (!options.editor) {
+      process.env.EDITOR = this.getTinyCliEditorBinPath()
+      // console.log(process.env.EDITOR)
+    } else if (options.editor !== '*') {
+      process.env.EDITOR = options.editor
     }
-    await this.edit(this.prompt.internalFileSystem, options)
-    if (currentEditor) {
-      // eslint-disable-next-line require-atomic-updates
-      process.env.EDITOR = currentEditor
+    try {
+      await this.edit(this.prompt.internalFileSystem, options)
+    } catch (e) {
+      this.Logger.red(e.message)
     }
+    // eslint-disable-next-line require-atomic-updates
+    process.env.EDITOR = currentEditor
     this.prompt.run()
   }
 }

@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const fs = require('../../utils/fs')
+const Crypto = require('../../utils/Crypto')
 const path = require('path')
 const config = require('../../config')
 const commandLineArgs = require('command-line-args')
@@ -216,7 +217,7 @@ class InternalFileSystem {
     return false
   }
 
-  async pseudoFileCompletion(files = '') {
+  async pseudoFileCompletion(files = '', only) {
     let originalFiles = files
     if (!files) files = './'
     let dir = this.getNormalizedPath(files)
@@ -240,6 +241,19 @@ class InternalFileSystem {
           return e
         }
       })
+      if (only) {
+        list = _.filter(list, f => {
+          if (only === config.onlyDir) {
+            return /\/$/.test(f)
+          } else {
+            return !/\/$/.test(f)
+          }
+        })
+      }
+      if (list.length) {
+        let b = dir === '/' ? ['./'] : ['./', '../']
+        list = b.concat(list)
+      }
       return list
     } else {
       return []
@@ -294,7 +308,7 @@ class InternalFileSystem {
             let content = await this.secrez.decryptItem(data)
             rows.push([content, filePath, parseInt(ver), ts])
           }
-          return [0]
+          return rows
         } else {
           let row
           if (options.version) {
@@ -327,7 +341,7 @@ class InternalFileSystem {
       if (dirObj === true) {
         throw new Error('Not a directory')
       } else {
-        this.config.workingDir = dir
+        config.workingDir = dir
         this.workingDirObj = dirObj
       }
     } else {
@@ -408,7 +422,7 @@ class InternalFileSystem {
   }
 
   async pwd(options) {
-    return this.config.workingDir
+    return config.workingDir
   }
 
 }

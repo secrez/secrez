@@ -23,7 +23,8 @@ class ExternalFileSystem {
       })
     }
     if (list.length) {
-      list = ['./', '../'].concat(list)
+      let b = files === '/' ? ['./'] : ['./', '../']
+      list = b.concat(list)
     }
     return list
   }
@@ -83,7 +84,7 @@ class ExternalFileSystem {
   }
 
   async pwd() {
-    return this.config.localWorkingDir
+    return config.localWorkingDir
   }
 
 }

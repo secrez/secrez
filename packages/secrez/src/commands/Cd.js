@@ -1,9 +1,9 @@
-
 class Cd extends require('../Command') {
 
   setHelpAndCompletion() {
     this.config.completion.cd = {
-      _func: this.pseudoFileCompletion(this)
+      _func: this.pseudoFileCompletion(this, this.config.onlyDir),
+      _self: this
     }
     this.config.completion.help.cd = true
     this.optionDefinitions = [
@@ -30,7 +30,11 @@ class Cd extends require('../Command') {
   }
 
   async exec(options) {
-    await this.prompt.internalFileSystem.cd(options.path)
+    try {
+      await this.prompt.internalFileSystem.cd(options.path)
+    } catch (e) {
+      this.Logger.red(e.message)
+    }
     this.prompt.run()
   }
 }

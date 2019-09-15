@@ -1,4 +1,3 @@
-
 class Pwd extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -16,7 +15,11 @@ class Pwd extends require('../Command') {
   }
 
   async exec(options) {
-    this.Logger.log(`${this.config.workingDir}`)
+    try {
+      this.Logger.log(`${this.config.workingDir}`)
+    } catch (e) {
+      this.Logger.red(e.message)
+    }
     this.prompt.run()
   }
 }

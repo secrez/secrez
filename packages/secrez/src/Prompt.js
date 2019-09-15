@@ -1,11 +1,11 @@
-const {Utils, fs, InternalFileSystem, ExternalFileSystem} = require('@secrez/core')
+const {Secrez, Utils, fs, InternalFileSystem, ExternalFileSystem} = require('@secrez/core')
 
 const inquirer = require('inquirer')
 
 // eslint-disable-next-line node/no-unpublished-require
 // const inquirerCommandPrompt = require('../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
-const EditorPrompt = require('./utils/EditorPrompt')
+const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
 const homedir = require('homedir')
 const chalk = require('chalk')
@@ -19,17 +19,17 @@ const Commands = require('./commands')
 const welcome = require('./Welcome')
 
 inquirer.registerPrompt('command', inquirerCommandPrompt)
-inquirer.registerPrompt('editor2', EditorPrompt)
+inquirer.registerPrompt('multiEditor', multiEditorPrompt)
 
 class Prompt {
 
-  constructor(secrez) {
+  constructor() {
     this.commands = (new Commands(this, config)).getCommands()
     this.inquirer = inquirer
     this.commandPrompt = inquirerCommandPrompt
     this.getHistory = inquirerCommandPrompt.getHistory
-    this.secrez = secrez
-    this.internalFileSystem = new InternalFileSystem(secrez)
+    this.secrez = new Secrez
+    this.internalFileSystem = new InternalFileSystem(this.secrez)
     this.externalFileSystem = new ExternalFileSystem()
 
     inquirerCommandPrompt.setConfig({
@@ -83,12 +83,12 @@ class Prompt {
     return res
   }
 
-  async run() {
+  async run(options) {
     if (!this.loggedIn) {
       this.getCommands = Completion(config.completion)
       this.basicCommands = await this.getCommands()
       this.getCommands.bind(this)
-      await welcome.start(this.secrez)
+      await welcome.start(this.secrez, options)
       this.internalFileSystem.init(() => delete this.showLoading)
       this.loadingMessage = 'Initializing'
       await this.loading()

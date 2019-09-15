@@ -3,7 +3,7 @@ const path = require('path')
 const homedir = require('homedir')
 const Logger = require('./utils/Logger')
 const chalk = require('chalk')
-const {Secrez, InternalFileSystem, version} = require('@secrez/core')
+const {InternalFileSystem, version} = require('@secrez/core')
 const config = require('./config')
 const Prompt = require('./Prompt')
 
@@ -22,6 +22,11 @@ const optionDefinitions = [
     name: 'container',
     alias: 'c',
     type: String
+  },
+  {
+    name: 'saveIterations',
+    alias: 's',
+    type: Boolean
   }
 ]
 
@@ -59,33 +64,32 @@ if (options.container) {
 }
 
 Logger.log('bold', chalk.grey(`
-Secrez v${pkg.version} (@secrez/core v${version})`))
+Secrez v${pkg.version}`), 'grey',`(@secrez/core v${version})`)
 
 if (options.help) {
   Logger.log('reset', `${pkg.description}
 
 Options:
-  -h, --help          This help.
-  -c, --container     The data are saved in ~/.secrez by default. 
-                      In you chose a directory different you must pass it 
-                      anytime you run Secrez. The path must be absolute 
-                      or relative to the home directory (~). If the folder 
-                      does not exist, it will be created, included the parents.
-  -i, --iterations    The number of iterations during password 
-                      derivation (based on PBKDF2). It applies only at
-                      account creation.
+  -h, --help            This help.
+  -c, --container       The data are saved in ~/.secrez by default. 
+                        In you chose a directory different you must pass it 
+                        anytime you run Secrez. The path must be absolute 
+                        or relative to the home directory (~). If the folder 
+                        does not exist, it will be created, included the parents.
+  -i, --iterations      The number of iterations during password 
+                        derivation (based on PBKDF2).
+  -s, --saveIterations  Saves the number of iterations in .env.json 
+                        (which is .gitignored)                      
 Examples:
   $ secrez
-  $ secrez -p /var/my-secrets
-  $ secrez -i 200000
+  $ secrez -p /var/my-secrets -i 787099
+  $ secrez -si 1213672                    (sets the iterations and saves them)
 `)
 }
 
 config.setPaths(options.container)
 
-const secrez = new Secrez(options)
-const prompt = new Prompt(secrez)
-
-prompt.run()
+const prompt = new Prompt()
+prompt.run(options)
 
 

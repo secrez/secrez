@@ -1,9 +1,9 @@
-
 class Xcp extends require('../Command') {
 
   setHelpAndCompletion() {
     this.config.completion.xcp = {
-      _func: this.pseudoFileCompletion(this)
+      _func: this.pseudoFileCompletion(this),
+      _self: this
     }
     this.config.completion.help.xcp = true
     this.optionDefinitions = [
@@ -29,7 +29,7 @@ class Xcp extends require('../Command') {
       examples: [
         ['xcp e:seed.json .', 'importes the external file seed.json in the current directory'],
         ['xcp ../passwords/twitter e:~/Desktop/ ', 'exportes the secret to the external desktop'],
-          ['xcp -r e:~/passwords old-passwords/.', 'imports the entire folder passwords']
+        ['xcp -r e:~/passwords old-passwords/.', 'imports the entire folder passwords']
       ]
     }
   }
@@ -50,7 +50,11 @@ class Xcp extends require('../Command') {
   }
 
   async exec(options) {
-    await this.xcp(this.prompt.internalFileSystem, options.path)
+    try {
+      await this.xcp(this.prompt.internalFileSystem, options.path)
+    } catch (e) {
+      this.Logger.red(e.message)
+    }
     this.prompt.run()
   }
 }

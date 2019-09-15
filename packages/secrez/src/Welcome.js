@@ -5,13 +5,40 @@ const Logger = require('./utils/Logger')
 
 class Welcome {
 
-  async start(secrez) {
+  async start(secrez, options) {
+    this.options = options
+    this.iterations = options.iterations || await this.getIterations()
     if (fs.existsSync(config.confPath)) {
-      // Logger.grey('Welcome back!')
       await this.login(secrez)
     } else {
       Logger.grey('Please signup to create your local account')
       await this.signup(secrez)
+    }
+  }
+
+  async getIterations() {
+    if (fs.existsSync(config.envPath)) {
+      return require(config.envPath).iterations
+    } else {
+      let {iterations} = await inquirer.prompt([{
+        name: 'iterations',
+        type: 'input',
+        message: 'Type the number of iterations for password derivation:',
+        validate: value => {
+          if (value.length && parseInt(value) > 0) {
+            return true
+          } else {
+            return 'Please enter a valid number of iterations.'
+          }
+        }
+      }])
+      return parseInt(iterations)
+    }
+  }
+
+  async saveIterations() {
+    if (this.options.saveIterations && !fs.existsSync(config.envPath)) {
+      fs.writeFileAsync(config.envPath, JSON.stringify({iterations: this.iterations}))
     }
   }
 
@@ -31,8 +58,9 @@ class Welcome {
           }
         }])
         try {
-          await secrez.login(p.password)
+          await secrez.login(p.password, this.iterations)
           if (secrez.masterKey) {
+            this.saveIterations()
             return
           }
         } catch (err) {
@@ -72,8 +100,9 @@ class Welcome {
         }])
         if (p.password === p.retype) {
           try {
-            await secrez.signup(p.password)
-            return secrez.masterKey
+            await secrez.signup(p.password, this.iterations)
+            this.saveIterations()
+            return
           } catch (e) {
             Logger.red(e.message)
             break

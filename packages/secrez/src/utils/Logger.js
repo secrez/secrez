@@ -38,6 +38,10 @@ class Logger {
     Logger.log('dim', str)
   }
 
+  static reset(str) {
+    Logger.log('reset', str)
+  }
+
   static bold(str) {
     Logger.log('bold', str)
   }

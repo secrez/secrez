@@ -8,17 +8,12 @@ const Utils = require('./utils')
 
 class Secrez {
 
-  constructor(options = {}) {
-    this.iterations = options.iterations || 1e6
-  }
-
   async derivePassword (password, iterations) {
     password = Crypto.SHA3(password)
     return Crypto.deriveKey(password, Crypto.SHA3(password), iterations, 32)
   }
 
-  async signup(password) {
-    const {iterations} = this
+  async signup(password, iterations) {
     if (!fs.existsSync(config.confPath)) {
       password = await this.derivePassword(password, iterations)
       this.masterKey = Crypto.SHA3(Crypto.getRandomString(256))
@@ -26,7 +21,7 @@ class Secrez {
       const encryptedMasterKey = await Crypto.toAES(this.masterKey, password)
       const conf = {
         key: encryptedMasterKey,
-        hash: `${bs58.encode(keyHash)}$${Utils.toExponentialString(iterations)}`
+        hash: bs58.encode(keyHash)
       }
       await fs.writeFileAsync(config.confPath, JSON.stringify(conf))
     } else {
@@ -34,12 +29,9 @@ class Secrez {
     }
   }
 
-  async login(password) {
+  async login(password, iterations) {
     if (await fs.existsSync(config.confPath)) {
       let {key, hash} = require(config.confPath)
-      hash = hash.split('$')
-      let iterations = Utils.fromExponentialString(hash[1])
-      hash = hash[0]
       password = await this.derivePassword(password, iterations)
       const masterKey = await Crypto.fromAES(key, password, true)
       if (bs58.encode(Crypto.SHA3(masterKey)) === hash) {

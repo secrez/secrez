@@ -1,8 +1,8 @@
 const editAsync = require('external-editor').editAsync
-const prompt = require('inquirer/lib/prompts/editor')
+const EditorPrompt = require('inquirer/lib/prompts/editor')
 const chalk = require('chalk')
 
-class EditorPrompt extends prompt {
+class MultiEditorPrompt extends EditorPrompt {
 
   render(error) {
     var bottomContent = ''
@@ -11,7 +11,7 @@ class EditorPrompt extends prompt {
     if (this.status === 'answered') {
       message += chalk.dim('Received')
     } else {
-      message +=  (this.opt.extraMessage || '')
+      message += this.opt.extraMessage || ''
     }
     if (error) {
       bottomContent = chalk.red('>> ') + error
@@ -21,7 +21,13 @@ class EditorPrompt extends prompt {
 
   async startExternalEditor() {
     this.rl.pause()
-    editAsync(this.currentText, this.endExternalEditor.bind(this), {dir: this.opt.tempDir})
+    editAsync(
+        this.currentText,
+        this.endExternalEditor.bind(this),
+        this.opt.tempDir ? {
+          dir: this.opt.tempDir
+        } : undefined
+    )
   }
 
   close() {
@@ -32,5 +38,5 @@ class EditorPrompt extends prompt {
 
 }
 
-module.exports = EditorPrompt
+module.exports = MultiEditorPrompt
 

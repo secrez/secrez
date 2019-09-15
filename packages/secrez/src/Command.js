@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const chalk = require('chalk')
 const path = require('path')
-const {InternalFileSystem, fs} = require('@secrez/core')
+const {fs} = require('@secrez/core')
 
 const Logger = require('./utils/Logger')
 const config = require('./config')
@@ -25,14 +25,10 @@ class Command {
   setHelpAndCompletion() {
   }
 
-  pseudoFileCompletion(self) {
-    return async cmd => {
+  pseudoFileCompletion(self, only) {
+    return async files => {
       try {
-        let commandLine = _.trim(cmd).split(' ').slice(1).join(' ')
-        const definitions = self.optionDefinitions
-        const options = InternalFileSystem.parseCommandLine(definitions, commandLine, true)
-        let files = options.path
-        return self.prompt.internalFileSystem.pseudoFileCompletion(files)
+        return self.prompt.internalFileSystem.pseudoFileCompletion(files, only)
       } catch (e) {
         Logger.red(['error', e])
       }
@@ -40,12 +36,8 @@ class Command {
   }
 
   fileCompletion(self, only) {
-    return async cmd => {
+    return async files => {
       try {
-        let commandLine = _.trim(cmd).split(' ').slice(1).join(' ')
-        const definitions = self.optionDefinitions
-        const options = InternalFileSystem.parseCommandLine(definitions, commandLine, true)
-        let files = options.path
         return self.prompt.externalFileSystem.fileCompletion(files, only)
       } catch (e) {
         Logger.red(['error', e])
