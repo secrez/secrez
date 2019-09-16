@@ -3,7 +3,7 @@ const path = require('path')
 const homedir = require('homedir')
 const Logger = require('./utils/Logger')
 const chalk = require('chalk')
-const {InternalFileSystem, version} = require('secrez-core')
+const {InternalFileSystem, version} = require('@secrez/core')
 const config = require('./config')
 const Prompt = require('./Prompt')
 
@@ -64,7 +64,7 @@ if (options.container) {
 }
 
 Logger.log('bold', chalk.grey(`
-Secrez v${pkg.version}`), 'grey',`(secrez-core v${version})`)
+Secrez v${pkg.version}`), 'grey',`(@secrez/core v${version})`)
 
 if (options.help) {
   Logger.log('reset', `${pkg.description}

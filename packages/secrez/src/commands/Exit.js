@@ -1,4 +1,4 @@
-const {Utils} = require('secrez-core')
+const {Utils} = require('@secrez/core')
 
 class Exit extends require('../Command') {
 

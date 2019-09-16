@@ -10,7 +10,8 @@
 },
   "scripts": {
     "test": "lerna run test --stream -- --colors",
-    "re-install": "scripts/clean-all-modules.sh && lerna bootstrap"
+    "re-install": "scripts/clean-all-modules.sh && lerna bootstrap",
+    "secrez:dev": "cd packages/secrez && npm run dev"
   },
   "license": "MIT"
 }
