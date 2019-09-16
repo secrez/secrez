@@ -1,6 +1,5 @@
 {
   "name": "root",
-  "private": true,
   "devDependencies": {
     "lerna": "^3.4.3"
   },
@@ -12,5 +11,6 @@
   "scripts": {
     "test": "lerna run test --stream -- --colors",
     "re-install": "scripts/clean-all-modules.sh && lerna bootstrap"
-  }
+  },
+  "license": "MIT"
 }

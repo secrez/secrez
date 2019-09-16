@@ -1,5 +1,5 @@
 const inquirer = require('inquirer')
-const {fs} = require('@secrez/core')
+const {fs} = require('secrez-core')
 const config = require('./config')
 const Logger = require('./utils/Logger')
 

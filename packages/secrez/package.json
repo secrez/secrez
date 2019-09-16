@@ -12,7 +12,7 @@
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3"
   },
   "dependencies": {
-    "@secrez/core": "^0.2.1",
+    "secrez-core": "^0.2.1",
     "chalk": "^2.4.2",
     "command-line-args": "^5.1.1",
     "external-editor": "^3.1.0",
@@ -52,5 +52,6 @@
   "homepage": "https://github.com/sullof/secrez#readme",
   "engines": {
     "node": ">=10.0.0"
-  }
+  },
+  "gitHead": "42cbc519dd2802a1e03c6203bb724c726c2bfb79"
 }

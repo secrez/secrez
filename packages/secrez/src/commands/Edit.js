@@ -1,4 +1,4 @@
-const {Crypto} = require('@secrez/core')
+const {Crypto} = require('secrez-core')
 
 class Edit extends require('../Command') {
 
