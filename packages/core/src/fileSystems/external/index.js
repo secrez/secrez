@@ -2,6 +2,8 @@ const _ = require('lodash')
 const fs = require('../../utils/fs')
 const path = require('path')
 const config = require('../../config')
+const FileSystemsUtils = require('../FileSystemsUtils')
+
 
 class ExternalFileSystem {
 
@@ -12,7 +14,7 @@ class ExternalFileSystem {
   }
 
   async fileCompletion(files = '', only) {
-    let list = this.getDir(this.getNormalizedPath(files))
+    let [folder, list] = this.getDir(this.getNormalizedPath(files))
     if (only) {
       list = _.filter(list, f => {
         if (only === config.onlyDir) {
@@ -22,11 +24,7 @@ class ExternalFileSystem {
         }
       })
     }
-    if (list.length) {
-      let b = files === '/' ? ['./'] : ['./', '../']
-      list = b.concat(list)
-    }
-    return list
+    return [folder, list]
   }
 
   mapDir(dir) {
@@ -43,7 +41,7 @@ class ExternalFileSystem {
         list = this.mapDir(dir)
       }
     }
-    return list
+    return [dir, list]
   }
 
   isDir(dir) {
@@ -71,16 +69,7 @@ class ExternalFileSystem {
   }
 
   async ls(files) {
-    let list = await this.fileCompletion(files)
-    return list.map(f => {
-      f = f.split('/')
-      let l = f.length - 1
-      if (f[l]) {
-        return f[l]
-      } else {
-        return f[l - 1] + '/'
-      }
-    })
+    return FileSystemsUtils.filterLs(files, await this.fileCompletion(files))
   }
 
   async pwd() {

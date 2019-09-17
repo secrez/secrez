@@ -4,47 +4,13 @@ const Crypto = require('../../utils/Crypto')
 const path = require('path')
 const config = require('../../config')
 const commandLineArgs = require('command-line-args')
+const FileSystemsUtils = require('../FileSystemsUtils')
 
 class InternalFileSystem {
 
   constructor(secrez) {
     this.secrez = secrez
     this.itemId = 1
-  }
-
-  static preParseCommandLine(commandLine) {
-    let argv = []
-    let k = 0
-    let sep
-    commandLine = _.trim(commandLine)
-    for (let i = 0; i < commandLine.length; i++) {
-      let c = commandLine[i]
-      if (!sep && /("|')/.test(c)) {
-        sep = c
-      } else if (sep && c === sep) {
-        sep = null
-      } else if (!sep && c === '\\' && commandLine[i + 1]) {
-        if (!argv[k]) argv[k] = ''
-        argv[k] += commandLine[i + 1]
-        i++
-      } else if (!sep && c === ' ') {
-        k++
-      } else {
-        if (!argv[k]) argv[k] = ''
-        argv[k] += c
-      }
-    }
-    return argv
-  }
-
-  static parseCommandLine(definitions, commandLine, onlyIfDefinitions) {
-    if (definitions && commandLine) {
-      const argv = this.preParseCommandLine(commandLine)
-      return commandLineArgs(definitions, {argv})
-    } else if (definitions && !onlyIfDefinitions) {
-      return commandLineArgs(definitions)
-    }
-    return {}
   }
 
   async buildTree(dir) {
@@ -168,11 +134,13 @@ class InternalFileSystem {
   getDir(dir, returnAnyway) {
     let root = this.decodedTree
     if (dir === '/') {
-      return root
+      return [true, root]
     } else {
+      let isFolder = false
       dir = dir.split('/')
       let parent
-      for (let d of dir) {
+      let d
+      for (d of dir) {
         if (!parent) {
           parent = root
           continue
@@ -184,13 +152,15 @@ class InternalFileSystem {
         let dirObj = this.getDirObject(parent, d)
         if (dirObj && c === 1) {
           parent = dirObj
+          isFolder = true
         } else if (returnAnyway) {
+          isFolder = false
           break
         } else {
-          return null
+          return [false]
         }
       }
-      return parent
+      return [isFolder, parent]
     }
   }
 
@@ -221,7 +191,8 @@ class InternalFileSystem {
     let originalFiles = files
     if (!files) files = './'
     let dir = this.getNormalizedPath(files)
-    let dirObj = this.getDir(dir, true)
+    let [folder, dirObj] = this.getDir(dir, true)
+    console.log('dirObj', folder, dirObj)
     if (dirObj) {
       let list = []
       for (let e in dirObj) {
@@ -250,11 +221,8 @@ class InternalFileSystem {
           }
         })
       }
-      if (list.length) {
-        let b = dir === '/' ? ['./'] : ['./', '../']
-        list = b.concat(list)
-      }
-      return list
+      console.log('list', list)
+      return [folder, list]
     } else {
       return []
     }
@@ -336,7 +304,7 @@ class InternalFileSystem {
 
   async cd(dir) {
     dir = this.getNormalizedPath(dir)
-    let dirObj = this.getDir(dir)
+    let [folder, dirObj] = this.getDir(dir)
     if (dirObj) {
       if (dirObj === true) {
         throw new Error('Not a directory')
@@ -380,16 +348,7 @@ class InternalFileSystem {
   }
 
   async ls(files) {
-    let list = await this.pseudoFileCompletion(files)
-    return list.map(f => {
-      f = f.split('/')
-      let l = f.length - 1
-      if (f[l]) {
-        return f[l]
-      } else {
-        return f[l - 1] + '/'
-      }
-    })
+    return FileSystemsUtils.filterLs(files, await this.pseudoFileCompletion(files))
   }
 
   async mkdir(dir) {

@@ -1,9 +1,9 @@
-const {Secrez, Utils, fs, InternalFileSystem, ExternalFileSystem} = require('@secrez/core')
+const {Secrez, Utils, fs, FileSystemsUtils, InternalFileSystem, ExternalFileSystem} = require('@secrez/core')
 
 const inquirer = require('inquirer')
 
 // eslint-disable-next-line node/no-unpublished-require
-// const inquirerCommandPrompt = require('../../../inquirer-command-prompt')
+// const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
@@ -65,10 +65,15 @@ class Prompt {
         r.pop()
         r = r.join('/') + '/'
       } else {
-        r = l
+        r = l.split(' ')
+        if (r.length !== 1) {
+          r.pop()
+          r = r.join(' ') + ' '
+        } else {
+          r = l
+        }
       }
       for (let i = 0; i < m.length; i++) {
-        // console.log(m[i])
         try {
           if (m[i] !== l) {
             m[i] = m[i].split(r)[1]
@@ -131,7 +136,7 @@ class Prompt {
         if (this.basicCommands.includes(command)) {
           const commandLine = cmd.slice(1).join(' ')
           try {
-            const options = InternalFileSystem.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
+            const options = FileSystemsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
             await this.commands[command].exec(options)
           } catch (e) {
             // console.error(e)

@@ -2,7 +2,6 @@ const crypto = require('crypto')
 const pbkdf2 = require('pbkdf2')
 const {Keccak} = require('sha3')
 const bs58 = require('bs58')
-const {sleep} = require('.')
 const Base58 = require('base58')
 
 class Crypto {
@@ -53,7 +52,7 @@ class Crypto {
     return crypto.randomBytes(length).toString(encode)
   }
 
-  static deriveKey(key, salt, iterations, size) {
+  static deriveKey(key, salt, iterations, size = 32) {
     return pbkdf2.pbkdf2Sync(key, salt, iterations, size, 'sha512')
   }
 
@@ -65,10 +64,14 @@ class Crypto {
     return ts
   }
 
-  static dateFromB58(b58) {
+  static dateFromB58(b58, full) {
     let ts = Crypto.base58ToDecimal(b58)
-    let d = new Date(ts * 1000)
-    return d.toISOString().split('.000Z')[0]
+    let d = (new Date(ts * 1000)).toISOString()
+    return full ? d : d.split('.000Z')[0]
+  }
+
+  static b58Hash(data) {
+    return bs58.encode(Crypto.SHA3(data))
   }
 
 }

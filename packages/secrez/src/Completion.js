@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {InternalFileSystem, fs} = require('@secrez/core')
+const {FileSystemsUtils} = require('@secrez/core')
 
 class _Completion {
 
@@ -18,8 +18,10 @@ class _Completion {
     return this.commands
   }
 
-  async subCommands(line, forceCommand) {
-    line = _.trim(line).replace(/ +/g, ' ')
+  async subCommands(line = '', forceCommand) {
+    console.log()
+
+    // line = _.trim(line).replace(/ +/g, ' ')
     const params = line.split(' ')
     const normalizedParams = params.map(e => e.split('=')[0])
     const command = params[0]
@@ -30,13 +32,15 @@ class _Completion {
     }
     if (typeof c === 'object') {
       let commands
+      let isFolder = false
       let options = {}
       if (c._func) {
         let commandLine = _.trim(line).split(' ').slice(1).join(' ')
         const definitions = c._self.optionDefinitions
-        options = InternalFileSystem.parseCommandLine(definitions, commandLine, true)
-        let files = options.path
-        commands = await c._func(files)
+        options = FileSystemsUtils.parseCommandLine(definitions, commandLine, true)
+        let files = await c._func(options.path)
+        isFolder = files[0]
+        commands = files[1]
       } else {
         commands = _.filter(
             Object.keys(c),
