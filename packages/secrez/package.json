@@ -7,9 +7,11 @@
     "clean": "rm -rf build",
     "update": "npm version patch && npm publish",
     "test": "rm -rf tmp && mkdir tmp && mocha test/src/*.js",
-    "coverage": "rm -rf tmp && mkdir tmp && cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/*.js",
-    "posttest": "istanbul check-coverage --statements 85 --branches 70 --functions 85 --lines 85",
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3"
+  },
+  "disabledScripts": {
+    "coverage": "rm -rf tmp && mkdir tmp && cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/*.js",
+    "posttest": "istanbul check-coverage --statements 85 --branches 70 --functions 85 --lines 85"
   },
   "dependencies": {
     "@secrez/core": "^0.2.2",

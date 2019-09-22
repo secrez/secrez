@@ -7,24 +7,10 @@ const Base58 = require('base58')
 class Utils {
 
   static capitalize(str) {
-    return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase()
-  }
-
-  static normalizeIp(ip) {
-    if (!ip) {
-      ip = '(not-running)'
-    }
-    return ip + ' '.repeat(15 - ip.length)
-  }
-
-  static normalizePath(filePath) {
-    if (path.isAbsolute(filePath)) {
-      return filePath
-    } else if (/^~\//.test(filePath)) {
-      return filePath.replace(/^~/, homedir())
+    if (typeof str === 'string' && str.length > 0) {
+      return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase()
     } else {
-      let root = path.resolve(__dirname, '../..')
-      return path.resolve(root, filePath)
+      throw new Error('Not a string')
     }
   }
 
@@ -37,26 +23,52 @@ class Utils {
   }
 
   static isIp(ip) {
-    return /\b(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b/.test('' + ip)
+    return /^\b(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b$/.test('' + ip)
   }
 
   static intToBase58(v) {
-    return Base58.int_to_base58(v)
+    try {
+      return Base58.int_to_base58(v)
+    } catch (e) {
+      throw new Error('Invalid format')
+    }
   }
 
   static base58ToInt(v) {
-    return Base58.base58_to_int(v)
+    try {
+      return Base58.base58_to_int(v)
+    } catch (e) {
+      throw new Error('Invalid format')
+    }
+
   }
 
   static toExponentialString(num) {
-    num = `${num}`
-    let str = num.replace(/0+$/, '')
-    return str + 'e' + (num.length - str.length)
+    try {
+      num = `${num}`
+      if (parseInt(num).toString() !== num) {
+        throw new Error()
+      }
+      let str = num.replace(/0+$/, '')
+      return str + 'e' + (num.length - str.length)
+    } catch (e) {
+      throw new Error('Invalid format')
+    }
+
   }
 
   static fromExponentialString(str) {
-    str = str.split('e')
-    return parseInt(str[0] + '0'.repeat(parseInt(str[1])))
+    try {
+      str = `${str}`.split('e')
+      if (str.length === 2) {
+        return parseInt(str[0] + '0'.repeat(parseInt(str[1])))
+      } else {
+        throw new Error()
+      }
+    } catch (e) {
+      throw new Error('Invalid format')
+    }
+
   }
 
 }

@@ -1,5 +1,5 @@
 const chalk = require('chalk')
-const {fs} = require('@secrez/core')
+const fs = require('fs-extra')
 const path = require('path')
 
 let jsonIndent = 0

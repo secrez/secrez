@@ -1,5 +1,5 @@
 const inquirer = require('inquirer')
-const {fs} = require('@secrez/core')
+const fs = require('fs-extra')
 const config = require('./config')
 const Logger = require('./utils/Logger')
 
@@ -38,7 +38,7 @@ class Welcome {
 
   async saveIterations() {
     if (this.options.saveIterations && !fs.existsSync(config.envPath)) {
-      fs.writeFileAsync(config.envPath, JSON.stringify({iterations: this.iterations}))
+      fs.writeFile(config.envPath, JSON.stringify({iterations: this.iterations}))
     }
   }
 

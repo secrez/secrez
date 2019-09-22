@@ -36,7 +36,7 @@ class Xcp extends require('../Command') {
 
   async xcp(internalFileSystem, dir) {
     dir = internalFileSystem.getNormalizedPath(dir)
-    let dirObj = internalFileSystem.getDir(dir)
+    let [folder, dirObj] = internalFileSystem.getDir(dir)
     if (dirObj) {
       if (dirObj === true) {
         this.Logger.red('That is not a directory')

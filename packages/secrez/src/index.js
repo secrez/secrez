@@ -3,7 +3,7 @@ const path = require('path')
 const homedir = require('homedir')
 const Logger = require('./utils/Logger')
 const chalk = require('chalk')
-const {InternalFileSystem, version} = require('@secrez/core')
+const {FileSystemsUtils, version} = require('@secrez/core')
 const config = require('./config')
 const Prompt = require('./Prompt')
 
@@ -44,7 +44,7 @@ function error(message) {
 
 let options = {}
 try {
-  options = InternalFileSystem.parseCommandLine(optionDefinitions)
+  options = FileSystemsUtils.parseCommandLine(optionDefinitions)
 } catch (e) {
   error(e.message)
 }
