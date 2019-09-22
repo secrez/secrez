@@ -1,4 +1,4 @@
-const {fs} = require('@secrez/core')
+const fs = require('fs-extra')
 const _ = require('lodash')
 
 class Commands {

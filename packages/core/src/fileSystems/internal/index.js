@@ -1,9 +1,8 @@
 const _ = require('lodash')
-const fs = require('../../utils/fs')
+const fs = require('fs-extra')
 const Crypto = require('../../utils/Crypto')
 const path = require('path')
 const config = require('../../config')
-const commandLineArgs = require('command-line-args')
 const FileSystemsUtils = require('../FileSystemsUtils')
 
 class InternalFileSystem {
@@ -192,7 +191,7 @@ class InternalFileSystem {
     if (!files) files = './'
     let dir = this.getNormalizedPath(files)
     let [folder, dirObj] = this.getDir(dir, true)
-    console.log('dirObj', folder, dirObj)
+    // console.log('dirObj', folder, dirObj)
     if (dirObj) {
       let list = []
       for (let e in dirObj) {
@@ -221,7 +220,7 @@ class InternalFileSystem {
           }
         })
       }
-      console.log('list', list)
+      // console.log('list', list)
       return [folder, list]
     } else {
       return []
@@ -268,7 +267,7 @@ class InternalFileSystem {
       let [encName] = this.pickDir(encParent, null, id)
       let filePath = this.realPath(`${encParentPath || ''}/${this.getName(encName)}`)
       if (fs.existsSync(filePath)) {
-        let encDecFile = _.filter((await fs.readFileAsync(filePath, 'utf8')).split('\n'), e => e)
+        let encDecFile = _.filter((await fs.readFile(filePath, 'utf8')).split('\n'), e => e)
         if (options.all) {
           let rows = []
           for (let row of encDecFile) {
@@ -304,7 +303,7 @@ class InternalFileSystem {
 
   async cd(dir) {
     dir = this.getNormalizedPath(dir)
-    let [folder, dirObj] = this.getDir(dir)
+    let dirObj = this.getDir(dir)[1]
     if (dirObj) {
       if (dirObj === true) {
         throw new Error('Not a directory')
@@ -331,7 +330,7 @@ class InternalFileSystem {
           let fullPath = path.join(encParentPath || '/', encFile)
           try {
             let realPath = this.realPath(fullPath)
-            await fs.writeFileAsync(realPath, `1;${Crypto.timestamp(true)};${encContent}`)
+            await fs.writeFile(realPath, `1;${Crypto.timestamp(true)};${encContent}`)
             encParent[`${this.itemId};${encFile}`] = true
             decParent[`${this.itemId++};${dirname}`] = true
           } catch (e) {
@@ -364,7 +363,7 @@ class InternalFileSystem {
           let fullPath = path.join(encParentPath || '/', encDir)
           try {
             let realPath = this.realPath(fullPath)
-            await fs.ensureDirAsync(realPath)
+            await fs.ensureDir(realPath)
             encParent[`${this.itemId};${encDir}`] = {}
             decParent[`${this.itemId++};${dirname}`] = {}
           } catch (e) {

@@ -1,18 +1,16 @@
 {
   "name": "@secrez/core",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint -c .eslintrc 'src/**/*.js'",
-    "test": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec"
-  },
-  "disabledScripts": {
-    "coverage": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/**/*.test.js --exit",
-    "posttest": "istanbul check-coverage --statements 85 --branches 70 --functions 85 --lines 85"
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
+    "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
+    "test": "./node_modules/.bin/mocha test/src/*.test.js test/src/**/*.test.js",
+    "coverage": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/*.test.js test/src/**/*.test.js --exit",
+    "posttest": "istanbul check-coverage --statements 95 --branches 95 --functions 95 --lines 95"
   },
   "dependencies": {
     "base58": "^2.0.1",
-    "bluebird": "^3.5.3",
     "bs58": "^4.0.1",
     "chalk": "^2.4.2",
     "command-line-args": "^5.1.1",

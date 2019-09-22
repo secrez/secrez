@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
 const Secrez = require('../../src/Secrez')
-const fs = require('../../src/utils/fs')
+const fs = require('fs-extra')
 const config = require('../../src/config')
 
 describe('#config', function () {
@@ -12,7 +12,7 @@ describe('#config', function () {
 
   before(async function () {
     config.secrez = {}
-    await fs.emptyDirAsync(rootDir)
+    await fs.emptyDir(rootDir)
     secrez = new Secrez()
     await secrez.init(rootDir, path.dirname(rootDir))
   })

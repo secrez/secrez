@@ -1,5 +1,5 @@
 const homedir = require('homedir')
-const fs = require('./utils/fs')
+const fs = require('fs-extra')
 const Crypto = require('./utils/Crypto')
 const config = require('./config')
 
@@ -30,9 +30,9 @@ class Secrez {
         key: encryptedMasterKey,
         hash
       }
-      await fs.writeFileAsync(config.secrez.confPath, JSON.stringify(conf))
+      await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
       if (saveIterations) {
-        await fs.writeFileAsync(config.secrez.envPath, JSON.stringify({iterations}))
+        await fs.writeFile(config.secrez.envPath, JSON.stringify({iterations}))
       }
     } else {
       throw new Error('An account already exists. Please, signin or chose a different container directory')
@@ -45,25 +45,27 @@ class Secrez {
     }
     if (!iterations) {
       if (fs.existsSync(config.secrez.envPath)) {
-        let env = JSON.parse(await fs.readFileAsync(config.secrez.envPath, 'utf8'))
+        let env = JSON.parse(await fs.readFile(config.secrez.envPath, 'utf8'))
         iterations = env.iterations
-        if (iterations !== parseInt(iterations.toString())) {
-          throw new Error('Iterations is missed')
-        }
       }
     }
+    if (!iterations || iterations !== parseInt(iterations.toString())) {
+      throw new Error('Iterations is missed')
+    }
+    iterations = parseInt(iterations)
     if (await fs.existsSync(config.secrez.confPath)) {
-      let {key, hash} = JSON.parse(await fs.readFileAsync(config.secrez.confPath, 'utf8'))
+      let {key, hash} = JSON.parse(await fs.readFile(config.secrez.confPath, 'utf8'))
       let derivedPassword = await this.derivePassword(password, iterations)
+      let masterKey
       try {
-        const masterKey = await Crypto.fromAES(key, derivedPassword)
-        if (Crypto.b58Hash(masterKey) === hash) {
-          this.masterKey = masterKey
-        } else {
-          throw new Error()
-        }
+        masterKey = await Crypto.fromAES(key, derivedPassword)
       } catch(e) {
         throw new Error('Wrong password or wrong number of iterations')
+      }
+      if (Crypto.b58Hash(masterKey) === hash) {
+        this.masterKey = masterKey
+      } else {
+        throw new Error('Hash on file does not match the master key')
       }
     } else {
       throw new Error('Account not set yet')
@@ -86,7 +88,7 @@ class Secrez {
     }
   }
 
-  logout() {
+  signout() {
     if (this.masterKey) {
       delete this.masterKey
     } else {

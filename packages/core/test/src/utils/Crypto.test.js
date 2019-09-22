@@ -70,6 +70,9 @@ describe('#Crypto', function () {
       let b58timestamp = Crypto.decimalToBase58(timestamp)
       let date = await Crypto.dateFromB58(b58timestamp, true)
       assert.equal(date, (new Date(timestamp * 1000)).toISOString())
+      date = await Crypto.dateFromB58(b58timestamp)
+      assert.equal(date + '.000Z', (new Date(timestamp * 1000)).toISOString())
+
     })
 
     it('should generate a sha3 in b58 format', async function () {

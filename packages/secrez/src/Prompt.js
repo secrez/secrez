@@ -1,4 +1,5 @@
-const {Secrez, Utils, fs, FileSystemsUtils, InternalFileSystem, ExternalFileSystem} = require('@secrez/core')
+const {Secrez, Utils, FileSystemsUtils, InternalFileSystem, ExternalFileSystem} = require('@secrez/core')
+const fs = require('fs-extra')
 
 const inquirer = require('inquirer')
 

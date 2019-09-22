@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const chalk = require('chalk')
 const path = require('path')
-const {fs} = require('@secrez/core')
+const fs = require('fs-extra')
 
 const Logger = require('./utils/Logger')
 const config = require('./config')
