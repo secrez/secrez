@@ -1,7 +1,7 @@
 module.exports = {
   Secrez: require('./Secrez'),
-  InternalFileSystem: require('./fileSystems/internal'),
-  ExternalFileSystem: require('./fileSystems/external'),
+  InternalFs: require('./fileSystems/InternalFs'),
+  ExternalFs: require('./fileSystems/ExternalFs'),
   FileSystemsUtils: require('./fileSystems/FileSystemsUtils'),
   Utils: require('./utils'),
   Crypto: require('./utils/Crypto'),

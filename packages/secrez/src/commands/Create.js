@@ -74,7 +74,7 @@ class Create extends require('../Command') {
           options.content = content
         }
         if (options.content !== exitCode) {
-          await prompt.internalFileSystem.create(options.path, options.content)
+          await prompt.internalFs.create(options.path, options.content)
         }
       }
     } catch (e) {

@@ -14,12 +14,14 @@ describe('#utils', function () {
     it('should throw if the parameter is not a string or it has zero length', function () {
       try {
         utils.capitalize(23)
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Not a string')
       }
 
       try {
         utils.capitalize('')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Not a string')
       }
@@ -90,21 +92,25 @@ describe('#utils', function () {
     it('should fail if invalid format', async function () {
       try {
         utils.intToBase58('2322.12')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.intToBase58('something')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.intToBase58(24.36)
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.intToBase58([])
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
@@ -120,26 +126,26 @@ describe('#utils', function () {
 
     it('should fail if invalid format', async function () {
       try {
-        let res = utils.base58ToInt('2322.12')
-        assert.isNull(res)
+        utils.base58ToInt('2322.12')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.base58ToInt('Yw==')
-        assert.isNull(res)
+        utils.base58ToInt('Yw==')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.base58ToInt(24.36)
-        assert.isNull(res)
+        utils.base58ToInt(24.36)
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.base58ToInt([])
-        assert.isNull(res)
+        utils.base58ToInt([])
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
@@ -155,26 +161,26 @@ describe('#utils', function () {
 
     it('should fail if invalid format', async function () {
       try {
-        let res = utils.toExponentialString('2322.12')
-        assert.isNull(res)
+        utils.toExponentialString('2322.12')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.toExponentialString('Yw==')
-        assert.isNull(res)
+        utils.toExponentialString('Yw==')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.toExponentialString(24.36)
-        assert.isNull(res)
+        utils.toExponentialString(24.36)
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.toExponentialString([])
-        assert.isNull(res)
+        utils.toExponentialString([])
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
@@ -190,31 +196,73 @@ describe('#utils', function () {
 
     it('should fail if invalid format', async function () {
       try {
-        let res = utils.fromExponentialString('2322.12')
-        assert.isNull(res)
+        utils.fromExponentialString('2322.12')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.fromExponentialString('Yw==')
-        assert.isNull(res)
+        utils.fromExponentialString('Yw==')
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.fromExponentialString(24.36)
-        assert.isNull(res)
+        utils.fromExponentialString(24.36)
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
-        let res = utils.fromExponentialString([])
-        assert.isNull(res)
+        utils.fromExponentialString([])
+        assert.isNull('...')
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
     })
 
+  })
+
+  describe('addTo', function () {
+
+    let arr = ['a', 'b', 'c']
+
+    it('should add data to an array', async function () {
+
+      utils.addTo(arr, 2, 'x')
+      utils.addTo(arr, 3, 'w')
+
+      assert.equal(arr[2], 'cx')
+      assert.equal(arr[3], 'w')
+
+    })
+
+    it('should throw if invalid parameters', async function () {
+      try {
+        utils.addTo(arr, -1, 'x')
+        assert.isNull('...')
+      } catch (e) {
+        assert.equal(e.message, 'Invalid parameters')
+      }
+      try {
+        utils.addTo(arr, null, 'x')
+        assert.isNull('...')
+      } catch (e) {
+        assert.equal(e.message, 'Invalid parameters')
+      }
+      try {
+        utils.addTo(arr, 2)
+        assert.isNull('...')
+      } catch (e) {
+        assert.equal(e.message, 'Invalid parameters')
+      }
+      try {
+        utils.addTo('casa', 2, 'x')
+        assert.isNull('...')
+      } catch (e) {
+        assert.equal(e.message, 'Invalid parameters')
+      }
+    })
   })
 
 

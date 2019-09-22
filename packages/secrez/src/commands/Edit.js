@@ -42,9 +42,9 @@ class Edit extends require('../Command') {
     }
   }
 
-  async edit(internalFileSystem, options) {
+  async edit(internalFs, options) {
     let file = options.path
-    let [content, filePath, ver] = await internalFileSystem.cat({path: file})
+    let [content, filePath, ver] = await internalFs.cat({path: file})
     let extraMessage = this.chalk.dim('Press <enter> to launch ')
         + (
             !options.editor ? 'the editor.'
@@ -68,7 +68,7 @@ class Edit extends require('../Command') {
     }])
 
     if (newContent !== content) {
-      let encContent = await internalFileSystem.secrez.encryptItem(newContent)
+      let encContent = await internalFs.secrez.encryptItem(newContent)
       ver++
       await this.fs.appendFile(filePath, `\n${ver};${Crypto.timestamp(true)};${encContent}`)
       this.Logger.reset(`File saved. Version: ${ver}`)
@@ -100,7 +100,7 @@ class Edit extends require('../Command') {
       process.env.EDITOR = options.editor
     }
     try {
-      await this.edit(this.prompt.internalFileSystem, options)
+      await this.edit(this.prompt.internalFs, options)
     } catch (e) {
       this.Logger.red(e.message)
     }

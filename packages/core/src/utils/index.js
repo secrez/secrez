@@ -28,7 +28,9 @@ class Utils {
 
   static intToBase58(v) {
     try {
-      return Base58.int_to_base58(v)
+      if (typeof v === 'number') {
+        return Base58.int_to_base58(v)
+      } else throw new Error()
     } catch (e) {
       throw new Error('Invalid format')
     }
@@ -69,6 +71,15 @@ class Utils {
       throw new Error('Invalid format')
     }
 
+  }
+
+  static addTo(arr, index, data) {
+    if (Array.isArray(arr) && typeof index === 'number' && index >= 0 && parseInt(index) === index && data) {
+      if (!arr[index]) arr[index] = ''
+      arr[index] += data
+    } else {
+      throw new Error('Invalid parameters')
+    }
   }
 
 }

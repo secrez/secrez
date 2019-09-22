@@ -61,7 +61,7 @@ class Cat extends require('../Command') {
 
   async exec(options) {
     try {
-      let data = await this.prompt.internalFileSystem.cat(options)
+      let data = await this.prompt.internalFs.cat(options)
       if (data) {
         if (Array.isArray(data[0])) {
           for (let d of data) {

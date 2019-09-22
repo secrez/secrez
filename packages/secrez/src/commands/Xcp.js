@@ -34,15 +34,15 @@ class Xcp extends require('../Command') {
     }
   }
 
-  async xcp(internalFileSystem, dir) {
-    dir = internalFileSystem.getNormalizedPath(dir)
-    let [folder, dirObj] = internalFileSystem.getDir(dir)
+  async xcp(internalFs, dir) {
+    dir = internalFs.getNormalizedPath(dir)
+    let [folder, dirObj] = internalFs.getDir(dir)
     if (dirObj) {
       if (dirObj === true) {
         this.Logger.red('That is not a directory')
       } else {
         this.config.workingDir = dir
-        internalFileSystem.workingDirObj = dirObj
+        internalFs.workingDirObj = dirObj
       }
     } else {
       this.Logger.red('No such directory')
@@ -51,7 +51,7 @@ class Xcp extends require('../Command') {
 
   async exec(options) {
     try {
-      await this.xcp(this.prompt.internalFileSystem, options.path)
+      await this.xcp(this.prompt.internalFs, options.path)
     } catch (e) {
       this.Logger.red(e.message)
     }

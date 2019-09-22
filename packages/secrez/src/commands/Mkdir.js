@@ -33,7 +33,7 @@ class Mkdir extends require('../Command') {
       this.Logger.red('Directory name not specified.')
     } else {
       try {
-        await this.prompt.internalFileSystem.mkdir(options.path)
+        await this.prompt.internalFs.mkdir(options.path)
       } catch (e) {
         this.Logger.red(e.message)
       }

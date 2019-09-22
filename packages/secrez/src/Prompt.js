@@ -1,4 +1,4 @@
-const {Secrez, Utils, FileSystemsUtils, InternalFileSystem, ExternalFileSystem} = require('@secrez/core')
+const {Secrez, Utils, FileSystemsUtils, InternalFs, ExternalFs} = require('@secrez/core')
 const fs = require('fs-extra')
 
 const inquirer = require('inquirer')
@@ -30,8 +30,8 @@ class Prompt {
     this.commandPrompt = inquirerCommandPrompt
     this.getHistory = inquirerCommandPrompt.getHistory
     this.secrez = new Secrez
-    this.internalFileSystem = new InternalFileSystem(this.secrez)
-    this.externalFileSystem = new ExternalFileSystem()
+    this.internalFs = new InternalFs(this.secrez)
+    this.externalFs = new ExternalFs()
 
     inquirerCommandPrompt.setConfig({
       history: {
@@ -95,7 +95,7 @@ class Prompt {
       this.basicCommands = await this.getCommands()
       this.getCommands.bind(this)
       await welcome.start(this.secrez, options)
-      this.internalFileSystem.init(() => delete this.showLoading)
+      this.internalFs.init(() => delete this.showLoading)
       this.loadingMessage = 'Initializing'
       await this.loading()
       this.loggedIn = true

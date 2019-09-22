@@ -1,20 +1,25 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
-const config = require('../../config')
-const FileSystemsUtils = require('../FileSystemsUtils')
+const config = require('../config')
+const FileSystemsUtils = require('./FileSystemsUtils')
 
 
-class ExternalFileSystem {
+class ExternalFs {
 
   getNormalizedPath(dir = '') {
-    let resolvedDir = path.resolve(config.localWorkingDir, dir)
+    if (dir === '~') {
+      dir = ''
+    } else if (/^~\//.test(dir)) {
+      dir = dir.replace(/^~\//, '')
+    }
+    let resolvedDir = path.resolve(config.secrez.localWorkingDir, dir)
     let normalized = path.normalize(resolvedDir)
     return normalized
   }
 
   async fileCompletion(files = '', only) {
-    let [folder, list] = this.getDir(this.getNormalizedPath(files))
+    let list = this.getDir(this.getNormalizedPath(files))[1]
     if (only) {
       list = _.filter(list, f => {
         if (only === config.onlyDir) {
@@ -24,7 +29,7 @@ class ExternalFileSystem {
         }
       })
     }
-    return [folder, list]
+    return list
   }
 
   mapDir(dir) {
@@ -36,9 +41,20 @@ class ExternalFileSystem {
     if (this.isDir(dir)) {
       list = this.mapDir(dir)
     } else {
-      dir = dir.replace(/\/[^/]+$/, '/')
-      if (this.isDir(dir)) {
-        list = this.mapDir(dir)
+      let fn = path.basename(dir)
+      if (fn) {
+        dir = dir.replace(/\/[^/]+$/, '/')
+        if (this.isDir(dir)) {
+          list = this.mapDir(dir)
+        }
+        let ok = false
+        for (let e of list) {
+          if (e.indexOf(fn) === 0) {
+            ok = true
+            break
+          }
+        }
+        if (!ok) list = []
       }
     }
     return [dir, list]
@@ -52,9 +68,8 @@ class ExternalFileSystem {
   }
 
   isFile(fn) {
-    let dirPath = this.realPath(fn)
-    if (fs.existsSync(dirPath)) {
-      return fs.lstatSync(dirPath).isFile()
+    if (fs.existsSync(fn)) {
+      return fs.lstatSync(fn).isFile()
     }
     return false
   }
@@ -62,7 +77,7 @@ class ExternalFileSystem {
   async cd(dir) {
     dir = this.getNormalizedPath(dir)
     if (this.isDir(dir)) {
-      config.localWorkingDir = dir
+      config.secrez.localWorkingDir = dir
     } else {
       throw new Error('No such directory')
     }
@@ -73,9 +88,9 @@ class ExternalFileSystem {
   }
 
   async pwd() {
-    return config.localWorkingDir
+    return config.secrez.localWorkingDir
   }
 
 }
 
-module.exports = ExternalFileSystem
+module.exports = ExternalFs

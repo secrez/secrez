@@ -31,7 +31,7 @@ class Cd extends require('../Command') {
 
   async exec(options) {
     try {
-      await this.prompt.internalFileSystem.cd(options.path)
+      await this.prompt.internalFs.cd(options.path)
     } catch (e) {
       this.Logger.red(e.message)
     }

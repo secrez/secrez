@@ -1,11 +1,11 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
-const Crypto = require('../../utils/Crypto')
+const Crypto = require('../utils/Crypto')
 const path = require('path')
-const config = require('../../config')
-const FileSystemsUtils = require('../FileSystemsUtils')
+const config = require('../config')
+const FileSystemsUtils = require('./FileSystemsUtils')
 
-class InternalFileSystem {
+class InternalFs {
 
   constructor(secrez) {
     this.secrez = secrez
@@ -38,7 +38,7 @@ class InternalFileSystem {
 
   async init(callback) {
     // eslint-disable-next-line require-atomic-updates
-    this.encodedTree = await this.buildTree(config.dataPath)
+    this.encodedTree = await this.buildTree(config.secrez.dataPath)
     // eslint-disable-next-line require-atomic-updates
     this.decodedTree = await this.decodeTree(this.encodedTree)
     callback()
@@ -49,7 +49,7 @@ class InternalFileSystem {
     if (!dir) {
       dir = '/'
     }
-    let resolvedDir = path.resolve(config.workingDir, dir)
+    let resolvedDir = path.resolve(config.secrez.workingDir, dir)
     let normalized = path.normalize(resolvedDir)
     return normalized
   }
@@ -190,8 +190,7 @@ class InternalFileSystem {
     let originalFiles = files
     if (!files) files = './'
     let dir = this.getNormalizedPath(files)
-    let [folder, dirObj] = this.getDir(dir, true)
-    // console.log('dirObj', folder, dirObj)
+    let dirObj = this.getDir(dir, true)[1]
     if (dirObj) {
       let list = []
       for (let e in dirObj) {
@@ -220,8 +219,7 @@ class InternalFileSystem {
           }
         })
       }
-      // console.log('list', list)
-      return [folder, list]
+      return list
     } else {
       return []
     }
@@ -238,7 +236,7 @@ class InternalFileSystem {
     if (p === '~') {
       p = ''
     }
-    return path.join(config.dataPath, './' + p).replace(/\/+$/, '')
+    return path.join(config.secrez.dataPath, './' + p).replace(/\/+$/, '')
   }
 
   isDir(dir) {
@@ -259,7 +257,7 @@ class InternalFileSystem {
 
   async cat(options) {
     let file = options.path
-    file = path.resolve(config.workingDir, file)
+    file = path.resolve(config.secrez.workingDir, file)
     let [decParent, encParent, encParentPath] = this.getParents(file)
     let [p] = this.pickDir(decParent, path.basename(file))
     if (p) {
@@ -308,7 +306,7 @@ class InternalFileSystem {
       if (dirObj === true) {
         throw new Error('Not a directory')
       } else {
-        config.workingDir = dir
+        config.secrez.workingDir = dir
         this.workingDirObj = dirObj
       }
     } else {
@@ -317,7 +315,7 @@ class InternalFileSystem {
   }
 
   async create(file, content) {
-    file = path.resolve(config.workingDir, file)
+    file = path.resolve(config.secrez.workingDir, file)
     let [decParent, encParent, encParentPath] = this.getParents(file)
     if (decParent) {
       let dirname = path.basename(file)
@@ -351,7 +349,7 @@ class InternalFileSystem {
   }
 
   async mkdir(dir) {
-    dir = path.resolve(config.workingDir, dir)
+    dir = path.resolve(config.secrez.workingDir, dir)
     let [decParent, encParent, encParentPath] = this.getParents(dir)
     if (decParent) {
       let dirname = path.basename(dir)
@@ -380,9 +378,9 @@ class InternalFileSystem {
   }
 
   async pwd(options) {
-    return config.workingDir
+    return config.secrez.workingDir
   }
 
 }
 
-module.exports = InternalFileSystem
+module.exports = InternalFs

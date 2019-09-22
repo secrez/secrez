@@ -1,6 +1,6 @@
 // const path = require('path')
 // const assert = require('assert')
-// const FileSystem = require('../../src/InternalFileSystem')
+// const FileSystem = require('../../src/InternalFs')
 //
 // describe('#FileSystem', function () {
 //

@@ -28,7 +28,7 @@ class Command {
   pseudoFileCompletion(self, only) {
     return async files => {
       try {
-        return self.prompt.internalFileSystem.pseudoFileCompletion(files, only)
+        return self.prompt.internalFs.pseudoFileCompletion(files, only)
       } catch (e) {
         Logger.red(['error', e])
       }
@@ -38,7 +38,7 @@ class Command {
   fileCompletion(self, only) {
     return async files => {
       try {
-        return self.prompt.externalFileSystem.fileCompletion(files, only)
+        return self.prompt.externalFs.fileCompletion(files, only)
       } catch (e) {
         Logger.red(['error', e])
       }

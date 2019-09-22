@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const path = require('path')
+const utils = require('../utils')
 const commandLineArgs = require('command-line-args')
 
 class FileSystemsUtils {
@@ -16,42 +17,37 @@ class FileSystemsUtils {
       } else if (sep && c === sep) {
         sep = null
       } else if (!sep && c === '\\' && commandLine[i + 1]) {
-        if (!argv[k]) argv[k] = ''
-        argv[k] += commandLine[i + 1]
+        utils.addTo(argv, k, commandLine[i + 1])
         i++
       } else if (!sep && c === ' ') {
         k++
       } else {
-        if (!argv[k]) argv[k] = ''
-        argv[k] += c
+        utils.addTo(argv, k, c)
       }
     }
     return argv
   }
 
-  static parseCommandLine(definitions, commandLine, onlyIfDefinitions) {
-    if (definitions && commandLine) {
-      const argv = this.preParseCommandLine(commandLine)
-      return commandLineArgs(definitions, {argv})
-    } else if (definitions && !onlyIfDefinitions) {
-      return commandLineArgs(definitions)
+  static parseCommandLine(definitions, commandLine) {
+    if (definitions) {
+      if (commandLine) {
+        const argv = this.preParseCommandLine(commandLine)
+        return commandLineArgs(definitions, {argv})
+      } else {
+        return commandLineArgs(definitions)
+      }
     }
     return {}
   }
 
-  static async filterLs(files, folderList) {
+  static async filterLs(files, list = []) {
     let bn = files ? path.basename(files) : ''
-    let list = folderList[1]
     if (bn && list.includes(bn)) {
       return [bn]
     } else if (bn) {
-      if (/\*/.test(bn)) {
-        bn = bn.replace(/\*/g, '.*')
-        let re = RegExp(bn)
-        list = _.filter(list, e => re.test(e))
-      } else {
-        list = []
-      }
+      bn = bn.replace(/\./g,'\\.').replace(/\*/g, '.*')
+      let re = RegExp(bn)
+      list = _.filter(list, e => re.test(e))
     }
     return list.map(f => {
       f = f.split('/')

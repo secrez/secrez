@@ -32,7 +32,7 @@ class Ecd extends require('../Command') {
 
   async exec(options) {
     try {
-      await this.prompt.externalFileSystem.cd(options.path)
+      await this.prompt.externalFs.cd(options.path)
     } catch (e) {
       this.Logger.red(e.message)
     }
