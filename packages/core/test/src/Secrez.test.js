@@ -32,7 +32,6 @@ describe('#Secrez', function () {
       assert.equal(config.secrez.localWorkingDir, homedir())
     })
 
-
   })
 
   describe('custom (testing) secrez dir', function () {
@@ -89,6 +88,7 @@ describe('#Secrez', function () {
         it('trying to signup if Secrez has not been initiated', async function () {
           try {
             await secrez.signup(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Secrez not initiated')
           }
@@ -97,6 +97,7 @@ describe('#Secrez', function () {
         it('trying to signin if Secrez has not been initiated', async function () {
           try {
             await secrez.signin(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Secrez not initiated')
           }
@@ -107,6 +108,7 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           try {
             await secrez.signup(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'An account already exists. Please, signin or chose a different container directory')
           }
@@ -116,6 +118,7 @@ describe('#Secrez', function () {
           await secrez.init(rootDir)
           try {
             await secrez.signin(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Account not set yet')
           }
@@ -126,6 +129,7 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           try {
             await secrez.signin(password)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Iterations is missed')
           }
@@ -136,6 +140,7 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           try {
             await secrez.signin('wrongPassword', iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Wrong password or wrong number of iterations')
           }
@@ -146,6 +151,7 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           try {
             await secrez.signin(password, iterations - 1)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Wrong password or wrong number of iterations')
           }
@@ -159,6 +165,7 @@ describe('#Secrez', function () {
           await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
           try {
             await secrez.signin(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Hash on file does not match the master key')
           }
@@ -168,6 +175,7 @@ describe('#Secrez', function () {
           await secrez.init(rootDir)
           try {
             secrez.signout()
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'User not logged')
           }
@@ -195,12 +203,14 @@ describe('#Secrez', function () {
         try {
           let data = 'some random data'
           secrez.encryptItem(data)
+          assert.isFalse(true)
         } catch (e) {
           assert.equal(e.message, 'User not logged')
         }
 
         try {
           secrez.decryptItem('some encrypted data')
+          assert.isFalse(true)
         } catch (e) {
           assert.equal(e.message, 'User not logged')
         }

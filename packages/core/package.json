@@ -5,10 +5,8 @@
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
-    "test": "./node_modules/.bin/mocha test/src/*.test.js test/src/**/*.test.js",
-    "coverage": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/*.test.js test/src/**/*.test.js --exit"
-  },
-  "disabled": {
+    "no-coverage-test": "./node_modules/.bin/mocha test/src/*.test.js test/src/**/*.test.js",
+    "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/*.test.js test/src/**/*.test.js --exit",
     "posttest": "istanbul check-coverage --statements 95 --branches 95 --functions 95 --lines 95"
   },
   "dependencies": {

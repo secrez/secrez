@@ -67,6 +67,7 @@ describe('#FileSystemsUtils', function () {
     })
 
     it('should return a {} w/out params', async function () {
+      // it uses process.argv []
       definitions = [
         {
           name: 'files',
@@ -80,13 +81,13 @@ describe('#FileSystemsUtils', function () {
       ]
       options = utils.parseCommandLine(definitions)
       assert.isTrue(options.files.length > 4)
-      assert.isTrue(options.exit)
     })
 
     it('should throw if unknown option is passed', async function () {
       commandLine = '-a -p ~/rossa'
       try {
         options = utils.parseCommandLine(definitions, commandLine)
+        assert.isFalse(true)
       } catch (e) {
         assert.isTrue(/unknown option/i.test(e.message))
       }
@@ -159,6 +160,14 @@ describe('#FileSystemsUtils', function () {
 
       filtered = await utils.filterLs(null, list)
       assert.equal(filtered.length, 5)
+
+    })
+
+  })
+
+  describe('#ls', async function () {
+
+    it('should list the content of a folder', async function () {
 
     })
 

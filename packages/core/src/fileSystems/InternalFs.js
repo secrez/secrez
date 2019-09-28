@@ -8,8 +8,12 @@ const FileSystemsUtils = require('./FileSystemsUtils')
 class InternalFs {
 
   constructor(secrez) {
-    this.secrez = secrez
-    this.itemId = 1
+    if (secrez && secrez.constructor.name === 'Secrez') {
+      this.secrez = secrez
+      this.itemId = 1
+    } else {
+      throw new Error('InternalFs requires secrez during construction')
+    }
   }
 
   async buildTree(dir) {

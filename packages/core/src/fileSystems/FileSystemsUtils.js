@@ -42,6 +42,9 @@ class FileSystemsUtils {
 
   static async filterLs(files, list = []) {
     let bn = files ? path.basename(files) : ''
+    if (bn === '.' || bn === '..') {
+      bn = ''
+    }
     if (bn && list.includes(bn)) {
       return [bn]
     } else if (bn) {

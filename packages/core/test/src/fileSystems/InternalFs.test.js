@@ -9,67 +9,65 @@ describe('#InternalFs', function () {
 
   let secrez
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let internalFs
 
-  before(async function () {
-    await fs.emptyDir(rootDir)
-    secrez = new Secrez()
-    await secrez.init(rootDir)
+  describe('#constructor', async function () {
+
+    before(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+    })
+
+    it('should instantiate the internal file system', async function () {
+
+      internalFs = new InternalFs(secrez)
+      assert.equal(internalFs.itemId, 1)
+
+    })
+
+    it('should throw if passing not a Secrez instance', async function () {
+
+      try {
+        new InternalFs(new Object())
+        assert.isFalse(true)
+      } catch(e) {
+        assert.equal(e.message, 'InternalFs requires secrez during construction')
+      }
+
+    })
+
   })
 
-  // describe('preParseCommandLine', async function () {
-  //
-  //   let commandLine
-  //   let parsed
-  //
-  //   it('should preParse a command line', async function () {
-  //     commandLine = 'ls -l ~/data/bit'
-  //     parsed = utils.preParseCommandLine(commandLine)
-  //     assert.equal(JSON.stringify(parsed), '["ls","-l","~/data/bit"]')
-  //
-  //     commandLine = 'ls --list *'
-  //     parsed = utils.preParseCommandLine(commandLine)
-  //     assert.equal(JSON.stringify(parsed), '["ls","--list","*"]')
-  //   })
-  //
-  //   it('should preParse a command line with escaped pars', async function () {
-  //     commandLine = 'ls casa\\ secca'
-  //     parsed = utils.preParseCommandLine(commandLine)
-  //     assert.equal(JSON.stringify(parsed), '["ls","casa secca"]')
-  //   })
-  //
-  //   it('should preParse a command line using quotes for params', async function () {
-  //     commandLine = 'ls "casa secca"'
-  //     parsed = utils.preParseCommandLine(commandLine)
-  //     assert.equal(JSON.stringify(parsed), '["ls","casa secca"]')
-  //   })
-  //
-  // })
-  //
-  // describe('parseCommandLine', async function () {
-  //
-  //   let commandLine
-  //   let options
-  //   let definitions = [
-  //     {
-  //       name: 'content',
-  //       alias: 'c',
-  //       type: String
-  //     },
-  //     {
-  //       name: 'path',
-  //       alias: 'p',
-  //       defaultOption: true,
-  //       type: String
-  //     }
-  //   ]
-  //
-  //   it('should parse a command line with definitions', async function () {
-  //     commandLine = '-c "lupa rossa" -p ~/rossa'
-  //     options = utils.parseCommandLine(definitions, commandLine)
-  //
-  //     assert.equal(JSON.stringify(options), '{"content":"lupa rossa","path":"~/rossa"}')
-  //
-  //   })
-  //
-  // })
+
+  describe('getNormalizedPath', async function () {
+
+    it('should get the normalized path', async function () {
+
+      internalFs = new InternalFs(secrez)
+      assert.equal(internalFs.getNormalizedPath('~'), '/')
+      assert.equal(internalFs.getNormalizedPath('.'), '/')
+      assert.equal(internalFs.getNormalizedPath('../'), '/')
+      assert.equal(internalFs.getNormalizedPath('tron'), '/tron')
+
+    })
+  })
+
+  describe('mkdir', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+    })
+
+    it('should create a directory', async function() {
+
+
+
+    })
+
+  })
+
+
 })

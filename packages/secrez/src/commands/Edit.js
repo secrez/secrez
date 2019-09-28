@@ -60,7 +60,7 @@ class Edit extends require('../Command') {
       name: 'newContent',
       message: 'Editing...',
       default: content,
-      tempDir: this.config.tmpPath,
+      tempDir: this.config.secrez.tmpPath,
       validate: function (text) {
         return true
       },

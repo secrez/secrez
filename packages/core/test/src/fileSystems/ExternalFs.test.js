@@ -147,6 +147,7 @@ describe('#ExternalFs', function () {
       dir = externalFs.getNormalizedPath('jobs.text')
       try {
         await externalFs.cd(dir)
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'No such directory')
       }
@@ -156,6 +157,7 @@ describe('#ExternalFs', function () {
       dir = externalFs.getNormalizedPath('gels')
       try {
         await externalFs.cd(dir)
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'No such directory')
       }
@@ -163,33 +165,49 @@ describe('#ExternalFs', function () {
 
   })
 
-  // describe('ls', async function () {
-  //
-  //   let files
-  //   let results
-  //
-  //   it('should return a list of files', async function () {
-  //     files = '.'
-  //     results = await externalFs.ls(files)
-  //     assert.equal(results.length, 4)
-  //
-  //   })
-  //
-  //   it('should return the list of of the parent folder if files is a file', async function () {
-  //     files = 'config.test.js'
-  //     results = await externalFs.ls(files)
-  //     assert.equal(results.length, 4)
-  //
-  //   })
-  //
-  //   it('should return an empty list if the files does not exist', async function () {
-  //     files = 'somefile.txt'
-  //     results = await externalFs.ls(files)
-  //     assert.equal(results.length, 0)
-  //
-  //   })
-  //
-  //
-  // })
+  describe('ls', async function () {
+
+    let files
+    let results
+
+    before(async function () {
+      await externalFs.cd('~')
+    })
+
+    it('should return a list of files as "ls ./"', async function () {
+      files = './'
+      results = await externalFs.ls(files)
+      assert.equal(results.length, 4)
+
+    })
+
+    it('should return a list of files as "ls .."', async function () {
+      files = '..'
+      results = await externalFs.ls(files)
+      assert.equal(results.length, 4)
+
+    })
+
+    it('should return the file itself', async function () {
+      files = 'config.test.js'
+      results = await externalFs.ls(files)
+      assert.equal(results[0], files)
+
+    })
+
+    it('should return an empty list if the files does not exist', async function () {
+      files = 'somefile.txt'
+      results = await externalFs.ls(files)
+      assert.equal(results.length, 0)
+    })
+
+  })
+
+  describe('pwd', async function () {
+
+    it('should return the current local working dir', async function () {
+      assert.equal(await externalFs.pwd(), config.secrez.localWorkingDir)
+    })
+  })
 
 })

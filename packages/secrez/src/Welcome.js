@@ -8,7 +8,7 @@ class Welcome {
   async start(secrez, options) {
     this.options = options
     this.iterations = options.iterations || await this.getIterations()
-    if (fs.existsSync(config.confPath)) {
+    if (fs.existsSync(config.secrez.confPath)) {
       await this.login(secrez)
     } else {
       Logger.grey('Please signup to create your local account')
@@ -17,8 +17,8 @@ class Welcome {
   }
 
   async getIterations() {
-    if (fs.existsSync(config.envPath)) {
-      return require(config.envPath).iterations
+    if (fs.existsSync(config.secrez.envPath)) {
+      return require(config.secrez.envPath).iterations
     } else {
       let {iterations} = await inquirer.prompt([{
         name: 'iterations',
@@ -37,8 +37,8 @@ class Welcome {
   }
 
   async saveIterations() {
-    if (this.options.saveIterations && !fs.existsSync(config.envPath)) {
-      fs.writeFile(config.envPath, JSON.stringify({iterations: this.iterations}))
+    if (this.options.saveIterations && !fs.existsSync(config.secrez.envPath)) {
+      fs.writeFile(config.secrez.envPath, JSON.stringify({iterations: this.iterations}))
     }
   }
 
