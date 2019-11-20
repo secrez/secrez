@@ -82,6 +82,17 @@ class Utils {
     }
   }
 
+  static secureCompare(a, b) {
+    if (a.length !== b.length) {
+      return false
+    }
+    let match = true
+    for (let i = 0; i < a.length; i++) {
+      match = match && (a[i] === b[i])
+    }
+    return match
+  }
+
 }
 
 module.exports = Utils

@@ -265,5 +265,49 @@ describe('#utils', function () {
     })
   })
 
+  describe('#secureCompare', function () {
+
+    it('should compare two equal strings', async function () {
+
+      const a = 'verasals'
+      const b = 'verasals'
+
+      assert.isTrue(utils.secureCompare(a, b))
+
+    })
+
+    it('should compare two not equal, same-length strings', async function () {
+
+      const a = 'verasals'
+      const b = 'velsreds'
+
+      assert.isFalse(utils.secureCompare(a, b))
+
+    })
+
+    it('should compare two not equal, not-same-length strings', async function () {
+
+      const a = 'verasals'
+      const b = 'veras'
+
+      assert.isFalse(utils.secureCompare(a, b))
+
+    })
+
+    it('should compare two byte arrays', async function () {
+
+      const a = [3, 54, 24, 132]
+      const b = [3, 54, 24, 132]
+      const c = [3, 54, 12, 132]
+      const d = [3, 54, 12]
+
+      assert.isTrue(utils.secureCompare(a, b))
+      assert.isFalse(utils.secureCompare(a, c))
+      assert.isFalse(utils.secureCompare(c, d))
+
+    })
+
+  })
+
 
 })

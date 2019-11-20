@@ -2,6 +2,7 @@ const homedir = require('homedir')
 const fs = require('fs-extra')
 const Crypto = require('./utils/Crypto')
 const config = require('./config')
+const utils = require('./utils')
 
 class Secrez {
 
@@ -62,7 +63,7 @@ class Secrez {
       } catch(e) {
         throw new Error('Wrong password or wrong number of iterations')
       }
-      if (Crypto.b58Hash(masterKey) === hash) {
+      if (utils.secureCompare(Crypto.b58Hash(masterKey), hash)) {
         this.masterKey = masterKey
       } else {
         throw new Error('Hash on file does not match the master key')
