@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const path = require('path')
-const utils = require('../utils')
+const {utils} = require('@secrez/core')
 const commandLineArgs = require('command-line-args')
 
 class FileSystemsUtils {

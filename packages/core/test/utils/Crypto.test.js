@@ -1,7 +1,7 @@
 const chai = require('chai')
 const assert = chai.assert
-const Crypto = require('../../../src/utils/Crypto')
-const helpers = require('../../helpers')
+const Crypto = require('../../src/utils/Crypto')
+const helpers = require('../helpers')
 
 describe('#Crypto', function () {
 

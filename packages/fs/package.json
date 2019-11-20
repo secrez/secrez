@@ -1,5 +1,5 @@
 {
-  "name": "@secrez/core",
+  "name": "@secrez/fs",
   "version": "0.2.4",
   "license": "MIT",
   "scripts": {
@@ -10,6 +10,7 @@
     "posttest": "nyc check-coverage --statements 95 --branches 95 --functions 95 --lines 95"
   },
   "dependencies": {
+    "@secrez/core": "^0.2.4",
     "base58": "^2.0.1",
     "bs58": "^4.0.1",
     "chalk": "^2.4.2",
@@ -30,7 +31,7 @@
     "mocha": "^6.2.0",
     "nyc": "^14.1.1"
   },
-  "description": "The Secrez core library.",
+  "description": "The Secrez fs library.",
   "main": "src/index.js",
   "repository": {
     "type": "git",

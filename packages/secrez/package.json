@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@secrez/core": "^0.2.4",
+    "@secrez/fs": "^0.2.4",
     "chalk": "^2.4.2",
     "command-line-args": "^5.1.1",
     "external-editor": "^3.1.0",

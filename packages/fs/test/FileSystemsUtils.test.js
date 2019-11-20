@@ -1,6 +1,6 @@
 const chai = require('chai')
 const assert = chai.assert
-const utils = require('../../../src/fileSystems/FileSystemsUtils')
+const utils = require('../src/FileSystemsUtils')
 
 describe('#FileSystemsUtils', function () {
 

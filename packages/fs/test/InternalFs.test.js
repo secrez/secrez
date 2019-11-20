@@ -2,8 +2,8 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const Secrez = require('../../../src/Secrez')
-const InternalFs = require('../../../src/fileSystems/InternalFs')
+const {Secrez} = require('@secrez/core')
+const InternalFs = require('../src/InternalFs')
 
 describe('#InternalFs', function () {
 

@@ -1,8 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
-const Crypto = require('../utils/Crypto')
 const path = require('path')
-const config = require('../config')
+const {config, Crypto} = require('@secrez/core')
 const FileSystemsUtils = require('./FileSystemsUtils')
 
 class InternalFs {

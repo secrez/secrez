@@ -2,18 +2,18 @@ const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
 const homedir = require('homedir')
-const Secrez = require('../../src/Secrez')
-const Crypto = require('../../src/utils/Crypto')
+const Secrez = require('../src/Secrez')
+const Crypto = require('../src/utils/Crypto')
 const fs = require('fs-extra')
-const config = require('../../src/config')
-const helpers = require('../helpers')
+const config = require('../src/config')
+const helpers = require('./helpers')
 
 describe('#Secrez', function () {
 
   let password = 'unaSTRANA342'
   let iterations = 23456
   let hash23456iterations = '2hy1HzfcCCoNacowjY67LvgPXUyNFwjAGuuMcieVcAJY'
-  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 
   let secrez
   let masterKey

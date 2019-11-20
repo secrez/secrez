@@ -1,6 +1,6 @@
 const chai = require('chai')
 const assert = chai.assert
-const utils = require('../../../src/utils')
+const utils = require('../../src/utils')
 
 describe('#utils', function () {
 

@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
-const config = require('../config')
+const {config} = require('@secrez/core')
 const FileSystemsUtils = require('./FileSystemsUtils')
 
 
