@@ -52,16 +52,16 @@ describe('#ExternalFs', function () {
     let results
 
     it('should return a list of files', async function () {
-      files = './helpers'
+      files = '../src'
       results = await externalFs.fileCompletion(files)
-      assert.equal(results.length, 2)
+      assert.equal(results.length, 4)
 
     })
 
     it('should return a list of only directories', async function () {
       files = '.'
       results = await externalFs.fileCompletion(files, config.onlyDir)
-      assert.equal(results.length, 3)
+      assert.equal(results.length, 2)
 
     })
 
@@ -75,7 +75,7 @@ describe('#ExternalFs', function () {
     it('should return the list of of the parent folder if files is a file', async function () {
       files = 'InternalFs.test.js'
       results = await externalFs.fileCompletion(files)
-      assert.equal(results.length, 6)
+      assert.equal(results.length, 5)
 
     })
 
@@ -94,13 +94,13 @@ describe('#ExternalFs', function () {
     let dir
 
     it('should confirm that "utils" is a dir', async function () {
-      dir = externalFs.getNormalizedPath('helpers')
+      dir = externalFs.getNormalizedPath('fixtures')
       assert.isTrue(externalFs.isDir(dir))
 
     })
 
     it('should return that "config.test.js" is not a dir', async function () {
-      dir = externalFs.getNormalizedPath('helpers/index.js')
+      dir = externalFs.getNormalizedPath('../src/utils/index.js')
       assert.isFalse(externalFs.isDir(dir))
     })
 
@@ -138,7 +138,7 @@ describe('#ExternalFs', function () {
     let dir
 
     it('should change directory', async function () {
-      dir = externalFs.getNormalizedPath('helpers')
+      dir = externalFs.getNormalizedPath('fixtures')
       await externalFs.cd(dir)
       assert.equal(config.secrez.localWorkingDir, dir)
     })
@@ -177,7 +177,7 @@ describe('#ExternalFs', function () {
     it('should return a list of files as "ls ./"', async function () {
       files = './'
       results = await externalFs.ls(files)
-      assert.equal(results.length, 6)
+      assert.equal(results.length, 5)
 
     })
 

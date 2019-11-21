@@ -3,6 +3,7 @@ const fs = require('fs-extra')
 const Crypto = require('./utils/Crypto')
 const config = require('./config')
 const utils = require('./utils')
+const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
 
 class Secrez {
 
@@ -26,10 +27,14 @@ class Secrez {
       let derivedPassword = await this.derivePassword(password, iterations)
       this.masterKey = Crypto.SHA3(Crypto.getRandomString(256))
       let hash = Crypto.b58Hash(this.masterKey)
-      const encryptedMasterKey = await Crypto.toAES(this.masterKey, derivedPassword)
+      const encryptedMasterKey = Crypto.toAES(this.masterKey, derivedPassword)
+      const generated = await PrivateKeyGenerator.generate({accounts: 1})
+      const encryptedMnemonic = this.encryptItem(generated.mnemonic, derivedPassword)
       const conf = {
         key: encryptedMasterKey,
-        hash
+        hash,
+        mnemonic: encryptedMnemonic,
+        hdPath: generated.hdPath
       }
       await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
       if (saveIterations) {

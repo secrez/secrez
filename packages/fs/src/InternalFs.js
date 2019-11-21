@@ -189,7 +189,7 @@ class InternalFs {
     return false
   }
 
-  async pseudoFileCompletion(files = '', only) {
+  async pseudoFileCompletion(files = '*', only) {
     let originalFiles = files
     if (!files) files = './'
     let dir = this.getNormalizedPath(files)

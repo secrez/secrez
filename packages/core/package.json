@@ -1,23 +1,26 @@
 {
   "name": "@secrez/core",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
-    "no-coverage-test": "./node_modules/.bin/mocha test/src/*.test.js test/src/**/*.test.js",
+    "no-coverage-test": "./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
     "posttest": "nyc check-coverage --statements 95 --branches 95 --functions 95 --lines 95"
   },
   "dependencies": {
     "base58": "^2.0.1",
+    "bip39": "^3.0.2",
     "bs58": "^4.0.1",
     "chalk": "^2.4.2",
     "command-line-args": "^5.1.1",
+    "ethereumjs-wallet": "^0.6.3",
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
     "lodash": "^4.17.15",
     "pbkdf2": "^3.0.17",
+    "seedrandom": "^3.0.5",
     "sha3": "^2.0.7"
   },
   "devDependencies": {

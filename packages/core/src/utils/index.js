@@ -83,7 +83,7 @@ class Utils {
   }
 
   static secureCompare(a, b) {
-    if (a.length !== b.length) {
+    if (!a || !b || a.length !== b.length) {
       return false
     }
     let match = true

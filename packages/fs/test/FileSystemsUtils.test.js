@@ -80,7 +80,7 @@ describe('#FileSystemsUtils', function () {
         }
       ]
       options = utils.parseCommandLine(definitions)
-      assert.isTrue(options.files.length > 4)
+      assert.isTrue(options.files.length >= 4)
     })
 
     it('should throw if unknown option is passed', async function () {

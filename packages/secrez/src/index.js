@@ -3,8 +3,8 @@ const path = require('path')
 const homedir = require('homedir')
 const Logger = require('./utils/Logger')
 const chalk = require('chalk')
-const secrezCore = require('@secrez/core')
-const {FileSystemsUtils, version} = secrezCore
+const {FileSystemsUtils} = require('@secrez/fs')
+const {version} = require('@secrez/core')
 const config = require('./config')
 const Prompt = require('./Prompt')
 

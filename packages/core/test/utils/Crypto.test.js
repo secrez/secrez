@@ -1,18 +1,21 @@
 const chai = require('chai')
 const assert = chai.assert
 const Crypto = require('../../src/utils/Crypto')
-const helpers = require('../helpers')
+const utils = require('../../src/utils')
+
+const {
+  password,
+  b58Hash,
+  passwordSHA3Hex,
+  passwordB64,
+  salt,
+  iterations,
+  iterationsB58,
+  hash23456iterations
+} = require('../fixtures')
 
 describe('#Crypto', function () {
 
-  let password = 'unaSTRANA342'
-  let b58Hash = 'J5JDehfYiYFyRcySdHQNiCJdVrsrUyVtpCEXU7fBQ6q3'
-  let passwordSHA3Hex = 'fdb07834d77b30a750f3b14ab06b000730ee2f2bb52a842fc78d72d88c82038e'
-  let passwordB64 = 'dW5hU1RSQU5BMzQy'
-  let salt = 'someSalt'
-  let iterations = 23456
-  let iterationsB58 = '7Yq'
-  let hash23456iterations = 'GCF7ytpi9DyMPbuDhLj6vW1oSe99nBTLzABcb1qvTeLY'
 
   describe('#utils', async function () {
 
@@ -42,7 +45,7 @@ describe('#Crypto', function () {
     })
 
     it('should SHA3 a string', async function () {
-      assert.isTrue(helpers.bufferEquals(Crypto.SHA3(password), Buffer.from(passwordSHA3Hex, 'hex')))
+      assert.isTrue(utils.secureCompare(Crypto.SHA3(password), Buffer.from(passwordSHA3Hex, 'hex')))
     })
 
     it('should derive a password and obtain a predeterminded hash', async function () {

@@ -4,15 +4,18 @@ const path = require('path')
 const homedir = require('homedir')
 const Secrez = require('../src/Secrez')
 const Crypto = require('../src/utils/Crypto')
+const utils = require('../src/utils')
 const fs = require('fs-extra')
 const config = require('../src/config')
-const helpers = require('./helpers')
+
+const {
+  password,
+  iterations,
+  hash23456iterationsNoSalt
+} = require('./fixtures')
 
 describe('#Secrez', function () {
 
-  let password = 'unaSTRANA342'
-  let iterations = 23456
-  let hash23456iterations = '2hy1HzfcCCoNacowjY67LvgPXUyNFwjAGuuMcieVcAJY'
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 
   let secrez
@@ -45,8 +48,8 @@ describe('#Secrez', function () {
     describe('derivePassword', async function () {
 
       it('should derive a password and obtain a predeterminded hash', async function () {
-        let derivedPassword = await secrez.derivePassword(password, 23456)
-        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterations)
+        let derivedPassword = await secrez.derivePassword(password, iterations)
+        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterationsNoSalt)
       })
 
     })
@@ -59,7 +62,7 @@ describe('#Secrez', function () {
         secrez = new Secrez()
       })
 
-      it('should signup the user and signin without saving the iterations', async function () {
+      it.only('should signup the user and signin without saving the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
         assert.isTrue(fs.existsSync(config.secrez.confPath))
@@ -67,7 +70,7 @@ describe('#Secrez', function () {
         secrez.signout()
         assert.isUndefined(secrez.masterKey)
         await secrez.signin(password, iterations)
-        assert.isTrue(helpers.bufferEquals(masterKey, secrez.masterKey))
+        assert.isTrue(utils.secureCompare(masterKey, secrez.masterKey))
       })
 
       it('should signup the user and signin saved the iterations', async function () {
@@ -79,7 +82,7 @@ describe('#Secrez', function () {
         secrez.signout()
         assert.isUndefined(secrez.masterKey)
         await secrez.signin(password)
-        assert.isTrue(helpers.bufferEquals(masterKey, secrez.masterKey))
+        assert.isTrue(utils.secureCompare(masterKey, secrez.masterKey))
 
       })
 
@@ -161,7 +164,7 @@ describe('#Secrez', function () {
           await secrez.init(rootDir)
           await secrez.signup(password, iterations)
           let conf = require(config.secrez.confPath)
-          conf.hash = hash23456iterations
+          conf.hash = hash23456iterationsNoSalt
           await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
           try {
             await secrez.signin(password, iterations)
