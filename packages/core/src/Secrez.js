@@ -86,9 +86,9 @@ class Secrez {
     }
   }
 
-  encryptItem(item) {
+  encryptItem(item, id = Crypto.getRandomId()) {
     if (this.masterKey) {
-      return Crypto.encrypt(item, this.masterKey)
+      return [id, Crypto.encrypt(item, this.masterKey)].join('0')
     } else {
       throw new Error('User not logged')
     }
@@ -96,6 +96,8 @@ class Secrez {
 
   decryptItem(item) {
     if (this.masterKey) {
+      let temp = item.split('0')
+      item = temp[1] || temp[0]
       return Crypto.decrypt(item, this.masterKey)
     } else {
       throw new Error('User not logged')

@@ -34,8 +34,11 @@ class Crypto {
   }
 
   static getRandomIv() {
-    let bytes = 64 + Math.floor(Math.random() * 64)
-    return Crypto.SHA3(`${crypto.randomBytes(bytes)}`).slice(0, 16)
+    return Crypto.SHA3(`${crypto.randomBytes(64)}`).slice(0, 16)
+  }
+
+  static getRandomId() {
+    return bs58.encode(Crypto.getRandomIv())
   }
 
   static SHA3(data) {

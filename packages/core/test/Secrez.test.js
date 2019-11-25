@@ -202,6 +202,16 @@ describe('#Secrez', function () {
         assert.equal(data, secrez.decryptItem(encryptedData))
       })
 
+      it('should encrypt again an item with same id and decrypt it', async function () {
+        await secrez.signup(password, iterations)
+        let data = 'some random data'
+        let encryptedData = secrez.encryptItem(data)
+        let id = encryptedData.split('0')[0]
+        let encryptedData2 = secrez.encryptItem(data, id)
+        assert.equal(encryptedData2.split('0')[0], id)
+        assert.equal(data, secrez.decryptItem(encryptedData2))
+      })
+
       it('should throw if the user is not logged in', async function () {
         try {
           let data = 'some random data'
