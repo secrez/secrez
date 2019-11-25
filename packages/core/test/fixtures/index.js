@@ -7,5 +7,5 @@ module.exports = {
   iterations: 23456,
   iterationsB58: '7Yq',
   hash23456iterations: 'GCF7ytpi9DyMPbuDhLj6vW1oSe99nBTLzABcb1qvTeLY',
-  hash23456iterationsNoSalt: '2hy1HzfcCCoNacowjY67LvgPXUyNFwjAGuuMcieVcAJY'
+  hash23456iterationsNoSalt: 'ErQE64oXPPs7QqbirznqzCap3KNyMKDZZZBexRfhS7Pb'
 }

@@ -2,6 +2,13 @@ const chai = require('chai')
 const assert = chai.assert
 const Crypto = require('../../src/utils/Crypto')
 const utils = require('../../src/utils')
+const bs58 = require('bs58')
+
+const {
+  box,
+  secretbox
+} = require('tweetnacl')
+
 
 const {
   password,
@@ -10,7 +17,6 @@ const {
   passwordB64,
   salt,
   iterations,
-  iterationsB58,
   hash23456iterations
 } = require('../fixtures')
 
@@ -18,16 +24,6 @@ describe('#Crypto', function () {
 
 
   describe('#utils', async function () {
-
-    it('should encode an integer as a base58 string', async function () {
-      let encoded = Crypto.decimalToBase58(iterations)
-      assert.equal(encoded, iterationsB58)
-    })
-
-    it('should decode a base58 string to an integer', async function () {
-      let decoded = Crypto.base58ToDecimal(iterationsB58)
-      assert.equal(decoded, iterations)
-    })
 
     it('should encode a string as base64', async function () {
       let coded = Crypto.toBase64(password)
@@ -46,6 +42,16 @@ describe('#Crypto', function () {
 
     it('should SHA3 a string', async function () {
       assert.isTrue(utils.secureCompare(Crypto.SHA3(password), Buffer.from(passwordSHA3Hex, 'hex')))
+    })
+
+    it('should generate key', async function () {
+      const newKey = Crypto.generateKey()
+      assert.equal(bs58.decode(newKey).length, 32)
+    })
+
+    it('should generate a new nounce', async function () {
+      const nonce = Crypto.newNonce(secretbox.nonceLength)
+      assert.equal(nonce.length, 24)
     })
 
     it('should derive a password and obtain a predeterminded hash', async function () {
@@ -70,7 +76,7 @@ describe('#Crypto', function () {
 
     it('should get a date from a b58 timestamp', async function () {
       let timestamp = Math.round(Date.now() / 1000)
-      let b58timestamp = Crypto.decimalToBase58(timestamp)
+      let b58timestamp = utils.intToBase58(timestamp)
       let date = await Crypto.dateFromB58(b58timestamp, true)
       assert.equal(date, (new Date(timestamp * 1000)).toISOString())
       date = await Crypto.dateFromB58(b58timestamp)
@@ -84,12 +90,51 @@ describe('#Crypto', function () {
 
   })
 
+  describe('#toAES/fromAES', async function () {
+
+    it('should encrypt and decrypt a string', async function () {
+      const key = Crypto.generateKey(true)
+      let encrypted = Crypto.toAES(hash23456iterations, key)
+      let decrypted = Crypto.fromAES(encrypted, key)
+      assert.equal(hash23456iterations, decrypted)
+    })
+
+  })
+
+
   describe('#AES', async function () {
 
     it('should encrypt and decrypt a string', async function () {
-      let encrypted = Crypto.toAES(hash23456iterations, Crypto.SHA3(password))
-      let decrypted = Crypto.fromAES(encrypted, Crypto.SHA3(password))
+      const key = Crypto.generateKey()
+      let encrypted = Crypto.encrypt(hash23456iterations, key)
+      let decrypted = Crypto.decrypt(encrypted, key)
       assert.equal(hash23456iterations, decrypted)
+    })
+
+  })
+
+  describe('encrypt/decrypt using sharedSecret', function () {
+
+    let pairA = Crypto.generateKeyPair()
+    let pairB = Crypto.generateKeyPair()
+    let sharedA = Crypto.getSharedSecret(pairB.publicKey, pairA.secretKey)
+    let sharedB = Crypto.getSharedSecret(pairA.publicKey, pairB.secretKey)
+
+    it('should encrypt and decrypt using keys combination', async function () {
+      const msg = 'Some message'
+      const encrypted = Crypto.boxEncrypt(sharedA, msg)
+      const decrypted = Crypto.boxDecrypt(sharedB, encrypted)
+      assert.equal(msg, decrypted)
+
+    })
+
+    it('should encrypt and decrypt using keys combination plus shared key', async function () {
+      const key = Crypto.generateKey(true)
+      const msg = 'Some message'
+      const encrypted = Crypto.boxEncrypt(sharedA, msg, key)
+      const decrypted = Crypto.boxDecrypt(sharedB, encrypted, key)
+      assert.equal(msg, decrypted)
+
     })
 
   })

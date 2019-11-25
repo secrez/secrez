@@ -62,7 +62,7 @@ describe('#Secrez', function () {
         secrez = new Secrez()
       })
 
-      it.only('should signup the user and signin without saving the iterations', async function () {
+      it('should signup the user and signin without saving the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
         assert.isTrue(fs.existsSync(config.secrez.confPath))
