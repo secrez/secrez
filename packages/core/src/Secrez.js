@@ -37,6 +37,7 @@ class Secrez {
       const wallet = this.encryptItem(generated.privateKeys[0], derivedPassword)
       const hdPath = Crypto.toBase58(generated.hdPath)
       const conf = {
+        id: Crypto.b58Hash(Crypto.generateKey()),
         key,
         hash,
         mnemonic: [hdPath, mnemonic].join('0'),

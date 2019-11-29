@@ -37,8 +37,19 @@ class Crypto {
     return Crypto.SHA3(`${crypto.randomBytes(64)}`).slice(0, 16)
   }
 
-  static getRandomId() {
-    return bs58.encode(Crypto.getRandomIv())
+  static getRandomId(allIds) {
+    let id
+    // eslint-disable-next-line no-constant-condition
+    while(true) {
+      id = bs58.encode(Crypto.getRandomIv())
+      if (allIds) { // to avoid collisions, which are anyway very unlikely
+        if (allIds[id]) {
+          continue
+        }
+        allIds[id] = true
+      }
+      return id
+    }
   }
 
   static SHA3(data) {
@@ -125,7 +136,7 @@ class Crypto {
     return messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
   }
 
-  static generateKeyPair (noEncode) {
+  static generateKeyPair(noEncode) {
     const pair = box.keyPair()
     return pair
   }
