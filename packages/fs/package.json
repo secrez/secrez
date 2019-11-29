@@ -1,5 +1,5 @@
 {
-  "name": "@secrez/core",
+  "name": "@secrez/fs",
   "version": "0.3.0",
   "license": "MIT",
   "scripts": {
@@ -10,20 +10,16 @@
     "posttest": "nyc check-coverage --statements 95 --branches 95 --functions 95 --lines 95"
   },
   "dependencies": {
+    "@secrez/core": "^0.3.0",
     "base58": "^2.0.1",
-    "bip39": "^3.0.2",
     "bs58": "^4.0.1",
     "chalk": "^2.4.2",
     "command-line-args": "^5.1.1",
-    "ethereumjs-wallet": "^0.6.3",
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
     "lodash": "^4.17.15",
     "pbkdf2": "^3.0.17",
-    "seedrandom": "^3.0.5",
-    "sha3": "^2.0.7",
-    "tweetnacl": "^1.0.1",
-    "tweetnacl-util": "^0.15.0"
+    "sha3": "^2.0.7"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -35,7 +31,7 @@
     "mocha": "^6.2.0",
     "nyc": "^14.1.1"
   },
-  "description": "The Secrez core library.",
+  "description": "The Secrez fs library.",
   "main": "src/index.js",
   "repository": {
     "type": "git",

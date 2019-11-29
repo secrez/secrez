@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
-const config = require('../config')
+const {config} = require('@secrez/core')
 const FileSystemsUtils = require('./FileSystemsUtils')
 
 
@@ -75,6 +75,12 @@ class ExternalFs {
   }
 
   async cd(dir) {
+    if (!this.initialLocalWorkingDir) {
+      this.initialLocalWorkingDir = config.secrez.localWorkingDir
+    }
+    if (/^~\//.test(dir) || dir === '~') {
+      dir = dir.replace(/^~/, this.initialLocalWorkingDir)
+    }
     dir = this.getNormalizedPath(dir)
     if (this.isDir(dir)) {
       config.secrez.localWorkingDir = dir

@@ -1,15 +1,18 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
-const Crypto = require('../utils/Crypto')
 const path = require('path')
-const config = require('../config')
+const {config, Crypto} = require('@secrez/core')
 const FileSystemsUtils = require('./FileSystemsUtils')
 
 class InternalFs {
 
   constructor(secrez) {
-    this.secrez = secrez
-    this.itemId = 1
+    if (secrez && secrez.constructor.name === 'Secrez') {
+      this.secrez = secrez
+      this.itemId = 1
+    } else {
+      throw new Error('InternalFs requires secrez during construction')
+    }
   }
 
   async buildTree(dir) {
@@ -186,7 +189,7 @@ class InternalFs {
     return false
   }
 
-  async pseudoFileCompletion(files = '', only) {
+  async pseudoFileCompletion(files = '*', only) {
     let originalFiles = files
     if (!files) files = './'
     let dir = this.getNormalizedPath(files)

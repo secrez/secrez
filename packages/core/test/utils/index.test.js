@@ -1,6 +1,6 @@
 const chai = require('chai')
 const assert = chai.assert
-const utils = require('../../../src/utils')
+const utils = require('../../src/utils')
 
 describe('#utils', function () {
 
@@ -14,14 +14,14 @@ describe('#utils', function () {
     it('should throw if the parameter is not a string or it has zero length', function () {
       try {
         utils.capitalize(23)
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Not a string')
       }
 
       try {
         utils.capitalize('')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Not a string')
       }
@@ -92,25 +92,25 @@ describe('#utils', function () {
     it('should fail if invalid format', async function () {
       try {
         utils.intToBase58('2322.12')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.intToBase58('something')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.intToBase58(24.36)
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.intToBase58([])
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
@@ -127,25 +127,25 @@ describe('#utils', function () {
     it('should fail if invalid format', async function () {
       try {
         utils.base58ToInt('2322.12')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.base58ToInt('Yw==')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.base58ToInt(24.36)
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.base58ToInt([])
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
@@ -162,25 +162,25 @@ describe('#utils', function () {
     it('should fail if invalid format', async function () {
       try {
         utils.toExponentialString('2322.12')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.toExponentialString('Yw==')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.toExponentialString(24.36)
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.toExponentialString([])
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
@@ -197,25 +197,25 @@ describe('#utils', function () {
     it('should fail if invalid format', async function () {
       try {
         utils.fromExponentialString('2322.12')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.fromExponentialString('Yw==')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.fromExponentialString(24.36)
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
       try {
         utils.fromExponentialString([])
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid format')
       }
@@ -240,29 +240,73 @@ describe('#utils', function () {
     it('should throw if invalid parameters', async function () {
       try {
         utils.addTo(arr, -1, 'x')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid parameters')
       }
       try {
         utils.addTo(arr, null, 'x')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid parameters')
       }
       try {
         utils.addTo(arr, 2)
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid parameters')
       }
       try {
         utils.addTo('casa', 2, 'x')
-        assert.isNull('...')
+        assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Invalid parameters')
       }
     })
+  })
+
+  describe('#secureCompare', function () {
+
+    it('should compare two equal strings', async function () {
+
+      const a = 'verasals'
+      const b = 'verasals'
+
+      assert.isTrue(utils.secureCompare(a, b))
+
+    })
+
+    it('should compare two not equal, same-length strings', async function () {
+
+      const a = 'verasals'
+      const b = 'velsreds'
+
+      assert.isFalse(utils.secureCompare(a, b))
+
+    })
+
+    it('should compare two not equal, not-same-length strings', async function () {
+
+      const a = 'verasals'
+      const b = 'veras'
+
+      assert.isFalse(utils.secureCompare(a, b))
+
+    })
+
+    it('should compare two byte arrays', async function () {
+
+      const a = [3, 54, 24, 132]
+      const b = [3, 54, 24, 132]
+      const c = [3, 54, 12, 132]
+      const d = [3, 54, 12]
+
+      assert.isTrue(utils.secureCompare(a, b))
+      assert.isFalse(utils.secureCompare(a, c))
+      assert.isFalse(utils.secureCompare(c, d))
+
+    })
+
   })
 
 

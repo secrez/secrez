@@ -18,7 +18,7 @@ class Epwd extends require('../Command') {
 
   async exec() {
     try {
-      this.Logger.log(`${this.config.localWorkingDir}`)
+      this.Logger.log(`${this.config.secrez.localWorkingDir}`)
     } catch (e) {
       this.Logger.red(e.message)
     }

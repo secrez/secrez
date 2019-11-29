@@ -1,4 +1,5 @@
-const {Secrez, Utils, FileSystemsUtils, InternalFs, ExternalFs} = require('@secrez/core')
+const {Secrez, Utils} = require('@secrez/core')
+const {FileSystemsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
 const fs = require('fs-extra')
 
 const inquirer = require('inquirer')
@@ -36,7 +37,7 @@ class Prompt {
     inquirerCommandPrompt.setConfig({
       history: {
         save: true,
-        folder: path.join(homedir(), config.root),
+        folder: path.join(homedir(), config.secrez.root),
         limit: 100,
         blacklist: ['exit']
       }
@@ -109,11 +110,11 @@ class Prompt {
           short: this.short,
           prefix: '[',
           noColorOnAnswered: true,
-          message: `${chalk.reset(`Secrez:/${path.basename(config.workingDir)} ]`)}$`,
+          message: `${chalk.reset(`Secrez:/${path.basename(config.secrez.workingDir)} ]`)}$`,
           context: 0,
           ellipsize: true,
           onClose: () => {
-            fs.emptyDirSync(config.tmpPath)
+            fs.emptyDirSync(config.secrez.tmpPath)
           },
           validate: val => {
             return val

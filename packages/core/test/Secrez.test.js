@@ -2,18 +2,21 @@ const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
 const homedir = require('homedir')
-const Secrez = require('../../src/Secrez')
-const Crypto = require('../../src/utils/Crypto')
+const Secrez = require('../src/Secrez')
+const Crypto = require('../src/utils/Crypto')
+const utils = require('../src/utils')
 const fs = require('fs-extra')
-const config = require('../../src/config')
-const helpers = require('../helpers')
+const config = require('../src/config')
+
+const {
+  password,
+  iterations,
+  hash23456iterationsNoSalt
+} = require('./fixtures')
 
 describe('#Secrez', function () {
 
-  let password = 'unaSTRANA342'
-  let iterations = 23456
-  let hash23456iterations = '2hy1HzfcCCoNacowjY67LvgPXUyNFwjAGuuMcieVcAJY'
-  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 
   let secrez
   let masterKey
@@ -32,7 +35,6 @@ describe('#Secrez', function () {
       assert.equal(config.secrez.localWorkingDir, homedir())
     })
 
-
   })
 
   describe('custom (testing) secrez dir', function () {
@@ -46,8 +48,8 @@ describe('#Secrez', function () {
     describe('derivePassword', async function () {
 
       it('should derive a password and obtain a predeterminded hash', async function () {
-        let derivedPassword = await secrez.derivePassword(password, 23456)
-        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterations)
+        let derivedPassword = await secrez.derivePassword(password, iterations)
+        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterationsNoSalt)
       })
 
     })
@@ -68,7 +70,7 @@ describe('#Secrez', function () {
         secrez.signout()
         assert.isUndefined(secrez.masterKey)
         await secrez.signin(password, iterations)
-        assert.isTrue(helpers.bufferEquals(masterKey, secrez.masterKey))
+        assert.isTrue(utils.secureCompare(masterKey, secrez.masterKey))
       })
 
       it('should signup the user and signin saved the iterations', async function () {
@@ -80,7 +82,7 @@ describe('#Secrez', function () {
         secrez.signout()
         assert.isUndefined(secrez.masterKey)
         await secrez.signin(password)
-        assert.isTrue(helpers.bufferEquals(masterKey, secrez.masterKey))
+        assert.isTrue(utils.secureCompare(masterKey, secrez.masterKey))
 
       })
 
@@ -89,6 +91,7 @@ describe('#Secrez', function () {
         it('trying to signup if Secrez has not been initiated', async function () {
           try {
             await secrez.signup(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Secrez not initiated')
           }
@@ -97,6 +100,7 @@ describe('#Secrez', function () {
         it('trying to signin if Secrez has not been initiated', async function () {
           try {
             await secrez.signin(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Secrez not initiated')
           }
@@ -107,6 +111,7 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           try {
             await secrez.signup(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'An account already exists. Please, signin or chose a different container directory')
           }
@@ -116,6 +121,7 @@ describe('#Secrez', function () {
           await secrez.init(rootDir)
           try {
             await secrez.signin(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Account not set yet')
           }
@@ -126,6 +132,7 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           try {
             await secrez.signin(password)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Iterations is missed')
           }
@@ -136,6 +143,7 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           try {
             await secrez.signin('wrongPassword', iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Wrong password or wrong number of iterations')
           }
@@ -146,6 +154,7 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           try {
             await secrez.signin(password, iterations - 1)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Wrong password or wrong number of iterations')
           }
@@ -155,10 +164,11 @@ describe('#Secrez', function () {
           await secrez.init(rootDir)
           await secrez.signup(password, iterations)
           let conf = require(config.secrez.confPath)
-          conf.hash = hash23456iterations
+          conf.hash = hash23456iterationsNoSalt
           await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
           try {
             await secrez.signin(password, iterations)
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'Hash on file does not match the master key')
           }
@@ -168,6 +178,7 @@ describe('#Secrez', function () {
           await secrez.init(rootDir)
           try {
             secrez.signout()
+            assert.isFalse(true)
           } catch (e) {
             assert.equal(e.message, 'User not logged')
           }
@@ -191,16 +202,28 @@ describe('#Secrez', function () {
         assert.equal(data, secrez.decryptItem(encryptedData))
       })
 
+      it('should encrypt again an item with same id and decrypt it', async function () {
+        await secrez.signup(password, iterations)
+        let data = 'some random data'
+        let encryptedData = secrez.encryptItem(data)
+        let id = encryptedData.split('0')[0]
+        let encryptedData2 = secrez.encryptItem(data, id)
+        assert.equal(encryptedData2.split('0')[0], id)
+        assert.equal(data, secrez.decryptItem(encryptedData2))
+      })
+
       it('should throw if the user is not logged in', async function () {
         try {
           let data = 'some random data'
           secrez.encryptItem(data)
+          assert.isFalse(true)
         } catch (e) {
           assert.equal(e.message, 'User not logged')
         }
 
         try {
           secrez.decryptItem('some encrypted data')
+          assert.isFalse(true)
         } catch (e) {
           assert.equal(e.message, 'User not logged')
         }

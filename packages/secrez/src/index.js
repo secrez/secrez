@@ -3,7 +3,8 @@ const path = require('path')
 const homedir = require('homedir')
 const Logger = require('./utils/Logger')
 const chalk = require('chalk')
-const {FileSystemsUtils, version} = require('@secrez/core')
+const {FileSystemsUtils} = require('@secrez/fs')
+const {version} = require('@secrez/core')
 const config = require('./config')
 const Prompt = require('./Prompt')
 
@@ -72,14 +73,16 @@ if (options.help) {
 Options:
   -h, --help            This help.
   -c, --container       The data are saved in ~/.secrez by default. 
-                        In you chose a directory different you must pass it 
+                        In you chose a different directory you must pass it 
                         anytime you run Secrez. The path must be absolute 
                         or relative to the home directory (~). If the folder 
                         does not exist, it will be created, included the parents.
   -i, --iterations      The number of iterations during password 
-                        derivation (based on PBKDF2).
-  -s, --saveIterations  Saves the number of iterations in .env.json 
-                        (which is .gitignored)                      
+                        derivation (based on PBKDF2). Use a number like
+                        94543 or 725642 (the larger the safer, but also the slower).
+                        It increases exponentially the safety of your password.
+  -s, --saveIterations  Saves the number of iterations in .env.json (which 
+                        is .gitignored). Do it only if you computer is very safe.                      
 Examples:
   $ secrez
   $ secrez -p /var/my-secrets -i 787099
@@ -87,7 +90,7 @@ Examples:
 `)
 }
 
-config.setPaths(options.container)
+config.setSecrez(options.container, homedir())
 
 const prompt = new Prompt()
 prompt.run(options)

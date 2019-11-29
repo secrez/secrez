@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const path = require('path')
-const utils = require('../utils')
+const {Utils} = require('@secrez/core')
 const commandLineArgs = require('command-line-args')
 
 class FileSystemsUtils {
@@ -17,12 +17,12 @@ class FileSystemsUtils {
       } else if (sep && c === sep) {
         sep = null
       } else if (!sep && c === '\\' && commandLine[i + 1]) {
-        utils.addTo(argv, k, commandLine[i + 1])
+        Utils.addTo(argv, k, commandLine[i + 1])
         i++
       } else if (!sep && c === ' ') {
         k++
       } else {
-        utils.addTo(argv, k, c)
+        Utils.addTo(argv, k, c)
       }
     }
     return argv
@@ -42,6 +42,9 @@ class FileSystemsUtils {
 
   static async filterLs(files, list = []) {
     let bn = files ? path.basename(files) : ''
+    if (bn === '.' || bn === '..') {
+      bn = ''
+    }
     if (bn && list.includes(bn)) {
       return [bn]
     } else if (bn) {

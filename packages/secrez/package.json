@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js'",
@@ -14,10 +14,12 @@
     "posttest": "istanbul check-coverage --statements 85 --branches 70 --functions 85 --lines 85"
   },
   "dependencies": {
-    "@secrez/core": "^0.2.2",
+    "@secrez/core": "^0.3.0",
+    "@secrez/fs": "^0.3.0",
     "chalk": "^2.4.2",
     "command-line-args": "^5.1.1",
     "external-editor": "^3.1.0",
+    "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
     "inquirer": "^7.0.0",
     "inquirer-command-prompt": "0.0.23",

@@ -2,6 +2,9 @@ const homedir = require('homedir')
 const fs = require('fs-extra')
 const Crypto = require('./utils/Crypto')
 const config = require('./config')
+const utils = require('./utils')
+const bs58 = require('bs58')
+const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
 
 class Secrez {
 
@@ -14,7 +17,8 @@ class Secrez {
 
   async derivePassword(password, iterations) {
     password = Crypto.SHA3(password)
-    return Crypto.deriveKey(password, Crypto.SHA3(password), iterations, 32)
+    const salt = Crypto.SHA3(password)
+    return bs58.encode(Crypto.deriveKey(password, salt, iterations, 32))
   }
 
   async signup(password, iterations, saveIterations) {
@@ -23,12 +27,22 @@ class Secrez {
     }
     if (!fs.existsSync(config.secrez.confPath)) {
       let derivedPassword = await this.derivePassword(password, iterations)
-      this.masterKey = Crypto.SHA3(Crypto.getRandomString(256))
+      this.masterKey = Crypto.generateKey() //SHA3(Crypto.getRandomString(256))
       let hash = Crypto.b58Hash(this.masterKey)
-      const encryptedMasterKey = await Crypto.toAES(this.masterKey, derivedPassword)
+      const key = Crypto.encrypt(this.masterKey, derivedPassword)
+      const pair = Crypto.generateKeyPair()
+      const secret = this.encryptItem(Crypto.toBase58(pair.secretKey), derivedPassword)
+      const generated = await PrivateKeyGenerator.generate({accounts: 1})
+      const mnemonic = this.encryptItem(generated.mnemonic, derivedPassword)
+      const wallet = this.encryptItem(generated.privateKeys[0], derivedPassword)
+      const hdPath = Crypto.toBase58(generated.hdPath)
       const conf = {
-        key: encryptedMasterKey,
-        hash
+        key,
+        hash,
+        mnemonic: [hdPath, mnemonic].join('0'),
+        wallet,
+        secret,
+        public: Crypto.toBase58(pair.publicKey)
       }
       await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
       if (saveIterations) {
@@ -58,11 +72,11 @@ class Secrez {
       let derivedPassword = await this.derivePassword(password, iterations)
       let masterKey
       try {
-        masterKey = await Crypto.fromAES(key, derivedPassword)
+        masterKey = await Crypto.decrypt(key, derivedPassword)
       } catch(e) {
         throw new Error('Wrong password or wrong number of iterations')
       }
-      if (Crypto.b58Hash(masterKey) === hash) {
+      if (utils.secureCompare(Crypto.b58Hash(masterKey), hash)) {
         this.masterKey = masterKey
       } else {
         throw new Error('Hash on file does not match the master key')
@@ -72,9 +86,9 @@ class Secrez {
     }
   }
 
-  encryptItem(item) {
+  encryptItem(item, id = Crypto.getRandomId()) {
     if (this.masterKey) {
-      return Crypto.toAES(Buffer.from(item), this.masterKey)
+      return [id, Crypto.encrypt(item, this.masterKey)].join('0')
     } else {
       throw new Error('User not logged')
     }
@@ -82,7 +96,9 @@ class Secrez {
 
   decryptItem(item) {
     if (this.masterKey) {
-      return Crypto.fromAES(item, this.masterKey).toString()
+      let temp = item.split('0')
+      item = temp[1] || temp[0]
+      return Crypto.decrypt(item, this.masterKey)
     } else {
       throw new Error('User not logged')
     }
