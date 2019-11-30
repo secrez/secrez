@@ -5,8 +5,11 @@ const utils = require('.')
 const {
   box,
   secretbox,
+  sign,
   randomBytes
 } = require('tweetnacl')
+const nacl = require('tweetnacl')
+
 const {
   decodeUTF8,
   encodeUTF8
@@ -87,10 +90,14 @@ class Crypto {
     return bs58.encode(Crypto.SHA3(data))
   }
 
-  static newNonce(size, noTimestamp) {
+  static toUint8Array(hexStr) {
+    return new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
+  }
+
+  static newTimeBasedNonce(size, noTimestamp) {
     let nonce = randomBytes(size)
     if (!noTimestamp) {
-      let ts = new Uint8Array(Date.now().toString(16).match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
+      let ts = Crypto.toUint8Array(Date.now().toString(16))
       for (let i = 0; i < 6; i++) {
         nonce[i] = ts[i]
       }
@@ -103,7 +110,7 @@ class Crypto {
     return noEncode ? key : bs58.encode(Buffer.from(key))
   }
 
-  static encrypt(message, key, nonce = Crypto.newNonce(secretbox.nonceLength)) {
+  static encrypt(message, key, nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength)) {
     const keyUint8Array = bs58.decode(key)
 
     const messageUint8 = decodeUTF8(message)
@@ -136,13 +143,18 @@ class Crypto {
     return messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
   }
 
-  static generateKeyPair(noEncode) {
+  static generateBoxKeyPair(noEncode) {
     const pair = box.keyPair()
     return pair
   }
 
-  static getSharedSecret(receiverPublicKey, senderSecretKey) {
-    return box.before(receiverPublicKey, senderSecretKey)
+  static generateSignatureKeyPair(noEncode) {
+    const pair = sign.keyPair()
+    return pair
+  }
+
+  static getSharedSecret(theirPublicKey, mySecretKey) {
+    return box.before(theirPublicKey, mySecretKey)
   }
 
   static boxEncrypt(secretOrSharedKey, message, key, nonce = randomBytes(box.nonceLength)) {
@@ -172,6 +184,16 @@ class Crypto {
       throw new Error('Could not decrypt message')
     }
     return encodeUTF8(decrypted)
+  }
+
+  static getSignature(message, secretKey) {
+    let signature = sign.detached(decodeUTF8(message), secretKey)
+    return bs58.encode(Buffer.from(signature))
+  }
+
+  static verifySignature(message, signature, publicKey) {
+    let verified = sign.detached.verify(decodeUTF8(message), bs58.decode(signature), publicKey)
+    return verified
   }
 
   //

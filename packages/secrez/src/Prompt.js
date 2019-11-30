@@ -125,7 +125,7 @@ class Prompt {
       ]) //, {input: require('./utils/stdin')})
       await this.exec([answers.cmd])
     } catch (e) {
-      console.error(e)
+      // console.error(e)
       Logger.red(e.message)
     }
   }
@@ -136,7 +136,11 @@ class Prompt {
         cmd = cmd.split(' ')
         const command = cmd[0]
         if (this.basicCommands.includes(command)) {
-          const commandLine = cmd.slice(1).join(' ')
+          let commandLine = cmd.slice(1).join(' ')
+          if (!commandLine) {
+            // prevent command-line-args from parsing process.argv
+            commandLine = ' '
+          }
           try {
             const options = FileSystemsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
             await this.commands[command].exec(options)

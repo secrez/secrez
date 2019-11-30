@@ -21,33 +21,74 @@ class Secrez {
     return bs58.encode(Crypto.deriveKey(password, salt, iterations, 32))
   }
 
+  sortObj(obj) {
+    const sortedData = {}
+    for (let prop of Object.keys(obj).sort()) {
+      if (typeof obj[prop] === 'object') {
+        obj[prop] = this.sortObj(obj[prop])
+      }
+      sortedData[prop] = obj[prop]
+    }
+    return sortedData
+  }
+
   async signup(password, iterations, saveIterations) {
     if (!config.secrez.confPath) {
       throw new Error('Secrez not initiated')
     }
     if (!fs.existsSync(config.secrez.confPath)) {
-      let derivedPassword = await this.derivePassword(password, iterations)
-      this.masterKey = Crypto.generateKey() //SHA3(Crypto.getRandomString(256))
-      let hash = Crypto.b58Hash(this.masterKey)
-      const key = Crypto.encrypt(this.masterKey, derivedPassword)
-      const pair = Crypto.generateKeyPair()
-      const secret = this.encryptItem(Crypto.toBase58(pair.secretKey), derivedPassword)
-      const generated = await PrivateKeyGenerator.generate({accounts: 1})
-      const mnemonic = this.encryptItem(generated.mnemonic, derivedPassword)
-      const wallet = this.encryptItem(generated.privateKeys[0], derivedPassword)
-      const hdPath = Crypto.toBase58(generated.hdPath)
-      const conf = {
-        id: Crypto.b58Hash(Crypto.generateKey()),
-        key,
-        hash,
-        mnemonic: [hdPath, mnemonic].join('0'),
-        wallet,
-        secret,
-        public: Crypto.toBase58(pair.publicKey)
-      }
-      await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
-      if (saveIterations) {
-        await fs.writeFile(config.secrez.envPath, JSON.stringify({iterations}))
+
+      try {
+
+        let id = Crypto.b58Hash(Crypto.generateKey())
+
+        let derivedPassword = await this.derivePassword(password, iterations)
+        this.masterKey = Crypto.generateKey()
+        let key = Crypto.encrypt(this.masterKey, derivedPassword)
+        let hash = Crypto.b58Hash(this.masterKey)
+
+        // x25519-xsalsa20-poly1305
+        const boxPair = Crypto.generateBoxKeyPair()
+        const box = {
+          secretKey: Crypto.encrypt(Crypto.toBase58(boxPair.secretKey), this.masterKey),
+          publicKey: Crypto.toBase58(boxPair.publicKey)
+        }
+
+        // ed25519
+        const ed25519Pair = Crypto.generateSignatureKeyPair()
+        const sign = {
+          secretKey: Crypto.encrypt(Crypto.toBase58(ed25519Pair.secretKey), this.masterKey),
+          publicKey: Crypto.toBase58(ed25519Pair.publicKey)
+        }
+
+        // secp256k1
+        const account = await PrivateKeyGenerator.generate({accounts: 1})
+        account.mnemonic = Crypto.encrypt(account.mnemonic, this.masterKey)
+        account.privateKey = Crypto.encrypt(account.privateKeys[0], this.masterKey)
+        account.hdPath = Crypto.toBase58(account.hdPath)
+        delete account.privateKeys
+        const when = utils.intToBase58(Date.now())
+        const data = this.sortObj({
+          id,
+          sign,
+          box,
+          when,
+          key,
+          account,
+          hash
+        })
+
+        const signature = Crypto.getSignature(JSON.stringify(data), ed25519Pair.secretKey)
+        const conf = {
+          data,
+          signature
+        }
+        await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
+        if (saveIterations) {
+          await fs.writeFile(config.secrez.envPath, JSON.stringify({iterations}))
+        }
+      }catch(e) {
+        console.error(e)
       }
     } else {
       throw new Error('An account already exists. Please, signin or chose a different container directory')
@@ -69,12 +110,12 @@ class Secrez {
     }
     iterations = parseInt(iterations)
     if (await fs.existsSync(config.secrez.confPath)) {
-      let {key, hash} = JSON.parse(await fs.readFile(config.secrez.confPath, 'utf8'))
+      let {key, hash} = JSON.parse(await fs.readFile(config.secrez.confPath, 'utf8')).data
       let derivedPassword = await this.derivePassword(password, iterations)
       let masterKey
       try {
         masterKey = await Crypto.decrypt(key, derivedPassword)
-      } catch(e) {
+      } catch (e) {
         throw new Error('Wrong password or wrong number of iterations')
       }
       if (utils.secureCompare(Crypto.b58Hash(masterKey), hash)) {
