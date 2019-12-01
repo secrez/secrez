@@ -35,11 +35,6 @@ describe('#Crypto', function () {
       assert.equal(decoded, password)
     })
 
-    it('should get a random IV', async function () {
-      let iv = Crypto.getRandomIv()
-      assert.equal(iv.length, 16)
-    })
-
     it('should SHA3 a string', async function () {
       assert.isTrue(utils.secureCompare(Crypto.SHA3(password), Buffer.from(passwordSHA3Hex, 'hex')))
     })
@@ -90,7 +85,7 @@ describe('#Crypto', function () {
 
   })
 
-  describe('#toAES/fromAES', async function () {
+  describe.only('#toAES/fromAES', async function () {
 
     it('should encrypt and decrypt a string', async function () {
       const key = Crypto.generateKey(true)

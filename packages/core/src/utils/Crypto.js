@@ -36,16 +36,13 @@ class Crypto {
     return bs58.decode(data)
   }
 
-  static getRandomIv() {
-    return Crypto.SHA3(`${crypto.randomBytes(64)}`).slice(0, 16)
-  }
-
   static getRandomId(allIds) {
     let id
     // eslint-disable-next-line no-constant-condition
     while(true) {
-      id = bs58.encode(Crypto.getRandomIv())
-      if (allIds) { // to avoid collisions, which are anyway very unlikely
+      id = bs58.encode(randomBytes(8))
+      if (allIds) {
+        // to avoid collisions, which are anyway very unlikely
         if (allIds[id]) {
           continue
         }
@@ -201,7 +198,7 @@ class Crypto {
 
   // @deprecated
   static toAES(data, password) {
-    const iv = Crypto.getRandomIv()
+    const iv = Buffer.from(randomBytes(16))
     let cipher = crypto.createCipheriv('aes-256-cbc', password, iv)
     let encrypted = cipher.update(data)
     encrypted = Buffer.concat([encrypted, cipher.final()])
