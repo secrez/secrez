@@ -1,7 +1,10 @@
 const _ = require('lodash')
 const path = require('path')
 const {Utils} = require('@secrez/core')
-const commandLineArgs = require('command-line-args')
+
+// eslint-disable-next-line node/no-unpublished-require
+const commandLineArgs = require('../../../../../../Repos/command-line-args/dist')
+// const commandLineArgs = require('command-line-args')
 
 class FileSystemsUtils {
 
@@ -29,7 +32,7 @@ class FileSystemsUtils {
   }
 
   static parseCommandLine(definitions, commandLine) {
-    if (definitions) {
+    if (definitions && definitions.length) {
       if (commandLine) {
         const argv = this.preParseCommandLine(commandLine)
         return commandLineArgs(definitions, {argv})

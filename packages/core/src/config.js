@@ -21,7 +21,7 @@ const config = {
     s.workingDir = '/'
     s.localWorkingDir = localWorkingDir
     s.envPath = path.join(container, '.env.json')
-    s.confPath = path.join(s.dataPath, 'conf.json')
+    s.confPath = path.join(s.dataPath, 'keys.json')
     await fs.emptyDir(s.tmpPath)
     await fs.ensureDir(s.dataPath)
     let readmePath = path.join(container, 'README')

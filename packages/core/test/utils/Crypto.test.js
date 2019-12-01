@@ -35,11 +35,6 @@ describe('#Crypto', function () {
       assert.equal(decoded, password)
     })
 
-    it('should get a random IV', async function () {
-      let iv = Crypto.getRandomIv()
-      assert.equal(iv.length, 16)
-    })
-
     it('should SHA3 a string', async function () {
       assert.isTrue(utils.secureCompare(Crypto.SHA3(password), Buffer.from(passwordSHA3Hex, 'hex')))
     })
@@ -50,7 +45,7 @@ describe('#Crypto', function () {
     })
 
     it('should generate a new nounce', async function () {
-      const nonce = Crypto.newNonce(secretbox.nonceLength)
+      const nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength)
       assert.equal(nonce.length, 24)
     })
 
@@ -90,7 +85,7 @@ describe('#Crypto', function () {
 
   })
 
-  describe('#toAES/fromAES', async function () {
+  describe.only('#toAES/fromAES', async function () {
 
     it('should encrypt and decrypt a string', async function () {
       const key = Crypto.generateKey(true)
@@ -102,7 +97,7 @@ describe('#Crypto', function () {
   })
 
 
-  describe('#AES', async function () {
+  describe('#encrypt/decrypt', async function () {
 
     it('should encrypt and decrypt a string', async function () {
       const key = Crypto.generateKey()
@@ -115,8 +110,8 @@ describe('#Crypto', function () {
 
   describe('encrypt/decrypt using sharedSecret', function () {
 
-    let pairA = Crypto.generateKeyPair()
-    let pairB = Crypto.generateKeyPair()
+    let pairA = Crypto.generateBoxKeyPair()
+    let pairB = Crypto.generateBoxKeyPair()
     let sharedA = Crypto.getSharedSecret(pairB.publicKey, pairA.secretKey)
     let sharedB = Crypto.getSharedSecret(pairA.publicKey, pairB.secretKey)
 
@@ -136,6 +131,22 @@ describe('#Crypto', function () {
       assert.equal(msg, decrypted)
 
     })
+
+  })
+
+  describe('sign a message with a secretKey', function () {
+
+    let pair = Crypto.generateSignatureKeyPair()
+
+    it('should sign a string', async function () {
+      const msg = 'Some message'
+      const signature = Crypto.getSignature(msg, pair.secretKey)
+      const verified = Crypto.verifySignature(msg, signature, pair.publicKey)
+      assert.isTrue(verified)
+
+    })
+
+
 
   })
 

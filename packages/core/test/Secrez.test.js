@@ -164,7 +164,7 @@ describe('#Secrez', function () {
           await secrez.init(rootDir)
           await secrez.signup(password, iterations)
           let conf = require(config.secrez.confPath)
-          conf.hash = hash23456iterationsNoSalt
+          conf.data.hash = hash23456iterationsNoSalt
           await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
           try {
             await secrez.signin(password, iterations)
