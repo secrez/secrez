@@ -38,57 +38,52 @@ class Secrez {
     }
     if (!fs.existsSync(config.secrez.confPath)) {
 
-      try {
+      let id = Crypto.b58Hash(Crypto.generateKey())
 
-        let id = Crypto.b58Hash(Crypto.generateKey())
+      let derivedPassword = await this.derivePassword(password, iterations)
+      this.masterKey = Crypto.generateKey()
+      let key = Crypto.encrypt(this.masterKey, derivedPassword)
+      let hash = Crypto.b58Hash(this.masterKey)
 
-        let derivedPassword = await this.derivePassword(password, iterations)
-        this.masterKey = Crypto.generateKey()
-        let key = Crypto.encrypt(this.masterKey, derivedPassword)
-        let hash = Crypto.b58Hash(this.masterKey)
+      // x25519-xsalsa20-poly1305
+      const boxPair = Crypto.generateBoxKeyPair()
+      const box = {
+        secretKey: Crypto.encrypt(Crypto.toBase58(boxPair.secretKey), this.masterKey),
+        publicKey: Crypto.toBase58(boxPair.publicKey)
+      }
 
-        // x25519-xsalsa20-poly1305
-        const boxPair = Crypto.generateBoxKeyPair()
-        const box = {
-          secretKey: Crypto.encrypt(Crypto.toBase58(boxPair.secretKey), this.masterKey),
-          publicKey: Crypto.toBase58(boxPair.publicKey)
-        }
+      // ed25519
+      const ed25519Pair = Crypto.generateSignatureKeyPair()
+      const sign = {
+        secretKey: Crypto.encrypt(Crypto.toBase58(ed25519Pair.secretKey), this.masterKey),
+        publicKey: Crypto.toBase58(ed25519Pair.publicKey)
+      }
 
-        // ed25519
-        const ed25519Pair = Crypto.generateSignatureKeyPair()
-        const sign = {
-          secretKey: Crypto.encrypt(Crypto.toBase58(ed25519Pair.secretKey), this.masterKey),
-          publicKey: Crypto.toBase58(ed25519Pair.publicKey)
-        }
+      // secp256k1
+      const account = await PrivateKeyGenerator.generate({accounts: 1})
+      account.mnemonic = Crypto.encrypt(account.mnemonic, this.masterKey)
+      account.privateKey = Crypto.encrypt(account.privateKeys[0], this.masterKey)
+      account.hdPath = Crypto.toBase58(account.hdPath)
+      delete account.privateKeys
+      const when = utils.intToBase58(Date.now())
+      const data = this.sortObj({
+        id,
+        sign,
+        box,
+        when,
+        key,
+        account,
+        hash
+      })
 
-        // secp256k1
-        const account = await PrivateKeyGenerator.generate({accounts: 1})
-        account.mnemonic = Crypto.encrypt(account.mnemonic, this.masterKey)
-        account.privateKey = Crypto.encrypt(account.privateKeys[0], this.masterKey)
-        account.hdPath = Crypto.toBase58(account.hdPath)
-        delete account.privateKeys
-        const when = utils.intToBase58(Date.now())
-        const data = this.sortObj({
-          id,
-          sign,
-          box,
-          when,
-          key,
-          account,
-          hash
-        })
-
-        const signature = Crypto.getSignature(JSON.stringify(data), ed25519Pair.secretKey)
-        const conf = {
-          data,
-          signature
-        }
-        await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
-        if (saveIterations) {
-          await fs.writeFile(config.secrez.envPath, JSON.stringify({iterations}))
-        }
-      }catch(e) {
-        console.error(e)
+      const signature = Crypto.getSignature(JSON.stringify(data), ed25519Pair.secretKey)
+      const conf = {
+        data,
+        signature
+      }
+      await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
+      if (saveIterations) {
+        await fs.writeFile(config.secrez.envPath, JSON.stringify({iterations}))
       }
     } else {
       throw new Error('An account already exists. Please, signin or chose a different container directory')

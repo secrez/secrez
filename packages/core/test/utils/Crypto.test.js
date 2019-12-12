@@ -6,7 +6,8 @@ const bs58 = require('bs58')
 
 const {
   box,
-  secretbox
+  secretbox,
+  randomBytes
 } = require('tweetnacl')
 
 
@@ -39,14 +40,52 @@ describe('#Crypto', function () {
       assert.isTrue(utils.secureCompare(Crypto.SHA3(password), Buffer.from(passwordSHA3Hex, 'hex')))
     })
 
+    it('should convert from Base58 to array', async function () {
+      assert.equal(Crypto.fromBase58('5Q').toString('utf8'), Buffer.from([255]))
+    })
+
+
+
+    it('should generate a random id skipping existing one', async function () {
+      let allIds = {}
+      for (let i=0; i <= 250;i++) {
+        allIds[bs58.encode(Buffer.from([i]))] = true
+      }
+      let remainder = ['5L','5M','5N','5P','5Q']
+      assert.isTrue(remainder.includes(Crypto.getRandomId(allIds, 1)))
+
+    })
+
     it('should generate key', async function () {
       const newKey = Crypto.generateKey()
       assert.equal(bs58.decode(newKey).length, 32)
     })
 
-    it('should generate a new nounce', async function () {
+    it('should convert a decimal to an uint8array', async function () {
+      let ts = 1576126788489..toString(16)
+      let expected = [ 1, 110, 248, 122, 51, 137 ]
+      let result = Crypto.hexToUint8Array(ts)
+      for (let i=0;i<result.length;i++) {
+        assert.equal(result[i], expected[i])
+      }
+    })
+
+    it('should convert a uint8Array to a decimal', async function () {
+      let uint8 = Uint8Array.from([ 1, 110, 248, 122, 51, 137 ])
+      let hexTs = Crypto.uint8ArrayToHex(uint8)
+      let expected = 1576126788489
+      assert.equal(expected, parseInt(hexTs, 16))
+    })
+
+    it('should generate a new nonce', async function () {
       const nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength)
-      assert.equal(nonce.length, 24)
+      assert.equal(nonce.length, secretbox.nonceLength)
+    })
+
+    it('should retrieve the timestamp in a nonce', async function () {
+      let ts = Date.now()
+      const nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength, ts)
+      assert.equal(ts, Crypto.getTimestampFromNonce(nonce))
     })
 
     it('should derive a password and obtain a predeterminded hash', async function () {
@@ -85,7 +124,7 @@ describe('#Crypto', function () {
 
   })
 
-  describe.only('#toAES/fromAES', async function () {
+  describe('#toAES/fromAES', async function () {
 
     it('should encrypt and decrypt a string', async function () {
       const key = Crypto.generateKey(true)
@@ -101,11 +140,22 @@ describe('#Crypto', function () {
 
     it('should encrypt and decrypt a string', async function () {
       const key = Crypto.generateKey()
-      let encrypted = Crypto.encrypt(hash23456iterations, key)
+
+      let [nonce, encrypted] = Crypto.encrypt(hash23456iterations, key, undefined, true)
+      assert.equal(nonce.length, 24)
       let decrypted = Crypto.decrypt(encrypted, key)
       assert.equal(hash23456iterations, decrypted)
     })
 
+    it('should get the nonce of an encrypted string', async function () {
+      const key = Crypto.generateKey()
+      let [nonce, encrypted] = Crypto.encrypt(hash23456iterations, key, undefined, true)
+      assert.equal(nonce.length, 24)
+      let recoveredNonce = Crypto.getNonceFromMessage(encrypted)
+      for (let i=0;i<nonce.length;i++) {
+        assert.equal(nonce[i], recoveredNonce[i])
+      }
+    })
   })
 
   describe('encrypt/decrypt using sharedSecret', function () {
@@ -117,10 +167,10 @@ describe('#Crypto', function () {
 
     it('should encrypt and decrypt using keys combination', async function () {
       const msg = 'Some message'
-      const encrypted = Crypto.boxEncrypt(sharedA, msg)
+      const [nonce, encrypted] = Crypto.boxEncrypt(sharedA, msg, undefined, undefined, true)
       const decrypted = Crypto.boxDecrypt(sharedB, encrypted)
       assert.equal(msg, decrypted)
-
+      assert.equal(nonce.length, box.nonceLength)
     })
 
     it('should encrypt and decrypt using keys combination plus shared key', async function () {
@@ -130,6 +180,18 @@ describe('#Crypto', function () {
       const decrypted = Crypto.boxDecrypt(sharedB, encrypted, key)
       assert.equal(msg, decrypted)
 
+    })
+
+    it('should throw if the encrypted data is wrong', async function () {
+      const key = Crypto.generateKey(true)
+      const msg = 'Some message'
+      try {
+        let encrypted = Crypto.boxEncrypt(sharedA, msg, key) + '5F'
+        Crypto.boxDecrypt(sharedB, encrypted, key)
+        assert.equal(true, 'Should throw')
+      } catch(e) {
+        assert.equal(e.message, 'Could not decrypt message')
+      }
     })
 
   })
