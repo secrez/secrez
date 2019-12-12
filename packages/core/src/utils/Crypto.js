@@ -8,7 +8,6 @@ const {
   sign,
   randomBytes
 } = require('tweetnacl')
-const nacl = require('tweetnacl')
 
 const {
   decodeUTF8,
@@ -36,11 +35,11 @@ class Crypto {
     return bs58.decode(data)
   }
 
-  static getRandomId(allIds) {
+  static getRandomId(allIds, size = 8) {
     let id
     // eslint-disable-next-line no-constant-condition
     while(true) {
-      id = bs58.encode(randomBytes(8))
+      id = bs58.encode(Buffer.from(randomBytes(size)))
       if (allIds) {
         // to avoid collisions, which are anyway very unlikely
         if (allIds[id]) {
@@ -87,19 +86,34 @@ class Crypto {
     return bs58.encode(Crypto.SHA3(data))
   }
 
-  static toUint8Array(hexStr) {
+  static hexToUint8Array(hexStr) {
     return new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
   }
 
-  static newTimeBasedNonce(size, noTimestamp) {
+  static uint8ArrayToHex(uint8) {
+    let str = ''
+    for (let u of uint8) {
+      str += u.toString(16)
+    }
+    return str
+  }
+
+  static newTimeBasedNonce(size, timestamp = Date.now()) {
     let nonce = randomBytes(size)
-    if (!noTimestamp) {
-      let ts = Crypto.toUint8Array(Date.now().toString(16))
-      for (let i = 0; i < 6; i++) {
-        nonce[i] = ts[i]
-      }
+    timestamp = (timestamp || Date.now()).toString(16)
+    console.log(timestamp)
+    let ts = Crypto.hexToUint8Array(timestamp)
+    for (let i = 0; i < 6; i++) {
+      nonce[i] = ts[i]
     }
     return nonce
+  }
+
+  static getTimestampFromNonce(nonce) {
+    nonce = nonce.slice(0,6)
+    let ts = Crypto.uint8ArrayToHex(nonce)
+    console.log(ts)
+    return parseInt(ts, 16)
   }
 
   static generateKey(noEncode) {
@@ -107,7 +121,7 @@ class Crypto {
     return noEncode ? key : bs58.encode(Buffer.from(key))
   }
 
-  static encrypt(message, key, nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength)) {
+  static encrypt(message, key, nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength), getNonce) {
     const keyUint8Array = bs58.decode(key)
 
     const messageUint8 = decodeUTF8(message)
@@ -116,8 +130,13 @@ class Crypto {
     const fullMessage = new Uint8Array(nonce.length + box.length)
     fullMessage.set(nonce)
     fullMessage.set(box, nonce.length)
+    const encoded = bs58.encode(Buffer.from(fullMessage))
 
-    return bs58.encode(Buffer.from(fullMessage))
+    if (getNonce) {
+      return [nonce, encoded]
+    } else {
+      return encoded
+    }
   }
 
   static decrypt(messageWithNonce, key) {
@@ -137,7 +156,8 @@ class Crypto {
 
   static getNonceFromMessage(messageWithNonce) {
     const messageWithNonceAsUint8Array = bs58.decode(messageWithNonce)
-    return messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
+    let nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
+    return Crypto.hexToUint8Array(nonce.toString('hex'))
   }
 
   static generateBoxKeyPair(noEncode) {
@@ -154,7 +174,7 @@ class Crypto {
     return box.before(theirPublicKey, mySecretKey)
   }
 
-  static boxEncrypt(secretOrSharedKey, message, key, nonce = randomBytes(box.nonceLength)) {
+  static boxEncrypt(secretOrSharedKey, message, key, nonce = randomBytes(box.nonceLength), getNonce) {
     const messageUint8 = decodeUTF8(message)
     const encrypted = key
         ? box(messageUint8, nonce, key, secretOrSharedKey)
@@ -163,7 +183,13 @@ class Crypto {
     const fullMessage = new Uint8Array(nonce.length + encrypted.length)
     fullMessage.set(nonce)
     fullMessage.set(encrypted, nonce.length)
-    return bs58.encode(Buffer.from(fullMessage))
+    const encoded = bs58.encode(Buffer.from(fullMessage))
+
+    if (getNonce) {
+      return [nonce, encoded]
+    } else {
+      return encoded
+    }
   }
 
   static boxDecrypt(secretOrSharedKey, messageWithNonce, key) {
