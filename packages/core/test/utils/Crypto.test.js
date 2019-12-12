@@ -63,7 +63,7 @@ describe('#Crypto', function () {
 
     it('should convert a decimal to an uint8array', async function () {
       let ts = 1576126788489..toString(16)
-      let expected = [ 22, 239, 135, 163, 56, 9]
+      let expected = [ 1, 110, 248, 122, 51, 137 ]
       let result = Crypto.hexToUint8Array(ts)
       for (let i=0;i<result.length;i++) {
         assert.equal(result[i], expected[i])
@@ -71,7 +71,7 @@ describe('#Crypto', function () {
     })
 
     it('should convert a uint8Array to a decimal', async function () {
-      let uint8 = Uint8Array.from([ 22, 239, 135, 163, 56, 9])
+      let uint8 = Uint8Array.from([ 1, 110, 248, 122, 51, 137 ])
       let hexTs = Crypto.uint8ArrayToHex(uint8)
       let expected = 1576126788489
       assert.equal(expected, parseInt(hexTs, 16))
@@ -82,9 +82,8 @@ describe('#Crypto', function () {
       assert.equal(nonce.length, secretbox.nonceLength)
     })
 
-    it.only('should retrieve the timestamp in a nonce', async function () {
+    it('should retrieve the timestamp in a nonce', async function () {
       let ts = Date.now()
-      console.log(ts)
       const nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength, ts)
       assert.equal(ts, Crypto.getTimestampFromNonce(nonce))
     })

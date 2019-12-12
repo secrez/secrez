@@ -87,21 +87,19 @@ class Crypto {
   }
 
   static hexToUint8Array(hexStr) {
+    if (hexStr.length %2) {
+      hexStr = '0' + hexStr
+    }
     return new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
   }
 
   static uint8ArrayToHex(uint8) {
-    let str = ''
-    for (let u of uint8) {
-      str += u.toString(16)
-    }
-    return str
+    return Buffer.from(uint8).toString('hex')
   }
 
   static newTimeBasedNonce(size, timestamp = Date.now()) {
     let nonce = randomBytes(size)
-    timestamp = (timestamp || Date.now()).toString(16)
-    console.log(timestamp)
+    timestamp = timestamp.toString(16)
     let ts = Crypto.hexToUint8Array(timestamp)
     for (let i = 0; i < 6; i++) {
       nonce[i] = ts[i]
@@ -112,7 +110,6 @@ class Crypto {
   static getTimestampFromNonce(nonce) {
     nonce = nonce.slice(0,6)
     let ts = Crypto.uint8ArrayToHex(nonce)
-    console.log(ts)
     return parseInt(ts, 16)
   }
 
