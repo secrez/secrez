@@ -4,13 +4,29 @@ const PrivateKeyGenerator = require('../../src/utils/PrivateKeyGenerator')
 
 describe('#PrivateKeyGenerator', function () {
 
+  describe('#randomAlphaNumericString', async function() {
+
+    it('should get a random string', async function () {
+
+      let generated = await PrivateKeyGenerator.randomAlphaNumericString()
+      assert.equal(generated.length, 8)
+    })
+  })
+
+  describe('#randomBytes', async function() {
+
+    it('should get random bytes', async function () {
+
+      let generated = await PrivateKeyGenerator.randomBytes()
+      assert.equal(generated.length, 8)
+    })
+  })
+
   describe('#generate', async function () {
 
     it('should generate a new private key, with mnemonic', async function () {
 
-      let generated = await PrivateKeyGenerator.generate({
-        accounts: 1
-      })
+      let generated = await PrivateKeyGenerator.generate()
       assert.equal(generated.privateKeys[0].length, 64)
       assert.equal(generated.mnemonic.split(' ').length, 12)
     })

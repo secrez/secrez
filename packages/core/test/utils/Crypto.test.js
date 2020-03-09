@@ -94,8 +94,14 @@ describe('#Crypto', function () {
     })
 
     it('should generate a random string', async function () {
-      let randomString = await Crypto.getRandomString(12, 'hex')
+      let randomString = await Crypto.getRandomString()
       assert.equal(randomString.length, 24)
+
+      randomString = await Crypto.getRandomString(4)
+      assert.equal(randomString.length, 8)
+
+      randomString = await Crypto.getRandomString(12, 'base64')
+      assert.isTrue(randomString.length > 8 && randomString.length < 18)
     })
 
     it('should get the current timestamp in standard format', async function () {

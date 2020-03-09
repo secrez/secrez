@@ -86,7 +86,7 @@ class Secrez {
         await fs.writeFile(config.secrez.envPath, JSON.stringify({iterations}))
       }
     } else {
-      throw new Error('An account already exists. Please, signin or chose a different container directory')
+      throw new Error('An account already exists. Please, sign in or chose a different container directory')
     }
   }
 
@@ -124,6 +124,7 @@ class Secrez {
   }
 
   encryptItem(item, id = Crypto.getRandomId()) {
+    item = Crypto.timestamp(true) + ' ' + item
     if (this.masterKey) {
       return [id, Crypto.encrypt(item, this.masterKey)].join('0')
     } else {

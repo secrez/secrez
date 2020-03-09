@@ -4,7 +4,7 @@ const hdkey = require('ethereumjs-wallet/hdkey')
 
 class PrivateKeyGenerator {
 
-  static randomBytes(length, rng) {
+  static randomBytes(length = 8, rng = Math.random) {
     let buf = []
     for (let i = 0; i < length; i++) {
       buf.push(rng() * 255)
@@ -12,11 +12,11 @@ class PrivateKeyGenerator {
     return Buffer.from(buf)
   }
 
-  static randomAlphaNumericString(length, rng) {
+  static randomAlphaNumericString(length = 8, rng = Math.random) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     let text = ''
     for (let i = 0; i < length; i++) {
-      text += alphabet.charAt(Math.floor((rng || Math.random)() * alphabet.length))
+      text += alphabet.charAt(Math.floor(rng() * alphabet.length))
     }
     return text
   }

@@ -57,7 +57,7 @@ class Crypto {
     return hash.digest()
   }
 
-  static getRandomString(length, encode) {
+  static getRandomString(length = 12, encode = 'hex') {
     return crypto.randomBytes(length).toString(encode)
   }
 
@@ -118,7 +118,7 @@ class Crypto {
     return noEncode ? key : bs58.encode(Buffer.from(key))
   }
 
-  static encrypt(message, key, nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength), getNonce) {
+  static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce) {
     const keyUint8Array = bs58.decode(key)
 
     const messageUint8 = decodeUTF8(message)
