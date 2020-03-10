@@ -15,21 +15,54 @@ class InternalFs {
   }
 
   async decodeTree(dir) {
-    let allFiles = {}
+
+    let allFiles = []
+    let types = this.secrez.types
+    for (let t in types) {
+      allFiles[t] = {}
+    }
     let files = await fs.readdir(dir)
     for (let file of files) {
       if (/\./.test(file)) {
         continue
       }
-
-      let filePath = path.join(dir, file)
-      let stat = await fs.lstat(filePath)
-      let isDir = !stat.size
-      let decrypted = this.secrez.decryptItem(file)
-      if (!allFiles[decrypted.id]) {
-        allFiles[decrypted.id] = []
+      try {
+        let [id, type, ts, name] = this.secrez.decryptItem(file)
+        if (allFiles[type]) {
+          // should we generate a warning because there is some unexpected encrypted file in the folder?
+          continue
+        }
+        if (!allFiles[type][id]) {
+          allFiles[type][id] = []
+        }
+        allFiles[type][id].push([type, ts, name])
+      } catch (err) {
+        // the file is an unexpected not encrypted file. We ignore it, for now.
       }
-      allFiles[decrypted.id].push([decrypted.ts, decrypted.name, isDir])
+    }
+
+    for (let list of allFiles) {
+      for (let file of list) {
+        file.sort((a, b) => {
+          let A = a.ts
+          let B = b.ts
+          // descending order
+          return A < B ? 1 : A > B ? -1 : 0
+        })
+      }
+    }
+
+    // check the index
+    let ik = Object.keys(allFiles[types.INDEX])
+    if (ik.length > 1) {
+        throw new Error('There is more than one index. Execute `fix --tree` to try to rebuild a valid index')
+    } else {
+      this.tree = allFiles[types.INDEX][ik[0]][0]
+    }
+    let dk = Object.keys(allFiles[types.DIR])
+    let fk = Object.keys(allFiles[types.FILE])
+    if (dk.length || fk.length) {
+      throw new Error('There are files without any index. Execute `fix --tree` to build a valid, flat index')
     }
 
     for (let file in dir) {
@@ -38,6 +71,10 @@ class InternalFs {
       allFiles[`${id};${name}`] = dir[file] === true ? true : await this.decodeTree(dir[file])
     }
     return allFiles
+  }
+
+  async fixTree() {
+    // TODO
   }
 
   async init(callback) {

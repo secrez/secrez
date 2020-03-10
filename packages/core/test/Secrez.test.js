@@ -199,7 +199,7 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations)
         let name = 'some random data'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem(id, Secrez.types.DIR, name)
+        let encryptedData = secrez.encryptItem(id, secrez.types.DIR, name)
         let decryptedData = secrez.decryptItem(encryptedData.encryptedName)
         assert.equal(name, decryptedData.name)
         assert.equal(id, decryptedData.id)
@@ -210,7 +210,7 @@ describe('#Secrez', function () {
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem(id, Secrez.types.FILE, name, content)
+        let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content)
         assert.equal(name, secrez.decryptItem(encryptedData).name)
         assert.equal(content, secrez.decryptItem(encryptedData).content)
       })
@@ -220,12 +220,12 @@ describe('#Secrez', function () {
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem(id, Secrez.types.FILE, name, content)
+        let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content)
         let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(content, decryptedData.content)
         content = 'some modified content'
-        encryptedData = secrez.encryptItem(id, Secrez.types.FILE, name, content)
+        encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content)
         decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(content, decryptedData.content)

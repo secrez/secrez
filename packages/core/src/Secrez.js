@@ -8,10 +8,18 @@ const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
 
 class Secrez {
 
+  constructor() {
+    this.types = {
+      INDEX: 0,
+      DIR: 1,
+      FILE: 2
+    }
+  }
+
   isSupportedType(type) {
     type = parseInt(type)
-    for (let t in Secrez.types) {
-      if (Secrez.types[t] === type) {
+    for (let t in this.types) {
+      if (this.types[t] === type) {
         return true
       }
     }
@@ -186,38 +194,42 @@ class Secrez {
 
     if (this.masterKey) {
 
-      if (encryptedName) {
-        let type = encryptedName.substring(0, 1)
-        let [id, ts, name] = decrypt(encryptedName.substring(1), this.masterKey)
-        let content = ''
+      try {
+        if (encryptedName) {
+          let type = parseInt(encryptedName.substring(0, 1))
+          let [id, ts, name] = decrypt(encryptedName.substring(1), this.masterKey)
+          let content = ''
 
-        // during the indexing internalFS reads only the names of the files
-        if (encryptedContent) {
-          let [id2, ts2, c] = decrypt(encryptedContent, this.masterKey)
-          if (id !== id2 || ts !== ts2) {
-            throw new Error('Data is corrupted')
+          // during the indexing internalFS reads only the names of the files
+          if (encryptedContent) {
+            let [id2, ts2, c] = decrypt(encryptedContent, this.masterKey)
+            if (id !== id2 || ts !== ts2) {
+              throw new Error('Data is corrupted')
+            }
+            content = c
           }
-          content = c
+
+          return {
+            id,
+            type,
+            ts,
+            name,
+            content
+          }
         }
 
-        return {
-          id,
-          type,
-          ts,
-          name,
-          content
-        }
-      }
+        // when the encryptedName has been already decrypted and we need only the content
+        if (encryptedContent) {
+          let [id, ts, content] = decrypt(encryptedContent, this.masterKey)
 
-      // when the encryptedName has been already decrypted and we need only the content
-      if (encryptedContent) {
-        let [id, ts, content] = decrypt(encryptedContent, this.masterKey)
-
-        return {
-          id,
-          ts,
-          content
+          return {
+            id,
+            ts,
+            content
+          }
         }
+      } catch (err) {
+        throw new Error('Fatal error during decryption')
       }
 
       throw new Error('Missing parameters')
@@ -234,12 +246,6 @@ class Secrez {
     }
   }
 
-}
-
-Secrez.types = {
-  INDEX: 0,
-  DIR: 1,
-  FILE: 2
 }
 
 module.exports = Secrez
