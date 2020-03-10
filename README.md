@@ -37,8 +37,8 @@ VAnGLojzCDWhfZRK8PCYK203WBzJkAA28FhKHdS7DM5SkJaTgYdGfN1MAjTdfUYSzvtDVsMJvGodoHWz
 ```
 where `VAnGLojzCDWhfZRK8PCYK2` is a nonce generated during the encryption.
 
-The rest, after the `0`, is the combination of id, timestamp and filename. This implies that, at bootstrap, Secrez must read all the files' names and build a tree of the entire file sistem. This is done using a special file which is an index of the directory tree. Only after reading all the data, Secrez is able to understand which is the tree and rebuild it correctly. In other words, there are no information deductable from the file on disk, except what you can deduct from the Git repo (mostly about versioning and timestamp). But the idea is to use, obviously, a private repo, so, this is a minor issue. The alternative would be to risk conflicts during pull and push of new changes, which could potentially damage the entire database.
+The rest, after the `0`, is the combination of id, timestamp and filename. This implies that, at bootstrap, Secrez must read all the files' names and build a tree of the entire file sistem. This is done using a special file which is an index of the directory tree. Only after reading all the data, Secrez is able to understand which is the tree and rebuild it correctly. In other words, there are no information deductable from the files on disk, except what you can deduct from the Git repo (mostly about versioning and timestamp). But the idea is to use a private repo, so, this is a minor issue. The alternative would be to risk conflicts during pull and push of new changes, which could potentially damage the entire database.
 
-To mitigate this risk, in Secrez you can create a new Git repo, save everything as first commit, and delete the previously used repo.      
+To mitigate this risk, in Secrez you can create a new Git repo, save everything as first commit, and delete the previously used repo. This way you loose the repo's history but you have no more info about timestamps and versions.     
 
 

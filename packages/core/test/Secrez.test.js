@@ -113,7 +113,7 @@ describe('#Secrez', function () {
             await secrez.signup(password, iterations)
             assert.isFalse(true)
           } catch (e) {
-            assert.equal(e.message, 'An account already exists. Please, signin or chose a different container directory')
+            assert.equal(e.message, 'An account already exists. Please, sign in or chose a different container directory')
           }
         })
 
@@ -195,21 +195,40 @@ describe('#Secrez', function () {
         await secrez.init(rootDir)
       })
 
-      it('should encrypt an item and decrypt it', async function () {
+      it('should encrypt a name and decrypt it', async function () {
         await secrez.signup(password, iterations)
-        let data = 'some random data'
-        let encryptedData = secrez.encryptItem(data)
-        assert.equal(data, secrez.decryptItem(encryptedData))
+        let name = 'some random data'
+        let id = Crypto.getRandomId()
+        let encryptedData = secrez.encryptItem(id, Secrez.types.DIR, name)
+        let decryptedData = secrez.decryptItem(encryptedData.encryptedName)
+        assert.equal(name, decryptedData.name)
+        assert.equal(id, decryptedData.id)
       })
 
-      it('should encrypt again an item with same id and decrypt it', async function () {
+      it('should encrypt name and content and decrypt it', async function () {
         await secrez.signup(password, iterations)
-        let data = 'some random data'
-        let encryptedData = secrez.encryptItem(data)
-        let id = encryptedData.split('0')[0]
-        let encryptedData2 = secrez.encryptItem(data, id)
-        assert.equal(encryptedData2.split('0')[0], id)
-        assert.equal(data, secrez.decryptItem(encryptedData2))
+        let name = 'some random data'
+        let content = 'some random content'
+        let id = Crypto.getRandomId()
+        let encryptedData = secrez.encryptItem(id, Secrez.types.FILE, name, content)
+        assert.equal(name, secrez.decryptItem(encryptedData).name)
+        assert.equal(content, secrez.decryptItem(encryptedData).content)
+      })
+
+      it('should re-encrypt the content and decrypt it', async function () {
+        await secrez.signup(password, iterations)
+        let name = 'some random data'
+        let content = 'some random content'
+        let id = Crypto.getRandomId()
+        let encryptedData = secrez.encryptItem(id, Secrez.types.FILE, name, content)
+        let decryptedData = secrez.decryptItem(encryptedData)
+        assert.equal(name, decryptedData.name)
+        assert.equal(content, decryptedData.content)
+        content = 'some modified content'
+        encryptedData = secrez.encryptItem(id, Secrez.types.FILE, name, content)
+        decryptedData = secrez.decryptItem(encryptedData)
+        assert.equal(name, decryptedData.name)
+        assert.equal(content, decryptedData.content)
       })
 
       it('should throw if the user is not logged in', async function () {

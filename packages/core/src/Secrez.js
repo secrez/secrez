@@ -8,6 +8,16 @@ const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
 
 class Secrez {
 
+  isSupportedType(type) {
+    type = parseInt(type)
+    for (let t in Secrez.types) {
+      if (Secrez.types[t] === type) {
+        return true
+      }
+    }
+    return false
+  }
+
   async init(
       container = `${homedir()}/.secrez`,
       localWorkingDir = homedir()
@@ -123,20 +133,94 @@ class Secrez {
     }
   }
 
-  encryptItem(item, id = Crypto.getRandomId()) {
-    item = Crypto.timestamp(true) + ' ' + item
+  encryptItem(id, type, name, content) {
+
+    if (typeof id === 'object') {
+      type = id.type
+      name = id.name
+      content = id.content
+      id = id.id
+    }
+
     if (this.masterKey) {
-      return [id, Crypto.encrypt(item, this.masterKey)].join('0')
+
+      if (!this.isSupportedType(type)) {
+        throw new Error('Unsupported type')
+      }
+
+      let scrambledTs = Crypto.scrambledTimestamp()
+      let separator = Crypto.randomCharNotInBase58()
+      return {
+        id,
+        type,
+        scrambledTs,
+        encryptedName: type + Crypto.encrypt(id + scrambledTs + separator + name, this.masterKey),
+        encryptedContent: content ? Crypto.encrypt(id + scrambledTs + separator + content, this.masterKey) : ''
+      }
     } else {
       throw new Error('User not logged')
     }
   }
 
-  decryptItem(item) {
+  decryptItem(encryptedName, encryptedContent) {
+
+    if (typeof encryptedName === 'object') {
+      encryptedContent = encryptedName.encryptedContent
+      encryptedName = encryptedName.encryptedName
+    }
+
+    function decrypt(data, key) {
+      let dec = Crypto.decrypt(data, key)
+      let id = dec.substring(0, 8)
+      let ts = ''
+      for (let i = 8; i < dec.length; i++) {
+        let c = dec[i]
+        if (Crypto.isCharNotInBase58(c)) {
+          data = dec.substring(i + 1)
+          break
+        }
+        ts += c
+      }
+      return [id, Crypto.unscrambleTimestamp(ts), data]
+    }
+
     if (this.masterKey) {
-      let temp = item.split('0')
-      item = temp[1] || temp[0]
-      return Crypto.decrypt(item, this.masterKey)
+
+      if (encryptedName) {
+        let type = encryptedName.substring(0, 1)
+        let [id, ts, name] = decrypt(encryptedName.substring(1), this.masterKey)
+        let content = ''
+
+        // during the indexing internalFS reads only the names of the files
+        if (encryptedContent) {
+          let [id2, ts2, c] = decrypt(encryptedContent, this.masterKey)
+          if (id !== id2 || ts !== ts2) {
+            throw new Error('Data is corrupted')
+          }
+          content = c
+        }
+
+        return {
+          id,
+          type,
+          ts,
+          name,
+          content
+        }
+      }
+
+      // when the encryptedName has been already decrypted and we need only the content
+      if (encryptedContent) {
+        let [id, ts, content] = decrypt(encryptedContent, this.masterKey)
+
+        return {
+          id,
+          ts,
+          content
+        }
+      }
+
+      throw new Error('Missing parameters')
     } else {
       throw new Error('User not logged')
     }
@@ -150,6 +234,12 @@ class Secrez {
     }
   }
 
+}
+
+Secrez.types = {
+  INDEX: 0,
+  DIR: 1,
+  FILE: 2
 }
 
 module.exports = Secrez

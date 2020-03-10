@@ -46,15 +46,16 @@ describe('#Crypto', function () {
 
 
 
-    it('should generate a random id skipping existing one', async function () {
-      let allIds = {}
-      for (let i=0; i <= 250;i++) {
-        allIds[bs58.encode(Buffer.from([i]))] = true
-      }
-      let remainder = ['5L','5M','5N','5P','5Q']
-      assert.isTrue(remainder.includes(Crypto.getRandomId(allIds, 1)))
-
-    })
+    // it.only('should generate a random id skipping existing one', async function () {
+    //   let allIds = {}
+    //   for (let i=0; i <= 250;i++) {
+    //     allIds[bs58.encode(Buffer.from([i]))] = true
+    //   }
+    //   console.log(allIds)
+    //   let remainder = ['5L','5M','5N','5P','5Q']
+    //   assert.isTrue(remainder.includes(Crypto.getRandomId(allIds, 1)))
+    //
+    // })
 
     it('should generate key', async function () {
       const newKey = Crypto.generateKey()
@@ -104,24 +105,17 @@ describe('#Crypto', function () {
       assert.isTrue(randomString.length > 8 && randomString.length < 18)
     })
 
-    it('should get the current timestamp in standard format', async function () {
-      let timestamp = await Crypto.timestamp()
-      assert.isTrue(timestamp > Math.round(Date.now() / 1000) - 1 && timestamp < Math.round(Date.now() / 1000) + 1)
+    it('should get a random base58 string', async function () {
+      let rnd = Crypto.getRandomBase58String(3)
+      assert.equal(rnd.length, 3)
+      assert.isTrue(Crypto.base58Alphabet.indexOf(rnd[1]) !== -1)
     })
 
     it('should get the current timestamp in b58 format', async function () {
-      let timestamp = await Crypto.timestamp(true)
-      assert.isTrue(timestamp.length >= 5 && timestamp.length <= 7)
-    })
-
-    it('should get a date from a b58 timestamp', async function () {
-      let timestamp = Math.round(Date.now() / 1000)
-      let b58timestamp = utils.intToBase58(timestamp)
-      let date = await Crypto.dateFromB58(b58timestamp, true)
-      assert.equal(date, (new Date(timestamp * 1000)).toISOString())
-      date = await Crypto.dateFromB58(b58timestamp)
-      assert.equal(date + '.000Z', (new Date(timestamp * 1000)).toISOString())
-
+      let ts = Date.now()
+      let timestamp = await Crypto.scrambledTimestamp()
+      let original = Crypto.unscrambleTimestamp(timestamp)
+      assert.isTrue(original - ts  <= 2)
     })
 
     it('should generate a sha3 in b58 format', async function () {

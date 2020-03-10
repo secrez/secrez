@@ -14,6 +14,8 @@ const {
   encodeUTF8
 } = require('tweetnacl-util')
 
+const base58Alphabet = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
+
 class Crypto {
 
   static toBase64(data) {
@@ -35,11 +37,20 @@ class Crypto {
     return bs58.decode(data)
   }
 
-  static getRandomId(allIds, size = 8) {
+  static getRandomBase58String(size) {
+    let len = base58Alphabet.length
+    let ret = ''
+    for (let i = 0; i < size; i++) {
+      ret += base58Alphabet[Math.round(len * Math.random()) % len]
+    }
+    return ret
+  }
+
+  static getRandomId(allIds) {
     let id
     // eslint-disable-next-line no-constant-condition
-    while(true) {
-      id = bs58.encode(Buffer.from(randomBytes(size)))
+    while (true) {
+      id = bs58.encode(Buffer.from(randomBytes(8))).substring(0, 8)
       if (allIds) {
         // to avoid collisions, which are anyway very unlikely
         if (allIds[id]) {
@@ -65,19 +76,48 @@ class Crypto {
     return crypto.pbkdf2Sync(key, salt, iterations, size, digest)
   }
 
-  static timestamp(b58) {
-    let ts = Math.round(Date.now() / 1000)
-    if (b58) {
-      ts = utils.intToBase58(ts)
-    }
-    return ts
+  static randomCharNotInBase58() {
+    let z = 122
+    return String.fromCharCode(z + Math.round(Math.random() * (255 - z)))
   }
 
-  static dateFromB58(b58, full) {
-    let ts = utils.base58ToInt(b58)
-    let d = (new Date(ts * 1000)).toISOString()
-    return full ? d : d.split('.000Z')[0]
+  static isCharNotInBase58(char) {
+    let z = 122
+    return (char.charCodeAt(0) > z)
   }
+
+  static scrambledTimestamp() {
+    let alphabet = Crypto.base58Alphabet
+    let blen = 58
+    let ts = Math.round(Date.now())
+    ts = utils.intToBase58(ts)
+    let rnd = Crypto.getRandomBase58String(ts.length)
+    for (let i = 0; i < ts.length; i++) {
+      let p = alphabet.indexOf(rnd[i])
+      let v = alphabet.indexOf(ts[i])
+      rnd += alphabet[(p + v) % blen]
+    }
+    return rnd
+  }
+
+  static unscrambleTimestamp(ts) {
+    let alphabet = Crypto.base58Alphabet
+    let blen = 58
+    let ret = ''
+    let len = ts.length / 2
+    for (let i = 0; i < len; i++) {
+      let p = alphabet.indexOf(ts[i])
+      let v = alphabet.indexOf(ts[i + len])
+      ret += alphabet[(v - p + blen) % blen]
+    }
+    return utils.base58ToInt(ret)
+  }
+
+  // static dateFromB58(b58, full) {
+  //   let ts = utils.base58ToInt(b58)
+  //   let d = (new Date(ts * 1000)).toISOString()
+  //   return full ? d : d.split('.000Z')[0]
+  // }
 
   static b58Hash(data) {
     if (!Buffer.isBuffer(data)) {
@@ -87,7 +127,7 @@ class Crypto {
   }
 
   static hexToUint8Array(hexStr) {
-    if (hexStr.length %2) {
+    if (hexStr.length % 2) {
       hexStr = '0' + hexStr
     }
     return new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
@@ -108,7 +148,7 @@ class Crypto {
   }
 
   static getTimestampFromNonce(nonce) {
-    nonce = nonce.slice(0,6)
+    nonce = nonce.slice(0, 6)
     let ts = Crypto.uint8ArrayToHex(nonce)
     return parseInt(ts, 16)
   }
@@ -237,5 +277,8 @@ class Crypto {
   }
 
 }
+
+Crypto.base58Alphabet = base58Alphabet
+Crypto.randomBytes = randomBytes
 
 module.exports = Crypto

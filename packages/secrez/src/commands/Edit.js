@@ -70,7 +70,7 @@ class Edit extends require('../Command') {
     if (newContent !== content) {
       let encContent = await internalFs.secrez.encryptItem(newContent)
       ver++
-      await this.fs.appendFile(filePath, `\n${ver};${Crypto.timestamp(true)};${encContent}`)
+      await this.fs.appendFile(filePath, `\n${ver};${Crypto.scrambledTimestamp(true)};${encContent}`)
       this.Logger.reset(`File saved. Version: ${ver}`)
     } else {
       this.Logger.reset('Changes aborted or file not changed')

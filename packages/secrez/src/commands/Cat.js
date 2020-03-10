@@ -67,6 +67,7 @@ class Cat extends require('../Command') {
           for (let d of data) {
             // eslint-disable-next-line no-unused-vars
             let [content, a, ver, ts] = d
+            // TODO fix date
             this.Logger.yellow(`Version: ${ver} - Date: ${Crypto.dateFromB58(ts)}`)
             this.Logger.reset(this.getContent(content, options))
           }
