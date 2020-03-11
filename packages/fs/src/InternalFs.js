@@ -3,83 +3,22 @@ const fs = require('fs-extra')
 const path = require('path')
 const {config, Crypto} = require('@secrez/core')
 const FileSystemsUtils = require('./FileSystemsUtils')
+const Tree = require('./Tree')
 
 class InternalFs {
 
   constructor(secrez) {
     if (secrez && secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
+      this.tree = new Tree(this)
     } else {
       throw new Error('InternalFs requires secrez during construction')
     }
   }
 
-  async decodeTree(dir) {
-
-    let allFiles = []
-    let types = this.secrez.types
-    for (let t in types) {
-      allFiles[t] = {}
-    }
-    let files = await fs.readdir(dir)
-    for (let file of files) {
-      if (/\./.test(file)) {
-        continue
-      }
-      try {
-        let [id, type, ts, name] = this.secrez.decryptItem(file)
-        if (allFiles[type]) {
-          // should we generate a warning because there is some unexpected encrypted file in the folder?
-          continue
-        }
-        if (!allFiles[type][id]) {
-          allFiles[type][id] = []
-        }
-        allFiles[type][id].push([type, ts, name])
-      } catch (err) {
-        // the file is an unexpected not encrypted file. We ignore it, for now.
-      }
-    }
-
-    for (let list of allFiles) {
-      for (let file of list) {
-        file.sort((a, b) => {
-          let A = a.ts
-          let B = b.ts
-          // descending order
-          return A < B ? 1 : A > B ? -1 : 0
-        })
-      }
-    }
-
-    // check the index
-    let ik = Object.keys(allFiles[types.INDEX])
-    if (ik.length > 1) {
-        throw new Error('There is more than one index. Execute `fix --tree` to try to rebuild a valid index')
-    } else {
-      this.tree = allFiles[types.INDEX][ik[0]][0]
-    }
-    let dk = Object.keys(allFiles[types.DIR])
-    let fk = Object.keys(allFiles[types.FILE])
-    if (dk.length || fk.length) {
-      throw new Error('There are files without any index. Execute `fix --tree` to build a valid, flat index')
-    }
-
-    for (let file in dir) {
-      let [id, encrypted] = file.split(';')
-      let name = this.secrez.decryptItem(encrypted).split(';')
-      allFiles[`${id};${name}`] = dir[file] === true ? true : await this.decodeTree(dir[file])
-    }
-    return allFiles
-  }
-
-  async fixTree() {
-    // TODO
-  }
-
   async init(callback) {
     // eslint-disable-next-line require-atomic-updates
-    this.decodedTree = await this.decodeTree(config.secrez.dataPath)
+    await this.tree.load(config.secrez.dataPath)
     callback()
   }
 
