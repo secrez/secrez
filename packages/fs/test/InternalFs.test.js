@@ -8,7 +8,7 @@ const InternalFs = require('../src/InternalFs')
 describe('#InternalFs', function () {
 
   let secrez
-  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
   let internalFs
 
   describe('#constructor', async function () {
@@ -32,7 +32,7 @@ describe('#InternalFs', function () {
         new InternalFs(new Object())
         assert.isFalse(true)
       } catch(e) {
-        assert.equal(e.message, 'InternalFs requires secrez during construction')
+        assert.equal(e.message, 'InternalFs requires a Secrez instance during construction')
       }
 
     })

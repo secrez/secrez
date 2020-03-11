@@ -1,8 +1,8 @@
 const chai = require('chai')
 const assert = chai.assert
-const utils = require('../src/FileSystemsUtils')
+const utils = require('../src/FsUtils')
 
-describe('#FileSystemsUtils', function () {
+describe('#FsUtils', function () {
 
 
   describe('preParseCommandLine', async function () {

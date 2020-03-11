@@ -31,6 +31,7 @@ class Secrez {
       localWorkingDir = homedir()
   ) {
     await config.setSecrez(container, localWorkingDir)
+    this.config = config
   }
 
   async derivePassword(password, iterations) {
@@ -51,10 +52,10 @@ class Secrez {
   }
 
   async signup(password, iterations, saveIterations) {
-    if (!config.secrez.confPath) {
+    if (!this.config || !this.config.secrez.confPath) {
       throw new Error('Secrez not initiated')
     }
-    if (!fs.existsSync(config.secrez.confPath)) {
+    if (!fs.existsSync(this.config.secrez.confPath)) {
 
       let id = Crypto.b58Hash(Crypto.generateKey())
 
@@ -99,9 +100,9 @@ class Secrez {
         data,
         signature
       }
-      await fs.writeFile(config.secrez.confPath, JSON.stringify(conf))
+      await fs.writeFile(this.config.secrez.confPath, JSON.stringify(conf))
       if (saveIterations) {
-        await fs.writeFile(config.secrez.envPath, JSON.stringify({iterations}))
+        await fs.writeFile(this.config.secrez.envPath, JSON.stringify({iterations}))
       }
     } else {
       throw new Error('An account already exists. Please, sign in or chose a different container directory')
@@ -109,12 +110,12 @@ class Secrez {
   }
 
   async signin(password, iterations) {
-    if (!config.secrez.confPath) {
+    if (!this.config || !this.config.secrez.confPath) {
       throw new Error('Secrez not initiated')
     }
     if (!iterations) {
-      if (fs.existsSync(config.secrez.envPath)) {
-        let env = JSON.parse(await fs.readFile(config.secrez.envPath, 'utf8'))
+      if (fs.existsSync(this.config.secrez.envPath)) {
+        let env = JSON.parse(await fs.readFile(this.config.secrez.envPath, 'utf8'))
         iterations = env.iterations
       }
     }
@@ -122,8 +123,8 @@ class Secrez {
       throw new Error('Iterations is missed')
     }
     iterations = parseInt(iterations)
-    if (await fs.existsSync(config.secrez.confPath)) {
-      let {key, hash} = JSON.parse(await fs.readFile(config.secrez.confPath, 'utf8')).data
+    if (await fs.existsSync(this.config.secrez.confPath)) {
+      let {key, hash} = JSON.parse(await fs.readFile(this.config.secrez.confPath, 'utf8')).data
       let derivedPassword = await this.derivePassword(password, iterations)
       let masterKey
       try {
@@ -179,9 +180,9 @@ class Secrez {
 
     function decrypt(data, key) {
       let dec = Crypto.decrypt(data, key)
-      let id = dec.substring(0, 8)
+      let id = dec.substring(0, 4)
       let ts = ''
-      for (let i = 8; i < dec.length; i++) {
+      for (let i = 4; i < dec.length; i++) {
         let c = dec[i]
         if (Crypto.isCharNotInBase58(c)) {
           data = dec.substring(i + 1)
@@ -229,6 +230,9 @@ class Secrez {
           }
         }
       } catch (err) {
+        if (err.message === 'Data is corrupted') {
+            throw err
+        }
         throw new Error('Fatal error during decryption')
       }
 

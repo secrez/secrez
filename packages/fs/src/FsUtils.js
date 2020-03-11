@@ -3,10 +3,10 @@ const path = require('path')
 const {Utils} = require('@secrez/core')
 
 // eslint-disable-next-line node/no-unpublished-require
-const commandLineArgs = require('../../../../../../Repos/command-line-args/dist')
-// const commandLineArgs = require('command-line-args')
+// const commandLineArgs = require('../../../../../../Repos/command-line-args/dist')
+const commandLineArgs = require('command-line-args')
 
-class FileSystemsUtils {
+class FsUtils {
 
   static preParseCommandLine(commandLine) {
     let argv = []
@@ -68,4 +68,4 @@ class FileSystemsUtils {
 
 }
 
-module.exports = FileSystemsUtils
+module.exports = FsUtils

@@ -1,6 +1,7 @@
 module.exports = {
   InternalFs: require('./InternalFs'),
   ExternalFs: require('./ExternalFs'),
-  FileSystemsUtils: require('./FileSystemsUtils'),
+  FileSystemsUtils: require('./FsUtils'),
+  Tree: require('./Tree'),
   version: require('../package').version
 }

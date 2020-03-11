@@ -50,9 +50,9 @@ class Crypto {
     let id
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      id = bs58.encode(Buffer.from(randomBytes(8))).substring(0, 8)
+      id = bs58.encode(Buffer.from(randomBytes(4))).substring(0, 4)
       if (allIds) {
-        // to avoid collisions, which are anyway very unlikely
+        /* istanbul ignore if  */
         if (allIds[id]) {
           continue
         }

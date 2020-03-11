@@ -8,6 +8,9 @@ const utils = require('../src/utils')
 const fs = require('fs-extra')
 const config = require('../src/config')
 
+// eslint-disable-next-line no-unused-vars
+const jlog = require('./helpers/jlog')
+
 const {
   password,
   iterations,
@@ -36,6 +39,25 @@ describe('#Secrez', function () {
     })
 
   })
+
+
+  describe('#isSupportedType', function () {
+
+    before(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init()
+    })
+
+    it('should confirm 1 is supported and 3 not', async function () {
+
+
+      assert.equal(secrez.isSupportedType(1), true)
+      assert.equal(secrez.isSupportedType(3), false)
+    })
+
+  })
+
 
   describe('custom (testing) secrez dir', function () {
 
@@ -215,12 +237,29 @@ describe('#Secrez', function () {
         assert.equal(content, secrez.decryptItem(encryptedData).content)
       })
 
-      it('should re-encrypt the content and decrypt it', async function () {
+      it('should encrypt only the content and decrypt it', async function () {
         await secrez.signup(password, iterations)
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
         let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content)
+        assert.equal(name, secrez.decryptItem(encryptedData).name)
+        assert.equal(content, secrez.decryptItem(undefined, encryptedData.encryptedContent).content)
+      })
+
+
+      it('should re-encrypt the content and decrypt it', async function () {
+        await secrez.signup(password, iterations)
+        let name = 'some random data'
+        let content = 'some random content'
+        let id = Crypto.getRandomId()
+        let item = {
+          id,
+          type: secrez.types.FILE,
+          name,
+          content
+        }
+        let encryptedData = secrez.encryptItem(item)
         let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(content, decryptedData.content)
@@ -245,6 +284,71 @@ describe('#Secrez', function () {
           assert.isFalse(true)
         } catch (e) {
           assert.equal(e.message, 'User not logged')
+        }
+      })
+
+      it('should throw if wrong type', async function () {
+        try {
+          await secrez.signup(password, iterations)
+          let name = 'some random data'
+          let content = 'some random content'
+          let id = Crypto.getRandomId()
+          let item = {
+            id,
+            type: 3,
+            name,
+            content
+          }
+          secrez.encryptItem(item)
+          assert.isFalse(true)
+        } catch (e) {
+          assert.equal(e.message, 'Unsupported type')
+        }
+      })
+
+      it('should throw if encrypted data are corrupted', async function () {
+        try {
+          await secrez.signup(password, iterations)
+          let name = 'some random data'
+          let id = Crypto.getRandomId()
+          let item = {
+            id,
+            type: 1,
+            name
+          }
+          let encryptedData = secrez.encryptItem(item)
+          encryptedData.encryptedName = encryptedData.encryptedName.substring(0, encryptedData.encryptedName.length - 10) + 'SANqTUj5gj'
+          secrez.decryptItem(encryptedData)
+          assert.isFalse(true)
+        } catch (e) {
+          assert.equal(e.message, 'Fatal error during decryption')
+        }
+      })
+
+      it('should throw if content has not the same id of the name', async function () {
+        try {
+          await secrez.signup(password, iterations)
+          let name = 'some random data'
+          let content = 'some random content'
+          let id = Crypto.getRandomId()
+          let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name)
+          id = Crypto.getRandomId([id])
+          let encryptedData2 = secrez.encryptItem(id, secrez.types.FILE, undefined, content)
+          encryptedData.encryptedContent = encryptedData2.encryptedContent
+          secrez.decryptItem(encryptedData)
+          assert.isFalse(true)
+        } catch (e) {
+          assert.equal(e.message, 'Data is corrupted')
+        }
+      })
+
+      it('should throw if parameters are missed', async function () {
+        try {
+          await secrez.signup(password, iterations)
+          secrez.decryptItem()
+          assert.isFalse(true)
+        } catch (e) {
+          assert.equal(e.message, 'Missing parameters')
         }
       })
     })

@@ -1,5 +1,3 @@
-const path = require('path')
-const homedir = require('homedir')
 const _ = require('lodash')
 
 const Base58 = require('base58')

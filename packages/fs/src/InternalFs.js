@@ -2,7 +2,7 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const {config, Crypto} = require('@secrez/core')
-const FileSystemsUtils = require('./FileSystemsUtils')
+const FileSystemsUtils = require('./FsUtils')
 const Tree = require('./Tree')
 
 class InternalFs {
@@ -12,7 +12,7 @@ class InternalFs {
       this.secrez = secrez
       this.tree = new Tree(this)
     } else {
-      throw new Error('InternalFs requires secrez during construction')
+      throw new Error('InternalFs requires a Secrez instance during construction')
     }
   }
 
