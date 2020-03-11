@@ -1,4 +1,4 @@
-const _ = require('lodash')
+// const _ = require('lodash')
 const fs = require('fs-extra')
 // const path = require('path')
 // const {config, Crypto} = require('@secrez/core')
@@ -7,11 +7,13 @@ const fs = require('fs-extra')
 class Tree {
 
   constructor(internalFS) {
+
     this.statutes = {
       UNLOADED: 0,
       LOADED: 1,
       BROKEN: 2
     }
+
     if (internalFS && internalFS.constructor.name === 'InternalFS') {
       this.fs = internalFS
       this.secrez = internalFS.secrez
@@ -23,12 +25,17 @@ class Tree {
 
   async load(dir) {
 
+    const self = this
+
     if (this.status === this.statutes.LOADED) {
       return
     }
 
-    let allFiles = []
+    let allFiles = {}
     let types = this.secrez.types
+    for (let category in types) {
+
+    }
     for (let t in types) {
       allFiles[t] = {}
     }
@@ -46,14 +53,18 @@ class Tree {
         if (!allFiles[type][id]) {
           allFiles[type][id] = []
         }
-        allFiles[type][id].push([type, ts, name])
+        allFiles[type][id].push({
+          type,
+          ts,
+          name
+        })
       } catch (err) {
         // the file is an unexpected not encrypted file. We ignore it, for now.
       }
     }
 
-    for (let list of allFiles) {
-      for (let file of list) {
+    for (let category in allFiles) {
+      for (let id in allFiles[category]) {
         file.sort((a, b) => {
           let A = a.ts
           let B = b.ts
@@ -70,7 +81,12 @@ class Tree {
       throw new Error('There is more than one index. Execute `fix --tree` to try to rebuild a valid index')
     } else {
       try {
-        this.index = JSON.parse(allFiles[types.INDEX][ik[0]][0])
+        this.tree = {
+          treeRoot: [
+            JSON.parse(allFiles[types.INDEX][ik[0]][0]),
+            '/'
+          ]
+        }
       } catch (err) {
         this.status = this.statutes.BROKEN
         throw new Error('Index is corrupted. Execute `fix --tree` to try to build a new valid index')
@@ -95,6 +111,7 @@ class Tree {
           this.status = this.statutes.BROKEN
           throw new Error('Index contains not existing files. Execute `fix --tree` to try to rebuild a valid index')
         }
+        self.index[id] = dir[id]
         if (t === types.DIR) {
           await fillTree(dir[id][0])
           dk--
@@ -104,7 +121,13 @@ class Tree {
       }
     }
 
-    await fillTree(this.index[0])
+    this.index = {
+      treeRoot: this.tree.treeRoot
+    }
+    await fillTree(this.tree.treeRoot[0])
+
+    this.currentParentId = 'treeRoot'
+    this.currentParent = this.tree.treeRoot
 
     if (dk !== 0 || fk !== 0) {
       this.status = this.statutes.BROKEN
@@ -114,10 +137,23 @@ class Tree {
     this.status = this.statutes.LOADED
   }
 
+  getIdFromIndex(id) {
+    return this.index[id]
+  }
+
+  addChild(parentId, child) {
+    let parent
+    if (parentId === this.currentParentId) {
+      parent = this.currentParent
+    } else {
+      parent = this.getIdFromIndex(parentId)
+    }
+    this.index[child.id] = parent[0][child.id] = [child.type === this.secrez.types.DIR ? [] : true, [child.type, child.ts, child.name]]
+  }
+
   async fixTree() {
     // TODO
   }
-
 
 
 }

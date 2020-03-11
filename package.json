@@ -1,17 +1,20 @@
 {
   "name": "root",
   "devDependencies": {
-    "lerna": "^3.4.3"
+    "lerna": "^3.20.2"
   },
   "workspaces": {
-  "packages": [
-    "packages/*"
-  ]
-},
+    "packages": [
+      "packages/*"
+    ]
+  },
   "scripts": {
     "test": "lerna run test --stream -- --colors",
     "re-install": "scripts/clean-all-modules.sh && lerna bootstrap",
     "secrez:dev": "cd packages/secrez && npm run dev"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "yarn": "^1.22.4"
+  }
 }
