@@ -167,6 +167,10 @@ class Secrez {
         encryptedName: type + Crypto.encrypt(id + scrambledTs + separator + name, this.masterKey),
         encryptedContent: content ? Crypto.encrypt(id + scrambledTs + separator + content, this.masterKey) : ''
       }
+      if (result.encryptedName.length > 255) {
+        result.extraName = result.encryptedName.substring(254)
+        result.encryptedName = result.encryptedName.substring(0, 254) + 'O'
+      }
       if (preserveContent) {
         result.name = name
         result.content = content
@@ -177,10 +181,11 @@ class Secrez {
     }
   }
 
-  decryptItem(encryptedName, encryptedContent) {
+  decryptItem(encryptedName, encryptedContent, extraName) {
 
     if (typeof encryptedName === 'object') {
       encryptedContent = encryptedName.encryptedContent
+      extraName = encryptedName.extraName
       encryptedName = encryptedName.encryptedName
     }
 
@@ -203,6 +208,9 @@ class Secrez {
 
       try {
         if (encryptedName) {
+          if (extraName) {
+            encryptedName = encryptedName.substring(0, 254) + extraName
+          }
           let type = parseInt(encryptedName.substring(0, 1))
           let [id, ts, name] = decrypt(encryptedName.substring(1), this.masterKey)
           let content = ''

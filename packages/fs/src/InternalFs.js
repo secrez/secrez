@@ -29,27 +29,27 @@ class InternalFs {
     item.preserveContent = true
 
     item = this.secrez.encryptItem(item)
-    if (item.encryptedName > 255) {
-      throw new Error('The item name is too long (when encrypted is larger than 255 chars.)')
-    } else {
-      let fullPath = path.join(this.dataPath, item.encryptedName)
-      await fs.writeFile(fullPath, item.encryptedContent || '')
-      item.ts = Crypto.unscrambleTimestamp(item.scrambledTs)
-      try {
-        this.tree.addChild(parentId, item)
-      } catch(err) {
-        // reverse the saving
-        await fs.unlink(fullPath)
-        throw err
-      }
+    let fullPath = path.join(this.dataPath, item.encryptedName)
+    await fs.writeFile(fullPath, [
+          item.encryptedContent || '',
+          item.extraName
+        ].join('\n')
+    )
+    item.ts = Crypto.unscrambleTimestamp(item.scrambledTs)
+    try {
+      this.tree.addChild(parentId, item)
+    } catch (err) {
+      // reverse the saving
+      await fs.unlink(fullPath)
+      throw err
     }
   }
 
   async update(parentId, item) {
 
     item.preserveContent = true
-
     item = this.secrez.encryptItem(item)
+
     if (item.encryptedName > 255) {
       throw new Error('The item name is too long (when encrypted is larger than 255 chars.)')
     } else {
@@ -58,7 +58,7 @@ class InternalFs {
       item.ts = Crypto.unscrambleTimestamp(item.scrambledTs)
       try {
         this.tree.addChild(parentId, item)
-      } catch(err) {
+      } catch (err) {
         // reverse the saving
         await fs.unlink(fullPath)
         throw err
@@ -75,7 +75,6 @@ class InternalFs {
   }
 
   //////////////
-
 
 
   getNormalizedPath(dir = '/') {
@@ -347,7 +346,6 @@ class InternalFs {
       throw new Error('No such directory')
     }
   }
-
 
 
   async ls(files) {

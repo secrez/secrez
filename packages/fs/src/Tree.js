@@ -1,4 +1,4 @@
-// const _ = require('lodash')
+const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 
@@ -41,7 +41,18 @@ class Tree {
       }
       this.notEmpty = true
       try {
-        let [id, type, ts, name] = this.secrez.decryptItem(file)
+        let data
+        if (file[file.length - 1] === 'O') {
+          // there is an extraName
+          let content = await fs.readFile(file, 'utf8')
+          if (content) {
+            content = content.split('\n')
+          }
+          data = file.substring(0, 254) + _.trim(content[1])
+        } else {
+          data = file
+        }
+        let [id, type, ts, name] = this.secrez.decryptItem(data)
         if (allFiles[type]) {
           // should we generate a warning because there is some unexpected encrypted file in the folder?
           continue

@@ -227,6 +227,16 @@ describe('#Secrez', function () {
         assert.equal(id, decryptedData.id)
       })
 
+      it('should encrypt a very long name and decrypt it', async function () {
+        await secrez.signup(password, iterations)
+        let name = '山东恒美百特新能源环保设备有限公司是国内大型的新能源环保设备制造商，注册商标“恒美百特”。公司集研发、生产、销售、服务四位于'
+        let id = Crypto.getRandomId()
+        let encryptedData = secrez.encryptItem(id, secrez.types.DIR, name)
+        let decryptedData = secrez.decryptItem(encryptedData)
+        assert.equal(name, decryptedData.name)
+        assert.equal(id, decryptedData.id)
+      })
+
       it('should encrypt name and content and decrypt it', async function () {
         await secrez.signup(password, iterations)
         let name = 'some random data'
