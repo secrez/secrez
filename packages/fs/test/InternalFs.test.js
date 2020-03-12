@@ -22,7 +22,7 @@ describe('#InternalFs', function () {
     it('should instantiate the internal file system', async function () {
 
       internalFs = new InternalFs(secrez)
-      assert.equal(internalFs.itemId, 1)
+      assert.isTrue(!!internalFs.tree)
 
     })
 

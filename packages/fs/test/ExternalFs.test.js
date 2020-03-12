@@ -46,7 +46,7 @@ describe('#ExternalFs', function () {
   })
 
 
-  describe.skip('fileCompletion', async function () {
+  describe('fileCompletion', async function () {
 
     let files
     let results
@@ -54,28 +54,28 @@ describe('#ExternalFs', function () {
     // TODO Put a fixed number of files in /fixtures
 
     it('should return a list of files', async function () {
-      files = '../src'
+      files = './fixtures/tree'
       results = await externalFs.fileCompletion(files)
-      assert.equal(results.length, 4)
+      assert.equal(results.length, 5)
 
     })
 
     it('should return a list of only directories', async function () {
-      files = '.'
+      files = './fixtures/tree'
       results = await externalFs.fileCompletion(files, config.onlyDir)
       assert.equal(results.length, 2)
 
     })
 
     it('should return a list of only files', async function () {
-      files = '.'
+      files = './fixtures/tree'
       results = await externalFs.fileCompletion(files, config.onlyFile)
       assert.equal(results.length, 3)
 
     })
 
-    it('should return the list of of the parent folder if files is a file', async function () {
-      files = 'InternalFs.test.js'
+    it('should return the list of the parent folder if files is a file', async function () {
+      files = './fixtures/tree/a'
       results = await externalFs.fileCompletion(files)
       assert.equal(results.length, 5)
 
@@ -172,8 +172,8 @@ describe('#ExternalFs', function () {
     let files
     let results
 
-    before(async function () {
-      await externalFs.cd('~')
+    beforeEach(async function () {
+      await externalFs.cd(path.resolve(__dirname,'fixtures/tree'))
     })
 
     it('should return a list of files as "ls ./"', async function () {
@@ -184,14 +184,14 @@ describe('#ExternalFs', function () {
     })
 
     it('should return a list of files as "ls .."', async function () {
+      await externalFs.cd('d')
       files = '..'
       results = await externalFs.ls(files)
-      assert.isTrue(results.length > 8)
-      assert.isTrue(results.includes('package.json'))
+      assert.equal(results.length, 5)
     })
 
-    it('should return the file itself', async function () {
-      files = 'ExternalFs.test.js'
+    it('should return a single file', async function () {
+      files = 'a'
       results = await externalFs.ls(files)
       assert.equal(results[0], files)
       assert.isUndefined(results[1])

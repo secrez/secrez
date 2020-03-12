@@ -142,12 +142,13 @@ class Secrez {
     }
   }
 
-  encryptItem(id, type, name, content) {
+  encryptItem(id, type, name, content, preserveContent) {
 
     if (typeof id === 'object') {
       type = id.type
       name = id.name
       content = id.content
+      preserveContent = id.preserveContent
       id = id.id
     }
 
@@ -159,13 +160,18 @@ class Secrez {
 
       let scrambledTs = Crypto.scrambledTimestamp()
       let separator = Crypto.randomCharNotInBase58()
-      return {
+      let result = {
         id,
         type,
         scrambledTs,
         encryptedName: type + Crypto.encrypt(id + scrambledTs + separator + name, this.masterKey),
         encryptedContent: content ? Crypto.encrypt(id + scrambledTs + separator + content, this.masterKey) : ''
       }
+      if (preserveContent) {
+        result.name = name
+        result.content = content
+      }
+      return result
     } else {
       throw new Error('User not logged')
     }

@@ -3,17 +3,15 @@ const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
 const {Secrez} = require('@secrez/core')
-const InternalFs = require('../src/InternalFs')
 const Tree = require('../src/Tree')
 
 // eslint-disable-next-line no-unused-vars
 const jlog = require('./helpers/jlog')
 
-describe.only('#Tree', function () {
+describe('#Tree', function () {
 
   let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-  let internalFs
   let tree
 
   describe('#constructor', async function () {
@@ -22,23 +20,22 @@ describe.only('#Tree', function () {
       await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
-      internalFs = new InternalFs(secrez)
     })
 
     it('should instantiate the Tree', async function () {
 
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
       assert.equal(tree.status, tree.statutes.UNLOADED)
 
     })
 
-    it('should throw if passing not an internalFs instance', async function () {
+    it('should throw if passing not an Secrez instance', async function () {
 
       try {
         new Tree(new Object())
         assert.isFalse(true)
       } catch (e) {
-        assert.equal(e.message, 'Tree requires an InternalFs instance during construction')
+        assert.equal(e.message, 'Tree requires a Secrez instance during construction')
       }
 
     })
@@ -51,22 +48,21 @@ describe.only('#Tree', function () {
       await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
-      internalFs = new InternalFs(secrez)
     })
 
     it('should load an empty Tree', async function () {
 
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
       await tree.load(rootDir)
       assert.equal(tree.status, tree.statutes.LOADED)
       assert.equal(Object.keys(tree.tree.root[0]), 0)
-      assert.equal(tree.tree.root[1], '/')
+      assert.equal(tree.tree.root[1][0][1], '/')
 
     })
 
     it('should do nothing if already loaded', async function () {
 
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
       await tree.load(rootDir)
       await tree.load(rootDir)
       assert.equal(tree.status, tree.statutes.LOADED)
@@ -81,8 +77,7 @@ describe.only('#Tree', function () {
       await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
-      internalFs = new InternalFs(secrez)
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
     })
 
     it('should throw if file does not exist', async function () {
@@ -111,8 +106,7 @@ describe.only('#Tree', function () {
       await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
-      internalFs = new InternalFs(secrez)
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
     })
 
     it('should sort an item in descending order', async function () {
@@ -129,8 +123,7 @@ describe.only('#Tree', function () {
       await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
-      internalFs = new InternalFs(secrez)
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
       await tree.load(rootDir)
     })
 
@@ -141,7 +134,7 @@ describe.only('#Tree', function () {
       await fs.writeFile(rootDir + '/data/somefile3', 'some')
 
       tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd'}, 'somefile')
-      tree.addChild(undefined, {type: 2, ts: Date.now(), name: 'Some file', id: 'efgh'}, 'somefile2')
+      tree.addChild(undefined, {type: 2, ts: Date.now(), name: 'Some file', id: 'efgh', encryptedName: 'somefile2'})
       tree.addChild('abcd', {type: 2, ts: Date.now(), name: 'Some other file', id: 'opqr'}, 'somefile3')
 
       assert.equal(tree.index.efgh[0], true)
@@ -189,8 +182,7 @@ describe.only('#Tree', function () {
       await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
-      internalFs = new InternalFs(secrez)
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
       await tree.load(rootDir)
     })
 
@@ -201,7 +193,7 @@ describe.only('#Tree', function () {
 
       tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd'}, 'somefile')
 
-      tree.updateChild({type: 2, ts: Date.now() + 1, name: 'Some updated file', id: 'abcd'}, 'somefile2')
+      tree.updateChild({type: 2, ts: Date.now() + 1, name: 'Some updated file', id: 'abcd', encryptedName: 'somefile2'})
 
       let item = tree.index.root[0].abcd
       assert.equal(Object.keys(item[1]).length, 2)
@@ -236,8 +228,7 @@ describe.only('#Tree', function () {
       await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
-      internalFs = new InternalFs(secrez)
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
       await tree.load(rootDir)
     })
 
@@ -252,7 +243,7 @@ describe.only('#Tree', function () {
       tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm'}, 'somefile3')
       tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr'}, 'somefile4')
 
-      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some other folder', id: 'efgh'}, 'somefile2')
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some other folder', id: 'efgh', encryptedName: 'somefile2'})
 
       tree.moveChild('efgh', 'opqr')
 
@@ -285,8 +276,7 @@ describe.only('#Tree', function () {
       await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
-      internalFs = new InternalFs(secrez)
-      tree = new Tree(internalFs)
+      tree = new Tree(secrez)
       await tree.load(rootDir)
     })
 
@@ -318,6 +308,34 @@ describe.only('#Tree', function () {
       } catch (e) {
         assert.equal(e.message, 'Can remove a child only if related files do not exist')
       }
+    })
+
+  })
+
+  describe('#getPathTo', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      tree = new Tree(secrez)
+      await tree.load(rootDir)
+    })
+
+    it('should find a fullpath for a child', async function () {
+
+      await fs.writeFile(rootDir + '/data/somefile', 'some')
+      await fs.writeFile(rootDir + '/data/somefile2', 'some')
+      await fs.writeFile(rootDir + '/data/somefile3', 'some')
+      await fs.writeFile(rootDir + '/data/somefile4', 'some')
+
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd'}, 'somefile')
+      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm'}, 'somefile3')
+      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr'}, 'somefile4')
+
+      let fullpath = tree.getPathTo('opqr')
+
+      assert.equal(fullpath, '/Some folder/Another folder/Some file')
     })
 
   })

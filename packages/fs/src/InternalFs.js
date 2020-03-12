@@ -10,7 +10,8 @@ class InternalFs {
   constructor(secrez) {
     if (secrez && secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
-      this.tree = new Tree(this)
+      this.tree = new Tree(secrez)
+      this.dataPath = this.tree.dataPath
     } else {
       throw new Error('InternalFs requires a Secrez instance during construction')
     }
@@ -18,9 +19,64 @@ class InternalFs {
 
   async init(callback) {
     // eslint-disable-next-line require-atomic-updates
-    await this.tree.load(config.secrez.dataPath)
+    await this.tree.load()
     callback()
   }
+
+  async add(parentId, item) {
+
+    item.id = Crypto.getRandomId()
+    item.preserveContent = true
+
+    item = this.secrez.encryptItem(item)
+    if (item.encryptedName > 255) {
+      throw new Error('The item name is too long (when encrypted is larger than 255 chars.)')
+    } else {
+      let fullPath = path.join(this.dataPath, item.encryptedName)
+      await fs.writeFile(fullPath, item.encryptedContent || '')
+      item.ts = Crypto.unscrambleTimestamp(item.scrambledTs)
+      try {
+        this.tree.addChild(parentId, item)
+      } catch(err) {
+        // reverse the saving
+        await fs.unlink(fullPath)
+        throw err
+      }
+    }
+  }
+
+  async update(parentId, item) {
+
+    item.preserveContent = true
+
+    item = this.secrez.encryptItem(item)
+    if (item.encryptedName > 255) {
+      throw new Error('The item name is too long (when encrypted is larger than 255 chars.)')
+    } else {
+      let fullPath = path.join(this.dataPath, item.encryptedName)
+      await fs.writeFile(fullPath, item.encryptedContent || '')
+      item.ts = Crypto.unscrambleTimestamp(item.scrambledTs)
+      try {
+        this.tree.addChild(parentId, item)
+      } catch(err) {
+        // reverse the saving
+        await fs.unlink(fullPath)
+        throw err
+      }
+    }
+  }
+
+
+  getParents(dir) {
+    let parent = path.dirname(dir)
+    let [decParent, ids] = this.getParent(parent)
+    let [encParent, encParentPath] = this.getEncParent(ids)
+    return [decParent, encParent, encParentPath]
+  }
+
+  //////////////
+
+
 
   getNormalizedPath(dir = '/') {
     dir = dir.replace(/^~/, '')
@@ -292,69 +348,40 @@ class InternalFs {
     }
   }
 
-  async create(file, content) {
-    file = path.resolve(config.secrez.workingDir, file)
-    let [decParent, encParent, encParentPath] = this.getParents(file)
-    if (decParent) {
-      let dirname = path.basename(file)
-      if (!this.exists(decParent, dirname)) {
-        let id = Crypto.getRandomId()
-        let encFile = await this.secrez.encryptItem(dirname, id)
-        if (encFile.length > 255) {
-          throw new Error('The directory name is too long (when encrypted is larger than 255 chars.)')
-        } else {
-          let encContent = await this.secrez.encryptItem(content)
-          let fullPath = path.join(encParentPath || '/', encFile)
-          try {
-            let realPath = this.realPath(fullPath)
-            await fs.writeFile(realPath, `1;${Crypto.scrambledTimestamp(true)};${encContent}`)
-            encParent[`${this.itemId};${encFile}`] = true
-            decParent[`${this.itemId++};${dirname}`] = true
-          } catch (e) {
-            throw new Error(e.message)
-          }
-        }
-      } else {
-        throw new Error('The file already exist.')
-      }
 
-    } else {
-      throw new Error('Parent directory not found.')
-    }
-  }
 
   async ls(files) {
     return FileSystemsUtils.filterLs(files, await this.pseudoFileCompletion(files))
   }
 
-  async mkdir(dir) {
-    dir = path.resolve(config.secrez.workingDir, dir)
-    let [decParent, encParent, encParentPath] = this.getParents(dir)
-    if (decParent) {
-      let dirname = path.basename(dir)
-      if (!this.exists(decParent, dirname)) {
-        let encDir = await this.secrez.encryptItem(dirname)
-        if (encDir.length > 255) {
-          throw new Error('The directory name is too long (when encrypted is larger than 255 chars.)')
-        } else {
-          let fullPath = path.join(encParentPath || '/', encDir)
-          try {
-            let realPath = this.realPath(fullPath)
-            await fs.ensureDir(realPath)
-            encParent[`${this.itemId};${encDir}`] = {}
-            decParent[`${this.itemId++};${dirname}`] = {}
-          } catch (e) {
-            throw new Error(e.message)
-          }
-        }
-      } else {
-        throw new Error('The directory already exist.')
-      }
-
-    } else {
-      throw new Error('Parent directory not found.')
-    }
-  }
+  // async mkdir(dir) {
+  //   dir = path.resolve(config.secrez.workingDir, dir)
+  //   let [decParent, encParent, encParentPath] = this.getParents(dir)
+  //   if (decParent) {
+  //     let dirname = path.basename(dir)
+  //     if (!this.exists(decParent, dirname)) {
+  //       let encDir = await this.secrez.encryptItem(dirname)
+  //       if (encDir.length > 255) {
+  //         throw new Error('The directory name is too long (when encrypted is larger than 255 chars.)')
+  //       } else {
+  //         let fullPath = path.join(encParentPath || '/', encDir)
+  //         try {
+  //           let realPath = this.realPath(fullPath)
+  //           await fs.ensureDir(realPath)
+  //           encParent[`${this.itemId};${encDir}`] = {}
+  //           decParent[`${this.itemId++};${dirname}`] = {}
+  //         } catch (e) {
+  //           throw new Error(e.message)
+  //         }
+  //       }
+  //     } else {
+  //       throw new Error('The directory already exist.')
+  //     }
+  //
+  //   } else {
+  //     throw new Error('Parent directory not found.')
+  //   }
+  // }
 
   async pwd(options) {
     return config.secrez.workingDir

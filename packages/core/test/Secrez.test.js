@@ -232,7 +232,7 @@ describe('#Secrez', function () {
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content)
+        let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content, true)
         assert.equal(name, secrez.decryptItem(encryptedData).name)
         assert.equal(content, secrez.decryptItem(encryptedData).content)
       })

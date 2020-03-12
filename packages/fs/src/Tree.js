@@ -4,7 +4,7 @@ const path = require('path')
 
 class Tree {
 
-  constructor(internalFS) {
+  constructor(secrez) {
 
     this.statutes = {
       UNLOADED: 0,
@@ -12,13 +12,12 @@ class Tree {
       BROKEN: 2
     }
 
-    if (internalFS && internalFS.constructor.name === 'InternalFs') {
-      this.fs = internalFS
-      this.secrez = internalFS.secrez
+    if (secrez && secrez.constructor.name === 'Secrez') {
+      this.secrez = secrez
       this.dataPath = this.secrez.config.secrez.dataPath
       this.status = this.statutes.UNLOADED
     } else {
-      throw new Error('Tree requires an InternalFs instance during construction')
+      throw new Error('Tree requires a Secrez instance during construction')
     }
   }
 
@@ -128,16 +127,35 @@ class Tree {
       this.tree = {
         root: [
           {},
-          '/'
+          [[Date.now(), '/']]
         ]
       }
       this.index = {
         root: this.tree.root
       }
     }
-    this.currentDirectoryId = 'root'
-    this.currentDirectory = this.tree.root
+    this.workingDirectoryId = 'root'
+    this.workingDirectory = this.tree.root
     this.status = this.statutes.LOADED
+  }
+
+  getPathTo(childId, parent = this.tree.root, fullpath = '/') {
+    if (!this.index[childId]) {
+      return undefined
+    }
+    if (parent[0][childId]) {
+      return path.resolve(fullpath, parent[1][0][1], parent[0][childId][1][0][1])
+    } else {
+      for (let id in parent[0]) {
+        if (typeof parent[0][id][0] === 'object') {
+          let p = this.getPathTo(childId, parent[0][id], path.resolve(fullpath, parent[1][0][1]))
+          if (p) {
+            return p
+          }
+        }
+      }
+      return undefined
+    }
   }
 
   static sortItem(a, b) {
@@ -160,8 +178,8 @@ class Tree {
 
   addChild(parentId, child, file) {
     let parent
-    if (!parentId || parentId === this.currentDirectoryId) {
-      parent = this.currentDirectory
+    if (!parentId || parentId === this.workingDirectoryId) {
+      parent = this.workingDirectory
     } else {
       parent = this.getParentFromIndex(parentId)
     }
@@ -170,6 +188,9 @@ class Tree {
     }
     if (this.index[child.id]) {
       throw new Error('Child already exists')
+    }
+    if (!file) {
+      file = child.encryptedName
     }
     if (!this.fileExists(file)) {
       throw new Error('The relative file does not exist')
@@ -180,6 +201,9 @@ class Tree {
   updateChild(child, file) {
     if (!this.index[child.id]) {
       throw new Error('Child does not exist')
+    }
+    if (!file) {
+      file = child.encryptedName
     }
     if (!this.fileExists(file)) {
       throw new Error('The relative file does not exist')
@@ -216,8 +240,8 @@ class Tree {
 
   moveChild(newParentId, childId) {
     let newParent
-    if (!newParentId || newParentId === this.currentDirectoryId) {
-      newParent = this.currentDirectory
+    if (!newParentId || newParentId === this.workingDirectoryId) {
+      newParent = this.workingDirectory
     } else {
       newParent = this.getParentFromIndex(newParentId)
     }
