@@ -24,6 +24,10 @@ describe('#Secrez', function () {
   let secrez
   let masterKey
 
+  const D = config.types.DIR
+  const F = config.types.FILE
+
+
   describe('default secrez dir', function () {
 
     before(async function () {
@@ -34,7 +38,7 @@ describe('#Secrez', function () {
 
     it('should use the default ~/.secrez folder', async function () {
 
-      assert.equal(config.secrez.dataPath, homedir() +'/.secrez/data')
+      assert.equal(config.secrez.dataPath, homedir() + '/.secrez/data')
       assert.equal(config.secrez.localWorkingDir, homedir())
     })
 
@@ -221,8 +225,8 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations)
         let name = 'some random data'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem(id, secrez.types.DIR, name)
-        let decryptedData = secrez.decryptItem(encryptedData.encryptedName)
+        let encryptedData = secrez.encryptItem({id, type: D, name})
+        let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(id, decryptedData.id)
       })
@@ -231,7 +235,7 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations)
         let name = '山东恒美百特新能源环保设备有限公司是国内大型的新能源环保设备制造商，注册商标“恒美百特”。公司集研发、生产、销售、服务四位于'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem(id, secrez.types.DIR, name)
+        let encryptedData = secrez.encryptItem({id, type: D, name})
         let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(id, decryptedData.id)
@@ -242,7 +246,7 @@ describe('#Secrez', function () {
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content, true)
+        let encryptedData = secrez.encryptItem({id, type: F, name, content, preserveContent: true})
         assert.equal(name, secrez.decryptItem(encryptedData).name)
         assert.equal(content, secrez.decryptItem(encryptedData).content)
       })
@@ -252,9 +256,9 @@ describe('#Secrez', function () {
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content)
+        let encryptedData = secrez.encryptItem({id, type: F, name, content})
         assert.equal(name, secrez.decryptItem(encryptedData).name)
-        assert.equal(content, secrez.decryptItem(undefined, encryptedData.encryptedContent).content)
+        assert.equal(content, secrez.decryptItem({encryptedContent: encryptedData.encryptedContent}).content)
       })
 
 
@@ -265,7 +269,7 @@ describe('#Secrez', function () {
         let id = Crypto.getRandomId()
         let item = {
           id,
-          type: secrez.types.FILE,
+          type: F,
           name,
           content
         }
@@ -274,7 +278,7 @@ describe('#Secrez', function () {
         assert.equal(name, decryptedData.name)
         assert.equal(content, decryptedData.content)
         content = 'some modified content'
-        encryptedData = secrez.encryptItem(id, secrez.types.FILE, name, content)
+        encryptedData = secrez.encryptItem({id, type: F, name, content})
         decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(content, decryptedData.content)
@@ -341,9 +345,9 @@ describe('#Secrez', function () {
           let name = 'some random data'
           let content = 'some random content'
           let id = Crypto.getRandomId()
-          let encryptedData = secrez.encryptItem(id, secrez.types.FILE, name)
+          let encryptedData = secrez.encryptItem({id, type: F, name})
           id = Crypto.getRandomId([id])
-          let encryptedData2 = secrez.encryptItem(id, secrez.types.FILE, undefined, content)
+          let encryptedData2 = secrez.encryptItem({id, type: F, content})
           encryptedData.encryptedContent = encryptedData2.encryptedContent
           secrez.decryptItem(encryptedData)
           assert.isFalse(true)

@@ -1,6 +1,6 @@
 const {config, Crypto} = require('@secrez/core')
 
-class TreeNode {
+class Node {
 
   constructor(options = {}) {
 
@@ -16,33 +16,30 @@ class TreeNode {
       throw new Error('Unsupported type')
     }
 
-    if (isRoot && options.parent) {
-      throw new Error('The root node cannot have a parent')
-    }
-
-    if (!options.ts || typeof options.ts !== 'number'
-        || (options.parentId && options.parentId.length !== 4)
-        || !options.name || typeof options.name !== 'string'
-        || !options.encryptedName || typeof options.encryptedName !== 'string') {
-      throw new Error('Missing parameters')
-    }
-
-    this.id = isRoot ? 'root' : options.id || Crypto.getRandomId()
+    this.id = isRoot ? 'rOOt' : options.id || Crypto.getRandomId()
     this.type = options.type
-
-    if (options.parent && options.parent.constructor.name === 'TreeNode') {
-      this.parent = options.parent
-    }
-    // a TreeNode can be independent of a tree.
-    // But if it is part of a tree, any child must have a parent
-
     if (options.type !== config.types.FILE) {
       this.children = {}
     }
-    this.versions = {}
-    this.lastTs = options.ts
 
     if (!isRoot) {
+      if (!options.ts || typeof options.ts !== 'string'
+          || !options.name || typeof options.name !== 'string'
+          || !options.encryptedName || typeof options.encryptedName !== 'string'
+          || (options.parentId && options.parentId.length !== 4)
+      ) {
+        throw new Error('Missing parameters')
+      }
+
+      if (options.parent && options.parent.constructor.name === 'TreeNode') {
+        this.parent = options.parent
+      }
+      // a Node can be independent of a tree.
+      // But if it is part of a tree, any child must have a parent
+
+
+      this.versions = {}
+      this.lastTs = options.ts
       if (options.name && options.encryptedName) {
         this.versions[options.ts] = {
           name: options.name,
@@ -68,7 +65,7 @@ class TreeNode {
           file: files[v]
         })
       }
-      json.V.sort((a,b) => {
+      json.V.sort((a, b) => {
         let A = a.ts
         let B = b.ts
         return A > B ? 1 : A < B ? -1 : 0
@@ -76,15 +73,16 @@ class TreeNode {
     }
     json.C = []
     for (let c of json.c) {
-      json.C.push(TreeNode.preFormat(c, secrez, files))
+      json.C.push(Node.preFormat(c, secrez, files))
     }
     return json
   }
 
   static initNode(json, parent) {
-    let V0 = json.V0
-    let node = new TreeNode({
-      type: json.t,
+    let V0 = json.V[0]
+    let type = V0 ? parseInt(V0.file.substring(0,1)) : config.types.INDEX
+    let node = new Node({
+      type,
       id: json.t === config.types.INDEX ? 'root' : V0.id,
       ts: V0.ts,
       name: V0.name,
@@ -93,7 +91,7 @@ class TreeNode {
     if (parent) {
       node.parent = parent
     }
-    for (let i=1; i< json.V.length; i++) {
+    for (let i = 1; i < json.V.length; i++) {
       let V = json.V[i]
       node.versions[V.ts] = {
         name: V.name,
@@ -102,7 +100,7 @@ class TreeNode {
     }
     if (json.t !== config.types.FILE) {
       for (let i = 1; i < json.C.length; i++) {
-        node.children[json.C[i].V[0].id] = TreeNode.initNode(json.C[i], node)
+        node.children[json.C[i].V[0].id] = Node.initNode(json.C[i], node)
       }
     }
     return node
@@ -119,37 +117,34 @@ class TreeNode {
     for (let f of allFiles) {
       files[f.substring(0, minSize)] = f
     }
-    json = TreeNode.preFormat(json, secrez, files)
-    return TreeNode.initNode(json)
+    json = Node.preFormat(json, secrez, files)
+    return Node.initNode(json)
   }
 
   toJSON(minSize) {
     // prepare the object to be stringified and saved on disk
 
-    if (this.type === this.types.INDEX) {
+    if (this.type === config.types.INDEX) {
       minSize = this.calculateMinSize()
     }
 
-    if (this.type !== this.types.INDEX && !minSize) {
+    if (this.type !== config.types.INDEX && !minSize) {
       throw new Error('The dataPath is needed')
     }
 
     const result = {
-      t: this.type,
       v: []
     }
 
     if (this.versions)
-      for (let ts of this.versions) {
-        result.v.push(this.versions[ts].encryptedName.substring(0, minSize))
+      for (let ts in this.versions) {
+        result.v.push(this.versions[ts].file.substring(0, minSize))
       }
 
     if (this.children) {
       result.c = []
-      for (let id of this.children) {
-        result.c.push(this.children[id].toJSON({
-          minSize: minSize
-        }))
+      for (let id in this.children) {
+        result.c.push(this.children[id].toJSON(minSize))
       }
     }
 
@@ -185,7 +180,7 @@ class TreeNode {
         }
         arr[s] = true
       }
-      minSize = min
+      return min
     }
   }
 
@@ -219,25 +214,26 @@ class TreeNode {
         name: options.name,
         file: options.encryptedName
       }
+      this.lastTs = options.ts
     } // else we are just moving it on the tree because versions are immutable
 
     if (options.parent
         && options.parent.constructor.name === 'TreeNode'
         && options.parent.id !== this.parent.id) {
-      this.parent.removeChildren(this)
-      options.parent.addChildren(this)
+      this.parent.remove(this)
+      options.parent.add(this)
       this.parent = options.parent
     }
   }
 
-  addChildren(children) {
-    if (this.data.type === config.types.DIR) {
-      // a child is a TreeNode instance
+  add(children) {
+    if (this.type !== config.types.FILE) {
+      // a child is a Node instance
       if (!Array.isArray(children)) {
         children = [children]
       }
       for (let c of children) {
-        c.parentId = this.data.id
+        c.parentId = this.id
         this.children[c.id] = c
       }
     } else {
@@ -245,7 +241,7 @@ class TreeNode {
     }
   }
 
-  removeChildren(children) {
+  remove(children) {
     if (!Array.isArray(children)) {
       children = [children]
     }
@@ -257,4 +253,4 @@ class TreeNode {
 }
 
 
-module.exports = TreeNode
+module.exports = Node

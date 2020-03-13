@@ -355,7 +355,7 @@ describe('#Tree', function () {
       await tree.load(rootDir)
     })
 
-    it.only('should find a child from a fullpath', async function () {
+    it('should find a child from a fullpath', async function () {
 
       await fs.writeFile(rootDir + '/data/somefile', 'some')
       await fs.writeFile(rootDir + '/data/somefile3', 'some')

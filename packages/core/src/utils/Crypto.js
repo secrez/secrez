@@ -51,10 +51,6 @@ class Crypto {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       id = bs58.encode(Buffer.from(randomBytes(4))).substring(0, 4)
-      /* istanbul ignore if  */
-      if (id === 'root') {
-        continue
-      }
       if (allIds) {
         /* istanbul ignore if  */
         if (allIds[id]) {
@@ -90,10 +86,20 @@ class Crypto {
     return (char.charCodeAt(0) > z)
   }
 
-  static scrambledTimestamp() {
+  static scrambledTimestamp(lastTs) {
     let alphabet = Crypto.base58Alphabet
     let blen = 58
-    let ts = Math.round(Date.now())
+    let ts = Date.now()
+    let microseconds = Math.ceil(1e6 * Math.random()) - 1e3
+    if (lastTs) {
+      lastTs = lastTs.split('.').map(e => parseInt(e))
+      if (lastTs[0] === ts) {
+        while (lastTs[1] > microseconds) {
+          microseconds = Math.ceil(1e6 * Math.random()) - 1e3
+        }
+      }
+      // else if( lastTs[0] > ts) ... there is a problem
+    }
     ts = utils.intToBase58(ts)
     let rnd = Crypto.getRandomBase58String(ts.length)
     for (let i = 0; i < ts.length; i++) {
@@ -101,10 +107,10 @@ class Crypto {
       let v = alphabet.indexOf(ts[i])
       rnd += alphabet[(p + v) % blen]
     }
-    return rnd
+    return [rnd, utils.intToBase58(microseconds)]
   }
 
-  static unscrambleTimestamp(ts) {
+  static unscrambleTimestamp(ts, microseconds) {
     let alphabet = Crypto.base58Alphabet
     let blen = 58
     let ret = ''
@@ -114,7 +120,7 @@ class Crypto {
       let v = alphabet.indexOf(ts[i + len])
       ret += alphabet[(v - p + blen) % blen]
     }
-    return utils.base58ToInt(ret)
+    return '' + utils.base58ToInt(ret) + (utils.base58ToInt(microseconds) / 1e6).toString().substring(1)
   }
 
   // static dateFromB58(b58, full) {

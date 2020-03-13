@@ -142,15 +142,16 @@ class Secrez {
     }
   }
 
-  encryptItem(id, type, name, content, preserveContent) {
+  encryptItem(item) {
 
-    if (typeof id === 'object') {
-      type = id.type
-      name = id.name
-      content = id.content
-      preserveContent = id.preserveContent
-      id = id.id
-    }
+    const {
+      type,
+      name,
+      content,
+      preserveContent,
+      id,
+      lastTs
+    } = item
 
     if (this.masterKey) {
 
@@ -158,14 +159,28 @@ class Secrez {
         throw new Error('Unsupported type')
       }
 
-      let scrambledTs = Crypto.scrambledTimestamp()
-      let separator = Crypto.randomCharNotInBase58()
+      let [scrambledTs, microseconds] = Crypto.scrambledTimestamp(lastTs)
       let result = {
         id,
         type,
         scrambledTs,
-        encryptedName: type + Crypto.encrypt(id + scrambledTs + separator + name, this.masterKey),
-        encryptedContent: content ? Crypto.encrypt(id + scrambledTs + separator + content, this.masterKey) : ''
+        microseconds,
+        encryptedName: type + Crypto.encrypt(
+            id
+            + scrambledTs
+            + Crypto.randomCharNotInBase58()
+            + microseconds
+            + Crypto.randomCharNotInBase58()
+            + name,
+            this.masterKey),
+        encryptedContent: content ? Crypto.encrypt(
+            id
+            + scrambledTs
+            + Crypto.randomCharNotInBase58()
+            + microseconds
+            + Crypto.randomCharNotInBase58()
+            + content,
+            this.masterKey) : ''
       }
       if (result.encryptedName.length > 255) {
         result.extraName = result.encryptedName.substring(254)
@@ -181,38 +196,48 @@ class Secrez {
     }
   }
 
-  decryptItem(encryptedName, encryptedContent, extraName) {
+  decryptItem(encryptedItem = {}) {
 
-    if (typeof encryptedName === 'object') {
-      encryptedContent = encryptedName.encryptedContent
-      extraName = encryptedName.extraName
-      encryptedName = encryptedName.encryptedName
-    }
+    const {
+      encryptedContent,
+      extraName,
+      encryptedName,
+      preserveContent
+    } = encryptedItem
 
     function decrypt(data, key) {
       let dec = Crypto.decrypt(data, key)
       let id = dec.substring(0, 4)
-      let ts = ''
+      let tmp = ''
+      let ts
+      let ms
       for (let i = 4; i < dec.length; i++) {
         let c = dec[i]
         if (Crypto.isCharNotInBase58(c)) {
-          data = dec.substring(i + 1)
-          break
+          if (ts) {
+            ms = tmp
+            data = dec.substring(i + 1)
+            break
+          } else {
+            ts = tmp
+            tmp = c = ''
+          }
         }
-        ts += c
+        tmp += c
       }
-      return [id, Crypto.unscrambleTimestamp(ts), data]
+      return [id, Crypto.unscrambleTimestamp(ts, ms), data]
     }
 
     if (this.masterKey) {
 
       try {
         if (encryptedName) {
+          let data = encryptedName
           if (extraName) {
-            encryptedName = encryptedName.substring(0, 254) + extraName
+            data = encryptedName.substring(0, 254) + extraName
           }
-          let type = parseInt(encryptedName.substring(0, 1))
-          let [id, ts, name] = decrypt(encryptedName.substring(1), this.masterKey)
+          let type = parseInt(data.substring(0, 1))
+          let [id, ts, name] = decrypt(data.substring(1), this.masterKey)
           let content = ''
 
           // during the indexing internalFS reads only the names of the files
@@ -224,28 +249,43 @@ class Secrez {
             content = c
           }
 
-          return {
+          let result = {
             id,
             type,
             ts,
             name,
             content
           }
+
+          if (preserveContent) {
+            result.encryptedName = encryptedName
+            result.encryptedContent = encryptedContent
+            result.extraName = extraName
+          }
+
+          return result
         }
 
         // when the encryptedName has been already decrypted and we need only the content
         if (encryptedContent) {
           let [id, ts, content] = decrypt(encryptedContent, this.masterKey)
 
-          return {
+          let result = {
             id,
             ts,
             content
           }
+
+          if (preserveContent) {
+            result.encryptedContent = encryptedContent
+          }
+
+          return result
         }
+
       } catch (err) {
         if (err.message === 'Data is corrupted') {
-            throw err
+          throw err
         }
         throw new Error('Fatal error during decryption')
       }

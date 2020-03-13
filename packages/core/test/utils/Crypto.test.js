@@ -112,8 +112,8 @@ describe('#Crypto', function () {
 
     it('should get the current timestamp in b58 format', async function () {
       let ts = Date.now()
-      let timestamp = await Crypto.scrambledTimestamp()
-      let original = Crypto.unscrambleTimestamp(timestamp)
+      let [timestamp, microseconds] = await Crypto.scrambledTimestamp()
+      let original = Crypto.unscrambleTimestamp(timestamp, microseconds)
       assert.isTrue(original - ts  <= 2)
     })
 

@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
-const TreeItem = require('./TreeItem')
+const Node = require('./Node')
 
 class Tree {
 
