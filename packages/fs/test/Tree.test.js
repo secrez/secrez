@@ -133,9 +133,9 @@ describe('#Tree', function () {
       await fs.writeFile(rootDir + '/data/somefile2', 'some')
       await fs.writeFile(rootDir + '/data/somefile3', 'some')
 
-      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd'}, 'somefile')
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd', encryptedName: 'somefile'})
       tree.addChild(undefined, {type: 2, ts: Date.now(), name: 'Some file', id: 'efgh', encryptedName: 'somefile2'})
-      tree.addChild('abcd', {type: 2, ts: Date.now(), name: 'Some other file', id: 'opqr'}, 'somefile3')
+      tree.addChild('abcd', {type: 2, ts: Date.now(), name: 'Some other file', id: 'opqr', encryptedName: 'somefile3'})
 
       assert.equal(tree.index.efgh[0], true)
       assert.equal(tree.index.efgh[1][0][1], 'Some file')
@@ -146,6 +146,7 @@ describe('#Tree', function () {
 
       try {
         tree.addChild('carrubot', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd'})
+        assert.isTrue(false)
       } catch (e) {
         assert.equal(e.message, 'Parent does not exist')
       }
@@ -155,10 +156,11 @@ describe('#Tree', function () {
 
       await fs.writeFile(rootDir + '/data/somefile', 'some')
 
-      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd'}, 'somefile')
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd', encryptedName: 'somefile'})
 
       try {
         tree.addChild(undefined, {type: 1, ts: Date.now(), name: 'Some new folder', id: 'abcd'})
+        assert.isTrue(false)
       } catch (e) {
         assert.equal(e.message, 'Child already exists')
       }
@@ -167,7 +169,8 @@ describe('#Tree', function () {
     it('should throw if file does not exist', async function () {
 
       try {
-        tree.addChild(undefined, {type: 1, ts: Date.now(), name: 'Some new folder', id: 'abcd'}, 'another file')
+        tree.addChild(undefined, {type: 1, ts: Date.now(), name: 'Some new folder', id: 'abcd', encryptedName: 'something'})
+        assert.isTrue(false)
       } catch (e) {
         assert.equal(e.message, 'The relative file does not exist')
       }
@@ -191,7 +194,7 @@ describe('#Tree', function () {
       await fs.writeFile(rootDir + '/data/somefile', 'some')
       await fs.writeFile(rootDir + '/data/somefile2', 'some')
 
-      tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd'}, 'somefile')
+      tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd', encryptedName: 'somefile'})
 
       tree.updateChild({type: 2, ts: Date.now() + 1, name: 'Some updated file', id: 'abcd', encryptedName: 'somefile2'})
 
@@ -204,16 +207,18 @@ describe('#Tree', function () {
 
       await fs.writeFile(rootDir + '/data/somefile', 'some')
 
-      tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd'}, 'somefile')
+      tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd', encryptedName: 'somefile'})
 
       try {
-        tree.updateChild({type: 1, ts: Date.now(), name: 'Some new folder', id: 'abcd'}, 'somefile2')
+        tree.updateChild({type: 1, ts: Date.now(), name: 'Some new folder', id: 'abcd', encryptedName: 'somefile2'})
+        assert.isTrue(false)
       } catch (e) {
         assert.equal(e.message, 'The relative file does not exist')
       }
 
       try {
-        tree.updateChild({type: 1, ts: Date.now(), name: 'Some new folder', id: 'cara'}, 'another file')
+        tree.updateChild({type: 1, ts: Date.now(), name: 'Some new folder', id: 'cara', encryptedName: 'another file'})
+        assert.isTrue(false)
       } catch (e) {
         assert.equal(e.message, 'Child does not exist')
       }
@@ -239,9 +244,9 @@ describe('#Tree', function () {
       await fs.writeFile(rootDir + '/data/somefile3', 'some')
       await fs.writeFile(rootDir + '/data/somefile4', 'some')
 
-      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd'}, 'somefile')
-      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm'}, 'somefile3')
-      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr'}, 'somefile4')
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd', encryptedName: 'somefile'})
+      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm', encryptedName: 'somefile3'})
+      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr', encryptedName: 'somefile4'})
 
       tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some other folder', id: 'efgh', encryptedName: 'somefile2'})
 
@@ -258,11 +263,11 @@ describe('#Tree', function () {
       await fs.writeFile(rootDir + '/data/somefile3', 'some')
       await fs.writeFile(rootDir + '/data/somefile4', 'some')
 
-      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd'}, 'somefile')
-      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm'}, 'somefile3')
-      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr'}, 'somefile4')
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd', encryptedName: 'somefile'})
+      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm', encryptedName: 'somefile3'})
+      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr', encryptedName: 'somefile4'})
 
-      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some other folder', id: 'efgh'}, 'somefile2')
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some other folder', id: 'efgh', encryptedName: 'somefile2'})
       tree.moveChild('efgh', 'ijkm')
       assert.equal(tree.tree.root[0].abcd[0].ijkm, undefined)
       assert.equal(Object.keys(tree.tree.root[0].efgh[0].ijkm[0]).length, 1)
@@ -284,7 +289,7 @@ describe('#Tree', function () {
 
       await fs.writeFile(rootDir + '/data/somefile', 'some')
 
-      tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd'}, 'somefile')
+      tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd', encryptedName: 'somefile'})
 
       await fs.unlink(rootDir + '/data/somefile')
 
@@ -298,13 +303,14 @@ describe('#Tree', function () {
       await fs.writeFile(rootDir + '/data/somefile', 'some')
       await fs.writeFile(rootDir + '/data/somefile2', 'some')
 
-      tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd'}, 'somefile')
-      tree.updateChild({type: 2, ts: Date.now() + 1, name: 'Some updated file', id: 'abcd'}, 'somefile2')
+      tree.addChild('root', {type: 2, ts: Date.now(), name: 'Some file', id: 'abcd', encryptedName: 'somefile'})
+      tree.updateChild({type: 2, ts: Date.now() + 1, name: 'Some updated file', id: 'abcd', encryptedName: 'somefile2'})
 
       await fs.unlink(rootDir + '/data/somefile')
 
       try {
         tree.deleteChild('abcd')
+        assert.isTrue(false)
       } catch (e) {
         assert.equal(e.message, 'Can remove a child only if related files do not exist')
       }
@@ -325,17 +331,65 @@ describe('#Tree', function () {
     it('should find a fullpath for a child', async function () {
 
       await fs.writeFile(rootDir + '/data/somefile', 'some')
-      await fs.writeFile(rootDir + '/data/somefile2', 'some')
       await fs.writeFile(rootDir + '/data/somefile3', 'some')
       await fs.writeFile(rootDir + '/data/somefile4', 'some')
 
-      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd'}, 'somefile')
-      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm'}, 'somefile3')
-      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr'}, 'somefile4')
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd', encryptedName: 'somefile'})
+      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm', encryptedName: 'somefile3'})
+      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr', encryptedName: 'somefile4'})
 
       let fullpath = tree.getPathTo('opqr')
 
       assert.equal(fullpath, '/Some folder/Another folder/Some file')
+    })
+
+  })
+
+  describe('#getChildFromPath', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      tree = new Tree(secrez)
+      await tree.load(rootDir)
+    })
+
+    it.only('should find a child from a fullpath', async function () {
+
+      await fs.writeFile(rootDir + '/data/somefile', 'some')
+      await fs.writeFile(rootDir + '/data/somefile3', 'some')
+      await fs.writeFile(rootDir + '/data/somefile4', 'some')
+
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd', encryptedName: 'somefile'})
+      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm', encryptedName: 'somefile3'})
+      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr', encryptedName: 'somefile4'})
+
+      let fullpath = '/Some folder/Another folder/Some file'
+      let child = tree.getChildFromPath(fullpath)
+      assert.equal(child[1][1], 'Some file')
+
+    })
+
+
+    it('should throw if path does not exists', async function () {
+
+      await fs.writeFile(rootDir + '/data/somefile', 'some')
+      await fs.writeFile(rootDir + '/data/somefile3', 'some')
+      await fs.writeFile(rootDir + '/data/somefile4', 'some')
+
+      tree.addChild('root', {type: 1, ts: Date.now(), name: 'Some folder', id: 'abcd', encryptedName: 'somefile'})
+      tree.addChild('abcd', {type: 1, ts: Date.now(), name: 'Another folder', id: 'ijkm', encryptedName: 'somefile3'})
+      tree.addChild('ijkm', {type: 2, ts: Date.now(), name: 'Some file', id: 'opqr', encryptedName: 'somefile4'})
+
+      let fullpath = '/Some folder/Another folder/Not existent'
+
+      try {
+        tree.getChildFromPath(fullpath)
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
     })
 
   })

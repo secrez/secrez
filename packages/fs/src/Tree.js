@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
+const TreeItem = require('./TreeItem')
 
 class Tree {
 
@@ -36,6 +37,9 @@ class Tree {
     }
     let files = await fs.readdir(this.dataPath)
     for (let file of files) {
+
+      // TODO need fixes
+
       if (/\./.test(file)) {
         continue
       }
@@ -136,11 +140,19 @@ class Tree {
       }
     } else {
       this.tree = {
-        root: [
-          {},
-          [[Date.now(), '/']]
-        ]
+        root: new TreeItem(this, {
+          ts: Date.now(),
+          name: 'root',
+          id: 'root',
+          parentId: null
+        })
       }
+      // {
+      //   root: [
+      //     {},
+      //     [[Date.now(), '/']]
+      //   ]
+      // }
       this.index = {
         root: this.tree.root
       }
@@ -187,7 +199,7 @@ class Tree {
     return fs.existsSync(path.join(this.dataPath, file))
   }
 
-  addChild(parentId, child, file) {
+  addChild(parentId, child, simulate) {
     let parent
     if (!parentId || parentId === this.workingDirectoryId) {
       parent = this.workingDirectory
@@ -195,35 +207,40 @@ class Tree {
       parent = this.getParentFromIndex(parentId)
     }
     if (!parent) {
-      throw new Error('Parent does not exist')
+      if (simulate) {
+        return false
+      } else {
+        throw new Error('Parent does not exist')
+      }
     }
     if (this.index[child.id]) {
-      throw new Error('Child already exists')
+      if (simulate) {
+        return false
+      } else {
+        throw new Error('Child already exists')
+      }
     }
-    if (!file) {
-      file = child.encryptedName
+    if (simulate) {
+      return true
     }
-    if (!this.fileExists(file)) {
+    if (!this.fileExists(child.encryptedName)) {
       throw new Error('The relative file does not exist')
     }
-    this.index[child.id] = parent[0][child.id] = [child.type === this.secrez.types.DIR ? {} : true, [[child.ts, child.name, file]]]
+    this.index[child.id] = parent[0][child.id] = [child.type === this.secrez.types.DIR ? {} : true, [[child.ts, child.name, child.encryptedName]]]
   }
 
-  updateChild(child, file) {
+  updateChild(child) {
     if (!this.index[child.id]) {
       throw new Error('Child does not exist')
     }
-    if (!file) {
-      file = child.encryptedName
-    }
-    if (!this.fileExists(file)) {
+    if (!this.fileExists(child.encryptedName)) {
       throw new Error('The relative file does not exist')
     }
     this.index[child.id][1]
         // We assume it is more recent than the previous version.
         // If not, there is something wrong somewhere else
         // (we could throw an error if that happens)
-        .unshift([child.ts, child.name, file])
+        .unshift([child.ts, child.name, child.encryptedName])
   }
 
   findParent(childId, parent) {
@@ -247,6 +264,38 @@ class Tree {
       }
       return undefined
     }
+  }
+
+  absolutizePath(childPath) {
+    // TODO
+    return childPath
+  }
+
+  getChildFromPath(childPath) {
+    childPath = this.absolutizePath(childPath).split('/')
+    let child
+    let childId
+    try {
+      FOR: for (let c of childPath) {
+        if (!child) {
+          child = this.tree.root
+        } else {
+          for (let id in child[0]) {
+            console.log(id, child[0][id][1][0][1])
+            if (child[0][id][1][0][1] === c) {
+              child = child[0][id]
+              childId = id
+              console.log(child)
+              continue FOR
+            }
+            throw new Error()
+          }
+        }
+      }
+    } catch(e) {
+      throw new Error('Path does not exist')
+    }
+    return child
   }
 
   moveChild(newParentId, childId) {

@@ -23,47 +23,36 @@ class InternalFs {
     callback()
   }
 
-  async add(parentId, item) {
-
-    item.id = Crypto.getRandomId()
-    item.preserveContent = true
-
-    item = this.secrez.encryptItem(item)
+  async save(item, id) {
     let fullPath = path.join(this.dataPath, item.encryptedName)
     await fs.writeFile(fullPath, [
           item.encryptedContent || '',
-          item.extraName
+          item.extraName || ''
         ].join('\n')
     )
     item.ts = Crypto.unscrambleTimestamp(item.scrambledTs)
-    try {
-      this.tree.addChild(parentId, item)
-    } catch (err) {
-      // reverse the saving
-      await fs.unlink(fullPath)
-      throw err
-    }
+    return item
   }
 
-  async update(parentId, item) {
+  async unsave(item) {
+    let fullPath = path.join(this.dataPath, item.encryptedName)
+    await fs.unlink(fullPath)
+  }
 
+  async add(parentId, item) {
+    let method = 'updateChild'
+    if (!item.id) {
+      item.id = Crypto.getRandomId()
+      method = 'addChild'
+    }
     item.preserveContent = true
     item = this.secrez.encryptItem(item)
-
-    if (item.encryptedName > 255) {
-      throw new Error('The item name is too long (when encrypted is larger than 255 chars.)')
-    } else {
-      let fullPath = path.join(this.dataPath, item.encryptedName)
-      await fs.writeFile(fullPath, item.encryptedContent || '')
-      item.ts = Crypto.unscrambleTimestamp(item.scrambledTs)
-      try {
-        this.tree.addChild(parentId, item)
-      } catch (err) {
-        // reverse the saving
-        await fs.unlink(fullPath)
-        throw err
-      }
+    if (this.tree[method](parentId, item, null, true)) {
+      item = await this.save(item)
+      this.tree[method](parentId, item)
+      return true
     }
+    return false
   }
 
 
