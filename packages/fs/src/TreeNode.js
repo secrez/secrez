@@ -1,5 +1,3 @@
-const _ = require('lodash')
-const fs = require('fs-extra')
 const {config, Crypto} = require('@secrez/core')
 
 class TreeNode {
@@ -29,7 +27,7 @@ class TreeNode {
       throw new Error('Missing parameters')
     }
 
-    this.id = options.id || Crypto.getRandomId()
+    this.id = isRoot ? 'root' : options.id || Crypto.getRandomId()
     this.type = options.type
 
     if (options.parent && options.parent.constructor.name === 'TreeNode') {
@@ -38,7 +36,7 @@ class TreeNode {
     // a TreeNode can be independent of a tree.
     // But if it is part of a tree, any child must have a parent
 
-    if (options.type === config.types.DIR) {
+    if (options.type !== config.types.FILE) {
       this.children = {}
     }
     this.versions = {}
@@ -54,14 +52,108 @@ class TreeNode {
         throw new Error('Only the root node can miss an associated file')
       }
     }
-
   }
 
-  static fromJSON(json, allFiles) {
+  static preFormat(json, secrez, files) {
+    if (json.t !== config.types.INDEX) {
+      json.V = []
+      for (let v of json.v) {
+        let item = secrez.decryptItem({
+          encryptedName: files[v]
+        })
+        json.V.push({
+          id: item.id,
+          ts: item.ts,
+          name: item.name,
+          file: files[v]
+        })
+      }
+      json.V.sort((a,b) => {
+        let A = a.ts
+        let B = b.ts
+        return A > B ? 1 : A < B ? -1 : 0
+      })
+    }
+    json.C = []
+    for (let c of json.c) {
+      json.C.push(TreeNode.preFormat(c, secrez, files))
+    }
+    return json
+  }
+
+  static initNode(json, parent) {
+    let V0 = json.V0
+    let node = new TreeNode({
+      type: json.t,
+      id: json.t === config.types.INDEX ? 'root' : V0.id,
+      ts: V0.ts,
+      name: V0.name,
+      encryptedName: V0.encryptedName
+    })
+    if (parent) {
+      node.parent = parent
+    }
+    for (let i=1; i< json.V.length; i++) {
+      let V = json.V[i]
+      node.versions[V.ts] = {
+        name: V.name,
+        file: V.file
+      }
+    }
+    if (json.t !== config.types.FILE) {
+      for (let i = 1; i < json.C.length; i++) {
+        node.children[json.C[i].V[0].id] = TreeNode.initNode(json.C[i], node)
+      }
+    }
+    return node
+  }
+
+  static fromJSON(json, secrez, allFiles) {
     // It takes an already parsed object to make it an instance of the class.
     // It needs the list of files on disk to correctly recover timestamps and names
+    let minSize
+    for (let c of json.c) {
+      minSize = json.c[c].v[0].length
+    }
+    let files = {}
+    for (let f of allFiles) {
+      files[f.substring(0, minSize)] = f
+    }
+    json = TreeNode.preFormat(json, secrez, files)
+    return TreeNode.initNode(json)
+  }
 
-    // TODO
+  toJSON(minSize) {
+    // prepare the object to be stringified and saved on disk
+
+    if (this.type === this.types.INDEX) {
+      minSize = this.calculateMinSize()
+    }
+
+    if (this.type !== this.types.INDEX && !minSize) {
+      throw new Error('The dataPath is needed')
+    }
+
+    const result = {
+      t: this.type,
+      v: []
+    }
+
+    if (this.versions)
+      for (let ts of this.versions) {
+        result.v.push(this.versions[ts].encryptedName.substring(0, minSize))
+      }
+
+    if (this.children) {
+      result.c = []
+      for (let id of this.children) {
+        result.c.push(this.children[id].toJSON({
+          minSize: minSize
+        }))
+      }
+    }
+
+    return result
   }
 
   getAllFiles(child) {
@@ -95,40 +187,6 @@ class TreeNode {
       }
       minSize = min
     }
-  }
-
-  toJSON(minSize) {
-    // prepare the object to be stringified and saved on disk
-
-    if (this.type === this.types.INDEX) {
-      minSize = this.calculateMinSize()
-    }
-
-    if (this.type !== this.types.INDEX && !minSize) {
-      throw new Error('The dataPath is needed')
-    }
-
-    const result = {
-      i: this.id,
-      t: this.type,
-      v: []
-    }
-
-    if (this.versions)
-      for (let ts of this.versions) {
-        result.v.push(this.versions[ts].encryptedName.substring(0, minSize))
-      }
-
-    if (this.children) {
-      result.c = {}
-      for (let id of this.children) {
-        result.c[id] = this.children[id].toJSON({
-          minSize: minSize
-        })
-      }
-    }
-
-    return result
   }
 
   getName(ts) {

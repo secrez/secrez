@@ -51,6 +51,10 @@ class Crypto {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       id = bs58.encode(Buffer.from(randomBytes(4))).substring(0, 4)
+      /* istanbul ignore if  */
+      if (id === 'root') {
+        continue
+      }
       if (allIds) {
         /* istanbul ignore if  */
         if (allIds[id]) {
