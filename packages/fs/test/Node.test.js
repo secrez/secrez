@@ -134,7 +134,7 @@ describe.only('#Node', function () {
     it('should add children to root', async function () {
 
       let root = new Node({
-        type: config.types.INDEX
+        type: I
       })
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
@@ -151,9 +151,6 @@ describe.only('#Node', function () {
 
     it('should throw if node is a file', async function () {
 
-      let root = new Node({
-        type: config.types.INDEX
-      })
       let file1 = initRandomNode(F, secrez)
       let dir1 = initRandomNode(D, secrez)
 
@@ -180,7 +177,7 @@ describe.only('#Node', function () {
     it('should rename a node', async function () {
 
       let root = new Node({
-        type: config.types.INDEX
+        type: I
       })
       let file1 = initRandomNode(F, secrez)
 
@@ -193,7 +190,7 @@ describe.only('#Node', function () {
     it('should move a node', async function () {
 
       let root = new Node({
-        type: config.types.INDEX
+        type: I
       })
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
@@ -214,7 +211,7 @@ describe.only('#Node', function () {
     it('should throw trying to move root', async function () {
 
       let root = new Node({
-        type: config.types.INDEX
+        type: I
       })
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
@@ -235,7 +232,7 @@ describe.only('#Node', function () {
     it('should throw trying to modify a node with different id', async function () {
 
       let root = new Node({
-        type: config.types.INDEX
+        type: I
       })
       let file1 = initRandomNode(F, secrez)
 
@@ -266,7 +263,7 @@ describe.only('#Node', function () {
     it('should remove a node', async function () {
 
       let root = new Node({
-        type: config.types.INDEX
+        type: I
       })
       let dir1 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
@@ -293,7 +290,7 @@ describe.only('#Node', function () {
     it('should prepare a json for saving', async function () {
 
       let root = new Node({
-        type: config.types.INDEX
+        type: I
       })
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
@@ -321,7 +318,7 @@ describe.only('#Node', function () {
     it('should build an index from a json file', async function () {
 
         let root = new Node({
-          type: config.types.INDEX
+          type: I
         })
         let dir1 = initRandomNode(D, secrez)
         let dir2 = initRandomNode(D, secrez)
