@@ -2,7 +2,7 @@ const {config, Crypto} = require('@secrez/core')
 
 class Node {
 
-  constructor(options = {}) {
+  constructor(options) {
 
     if (typeof options !== 'object') {
       throw new Error('Invalid options passed to constructor')
@@ -40,13 +40,9 @@ class Node {
 
       this.versions = {}
       this.lastTs = options.ts
-      if (options.name && options.encryptedName) {
-        this.versions[options.ts] = {
-          name: options.name,
-          file: options.encryptedName
-        }
-      } else {
-        throw new Error('Only the root node can miss an associated file')
+      this.versions[options.ts] = {
+        name: options.name,
+        file: options.encryptedName
       }
     }
   }
@@ -94,39 +90,39 @@ class Node {
       })
     }
     if (json.c) {
-      json.C = []
       for (let c of json.c) {
-        json.C.push(Node.preFormat(c, secrez, files))
+          Node.preFormat(c, secrez, files)
       }
     }
     return json
   }
 
   static initNode(json, parent) {
+
     let V0 = json.V[0]
-    let type = V0 ? parseInt(V0.file.substring(0, 1)) : config.types.INDEX
+    let type = V0 ? parseInt(V0.encryptedName.substring(0, 1)) : config.types.INDEX
     let node = new Node({
       type,
-      id: json.t === config.types.INDEX ? 'root' : V0.id,
-      ts: V0.ts,
-      name: V0.name,
-      encryptedName: V0.encryptedName
+      id: V0 ? V0.id : 'rOOt',
+      ts: V0 ? V0.ts : undefined,
+      name: V0 ? V0.name : undefined,
+      encryptedName: V0 ? V0.encryptedName : undefined,
+      parent
     })
-    if (parent) {
-      node.parent = parent
-    }
     for (let i = 1; i < json.V.length; i++) {
       let V = json.V[i]
       node.versions[V.ts] = {
         name: V.name,
-        file: V.file
+        file: V.encryptedName
       }
     }
-    if (json.t !== config.types.FILE) {
-      for (let i = 1; i < json.C.length; i++) {
-        node.children[json.C[i].V[0].id] = Node.initNode(json.C[i], node)
+    // console.log('>>>>',  JSON.stringify(json, null, 2))
+    if (node.type !== config.types.FILE) {
+      for (let i = 0; i < json.c.length; i++) {
+        node.add(Node.initNode(json.c[i], node))
       }
     }
+
     return node
   }
 
@@ -135,10 +131,6 @@ class Node {
 
     if (this.type === config.types.INDEX) {
       minSize = this.calculateMinSize()
-    }
-
-    if (this.type !== config.types.INDEX && !minSize) {
-      throw new Error('The dataPath is needed')
     }
 
     const result = {
@@ -217,9 +209,9 @@ class Node {
       id: this.id,
       type: this.type,
       ts: this.lastTs,
-      name: this.versions[this.lastTs].name,
       parent: this.parent,
-      encryptedName: this.versions[this.lastTs].file
+      name: this.versions ? this.versions[this.lastTs].name : undefined,
+      encryptedName: this.versions ? this.versions[this.lastTs].file : undefined
     }
     return options
   }

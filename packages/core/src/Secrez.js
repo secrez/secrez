@@ -213,8 +213,9 @@ class Secrez {
       let dec = Crypto.decrypt(data, key)
       let id = dec.substring(0, 4)
       let tmp = ''
-      let ts
-      let ms
+      let ts = undefined
+      let ms = undefined
+      // console.log(dec.substring(0,30))
       for (let i = 4; i < dec.length; i++) {
         let c = dec[i]
         if (Crypto.isCharNotInBase58(c)) {
@@ -289,6 +290,9 @@ class Secrez {
         }
 
       } catch (err) {
+
+        console.log(err)
+
         if (err.message === 'Data is corrupted') {
           throw err
         }

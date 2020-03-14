@@ -14,8 +14,6 @@ const {
   encodeUTF8
 } = require('tweetnacl-util')
 
-const base58Alphabet = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
-
 class Crypto {
 
   static toBase64(data) {
@@ -38,10 +36,10 @@ class Crypto {
   }
 
   static getRandomBase58String(size) {
-    let len = base58Alphabet.length
+    let len = Crypto.base58Alphabet.length
     let ret = ''
     for (let i = 0; i < size; i++) {
-      ret += base58Alphabet[Math.round(len * Math.random()) % len]
+      ret += Crypto.base58Alphabet[Math.round(len * Math.random()) % len]
     }
     return ret
   }
@@ -77,8 +75,8 @@ class Crypto {
   }
 
   static randomCharNotInBase58() {
-    let z = 122
-    return String.fromCharCode(z + Math.round(Math.random() * (255 - z)))
+    let alphabet = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþ'
+    return alphabet[Math.floor(Math.random() * alphabet.length)]
   }
 
   static isCharNotInBase58(char) {
@@ -90,12 +88,12 @@ class Crypto {
     let alphabet = Crypto.base58Alphabet
     let blen = 58
     let ts = Date.now()
-    let pseudoMicroseconds = Math.ceil(1e6 * Math.random()) - 1e3
+    let pseudoMicroseconds = Math.floor(1e6 * Math.random())
     if (lastTs) {
       lastTs = lastTs.split('.').map(e => parseInt(e))
       if (lastTs[0] === ts) {
         while (lastTs[1] >= pseudoMicroseconds) {
-          pseudoMicroseconds = Math.ceil(1e6 * Math.random())
+          pseudoMicroseconds = Math.floor(1e6 * Math.random())
         }
       }
       // else if( lastTs[0] > ts) ... there is a problem
@@ -288,7 +286,7 @@ class Crypto {
 
 }
 
-Crypto.base58Alphabet = base58Alphabet
+Crypto.base58Alphabet = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
 Crypto.randomBytes = randomBytes
 
 module.exports = Crypto

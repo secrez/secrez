@@ -4,6 +4,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const {config, Secrez, Crypto} = require('@secrez/core')
 const Node = require('../src/Node')
+const {compareJson, initRandomNode, setNewNodeVersion} = require('./helpers')
 
 const {
   password,
@@ -12,31 +13,6 @@ const {
 
 // eslint-disable-next-line no-unused-vars
 const jlog = require('./helpers/jlog')
-
-function initRandomNode(type, secrez, getItem) {
-  let item = {
-    id: Crypto.getRandomId(),
-    name: Crypto.getRandomId() + Crypto.getRandomId(),
-    type,
-    preserveContent: true
-  }
-  item = secrez.encryptItem(item)
-  item.ts = Crypto.unscrambleTimestamp(item.scrambledTs, item.pseudoMicroseconds)
-  if (getItem) {
-    return [item, new Node(item)]
-  }
-  return new Node(item)
-}
-
-function setNewNodeVersion(item, node, secrez) {
-  item.id = node.id
-  item.type = node.type
-  item.preserveContent = true
-  item.lastTs = node.lastTs
-  item = secrez.encryptItem(item)
-  item.ts = Crypto.unscrambleTimestamp(item.scrambledTs, item.pseudoMicroseconds)
-  return item
-}
 
 describe.only('#Node', function () {
 
@@ -80,6 +56,70 @@ describe.only('#Node', function () {
 
     })
 
+    it('should throw if not passing an object', async function () {
+
+      try {
+        new Node()
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Invalid options passed to constructor')
+      }
+
+    })
+
+    it('should throw if not passing wrong type', async function () {
+
+      try {
+        new Node({
+          type: 4,
+          name: 'Wrong type'
+        })
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Unsupported type')
+      }
+
+    })
+
+  })
+
+
+  describe('#getName && #getFile', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+    })
+
+    it('should get name and file', async function () {
+
+      let dir1 = initRandomNode(D, secrez)
+      let v = dir1.versions[Object.keys(dir1.versions)[0]]
+      assert.equal(dir1.getName(), v.name)
+      assert.equal(dir1.getFile(), v.file)
+    })
+
+    it('should throw if version not found', async function () {
+
+      let dir1 = initRandomNode(D, secrez)
+
+      try {
+        dir1.getName('23123213131.2131')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Version not found')
+      }
+
+      try {
+        dir1.getFile('23123213131.2131')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Version not found')
+      }
+
+    })
   })
 
   describe('#add', async function () {
@@ -107,6 +147,23 @@ describe.only('#Node', function () {
       dir1.add(file1)
 
       assert.equal(root.children[dir1.id].children[file1.id].name, file1.name)
+    })
+
+    it('should throw if node is a file', async function () {
+
+      let root = new Node({
+        type: config.types.INDEX
+      })
+      let file1 = initRandomNode(F, secrez)
+      let dir1 = initRandomNode(D, secrez)
+
+      try {
+        file1.add(dir1)
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'This item does not represent a folder')
+      }
+
     })
   })
 
@@ -152,6 +209,47 @@ describe.only('#Node', function () {
       file1.move(options)
       assert.isTrue(!dir1.children[file1.id])
       assert.isTrue(!!dir2.children[file1.id])
+    })
+
+    it('should throw trying to move root', async function () {
+
+      let root = new Node({
+        type: config.types.INDEX
+      })
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      root.add(dir1)
+      dir1.add(dir2)
+
+      try {
+        root.move({
+          parent: dir2
+        })
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'You cannot modify a root node')
+      }
+
+    })
+
+    it('should throw trying to modify a node with different id', async function () {
+
+      let root = new Node({
+        type: config.types.INDEX
+      })
+      let file1 = initRandomNode(F, secrez)
+
+      root.add(file1)
+      let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
+      item.id = Crypto.getRandomId()
+
+      try {
+        file1.move(item)
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Id does not match')
+      }
+
     })
 
   })
@@ -220,32 +318,39 @@ describe.only('#Node', function () {
       )
     })
 
-    it.only('should build an index from a json file', async function () {
+    it('should build an index from a json file', async function () {
 
-      let root = new Node({
-        type: config.types.INDEX
-      })
-      let dir1 = initRandomNode(D, secrez)
-      let dir2 = initRandomNode(D, secrez)
-      let dir3 = initRandomNode(D, secrez)
-      let file1 = initRandomNode(F, secrez)
-      let file2 = initRandomNode(F, secrez)
+        let root = new Node({
+          type: config.types.INDEX
+        })
+        let dir1 = initRandomNode(D, secrez)
+        let dir2 = initRandomNode(D, secrez)
+        let dir3 = initRandomNode(D, secrez)
+        let dir4 = initRandomNode(D, secrez)
+        let file1 = initRandomNode(F, secrez)
+        let file2 = initRandomNode(F, secrez)
+        let file3 = initRandomNode(F, secrez)
 
-      root.add([dir1, dir2])
-      dir1.add(file1)
-      dir2.add(dir3)
-      dir3.add(file2)
+        root.add([dir1, dir2])
+        dir1.add(file1)
+        dir2.add(dir3)
+        dir3.add([dir4, file2])
+        dir4.add(file3)
 
-      let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
-      file1.move(item)
+        let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
+        file1.move(item)
 
-      let json = root.toJSON()
-      jlog(json)
+        let json = root.toJSON()
+        let allFiles = root.getAllFiles()
+        let root2 = Node.fromJSON(json, secrez, allFiles)
+        let json2 = root2.toJSON()
 
-      let allFiles = root.getAllFiles()
+        // let's scramble the order because that can be randomly different
+        let child = json2.c[0]
+        json2.c[0] = json2.c[1]
+        json2.c[1] = child
 
-      let root2 = Node.fromJSON(json, secrez, allFiles)
-
+        assert.isTrue(compareJson(root.toJSON(), json2))
 
     })
   })
