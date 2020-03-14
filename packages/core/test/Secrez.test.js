@@ -225,7 +225,7 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations)
         let name = 'some random data'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem({id, type: D, name})
+        let encryptedData = secrez.encryptItem({id, type: D, name, preserveContent: true})
         let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(id, decryptedData.id)
@@ -235,7 +235,7 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations)
         let name = '山东恒美百特新能源环保设备有限公司是国内大型的新能源环保设备制造商，注册商标“恒美百特”。公司集研发、生产、销售、服务四位于'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem({id, type: D, name})
+        let encryptedData = secrez.encryptItem({id, type: D, name, preserveContent: true})
         let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(id, decryptedData.id)
@@ -246,19 +246,20 @@ describe('#Secrez', function () {
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem({id, type: F, name, content, preserveContent: true})
+        let encryptedData = secrez.encryptItem({id, type: F, name, content})
+        encryptedData.preserveContent = true
         assert.equal(name, secrez.decryptItem(encryptedData).name)
         assert.equal(content, secrez.decryptItem(encryptedData).content)
       })
 
       it('should encrypt only the content and decrypt it', async function () {
         await secrez.signup(password, iterations)
-        let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem({id, type: F, name, content})
-        assert.equal(name, secrez.decryptItem(encryptedData).name)
-        assert.equal(content, secrez.decryptItem({encryptedContent: encryptedData.encryptedContent}).content)
+        let encryptedData = secrez.encryptItem({id, type: F, content})
+        encryptedData.preserveContent = true
+        // jlog(encryptedData)
+        assert.equal(content, secrez.decryptItem(encryptedData).content)
       })
 
 

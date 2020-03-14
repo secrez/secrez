@@ -90,12 +90,12 @@ class Crypto {
     let alphabet = Crypto.base58Alphabet
     let blen = 58
     let ts = Date.now()
-    let microseconds = Math.ceil(1e6 * Math.random()) - 1e3
+    let pseudoMicroseconds = Math.ceil(1e6 * Math.random()) - 1e3
     if (lastTs) {
       lastTs = lastTs.split('.').map(e => parseInt(e))
       if (lastTs[0] === ts) {
-        while (lastTs[1] > microseconds) {
-          microseconds = Math.ceil(1e6 * Math.random()) - 1e3
+        while (lastTs[1] >= pseudoMicroseconds) {
+          pseudoMicroseconds = Math.ceil(1e6 * Math.random())
         }
       }
       // else if( lastTs[0] > ts) ... there is a problem
@@ -107,10 +107,10 @@ class Crypto {
       let v = alphabet.indexOf(ts[i])
       rnd += alphabet[(p + v) % blen]
     }
-    return [rnd, utils.intToBase58(microseconds)]
+    return [rnd, utils.intToBase58(pseudoMicroseconds)]
   }
 
-  static unscrambleTimestamp(ts, microseconds) {
+  static unscrambleTimestamp(ts, pseudoMicroseconds) {
     let alphabet = Crypto.base58Alphabet
     let blen = 58
     let ret = ''
@@ -120,7 +120,7 @@ class Crypto {
       let v = alphabet.indexOf(ts[i + len])
       ret += alphabet[(v - p + blen) % blen]
     }
-    return '' + utils.base58ToInt(ret) + (utils.base58ToInt(microseconds) / 1e6).toString().substring(1)
+    return '' + utils.base58ToInt(ret) + (utils.base58ToInt(pseudoMicroseconds) / 1e6).toString().substring(1)
   }
 
   // static dateFromB58(b58, full) {

@@ -159,36 +159,40 @@ class Secrez {
         throw new Error('Unsupported type')
       }
 
-      let [scrambledTs, microseconds] = Crypto.scrambledTimestamp(lastTs)
+      let [scrambledTs, pseudoMicroseconds] = Crypto.scrambledTimestamp(lastTs)
       let result = {
         id,
         type,
         scrambledTs,
-        microseconds,
-        encryptedName: type + Crypto.encrypt(
+        pseudoMicroseconds
+      }
+      if (name) {
+        result.encryptedName = type + Crypto.encrypt(
             id
             + scrambledTs
             + Crypto.randomCharNotInBase58()
-            + microseconds
+            + pseudoMicroseconds
             + Crypto.randomCharNotInBase58()
             + name,
-            this.masterKey),
-        encryptedContent: content ? Crypto.encrypt(
+            this.masterKey)
+      }
+      if (content) {
+        result.encryptedContent = Crypto.encrypt(
             id
             + scrambledTs
             + Crypto.randomCharNotInBase58()
-            + microseconds
+            + pseudoMicroseconds
             + Crypto.randomCharNotInBase58()
             + content,
-            this.masterKey) : ''
+            this.masterKey)
       }
-      if (result.encryptedName.length > 255) {
+      if (result.encryptedName && result.encryptedName.length > 255) {
         result.extraName = result.encryptedName.substring(254)
         result.encryptedName = result.encryptedName.substring(0, 254) + 'O'
       }
       if (preserveContent) {
-        result.name = name
-        result.content = content
+        result.name = item.name
+        result.content = item.content
       }
       return result
     } else {
@@ -258,15 +262,16 @@ class Secrez {
           }
 
           if (preserveContent) {
-            result.encryptedName = encryptedName
-            result.encryptedContent = encryptedContent
-            result.extraName = extraName
+            result.encryptedName = encryptedItem.encryptedName
+            result.encryptedContent = encryptedItem, encryptedContent
+            result.extraName = encryptedItem.extraName
           }
 
           return result
         }
 
         // when the encryptedName has been already decrypted and we need only the content
+
         if (encryptedContent) {
           let [id, ts, content] = decrypt(encryptedContent, this.masterKey)
 
@@ -277,7 +282,7 @@ class Secrez {
           }
 
           if (preserveContent) {
-            result.encryptedContent = encryptedContent
+            result.encryptedContent = encryptedItem.encryptedContent
           }
 
           return result

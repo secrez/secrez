@@ -26,16 +26,16 @@ class Node {
       if (!options.ts || typeof options.ts !== 'string'
           || !options.name || typeof options.name !== 'string'
           || !options.encryptedName || typeof options.encryptedName !== 'string'
-          || (options.parentId && options.parentId.length !== 4)
       ) {
         throw new Error('Missing parameters')
       }
 
-      if (options.parent && options.parent.constructor.name === 'TreeNode') {
+      if (options.parent && options.parent.constructor.name === 'Node') {
+        // a Node can be independent of a tree.
+        // But if it is part of a tree, any child must have a parent
+
         this.parent = options.parent
       }
-      // a Node can be independent of a tree.
-      // But if it is part of a tree, any child must have a parent
 
 
       this.versions = {}
@@ -51,6 +51,22 @@ class Node {
     }
   }
 
+  static fromJSON(json, secrez, allFiles) {
+    // It takes an already parsed object to make it an instance of the class.
+    // It needs the list of files on disk to correctly recover timestamps and names
+
+    let minSize
+    for (let c of json.c) {
+      minSize = c.v[0].length
+    }
+    let files = {}
+    for (let f of allFiles) {
+      files[f.substring(0, minSize)] = f
+    }
+    json = Node.preFormat(json, secrez, files)
+    return Node.initNode(json)
+  }
+
   static preFormat(json, secrez, files) {
     if (json.t !== config.types.INDEX) {
       json.V = []
@@ -62,25 +78,33 @@ class Node {
           id: item.id,
           ts: item.ts,
           name: item.name,
-          file: files[v]
+          encryptedName: files[v]
         })
       }
       json.V.sort((a, b) => {
-        let A = a.ts
-        let B = b.ts
-        return A > B ? 1 : A < B ? -1 : 0
+        let [A, C] = a.ts.split('.').map(e => parseInt(e))
+        let [B, D] = b.ts.split('.').map(e => parseInt(e))
+        return (
+            A > B ? 1
+                : A < B ? -1
+                : C > D ? 1
+                    : C < D ? -1
+                        : 0
+        )
       })
     }
-    json.C = []
-    for (let c of json.c) {
-      json.C.push(Node.preFormat(c, secrez, files))
+    if (json.c) {
+      json.C = []
+      for (let c of json.c) {
+        json.C.push(Node.preFormat(c, secrez, files))
+      }
     }
     return json
   }
 
   static initNode(json, parent) {
     let V0 = json.V[0]
-    let type = V0 ? parseInt(V0.file.substring(0,1)) : config.types.INDEX
+    let type = V0 ? parseInt(V0.file.substring(0, 1)) : config.types.INDEX
     let node = new Node({
       type,
       id: json.t === config.types.INDEX ? 'root' : V0.id,
@@ -104,21 +128,6 @@ class Node {
       }
     }
     return node
-  }
-
-  static fromJSON(json, secrez, allFiles) {
-    // It takes an already parsed object to make it an instance of the class.
-    // It needs the list of files on disk to correctly recover timestamps and names
-    let minSize
-    for (let c of json.c) {
-      minSize = json.c[c].v[0].length
-    }
-    let files = {}
-    for (let f of allFiles) {
-      files[f.substring(0, minSize)] = f
-    }
-    json = Node.preFormat(json, secrez, files)
-    return Node.initNode(json)
   }
 
   toJSON(minSize) {
@@ -152,6 +161,9 @@ class Node {
   }
 
   getAllFiles(child) {
+    if (!child) {
+      child = this
+    }
     let result = []
     if (child.versions) {
       for (let v in child.versions) {
@@ -167,7 +179,7 @@ class Node {
   }
 
   calculateMinSize() {
-    let allFiles = this.getAllFiles(this)
+    let allFiles = this.getAllFiles()
     let min = 0
     let minSize
     let arr = {}
@@ -200,6 +212,18 @@ class Node {
     }
   }
 
+  getOptions() {
+    let options = {
+      id: this.id,
+      type: this.type,
+      ts: this.lastTs,
+      name: this.versions[this.lastTs].name,
+      parent: this.parent,
+      encryptedName: this.versions[this.lastTs].file
+    }
+    return options
+  }
+
   move(options) {
     if (this.type === config.types.INDEX) {
       throw new Error('You cannot modify a root node')
@@ -218,8 +242,9 @@ class Node {
     } // else we are just moving it on the tree because versions are immutable
 
     if (options.parent
-        && options.parent.constructor.name === 'TreeNode'
+        && options.parent.constructor.name === 'Node'
         && options.parent.id !== this.parent.id) {
+
       this.parent.remove(this)
       options.parent.add(this)
       this.parent = options.parent
@@ -233,7 +258,7 @@ class Node {
         children = [children]
       }
       for (let c of children) {
-        c.parentId = this.id
+        c.parent = this
         this.children[c.id] = c
       }
     } else {
