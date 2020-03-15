@@ -1,25 +1,26 @@
 const path = require('path')
-const Utils = require('./utils')
+const Utils = require('../utils')
 const fs = require('fs-extra')
-const pkg = require('../package')
+const pkg = require('../../package')
+const config = require('.')
 
-const config = {
+class ConfigUtils {
 
-  onlyDir: 1,
-  onlyFile: 2,
+  static isValidType(type) {
+    type = parseInt(type)
+    for (let t in config.types) {
+      if (config.types[t] === type) {
+        return true
+      }
+    }
+    return false
+  }
 
-  types: {
-    INDEX: 0,
-    DIR: 1,
-    FILE: 2
-  },
-
-  secrez: {},
-
-  setSecrez: async (
+  static async setSecrez(
+      config,
       container,
       localWorkingDir
-  ) => {
+  ) {
     let s = config.secrez
     s.root = path.basename(container)
     s.dataPath = path.join(container, 'data')
@@ -38,8 +39,9 @@ It contains your secret database.
 Be very careful, and don't touch anything :o)
 `, 'utf-8')
     }
+    return config
   }
 
 }
 
-module.exports = config
+module.exports = ConfigUtils

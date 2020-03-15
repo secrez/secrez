@@ -2,6 +2,8 @@ const homedir = require('homedir')
 const fs = require('fs-extra')
 const Crypto = require('./utils/Crypto')
 const config = require('./config')
+const ConfigUtils = require('./config/ConfigUtils')
+const Entry = require('./Entry')
 const utils = require('./utils')
 const bs58 = require('bs58')
 const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
@@ -9,29 +11,14 @@ const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
 class Secrez {
 
   constructor() {
-    this.types = {
-      INDEX: 0,
-      DIR: 1,
-      FILE: 2
-    }
-  }
-
-  isSupportedType(type) {
-    type = parseInt(type)
-    for (let t in this.types) {
-      if (this.types[t] === type) {
-        return true
-      }
-    }
-    return false
+    this.types = config.types
   }
 
   async init(
       container = `${homedir()}/.secrez`,
       localWorkingDir = homedir()
   ) {
-    await config.setSecrez(container, localWorkingDir)
-    this.config = config
+    this.config = await ConfigUtils.setSecrez(config, container, localWorkingDir)
   }
 
   async derivePassword(password, iterations) {
@@ -144,6 +131,10 @@ class Secrez {
 
   encryptItem(item) {
 
+    if (item.constructor.name !== 'Entry') {
+      throw new Error('Wrong parameter passed')
+    }
+
     const {
       type,
       name,
@@ -151,63 +142,90 @@ class Secrez {
       preserveContent,
       id,
       lastTs
-    } = item
+    } = item.get()
 
     if (this.masterKey) {
 
-      if (!this.isSupportedType(type)) {
+
+      if (!ConfigUtils.isValidType(type)) {
         throw new Error('Unsupported type')
       }
 
       let [scrambledTs, pseudoMicroseconds] = Crypto.scrambledTimestamp(lastTs)
-      let result = {
+      let eItem = new Entry({
         id,
         type,
         scrambledTs,
         pseudoMicroseconds
-      }
+      })
       if (name) {
-        result.encryptedName = type + Crypto.encrypt(
+        let encryptedName = type + Crypto.encrypt(
             id
             + scrambledTs
             + Crypto.randomCharNotInBase58()
             + pseudoMicroseconds
             + Crypto.randomCharNotInBase58()
             + name,
-            this.masterKey)
+            this.masterKey
+        )
+        let extraName
+        if (encryptedName.length > 255) {
+          extraName = encryptedName.substring(254)
+          encryptedName = encryptedName.substring(0, 254) + 'O'
+        }
+
+        eItem.set({
+          encryptedName,
+          extraName
+        })
+
+        if (preserveContent) {
+          eItem.set({
+            name
+          })
+        }
+
       }
       if (content) {
-        result.encryptedContent = Crypto.encrypt(
-            id
-            + scrambledTs
-            + Crypto.randomCharNotInBase58()
-            + pseudoMicroseconds
-            + Crypto.randomCharNotInBase58()
-            + content,
-            this.masterKey)
+        eItem.set({
+          encryptedContent: Crypto.encrypt(
+              id
+              + scrambledTs
+              + Crypto.randomCharNotInBase58()
+              + pseudoMicroseconds
+              + Crypto.randomCharNotInBase58()
+              + content,
+              this.masterKey
+          )
+        })
+        if (preserveContent) {
+          eItem.set({
+            content
+          })
+        }
       }
-      if (result.encryptedName && result.encryptedName.length > 255) {
-        result.extraName = result.encryptedName.substring(254)
-        result.encryptedName = result.encryptedName.substring(0, 254) + 'O'
-      }
-      if (preserveContent) {
-        result.name = item.name
-        result.content = item.content
-      }
-      return result
+
+      return eItem
+
     } else {
       throw new Error('User not logged')
     }
   }
 
-  decryptItem(encryptedItem = {}) {
+  decryptItem(encryptedItem) {
+
+    if (encryptedItem.constructor.name !== 'Entry') {
+      throw new Error('Wrong parameter passed')
+    }
 
     const {
       encryptedContent,
       extraName,
       encryptedName,
-      preserveContent
-    } = encryptedItem
+      preserveContent,
+      nameId,
+      nameTs
+    } = encryptedItem.get()
 
     function decrypt(data, key) {
       let dec = Crypto.decrypt(data, key)
@@ -215,7 +233,6 @@ class Secrez {
       let tmp = ''
       let ts = undefined
       let ms = undefined
-      // console.log(dec.substring(0,30))
       for (let i = 4; i < dec.length; i++) {
         let c = dec[i]
         if (Crypto.isCharNotInBase58(c)) {
@@ -236,6 +253,7 @@ class Secrez {
     if (this.masterKey) {
 
       try {
+
         if (encryptedName) {
           let data = encryptedName
           if (extraName) {
@@ -254,45 +272,48 @@ class Secrez {
             content = c
           }
 
-          let result = {
+          let dItem = new Entry({
             id,
             type,
             ts,
             name,
             content
-          }
+          })
 
           if (preserveContent) {
-            result.encryptedName = encryptedItem.encryptedName
-            result.encryptedContent = encryptedItem, encryptedContent
-            result.extraName = encryptedItem.extraName
+            dItem.set({
+              encryptedName,
+              extraName
+            })
           }
 
-          return result
+          return dItem
         }
 
         // when the encryptedName has been already decrypted and we need only the content
-
         if (encryptedContent) {
           let [id, ts, content] = decrypt(encryptedContent, this.masterKey)
 
-          let result = {
+          if ((nameId && id !== nameId) || (nameTs && ts !== nameTs)) {
+            throw new Error('Content is corrupted')
+          }
+
+          let dItem = new Entry({
             id,
             ts,
             content
-          }
+          })
 
           if (preserveContent) {
-            result.encryptedContent = encryptedItem.encryptedContent
+            dItem.set({
+              encryptedContent
+            })
           }
 
-          return result
+          return dItem
         }
 
       } catch (err) {
-
-        console.log(err)
-
         if (err.message === 'Data is corrupted') {
           throw err
         }

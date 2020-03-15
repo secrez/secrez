@@ -5,6 +5,7 @@ const homedir = require('homedir')
 const Secrez = require('../src/Secrez')
 const Crypto = require('../src/utils/Crypto')
 const utils = require('../src/utils')
+const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')
 
@@ -40,24 +41,6 @@ describe('#Secrez', function () {
 
       assert.equal(config.secrez.dataPath, homedir() + '/.secrez/data')
       assert.equal(config.secrez.localWorkingDir, homedir())
-    })
-
-  })
-
-
-  describe('#isSupportedType', function () {
-
-    before(async function () {
-      await fs.emptyDir(rootDir)
-      secrez = new Secrez()
-      await secrez.init()
-    })
-
-    it('should confirm 1 is supported and 3 not', async function () {
-
-
-      assert.equal(secrez.isSupportedType(1), true)
-      assert.equal(secrez.isSupportedType(3), false)
     })
 
   })
@@ -225,7 +208,7 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations)
         let name = 'some random data'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem({id, type: D, name, preserveContent: true})
+        let encryptedData = secrez.encryptItem(new Entry({id, type: D, name, preserveContent: true}))
         let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(id, decryptedData.id)
@@ -235,7 +218,7 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations)
         let name = '山东恒美百特新能源环保设备有限公司是国内大型的新能源环保设备制造商，注册商标“恒美百特”。公司集研发、生产、销售、服务四位于'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem({id, type: D, name, preserveContent: true})
+        let encryptedData = secrez.encryptItem(new Entry({id, type: D, name, preserveContent: true}))
         let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(id, decryptedData.id)
@@ -246,7 +229,7 @@ describe('#Secrez', function () {
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem({id, type: F, name, content})
+        let encryptedData = secrez.encryptItem(new Entry({id, type: F, name, content}))
         encryptedData.preserveContent = true
         assert.equal(name, secrez.decryptItem(encryptedData).name)
         assert.equal(content, secrez.decryptItem(encryptedData).content)
@@ -256,7 +239,7 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations)
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let encryptedData = secrez.encryptItem({id, type: F, content})
+        let encryptedData = secrez.encryptItem(new Entry({id, type: F, content}))
         encryptedData.preserveContent = true
         // jlog(encryptedData)
         assert.equal(content, secrez.decryptItem(encryptedData).content)
@@ -268,18 +251,18 @@ describe('#Secrez', function () {
         let name = 'some random data'
         let content = 'some random content'
         let id = Crypto.getRandomId()
-        let item = {
+        let item = new Entry({
           id,
           type: F,
           name,
           content
-        }
+        })
         let encryptedData = secrez.encryptItem(item)
         let decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(content, decryptedData.content)
         content = 'some modified content'
-        encryptedData = secrez.encryptItem({id, type: F, name, content})
+        encryptedData = secrez.encryptItem(new Entry({id, type: F, name, content}))
         decryptedData = secrez.decryptItem(encryptedData)
         assert.equal(name, decryptedData.name)
         assert.equal(content, decryptedData.content)
@@ -287,7 +270,7 @@ describe('#Secrez', function () {
 
       it('should throw if the user is not logged in', async function () {
         try {
-          let data = 'some random data'
+          let data = new Entry()
           secrez.encryptItem(data)
           assert.isFalse(true)
         } catch (e) {
@@ -295,7 +278,7 @@ describe('#Secrez', function () {
         }
 
         try {
-          secrez.decryptItem('some encrypted data')
+          secrez.decryptItem(new Entry({name: 'some encrypted data'}))
           assert.isFalse(true)
         } catch (e) {
           assert.equal(e.message, 'User not logged')
@@ -308,12 +291,12 @@ describe('#Secrez', function () {
           let name = 'some random data'
           let content = 'some random content'
           let id = Crypto.getRandomId()
-          let item = {
+          let item = new Entry({
             id,
             type: 3,
             name,
             content
-          }
+          })
           secrez.encryptItem(item)
           assert.isFalse(true)
         } catch (e) {
@@ -326,11 +309,11 @@ describe('#Secrez', function () {
           await secrez.signup(password, iterations)
           let name = 'some random data'
           let id = Crypto.getRandomId()
-          let item = {
+          let item = new Entry({
             id,
             type: 1,
             name
-          }
+          })
           let encryptedData = secrez.encryptItem(item)
           encryptedData.encryptedName = encryptedData.encryptedName.substring(0, encryptedData.encryptedName.length - 10) + 'SANqTUj5gj'
           secrez.decryptItem(encryptedData)
@@ -346,9 +329,9 @@ describe('#Secrez', function () {
           let name = 'some random data'
           let content = 'some random content'
           let id = Crypto.getRandomId()
-          let encryptedData = secrez.encryptItem({id, type: F, name})
+          let encryptedData = secrez.encryptItem(new Entry({id, type: F, name}))
           id = Crypto.getRandomId([id])
-          let encryptedData2 = secrez.encryptItem({id, type: F, content})
+          let encryptedData2 = secrez.encryptItem(new Entry({id, type: F, content}))
           encryptedData.encryptedContent = encryptedData2.encryptedContent
           secrez.decryptItem(encryptedData)
           assert.isFalse(true)
@@ -360,7 +343,7 @@ describe('#Secrez', function () {
       it('should throw if parameters are missed', async function () {
         try {
           await secrez.signup(password, iterations)
-          secrez.decryptItem()
+          secrez.decryptItem(new Entry())
           assert.isFalse(true)
         } catch (e) {
           assert.equal(e.message, 'Missing parameters')

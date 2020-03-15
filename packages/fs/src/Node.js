@@ -8,7 +8,7 @@ class Node {
       throw new Error('Invalid options passed to constructor')
     }
 
-    let isRoot = options.type === config.types.INDEX
+    let isRoot = options.type === config.types.ROOT
 
     if (options.type !== config.types.DIR
         && options.type !== config.types.FILE
@@ -64,7 +64,7 @@ class Node {
   }
 
   static preFormat(json, secrez, files) {
-    if (json.t !== config.types.INDEX) {
+    if (json.t !== config.types.ROOT) {
       json.V = []
       for (let v of json.v) {
         let item = secrez.decryptItem({
@@ -91,7 +91,7 @@ class Node {
     }
     if (json.c) {
       for (let c of json.c) {
-          Node.preFormat(c, secrez, files)
+        Node.preFormat(c, secrez, files)
       }
     }
     return json
@@ -100,7 +100,7 @@ class Node {
   static initNode(json, parent) {
 
     let V0 = json.V[0]
-    let type = V0 ? parseInt(V0.encryptedName.substring(0, 1)) : config.types.INDEX
+    let type = V0 ? parseInt(V0.encryptedName.substring(0, 1)) : config.types.ROOT
     let node = new Node({
       type,
       id: V0 ? V0.id : 'rOOt',
@@ -129,7 +129,7 @@ class Node {
   toJSON(minSize) {
     // prepare the object to be stringified and saved on disk
 
-    if (this.type === config.types.INDEX) {
+    if (this.type === config.types.ROOT) {
       minSize = this.calculateMinSize()
     }
 
@@ -204,6 +204,81 @@ class Node {
     }
   }
 
+  static getRoot(node) {
+    if (node.type === config.types.ROOT) {
+      return node
+    } else {
+      return Node.getRoot(node.parent)
+    }
+  }
+
+  static findDirectChild(node, name) {
+    if (node.type === config.types.FILE) {
+      throw new Error('A file does not have children')
+    }
+    for (let c in node.children) {
+      let child = node.children[c]
+      if (child.versions[child.lastTs].name === name) {
+        return child
+      }
+    }
+  }
+
+  getChildFromPath(p) {
+    p = p.split('/')
+    let node
+    try {
+      FOR: for (let i = 0; i < p.length; i++) {
+        let name = p[i]
+        if (i === 0) {
+          switch (name) {
+            case '':
+            case '~':
+              if (this.type === config.types.ROOT) {
+                node = this
+              } else {
+                node = Node.getRoot(this)
+              }
+              break
+            case '.':
+              node = this
+              break
+            case '..':
+              if (this.type === config.types.ROOT) {
+                node = this
+              } else {
+                node = this.parent
+              }
+              break
+            default:
+              node = Node.findDirectChild(this, name)
+          }
+          if (!node) {
+            throw new Error()
+          }
+        } else {
+          switch (name) {
+            case '~':
+              throw new Error()
+            case '':
+            case '.':
+              continue FOR
+            case '..':
+              if (node.type !== config.types.ROOT) {
+                node = node.parent
+              }
+              break
+            default:
+              node = Node.findDirectChild(node, name)
+          }
+        }
+      }
+      return node
+    } catch (e) {
+      throw new Error('Path does not exist')
+    }
+  }
+
   getOptions() {
     let options = {
       id: this.id,
@@ -217,7 +292,7 @@ class Node {
   }
 
   move(options) {
-    if (this.type === config.types.INDEX) {
+    if (this.type === config.types.ROOT) {
       throw new Error('You cannot modify a root node')
     }
 

@@ -83,7 +83,7 @@ class Tree {
       }
 
       // check the index
-      let ik = Object.keys(allFiles[types.INDEX])
+      let ik = Object.keys(allFiles[types.ROOT])
       if (ik.length > 1) {
         this.status = this.statutes.BROKEN
         throw new Error('There is more than one index. Execute `fix --tree` to build a valid index')
@@ -91,7 +91,7 @@ class Tree {
         try {
           this.tree = {
             root: [
-              JSON.parse(allFiles[types.INDEX][ik[0]][0]),
+              JSON.parse(allFiles[types.ROOT][ik[0]][0]),
               [[Date.now(), '/']]
             ]
           }

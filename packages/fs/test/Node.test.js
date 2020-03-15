@@ -1,10 +1,9 @@
-const chai = require('chai')
-const assert = chai.assert
+const assert = require('chai').assert
 const fs = require('fs-extra')
 const path = require('path')
 const {config, Secrez, Crypto} = require('@secrez/core')
 const Node = require('../src/Node')
-const {compareJson, initRandomNode, setNewNodeVersion} = require('./helpers')
+const {compareJson, initRandomNode, setNewNodeVersion, getRoot} = require('./helpers')
 
 const {
   password,
@@ -18,7 +17,7 @@ describe.only('#Node', function () {
 
   let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-  const I = config.types.INDEX
+  const R = config.types.ROOT
   const D = config.types.DIR
   const F = config.types.FILE
 
@@ -26,9 +25,7 @@ describe.only('#Node', function () {
 
     it('should instantiate the Node', async function () {
 
-      let root = new Node({
-        type: I
-      })
+      let root = getRoot()
       assert.equal(root.id, 'rOOt')
 
     })
@@ -84,7 +81,7 @@ describe.only('#Node', function () {
   })
 
 
-  describe('#getName && #getFile', async function () {
+  describe('#getName && #getFile && getOptions', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(rootDir)
@@ -93,12 +90,18 @@ describe.only('#Node', function () {
       await secrez.signup(password, iterations)
     })
 
-    it('should get name and file', async function () {
+    it('should get name, file and options', async function () {
 
       let dir1 = initRandomNode(D, secrez)
       let v = dir1.versions[Object.keys(dir1.versions)[0]]
       assert.equal(dir1.getName(), v.name)
       assert.equal(dir1.getFile(), v.file)
+      assert.equal(dir1.getOptions().name, dir1.getName())
+
+      let root = getRoot()
+      let options = root.getOptions()
+      assert.equal(options.name, undefined)
+      assert.equal(options.id, 'rOOt')
     })
 
     it('should throw if version not found', async function () {
@@ -119,6 +122,7 @@ describe.only('#Node', function () {
         assert.equal(e.message, 'Version not found')
       }
 
+
     })
   })
 
@@ -133,9 +137,7 @@ describe.only('#Node', function () {
 
     it('should add children to root', async function () {
 
-      let root = new Node({
-        type: I
-      })
+      let root = getRoot()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
@@ -176,9 +178,7 @@ describe.only('#Node', function () {
 
     it('should rename a node', async function () {
 
-      let root = new Node({
-        type: I
-      })
+      let root = getRoot()
       let file1 = initRandomNode(F, secrez)
 
       root.add(file1)
@@ -189,9 +189,7 @@ describe.only('#Node', function () {
 
     it('should move a node', async function () {
 
-      let root = new Node({
-        type: I
-      })
+      let root = getRoot()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
@@ -210,9 +208,7 @@ describe.only('#Node', function () {
 
     it('should throw trying to move root', async function () {
 
-      let root = new Node({
-        type: I
-      })
+      let root = getRoot()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       root.add(dir1)
@@ -231,9 +227,7 @@ describe.only('#Node', function () {
 
     it('should throw trying to modify a node with different id', async function () {
 
-      let root = new Node({
-        type: I
-      })
+      let root = getRoot()
       let file1 = initRandomNode(F, secrez)
 
       root.add(file1)
@@ -262,9 +256,7 @@ describe.only('#Node', function () {
 
     it('should remove a node', async function () {
 
-      let root = new Node({
-        type: I
-      })
+      let root = getRoot()
       let dir1 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
 
@@ -289,9 +281,7 @@ describe.only('#Node', function () {
 
     it('should prepare a json for saving', async function () {
 
-      let root = new Node({
-        type: I
-      })
+      let root = getRoot()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let dir3 = initRandomNode(D, secrez)
@@ -317,39 +307,152 @@ describe.only('#Node', function () {
 
     it('should build an index from a json file', async function () {
 
-        let root = new Node({
-          type: I
-        })
-        let dir1 = initRandomNode(D, secrez)
-        let dir2 = initRandomNode(D, secrez)
-        let dir3 = initRandomNode(D, secrez)
-        let dir4 = initRandomNode(D, secrez)
-        let file1 = initRandomNode(F, secrez)
-        let file2 = initRandomNode(F, secrez)
-        let file3 = initRandomNode(F, secrez)
+      let root = getRoot()
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      let dir3 = initRandomNode(D, secrez)
+      let dir4 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+      let file2 = initRandomNode(F, secrez)
+      let file3 = initRandomNode(F, secrez)
 
-        root.add([dir1, dir2])
-        dir1.add(file1)
-        dir2.add(dir3)
-        dir3.add([dir4, file2])
-        dir4.add(file3)
+      root.add([dir1, dir2])
+      dir1.add(file1)
+      dir2.add(dir3)
+      dir3.add([dir4, file2])
+      dir4.add(file3)
 
-        let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
-        file1.move(item)
+      let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
+      file1.move(item)
 
-        let json = root.toJSON()
-        let allFiles = root.getAllFiles()
-        let root2 = Node.fromJSON(json, secrez, allFiles)
-        let json2 = root2.toJSON()
+      let json = root.toJSON()
+      let allFiles = root.getAllFiles()
+      let root2 = Node.fromJSON(json, secrez, allFiles)
+      let json2 = root2.toJSON()
 
-        // let's scramble the order because that can be randomly different
-        let child = json2.c[0]
-        json2.c[0] = json2.c[1]
-        json2.c[1] = child
+      // let's scramble the order because that can be randomly different
+      let child = json2.c[0]
+      json2.c[0] = json2.c[1]
+      json2.c[1] = child
 
-        assert.isTrue(compareJson(root.toJSON(), json2))
+      assert.isTrue(compareJson(root.toJSON(), json2))
 
     })
+  })
+
+
+  describe('#getChildFromPath', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+    })
+
+    it('should find a node starting from a path', async function () {
+
+      let root = getRoot()
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      let dir3 = initRandomNode(D, secrez)
+      let dir4 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+      let file2 = initRandomNode(F, secrez)
+      let file3 = initRandomNode(F, secrez)
+
+      root.add([dir1, dir2])
+      dir1.add(file1)
+      dir2.add(dir3)
+      dir3.add([dir4, file2])
+      dir4.add(file3)
+
+      let p
+
+      p = ['', dir2.getName(), dir3.getName(), file2.getName()].join('/')
+      assert.equal(dir3.getChildFromPath(p).getName(), file2.getName())
+
+      p = [dir3.getName(), dir4.getName(), '', file3.getName()].join('/')
+      assert.equal(dir2.getChildFromPath(p).getName(), file3.getName())
+
+      p = ['..', dir1.getName(), file1.getName()].join('/')
+      assert.equal(dir2.getChildFromPath(p).getName(), file1.getName())
+
+      p = ['.', dir3.getName(), dir4.getName(), '..'].join('/')
+      assert.equal(dir2.getChildFromPath(p).getName(), dir3.getName())
+
+      p = ['', dir2.getName(), dir3.getName(), dir4.getName(), '..', file2.getName()].join('/')
+      assert.equal(root.getChildFromPath(p).getName(), file2.getName())
+
+      p = ['..', dir2.getName(),'.',  dir3.getName()].join('/')
+      assert.equal(root.getChildFromPath(p).getName(), dir3.getName())
+
+      p = [dir4.getName(), '..', file2.getName()].join('/')
+      assert.equal(dir3.getChildFromPath(p).getName(), file2.getName())
+
+      p = ['..', '..', '..'].join('/')
+      assert.equal(dir1.getChildFromPath(p).type, config.types.ROOT)
+
+
+    })
+
+    it('should throw if the path is incorrect or does not exist', async function () {
+
+      let root = getRoot()
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      let dir3 = initRandomNode(D, secrez)
+      let dir4 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+      let file2 = initRandomNode(F, secrez)
+      let file3 = initRandomNode(F, secrez)
+
+      root.add([dir1, dir2])
+      dir1.add(file1)
+      dir2.add(dir3)
+      dir3.add([dir4, file2])
+      dir4.add(file3)
+
+      let p
+      try {
+        p = [dir2.getName()].join('/')
+        dir3.getChildFromPath(p)
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
+      try {
+        p = ['', dir1.getName(), '~'].join('/')
+        root.getChildFromPath(p)
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
+      try {
+        p = ['', dir1.getName(), file1.getName(), dir2.getName()].join('/')
+        root.getChildFromPath(p)
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
+      try {
+        p = ['', dir3.getName(), dir2.getName()].join('/')
+        dir3.getChildFromPath(p)
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
+      try {
+        p = [dir3.getName(), dir2.getName(), '..', dir1.getName()].join('/')
+        dir3.getChildFromPath(p)
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
+
+    })
+
+
   })
 
 

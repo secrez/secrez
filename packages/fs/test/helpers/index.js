@@ -1,4 +1,4 @@
-const {Crypto} = require('@secrez/core')
+const {Crypto, config} = require('@secrez/core')
 const Node = require('../../src/Node')
 
 const helpers = {
@@ -57,6 +57,12 @@ const helpers = {
     item = secrez.encryptItem(item)
     item.ts = Crypto.unscrambleTimestamp(item.scrambledTs, item.pseudoMicroseconds)
     return item
+  },
+
+  getRoot: () => {
+    return new Node({
+      type: config.types.ROOT
+    })
   }
 
 }
