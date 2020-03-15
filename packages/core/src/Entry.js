@@ -29,7 +29,9 @@ class Entry {
   get(options = this.validOptions) {
     let obj = {}
     for (let o of options) {
-      obj[o] = this[o]
+      if (this.isValid(o) && typeof this[o] !== 'undefined') {
+        obj[o] = this[o]
+      }
     }
     return obj
   }
@@ -43,6 +45,9 @@ class Entry {
   }
 
   unset(options = []) {
+    if (!Array.isArray(options)) {
+      options = [options]
+    }
     for (let o of options) {
       if (this.isValid(o) && typeof this[o] !== 'undefined') {
         delete this[o]
@@ -50,9 +55,6 @@ class Entry {
     }
   }
 
-  getOptions(options) {
-    return _.pick(this, options || this.validOptions)
-  }
 }
 
 

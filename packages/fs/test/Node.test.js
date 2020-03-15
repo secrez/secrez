@@ -17,7 +17,6 @@ describe.only('#Node', function () {
 
   let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-  const R = config.types.ROOT
   const D = config.types.DIR
   const F = config.types.FILE
 
