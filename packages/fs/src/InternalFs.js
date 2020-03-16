@@ -23,57 +23,52 @@ class InternalFs {
     callback()
   }
 
-  async save(entry, id) {
+  async save(entry) {
     let fullPath = path.join(this.dataPath, entry.encryptedName)
-    await fs.writeFile(fullPath, [
-          entry.encryptedContent || '',
-          entry.extraName || ''
-        ].join('\n')
-    )
-    entry.ts = Crypto.unscrambleTimestamp(entry.scrambledTs)
+    let encryptedContent =
+        entry.encryptedContent || entry.extraName
+            ? (entry.encryptedContent || '') +
+            (
+                entry.extraName
+                    ? 'I' + entry.extraName
+                    : ''
+            )
+            : ''
+    await fs.writeFile(fullPath, encryptedContent)
+    entry.set({
+      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.pseudoMicroseconds)
+    })
     return entry
   }
 
   async unsave(entry) {
     let fullPath = path.join(this.dataPath, entry.encryptedName)
-    await fs.unlink(fullPath)
+    if (this.fileExists(fullPath)) {
+      await fs.unlink(fullPath)
+    }
   }
 
   async add(parentId, entry) {
-    let method = 'updateChild'
-    if (!entry.id) {
-      entry.id = Crypto.getRandomId()
-      method = 'addChild'
+    if (entry.id) {
+      throw new Error('A new entry cannot have a pre-existent id')
     }
+    entry.set({id: Crypto.getRandomId()})
     entry.preserveContent = true
     entry = this.secrez.encryptEntry(entry)
-    if (this.tree[method](parentId, entry, null, true)) {
-      entry = await this.save(entry)
-      this.tree[method](parentId, entry)
-      return true
+    try {
+      await this.save(entry)
+      return this.tree.root.add(entry)
+    } catch (e) {
+      this.unsave(entry)
+      throw e
     }
-    return false
   }
 
-
-  getParents(dir) {
-    let parent = path.dirname(dir)
-    let [decParent, ids] = this.getParent(parent)
-    let [encParent, encParentPath] = this.getEncParent(ids)
-    return [decParent, encParent, encParentPath]
-  }
-
-  //////////////
-
-
-  getNormalizedPath(dir = '/') {
-    dir = dir.replace(/^~/, '')
-    if (!dir) {
-      dir = '/'
+  fileExists(file) {
+    if (!file || typeof file !== 'string') {
+      throw new Error('A valid file name is required')
     }
-    let resolvedDir = path.resolve(config.workingDir, dir)
-    let normalized = path.normalize(resolvedDir)
-    return normalized
+    return fs.existsSync(path.join(this.dataPath, file))
   }
 
   pickDir(parent, d, id) {

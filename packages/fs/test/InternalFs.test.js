@@ -39,6 +39,35 @@ describe('#InternalFs', function () {
 
   })
 
+  describe('#fileExists', async function () {
+
+    before(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      internalFs = new InternalFs(secrez)
+    })
+
+    it('should throw if file does not exist', async function () {
+
+      try {
+        internalFs.fileExists()
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'A valid file name is required')
+      }
+
+      try {
+        internalFs.fileExists(234)
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'A valid file name is required')
+      }
+
+    })
+
+  })
+
 
   describe('getNormalizedPath', async function () {
 

@@ -56,19 +56,19 @@ class Tree {
         if (file[file.length - 1] === 'O') {
           // there is an extraName
           let content = await fs.readFile(file, 'utf8')
-          content = content.split('\n')
+          content = content.split('I')
           if (!content[1]) {
             throw new Error()
           }
           entry.set({
-            encryptedName: file.substring(0, 254) + _.trim(content[1])
+            encryptedName: file.substring(0, 254) + content[1]
           })
         }
         let decryptedEntry = this.secrez.decryptEntry(entry)
         if (decryptedEntry.type === config.types.ROOT) {
           let content = await fs.readFile(file, 'utf8')
           entry.set({
-            encryptedContent: content.split('\n')[0]
+            encryptedContent: content.split('I')[0]
           })
           decryptedEntry = this.secrez.decryptEntry(entry)
           allIndexes.push(decryptedEntry)
@@ -106,13 +106,6 @@ class Tree {
     }
     this.workingNode = this.root
     this.status = this.statutes.LOADED
-  }
-
-  fileExists(file) {
-    if (!file || typeof file !== 'string') {
-      throw new Error('A valid file name is required')
-    }
-    return fs.existsSync(path.join(this.dataPath, file))
   }
 
 }

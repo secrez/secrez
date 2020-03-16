@@ -71,33 +71,4 @@ describe('#Tree', function () {
 
   })
 
-  describe('#fileExists', async function () {
-
-    before(async function () {
-      await fs.emptyDir(rootDir)
-      secrez = new Secrez()
-      await secrez.init(rootDir)
-      tree = new Tree(secrez)
-    })
-
-    it('should throw if file does not exist', async function () {
-
-      try {
-        tree.fileExists()
-        assert.isFalse(true)
-      } catch (e) {
-        assert.equal(e.message, 'A valid file name is required')
-      }
-
-      try {
-        tree.fileExists(234)
-        assert.isFalse(true)
-      } catch (e) {
-        assert.equal(e.message, 'A valid file name is required')
-      }
-
-    })
-
-  })
-
 })

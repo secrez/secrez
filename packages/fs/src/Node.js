@@ -134,12 +134,12 @@ class Node {
   toJSON(minSize) {
     // prepare the object to be stringified and saved on disk
 
-    if (this.type === config.types.ROOT) {
-      minSize = this.calculateMinSize()
-    }
-
     const result = {
       v: []
+    }
+
+    if (this.type === config.types.ROOT) {
+      minSize = this.calculateMinSize()
     }
 
     if (this.versions)
@@ -199,6 +199,18 @@ class Node {
     } catch (e) {
       throw new Error('Version not found')
     }
+  }
+
+  getChildrenNames() {
+    if (this.type === config.types.FILE)
+    {
+      throw new Error('Files do not have children')
+    }
+    let names = []
+    for (let id in this.children) {
+      names.push(this.children[id].getName())
+    }
+    return names
   }
 
   getFile(ts) {
@@ -293,16 +305,20 @@ class Node {
   }
 
   getPathToChild(child) {
+
     if (!child || child.constructor.name !== 'Node') {
       throw new Error('The child is not a Node')
     }
     let p = ''
     while (child.id !== this.id) {
-      if (child.id === 'rOOt' && child.rnd !== Node.getRoot(this).rnd) {
-        throw new Error('The child belows to a different tree')
-      }
       p = (child.getName() || '') + (p ? '/' + p : '')
       child = child.parent
+    }
+    if (child.id === 'rOOt' && child.rnd !== Node.getRoot(this).rnd) {
+      throw new Error('The child does not below to this tree')
+    }
+    if (Node.isRoot(this)) {
+      p = '/' + p
     }
     return p
   }
@@ -367,8 +383,8 @@ class Node {
 
   remove(children) {
     if (!children) {
-      if (children.parent) {
-        children.parent.remove(this)
+      if (this.parent) {
+        this.parent.remove(this)
       } else {
         throw new Error('Root cannot be removed')
       }

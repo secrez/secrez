@@ -87,7 +87,7 @@ describe('#Node', function () {
   })
 
 
-  describe('#getName && #getFile && getOptions', async function () {
+  describe('#getName && #getFile && #getContent && getOptions', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(rootDir)
@@ -102,6 +102,7 @@ describe('#Node', function () {
       let v = dir1.versions[Object.keys(dir1.versions)[0]]
       assert.equal(dir1.getName(), v.name)
       assert.equal(dir1.getFile(), v.file)
+      assert.equal(dir1.getContent(), v.content)
       assert.equal(dir1.getOptions().name, dir1.getName())
 
       let root = getRoot()
@@ -128,6 +129,56 @@ describe('#Node', function () {
         assert.equal(e.message, 'Version not found')
       }
 
+      try {
+        dir1.getContent('23123213131.2131')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Version not found')
+      }
+
+
+    })
+  })
+
+  describe('#getNames', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+    })
+
+    it('should get the names of all children', async function () {
+
+      let root = getRoot()
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      let dir3 = initRandomNode(D, secrez)
+      let dir4 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+      let file2 = initRandomNode(F, secrez)
+      let file3 = initRandomNode(F, secrez)
+
+      root.add([dir1, dir2])
+      dir1.add([dir3, dir4, file1, file2])
+      dir4.add(file3)
+
+      let children = dir1.getChildrenNames()
+      assert.equal(children.length, 4)
+      assert.equal(children.includes(file2.getName()), true)
+    })
+
+    it('should throw if trying to get children of a file', async function () {
+
+      let file1 = initRandomNode(F, secrez)
+
+      try {
+        file1.getChildrenNames()
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Files do not have children')
+      }
 
     })
   })
@@ -272,6 +323,33 @@ describe('#Node', function () {
       assert.isTrue(!!dir1.children[file1.id])
       dir1.remove(file1)
       assert.isTrue(!dir1.children[file1.id])
+    })
+
+    it('should remove itself', async function () {
+
+      let root = getRoot()
+      let file1 = initRandomNode(F, secrez)
+
+      root.add(file1)
+
+      assert.isTrue(!!root.children[file1.id])
+      file1.remove()
+      assert.isTrue(!root.children[file1.id])
+    })
+
+    it('should throw trying to remove root', async function () {
+
+      let root = getRoot()
+      let file1 = initRandomNode(F, secrez)
+      root.add(file1)
+
+      try {
+        root.remove()
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Root cannot be removed')
+      }
+
     })
 
   })
@@ -460,6 +538,84 @@ describe('#Node', function () {
 
 
   })
+
+
+  describe('#getPathToChild', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+    })
+
+    it('should find a node starting from a path', async function () {
+
+      let root = getRoot()
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      let dir3 = initRandomNode(D, secrez)
+      let dir4 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+      let file2 = initRandomNode(F, secrez)
+      let file3 = initRandomNode(F, secrez)
+
+      root.add([dir1, dir2])
+      dir1.add(file1)
+      dir2.add(dir3)
+      dir3.add([dir4, file2])
+      dir4.add(file3)
+
+      let p
+
+      p = ['', dir2.getName(), dir3.getName(), file2.getName()].join('/')
+      assert.equal(root.getPathToChild(file2), p)
+
+      p = [dir3.getName(), file2.getName()].join('/')
+      assert.equal(dir2.getPathToChild(file2), p)
+
+      p = [file2.getName()].join('/')
+      assert.equal(dir3.getPathToChild(file2), p)
+
+    })
+
+    it('should throw if child is not a Node', async function () {
+
+      let root = getRoot()
+
+      try {
+        root.getPathToChild(new Object())
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'The child is not a Node')
+      }
+
+
+    })
+
+    it('should throw if child belows to another tree', async function () {
+
+      let root = getRoot()
+      let root2 = getRoot()
+      let dir1 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+
+      root.add(dir1)
+      dir1.add(file1)
+
+      try {
+        root2.getPathToChild(file1)
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'The child does not below to this tree')
+      }
+
+
+    })
+
+
+  })
+
 
 
 })
