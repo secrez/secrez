@@ -33,7 +33,7 @@ class Node {
         throw new Error('Missing parameters')
       }
 
-      if (entry.parent && entry.parent.constructor.name === 'Node') {
+      if (Node.isNode(entry.parent)) {
         // a Node can be independent of a tree.
         // But if it is part of a tree, any child must have a parent
 
@@ -121,7 +121,6 @@ class Node {
         file: V.encryptedName
       }
     }
-    // console.log('>>>>',  JSON.stringify(json, null, 2))
     if (node.type !== config.types.FILE) {
       for (let i = 0; i < json.c.length; i++) {
         node.add(Node.initNode(json.c[i], node))
@@ -202,8 +201,7 @@ class Node {
   }
 
   getChildrenNames() {
-    if (this.type === config.types.FILE)
-    {
+    if (this.type === config.types.FILE) {
       throw new Error('Files do not have children')
     }
     let names = []
@@ -237,9 +235,12 @@ class Node {
     }
   }
 
-  static findDirectChild(node, name) {
+  static findDirectChildByName(node, name) {
     if (node.type === config.types.FILE) {
       throw new Error('A file does not have children')
+    }
+    if (!name) {
+      throw new Error('Name parameter is missing')
     }
     for (let c in node.children) {
       let child = node.children[c]
@@ -249,13 +250,40 @@ class Node {
     }
   }
 
-  getChildFromPath(p) {
+  static isNode(obj) {
+    return typeof obj === 'object' && obj.constructor.name === 'Node'
+  }
+
+  findChildById(id) {
+    if (this.type === config.types.FILE) {
+      throw new Error('A file does not have children')
+    }
+    if (!id) {
+      throw new Error('Id parameter is missing')
+    }
+    for (let c in this.children) {
+      let child = this.children[c]
+      if (c === id) {
+        return child
+      }
+      if (child.type === config.types.DIR) {
+        let found = child.findChildById(id)
+        if (Node.isNode(found)) {
+          return found
+        }
+      }
+    }
+  }
+
+  getChildFromPath(p, returnCloserAncestor) {
     p = p.split('/')
     let node
+    let ancestorNode
+    let index
     try {
-      FOR: for (let i = 0; i < p.length; i++) {
-        let name = p[i]
-        if (i === 0) {
+      FOR: for (index = 0; index < p.length; index++) {
+        let name = p[index]
+        if (index === 0) {
           switch (name) {
             case '':
             case '~':
@@ -276,10 +304,7 @@ class Node {
               }
               break
             default:
-              node = Node.findDirectChild(this, name)
-          }
-          if (!node) {
-            throw new Error()
+              node = Node.findDirectChildByName(this, name)
           }
         } else {
           switch (name) {
@@ -294,12 +319,28 @@ class Node {
               }
               break
             default:
-              node = Node.findDirectChild(node, name)
+              node = Node.findDirectChildByName(node, name)
           }
         }
+        if (!node) {
+          throw new Error()
+        }
+        ancestorNode = node
+      }
+      if (returnCloserAncestor) {
+        throw new Error('Ancestor not found')
       }
       return node
     } catch (e) {
+      if (e.message === 'Ancestor not found') {
+        throw e
+      }
+      if (returnCloserAncestor && ancestorNode) {
+        return [
+          ancestorNode,
+          p.slice(index).join('/')
+        ]
+      }
       throw new Error('Path does not exist')
     }
   }
@@ -371,8 +412,7 @@ class Node {
       this.lastTs = entry.ts
     } // else we are just moving it on the tree because versions are immutable
 
-    if (entry.parent
-        && entry.parent.constructor.name === 'Node'
+    if (Node.isNode(entry.parent)
         && entry.parent.id !== this.parent.id) {
 
       this.parent.remove(this)

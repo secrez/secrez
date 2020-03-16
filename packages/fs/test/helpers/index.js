@@ -37,7 +37,7 @@ const helpers = {
   initRandomNode: (type, secrez, getEntry) => {
     let entry = new Entry({
       id: Crypto.getRandomId(),
-      name: Crypto.getRandomId() + Crypto.getRandomId(),
+      name: Crypto.getRandomBase58String(16),
       type,
       preserveContent: true
     })
@@ -65,7 +65,7 @@ const helpers = {
     return entry
   },
 
-  getRoot: () => {
+  initARootNode: () => {
     return new Node(new Entry({
       type: config.types.ROOT
     }))

@@ -3,7 +3,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const {config, Secrez, Crypto, Entry} = require('@secrez/core')
 const Node = require('../src/Node')
-const {compareJson, initRandomNode, setNewNodeVersion, getRoot} = require('./helpers')
+const {compareJson, initRandomNode, setNewNodeVersion, initARootNode} = require('./helpers')
 
 const {
   password,
@@ -24,7 +24,7 @@ describe('#Node', function () {
 
     it('should instantiate the Node', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       assert.equal(root.id, config.rOOt)
 
     })
@@ -105,7 +105,7 @@ describe('#Node', function () {
       assert.equal(dir1.getContent(), v.content)
       assert.equal(dir1.getOptions().name, dir1.getName())
 
-      let root = getRoot()
+      let root = initARootNode()
       let options = root.getOptions()
       assert.equal(options.name, undefined)
       assert.equal(options.id, config.rOOt)
@@ -151,7 +151,7 @@ describe('#Node', function () {
 
     it('should get the names of all children', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let dir3 = initRandomNode(D, secrez)
@@ -194,7 +194,7 @@ describe('#Node', function () {
 
     it('should add children to root', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
@@ -235,7 +235,7 @@ describe('#Node', function () {
 
     it('should rename a node', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let file1 = initRandomNode(F, secrez)
 
       root.add(file1)
@@ -246,7 +246,7 @@ describe('#Node', function () {
 
     it('should move a node', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
@@ -265,7 +265,7 @@ describe('#Node', function () {
 
     it('should throw trying to move root', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       root.add(dir1)
@@ -284,7 +284,7 @@ describe('#Node', function () {
 
     it('should throw trying to modify a node with different id', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let file1 = initRandomNode(F, secrez)
 
       root.add(file1)
@@ -313,7 +313,7 @@ describe('#Node', function () {
 
     it('should remove a node', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
 
@@ -327,7 +327,7 @@ describe('#Node', function () {
 
     it('should remove itself', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let file1 = initRandomNode(F, secrez)
 
       root.add(file1)
@@ -339,7 +339,7 @@ describe('#Node', function () {
 
     it('should throw trying to remove root', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let file1 = initRandomNode(F, secrez)
       root.add(file1)
 
@@ -365,7 +365,7 @@ describe('#Node', function () {
 
     it('should prepare a json for saving', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let dir3 = initRandomNode(D, secrez)
@@ -391,7 +391,7 @@ describe('#Node', function () {
 
     it('should build an index from a json file', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let dir3 = initRandomNode(D, secrez)
@@ -436,7 +436,7 @@ describe('#Node', function () {
 
     it('should find a node starting from a path', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let dir3 = initRandomNode(D, secrez)
@@ -480,9 +480,34 @@ describe('#Node', function () {
 
     })
 
+    it('should find the last ancestor starting from a path', async function () {
+
+      let root = initARootNode()
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      let dir3 = initRandomNode(D, secrez)
+      let dir4 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+
+      root.add(dir1)
+      dir1.add(dir2)
+      dir2.add(dir3)
+      dir3.add(dir4)
+      dir4.add(file1)
+
+      let p
+      let name1 = Crypto.getRandomBase58String(16)
+      let name2 = Crypto.getRandomBase58String(16)
+      p = ['/', dir1.getName(), dir2.getName(), dir3.getName(), name1, name2].join('/')
+      let [ancestor, remainingPath] = dir2.getChildFromPath(p, true)
+      assert.equal(ancestor.getName(), dir3.getName())
+      assert.equal(remainingPath, [name1, name2].join('/'))
+
+    })
+
     it('should throw if the path is incorrect or does not exist', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let dir3 = initRandomNode(D, secrez)
@@ -536,6 +561,33 @@ describe('#Node', function () {
 
     })
 
+    it('should throw if looking for last ancestor and find existent node', async function () {
+
+      let root = initARootNode()
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      let dir3 = initRandomNode(D, secrez)
+      let dir4 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+
+      root.add(dir1)
+      dir1.add(dir2)
+      dir2.add(dir3)
+      dir3.add(dir4)
+      dir4.add(file1)
+
+      let p
+      p = [dir3.getName(), dir4.getName()].join('/')
+
+      try {
+        dir2.getChildFromPath(p, true)
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Ancestor not found')
+      }
+
+    })
+
 
   })
 
@@ -551,7 +603,7 @@ describe('#Node', function () {
 
     it('should find a node starting from a path', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let dir3 = initRandomNode(D, secrez)
@@ -581,7 +633,7 @@ describe('#Node', function () {
 
     it('should throw if child is not a Node', async function () {
 
-      let root = getRoot()
+      let root = initARootNode()
 
       try {
         root.getPathToChild(new Object())
@@ -595,8 +647,8 @@ describe('#Node', function () {
 
     it('should throw if child belows to another tree', async function () {
 
-      let root = getRoot()
-      let root2 = getRoot()
+      let root = initARootNode()
+      let root2 = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
 

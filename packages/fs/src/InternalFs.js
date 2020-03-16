@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
-const {config, Crypto} = require('@secrez/core')
+const {config, Crypto, Entry} = require('@secrez/core')
 const FileSystemsUtils = require('./FsUtils')
 const Tree = require('./Tree')
 
@@ -17,10 +17,9 @@ class InternalFs {
     }
   }
 
-  async init(callback) {
+  async init() {
     // eslint-disable-next-line require-atomic-updates
     await this.tree.load()
-    callback()
   }
 
   async save(entry) {
@@ -48,7 +47,7 @@ class InternalFs {
     }
   }
 
-  async add(parentId, entry) {
+  async add(parent, entry) {
     if (entry.id) {
       throw new Error('A new entry cannot have a pre-existent id')
     }
@@ -57,11 +56,54 @@ class InternalFs {
     entry = this.secrez.encryptEntry(entry)
     try {
       await this.save(entry)
-      return this.tree.root.add(entry)
+      let node = new Node(entry)
+      parent.add(node)
+      await this.saveTree()
+      return node
     } catch (e) {
       this.unsave(entry)
       throw e
     }
+  }
+
+  async update(entry, node) {
+    if (!entry.id) {
+      throw new Error('Entry has no id')
+    }
+    if (node) {
+      if (node.id !== entry.id) {
+        throw new Error('Id mismatch')
+      }
+    } else {
+      this.tree.root.findChildById(entry.id)
+    }
+    if (!node) {
+      throw new Error('Node does not exist')
+    }
+    entry.preserveContent = true
+    entry = this.secrez.encryptEntry(entry)
+    try {
+      await this.save(entry)
+      node.move(entry)
+      await this.saveTree()
+      return node
+    } catch (e) {
+      this.unsave(entry)
+      throw e
+    }
+  }
+
+  async saveTree() {
+    let root = this.tree.root.getEntry()
+    if (this.previousRoot) {
+      this.unsave
+    }
+    root.set({
+      name: Crypto.getRandomBase58String(Math.round(Math.random() * 20)),
+      content: this.tree.root.toJSON()
+    })
+    await this.save(root)
+    this.previousRoot = root
   }
 
   fileExists(file) {
@@ -70,6 +112,47 @@ class InternalFs {
     }
     return fs.existsSync(path.join(this.dataPath, file))
   }
+
+
+  // maybe TODO
+  async ls(files) {
+    return FileSystemsUtils.filterLs(files, await this.pseudoFileCompletion(files))
+  }
+
+  pwd(options) {
+    if (options.getNode) {
+      return this.tree.workingNode.getName()
+    } else { // getPath default
+      return this.tree.root.getPathToChild(this.tree.workingNode)
+    }
+  }
+
+  make(options) {
+    let p = options.path
+    try {
+      let [ancestor, remainingPath] = this.tree.workingNode.getChildFromPath(p)
+      p = remainingPath.split('/')
+      let len = p.len
+      for (let i = 0; i < len; i++) {
+        let entry = new Entry({
+          name: p[i]
+        })
+        if (options.content) {
+          entry.set({content: options.content})
+        }
+        // this.add(ancestor
+        let child
+        if (i === len - 1) {
+          child = this.add(ancestor, entry)
+        }
+        ancestor = child
+      }
+    } catch (e) {
+      return e.message
+    }
+  }
+
+  //////////
 
   pickDir(parent, d, id) {
     for (let p in parent) {
@@ -332,10 +415,6 @@ class InternalFs {
   }
 
 
-  async ls(files) {
-    return FileSystemsUtils.filterLs(files, await this.pseudoFileCompletion(files))
-  }
-
   // async mkdir(dir) {
   //   dir = path.resolve(config.workingDir, dir)
   //   let [decParent, encParent, encParentPath] = this.getParents(dir)
@@ -365,9 +444,6 @@ class InternalFs {
   //   }
   // }
 
-  async pwd(options) {
-    return config.workingDir
-  }
 
 }
 
