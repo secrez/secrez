@@ -4,11 +4,11 @@ module.exports = async function (func, expectedError, expectedErrorContains) {
   let errMsg
   try {
     await func
-  } catch (err) {
-    if(err.message)
-      errMsg = err.message
+  } catch (e) {
+    if(e.message)
+      errMsg = e.message
     else
-      errMsg = err
+      errMsg = e
     if(expectedError)
       assert.equal(errMsg, expectedError)
     else if(expectedErrorContains)

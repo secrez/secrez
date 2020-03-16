@@ -11,14 +11,13 @@ describe('#config', function () {
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
 
   before(async function () {
-    config.secrez = {}
     await fs.emptyDir(rootDir)
     secrez = new Secrez()
     await secrez.init(rootDir, path.dirname(rootDir))
   })
 
   it('all field should be correctly configured', async function () {
-    let s = config.secrez
+    let s = secrez.config
     assert.equal(s.root, path.basename(rootDir))
     assert.equal(s.dataPath, path.join(rootDir, 'data'))
     assert.equal(s.tmpPath, path.join(s.dataPath, '.tmp'))

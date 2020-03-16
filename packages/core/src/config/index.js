@@ -10,6 +10,7 @@ const config = {
     FILE: 2
   },
 
+  rOOt: 'rOOt',
   secrez: {}
 
 }

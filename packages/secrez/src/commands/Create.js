@@ -51,7 +51,7 @@ class Create extends require('../Command') {
       if (!options.path) {
         this.Logger.red('A path where to save the secret is required.')
       } else {
-        this.Logger.grey(`Fullpath: ${this.path.resolve(this.config.secrez.workingDir, `./${options.path}`)}`)
+        this.Logger.grey(`Fullpath: ${this.path.resolve(this.config.workingDir, `./${options.path}`)}`)
         if (!options.content) {
           let {content} = await prompt.inquirer.prompt([
             {

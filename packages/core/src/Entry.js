@@ -17,10 +17,12 @@ class Entry {
       'content',
       'encryptedName',
       'encryptedContent',
+      'pseudoMicroseconds',
       'extraName',
       'nameId',
       'nameTs',
-      'preserveContent'
+      'preserveContent',
+      'parent'
     ]
 
     this.set(options)

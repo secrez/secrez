@@ -10,8 +10,8 @@ class InternalFs {
   constructor(secrez) {
     if (secrez && secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
+      this.dataPath = secrez.config.dataPath
       this.tree = new Tree(secrez)
-      this.dataPath = this.tree.dataPath
     } else {
       throw new Error('InternalFs requires a Secrez instance during construction')
     }
@@ -23,33 +23,33 @@ class InternalFs {
     callback()
   }
 
-  async save(item, id) {
-    let fullPath = path.join(this.dataPath, item.encryptedName)
+  async save(entry, id) {
+    let fullPath = path.join(this.dataPath, entry.encryptedName)
     await fs.writeFile(fullPath, [
-          item.encryptedContent || '',
-          item.extraName || ''
+          entry.encryptedContent || '',
+          entry.extraName || ''
         ].join('\n')
     )
-    item.ts = Crypto.unscrambleTimestamp(item.scrambledTs)
-    return item
+    entry.ts = Crypto.unscrambleTimestamp(entry.scrambledTs)
+    return entry
   }
 
-  async unsave(item) {
-    let fullPath = path.join(this.dataPath, item.encryptedName)
+  async unsave(entry) {
+    let fullPath = path.join(this.dataPath, entry.encryptedName)
     await fs.unlink(fullPath)
   }
 
-  async add(parentId, item) {
+  async add(parentId, entry) {
     let method = 'updateChild'
-    if (!item.id) {
-      item.id = Crypto.getRandomId()
+    if (!entry.id) {
+      entry.id = Crypto.getRandomId()
       method = 'addChild'
     }
-    item.preserveContent = true
-    item = this.secrez.encryptItem(item)
-    if (this.tree[method](parentId, item, null, true)) {
-      item = await this.save(item)
-      this.tree[method](parentId, item)
+    entry.preserveContent = true
+    entry = this.secrez.encryptEntry(entry)
+    if (this.tree[method](parentId, entry, null, true)) {
+      entry = await this.save(entry)
+      this.tree[method](parentId, entry)
       return true
     }
     return false
@@ -71,7 +71,7 @@ class InternalFs {
     if (!dir) {
       dir = '/'
     }
-    let resolvedDir = path.resolve(config.secrez.workingDir, dir)
+    let resolvedDir = path.resolve(config.workingDir, dir)
     let normalized = path.normalize(resolvedDir)
     return normalized
   }
@@ -258,7 +258,7 @@ class InternalFs {
     if (p === '~') {
       p = ''
     }
-    return path.join(config.secrez.dataPath, './' + p).replace(/\/+$/, '')
+    return path.join(config.dataPath, './' + p).replace(/\/+$/, '')
   }
 
   isDir(dir) {
@@ -279,7 +279,7 @@ class InternalFs {
 
   async cat(options) {
     let file = options.path
-    file = path.resolve(config.secrez.workingDir, file)
+    file = path.resolve(config.workingDir, file)
     let [decParent, encParent, encParentPath] = this.getParents(file)
     let [p] = this.pickDir(decParent, path.basename(file))
     if (p) {
@@ -292,7 +292,7 @@ class InternalFs {
           let rows = []
           for (let row of encDecFile) {
             let [ver, ts, data] = row.split(';')
-            let content = await this.secrez.decryptItem(data)
+            let content = await this.secrez.decryptEntry(data)
             rows.push([content, filePath, parseInt(ver), ts])
           }
           return rows
@@ -312,7 +312,7 @@ class InternalFs {
             row = encDecFile[encDecFile.length - 1]
           }
           let [ver, ts, data] = row.split(';')
-          let content = await this.secrez.decryptItem(data)
+          let content = await this.secrez.decryptEntry(data)
           return [content, filePath, parseInt(ver), ts]
         }
       }
@@ -328,7 +328,7 @@ class InternalFs {
       if (dirObj === true) {
         throw new Error('Not a directory')
       } else {
-        config.secrez.workingDir = dir
+        config.workingDir = dir
         this.workingDirObj = dirObj
       }
     } else {
@@ -342,12 +342,12 @@ class InternalFs {
   }
 
   // async mkdir(dir) {
-  //   dir = path.resolve(config.secrez.workingDir, dir)
+  //   dir = path.resolve(config.workingDir, dir)
   //   let [decParent, encParent, encParentPath] = this.getParents(dir)
   //   if (decParent) {
   //     let dirname = path.basename(dir)
   //     if (!this.exists(decParent, dirname)) {
-  //       let encDir = await this.secrez.encryptItem(dirname)
+  //       let encDir = await this.secrez.encryptEntry(dirname)
   //       if (encDir.length > 255) {
   //         throw new Error('The directory name is too long (when encrypted is larger than 255 chars.)')
   //       } else {
@@ -371,7 +371,7 @@ class InternalFs {
   // }
 
   async pwd(options) {
-    return config.secrez.workingDir
+    return config.workingDir
   }
 
 }

@@ -142,7 +142,7 @@ describe('#ExternalFs', function () {
     it('should change directory', async function () {
       dir = externalFs.getNormalizedPath('fixtures')
       await externalFs.cd(dir)
-      assert.equal(config.secrez.localWorkingDir, dir)
+      assert.equal(config.localWorkingDir, dir)
     })
 
     it('should throw if the dir is a file', async function () {
@@ -208,7 +208,7 @@ describe('#ExternalFs', function () {
   describe('pwd', async function () {
 
     it('should return the current local working dir', async function () {
-      assert.equal(await externalFs.pwd(), config.secrez.localWorkingDir)
+      assert.equal(await externalFs.pwd(), config.localWorkingDir)
     })
   })
 

@@ -39,10 +39,10 @@ class Secrez {
   }
 
   async signup(password, iterations, saveIterations) {
-    if (!this.config || !this.config.secrez.confPath) {
+    if (!this.config || !this.config.confPath) {
       throw new Error('Secrez not initiated')
     }
-    if (!fs.existsSync(this.config.secrez.confPath)) {
+    if (!fs.existsSync(this.config.confPath)) {
 
       let id = Crypto.b58Hash(Crypto.generateKey())
 
@@ -87,9 +87,9 @@ class Secrez {
         data,
         signature
       }
-      await fs.writeFile(this.config.secrez.confPath, JSON.stringify(conf))
+      await fs.writeFile(this.config.confPath, JSON.stringify(conf))
       if (saveIterations) {
-        await fs.writeFile(this.config.secrez.envPath, JSON.stringify({iterations}))
+        await fs.writeFile(this.config.envPath, JSON.stringify({iterations}))
       }
     } else {
       throw new Error('An account already exists. Please, sign in or chose a different container directory')
@@ -97,12 +97,12 @@ class Secrez {
   }
 
   async signin(password, iterations) {
-    if (!this.config || !this.config.secrez.confPath) {
+    if (!this.config || !this.config.confPath) {
       throw new Error('Secrez not initiated')
     }
     if (!iterations) {
-      if (fs.existsSync(this.config.secrez.envPath)) {
-        let env = JSON.parse(await fs.readFile(this.config.secrez.envPath, 'utf8'))
+      if (fs.existsSync(this.config.envPath)) {
+        let env = JSON.parse(await fs.readFile(this.config.envPath, 'utf8'))
         iterations = env.iterations
       }
     }
@@ -110,8 +110,8 @@ class Secrez {
       throw new Error('Iterations is missed')
     }
     iterations = parseInt(iterations)
-    if (await fs.existsSync(this.config.secrez.confPath)) {
-      let {key, hash} = JSON.parse(await fs.readFile(this.config.secrez.confPath, 'utf8')).data
+    if (await fs.existsSync(this.config.confPath)) {
+      let {key, hash} = JSON.parse(await fs.readFile(this.config.confPath, 'utf8')).data
       let derivedPassword = await this.derivePassword(password, iterations)
       let masterKey
       try {
@@ -129,10 +129,10 @@ class Secrez {
     }
   }
 
-  encryptItem(item) {
+  encryptEntry(entry) {
 
-    if (item.constructor.name !== 'Entry') {
-      throw new Error('Wrong parameter passed')
+    if (!entry || entry.constructor.name !== 'Entry') {
+      throw new Error('An Entry instance is expected as parameter')
     }
 
     const {
@@ -142,17 +142,16 @@ class Secrez {
       preserveContent,
       id,
       lastTs
-    } = item.get()
+    } = entry.get()
 
     if (this.masterKey) {
-
 
       if (!ConfigUtils.isValidType(type)) {
         throw new Error('Unsupported type')
       }
 
       let [scrambledTs, pseudoMicroseconds] = Crypto.scrambledTimestamp(lastTs)
-      let eItem = new Entry({
+      let eEntry = new Entry({
         id,
         type,
         scrambledTs,
@@ -174,20 +173,20 @@ class Secrez {
           encryptedName = encryptedName.substring(0, 254) + 'O'
         }
 
-        eItem.set({
+        eEntry.set({
           encryptedName,
           extraName
         })
 
         if (preserveContent) {
-          eItem.set({
+          eEntry.set({
             name
           })
         }
 
       }
       if (content) {
-        eItem.set({
+        eEntry.set({
           encryptedContent: Crypto.encrypt(
               id
               + scrambledTs
@@ -199,23 +198,23 @@ class Secrez {
           )
         })
         if (preserveContent) {
-          eItem.set({
+          eEntry.set({
             content
           })
         }
       }
 
-      return eItem
+      return eEntry
 
     } else {
       throw new Error('User not logged')
     }
   }
 
-  decryptItem(encryptedItem) {
+  decryptEntry(encryptedEntry) {
 
-    if (encryptedItem.constructor.name !== 'Entry') {
-      throw new Error('Wrong parameter passed')
+    if (!encryptedEntry || encryptedEntry.constructor.name !== 'Entry') {
+      throw new Error('An Entry instance is expected as parameter')
     }
 
     const {
@@ -225,7 +224,7 @@ class Secrez {
       preserveContent,
       nameId,
       nameTs
-    } = encryptedItem.get()
+    } = encryptedEntry.get()
 
     function decrypt(data, key) {
       let dec = Crypto.decrypt(data, key)
@@ -272,7 +271,7 @@ class Secrez {
             content = c
           }
 
-          let dItem = new Entry({
+          let dEntry = new Entry({
             id,
             type,
             ts,
@@ -281,13 +280,13 @@ class Secrez {
           })
 
           if (preserveContent) {
-            dItem.set({
+            dEntry.set({
               encryptedName,
               extraName
             })
           }
 
-          return dItem
+          return dEntry
         }
 
         // when the encryptedName has been already decrypted and we need only the content
@@ -298,24 +297,26 @@ class Secrez {
             throw new Error('Content is corrupted')
           }
 
-          let dItem = new Entry({
+          let dEntry = new Entry({
             id,
             ts,
             content
           })
 
           if (preserveContent) {
-            dItem.set({
+            dEntry.set({
               encryptedContent
             })
           }
 
-          return dItem
+          return dEntry
         }
 
-      } catch (err) {
-        if (err.message === 'Data is corrupted') {
-          throw err
+      } catch (e) {
+        if (e.message === 'Data is corrupted') {
+          throw e
+        } else if (e.message === 'Content is corrupted') {
+          throw e
         }
         throw new Error('Fatal error during decryption')
       }

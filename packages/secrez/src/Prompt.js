@@ -37,7 +37,7 @@ class Prompt {
     inquirerCommandPrompt.setConfig({
       history: {
         save: true,
-        folder: path.join(homedir(), config.secrez.root),
+        folder: path.join(homedir(), config.root),
         limit: 100,
         blacklist: ['exit']
       }
@@ -110,11 +110,11 @@ class Prompt {
           short: this.short,
           prefix: '[',
           noColorOnAnswered: true,
-          message: `${chalk.reset(`Secrez:/${path.basename(config.secrez.workingDir)} ]`)}$`,
+          message: `${chalk.reset(`Secrez:/${path.basename(config.workingDir)} ]`)}$`,
           context: 0,
           ellipsize: true,
           onClose: () => {
-            fs.emptyDirSync(config.secrez.tmpPath)
+            fs.emptyDirSync(config.tmpPath)
           },
           validate: val => {
             return val

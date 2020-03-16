@@ -13,7 +13,7 @@ class ExternalFs {
     } else if (/^~\//.test(dir)) {
       dir = dir.replace(/^~\//, '')
     }
-    let resolvedDir = path.resolve(config.secrez.localWorkingDir, dir)
+    let resolvedDir = path.resolve(config.localWorkingDir, dir)
     let normalized = path.normalize(resolvedDir)
     return normalized
   }
@@ -76,14 +76,14 @@ class ExternalFs {
 
   async cd(dir) {
     if (!this.initialLocalWorkingDir) {
-      this.initialLocalWorkingDir = config.secrez.localWorkingDir
+      this.initialLocalWorkingDir = config.localWorkingDir
     }
     if (/^~\//.test(dir) || dir === '~') {
       dir = dir.replace(/^~/, this.initialLocalWorkingDir)
     }
     dir = this.getNormalizedPath(dir)
     if (this.isDir(dir)) {
-      config.secrez.localWorkingDir = dir
+      config.localWorkingDir = dir
     } else {
       throw new Error('No such directory')
     }
@@ -94,7 +94,7 @@ class ExternalFs {
   }
 
   async pwd() {
-    return config.secrez.localWorkingDir
+    return config.localWorkingDir
   }
 
 }

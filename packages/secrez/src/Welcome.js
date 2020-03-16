@@ -8,7 +8,7 @@ class Welcome {
   async start(secrez, options) {
     this.options = options
     this.iterations = options.iterations || await this.getIterations()
-    if (fs.existsSync(config.secrez.confPath)) {
+    if (fs.existsSync(config.confPath)) {
       await this.login(secrez)
     } else {
       Logger.grey('Please signup to create your local account')
@@ -17,8 +17,8 @@ class Welcome {
   }
 
   async getIterations() {
-    if (fs.existsSync(config.secrez.envPath)) {
-      return require(config.secrez.envPath).iterations
+    if (fs.existsSync(config.envPath)) {
+      return require(config.envPath).iterations
     } else {
       let {iterations} = await inquirer.prompt([{
         name: 'iterations',
@@ -37,8 +37,8 @@ class Welcome {
   }
 
   async saveIterations() {
-    if (this.options.saveIterations && !fs.existsSync(config.secrez.envPath)) {
-      fs.writeFile(config.secrez.envPath, JSON.stringify({iterations: this.iterations}))
+    if (this.options.saveIterations && !fs.existsSync(config.envPath)) {
+      fs.writeFile(config.envPath, JSON.stringify({iterations: this.iterations}))
     }
   }
 
@@ -63,10 +63,10 @@ class Welcome {
             this.saveIterations()
             return
           }
-        } catch (err) {
+        } catch (e) {
           Logger.red('The password you typed is wrong. Try again or Ctrl-C to exit.')
         }
-      } catch (err) {
+      } catch (e) {
         Logger.red('Unrecognized error. Try again or Ctrl-c to exit.')
       }
     }
@@ -110,7 +110,7 @@ class Welcome {
         } else {
           Logger.red('The two passwords do not match. Try again')
         }
-      } catch (err) {
+      } catch (e) {
         Logger.red('Unrecognized error. Try again or Ctrl-c to exit.')
       }
     }

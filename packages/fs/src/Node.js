@@ -1,50 +1,56 @@
-const {config, Crypto} = require('@secrez/core')
+const {config, Crypto, Entry} = require('@secrez/core')
 
 class Node {
 
-  constructor(options) {
+  constructor(entry) {
 
-    if (typeof options !== 'object') {
-      throw new Error('Invalid options passed to constructor')
+    if (!entry || entry.constructor.name !== 'Entry') {
+      throw new Error('Node constructor expects an Entry instance')
     }
 
-    let isRoot = options.type === config.types.ROOT
+    let isRoot = Node.isRoot(entry)
 
-    if (options.type !== config.types.DIR
-        && options.type !== config.types.FILE
-        && !isRoot) {
+    if (!isRoot
+        && entry.type !== config.types.DIR
+        && entry.type !== config.types.FILE) {
       throw new Error('Unsupported type')
     }
 
-    this.id = isRoot ? 'rOOt' : options.id || Crypto.getRandomId()
-    this.type = options.type
-    if (options.type !== config.types.FILE) {
+    this.id = isRoot ? config.rOOt : entry.id || Crypto.getRandomId()
+    this.type = entry.type
+    if (entry.type !== config.types.FILE) {
       this.children = {}
     }
 
-    if (!isRoot) {
-      if (!options.ts || typeof options.ts !== 'string'
-          || !options.name || typeof options.name !== 'string'
-          || !options.encryptedName || typeof options.encryptedName !== 'string'
+    if (isRoot) {
+      this.rnd = Crypto.getRandomId()
+      // to not confuse two roots
+    } else {
+      if (!entry.ts || typeof entry.ts !== 'string'
+          || !entry.name || typeof entry.name !== 'string'
+          || !entry.encryptedName || typeof entry.encryptedName !== 'string'
       ) {
         throw new Error('Missing parameters')
       }
 
-      if (options.parent && options.parent.constructor.name === 'Node') {
+      if (entry.parent && entry.parent.constructor.name === 'Node') {
         // a Node can be independent of a tree.
         // But if it is part of a tree, any child must have a parent
 
-        this.parent = options.parent
+        this.parent = entry.parent
       }
-
 
       this.versions = {}
-      this.lastTs = options.ts
-      this.versions[options.ts] = {
-        name: options.name,
-        file: options.encryptedName
+      this.lastTs = entry.ts
+      this.versions[entry.ts] = {
+        name: entry.name,
+        file: entry.encryptedName
       }
     }
+  }
+
+  static isRoot(obj) {
+    return obj.type === config.types.ROOT
   }
 
   static fromJSON(json, secrez, allFiles) {
@@ -67,27 +73,14 @@ class Node {
     if (json.t !== config.types.ROOT) {
       json.V = []
       for (let v of json.v) {
-        let item = secrez.decryptItem({
+        let entry = secrez.decryptEntry(new Entry({
           encryptedName: files[v]
-        })
-        json.V.push({
-          id: item.id,
-          ts: item.ts,
-          name: item.name,
-          encryptedName: files[v]
-        })
+        }))
+        let obj = entry.get(['id', 'ts', 'name'])
+        obj.encryptedName = files[v]
+        json.V.push(obj)
       }
-      json.V.sort((a, b) => {
-        let [A, C] = a.ts.split('.').map(e => parseInt(e))
-        let [B, D] = b.ts.split('.').map(e => parseInt(e))
-        return (
-            A > B ? 1
-                : A < B ? -1
-                : C > D ? 1
-                    : C < D ? -1
-                        : 0
-        )
-      })
+      json.V.sort(Node.sortEntry)
     }
     if (json.c) {
       for (let c of json.c) {
@@ -97,18 +90,30 @@ class Node {
     return json
   }
 
+  static sortEntry(a, b) {
+    let [A, C] = a.ts.split('.').map(e => parseInt(e))
+    let [B, D] = b.ts.split('.').map(e => parseInt(e))
+    return (
+        A > B ? 1
+            : A < B ? -1
+            : C > D ? 1
+                : C < D ? -1
+                    : 0
+    )
+  }
+
   static initNode(json, parent) {
 
     let V0 = json.V[0]
     let type = V0 ? parseInt(V0.encryptedName.substring(0, 1)) : config.types.ROOT
-    let node = new Node({
+    let node = new Node(new Entry({
       type,
-      id: V0 ? V0.id : 'rOOt',
+      id: V0 ? V0.id : config.rOOt,
       ts: V0 ? V0.ts : undefined,
       name: V0 ? V0.name : undefined,
       encryptedName: V0 ? V0.encryptedName : undefined,
       parent
-    })
+    }))
     for (let i = 1; i < json.V.length; i++) {
       let V = json.V[i]
       node.versions[V.ts] = {
@@ -204,6 +209,14 @@ class Node {
     }
   }
 
+  getContent(ts) {
+    try {
+      return this.versions[ts || this.lastTs].content
+    } catch (e) {
+      throw new Error('Version not found')
+    }
+  }
+
   static getRoot(node) {
     if (node.type === config.types.ROOT) {
       return node
@@ -279,6 +292,21 @@ class Node {
     }
   }
 
+  getPathToChild(child) {
+    if (!child || child.constructor.name !== 'Node') {
+      throw new Error('The child is not a Node')
+    }
+    let p = ''
+    while (child.id !== this.id) {
+      if (child.id === 'rOOt' && child.rnd !== Node.getRoot(this).rnd) {
+        throw new Error('The child belows to a different tree')
+      }
+      p = (child.getName() || '') + (p ? '/' + p : '')
+      child = child.parent
+    }
+    return p
+  }
+
   getOptions() {
     let options = {
       id: this.id,
@@ -291,31 +319,8 @@ class Node {
     return options
   }
 
-  move(options) {
-    if (this.type === config.types.ROOT) {
-      throw new Error('You cannot modify a root node')
-    }
-
-    if (options.id !== this.id) {
-      throw new Error('Id does not match')
-    }
-
-    if (!this.versions[options.ts]) {
-      this.versions[options.ts] = {
-        name: options.name,
-        file: options.encryptedName
-      }
-      this.lastTs = options.ts
-    } // else we are just moving it on the tree because versions are immutable
-
-    if (options.parent
-        && options.parent.constructor.name === 'Node'
-        && options.parent.id !== this.parent.id) {
-
-      this.parent.remove(this)
-      options.parent.add(this)
-      this.parent = options.parent
-    }
+  getEntry() {
+    return new Entry(this.getOptions())
   }
 
   add(children) {
@@ -329,16 +334,51 @@ class Node {
         this.children[c.id] = c
       }
     } else {
-      throw new Error('This item does not represent a folder')
+      throw new Error('This entry does not represent a folder')
+    }
+  }
+
+  move(entry) {
+    if (this.type === config.types.ROOT) {
+      throw new Error('You cannot modify a root node')
+    }
+
+    if (entry.id !== this.id) {
+      throw new Error('Id does not match')
+    }
+
+    if (!this.versions[entry.ts]) {
+      this.versions[entry.ts] = {
+        name: entry.name,
+        file: entry.encryptedName
+      }
+      this.lastTs = entry.ts
+    } // else we are just moving it on the tree because versions are immutable
+
+    if (entry.parent
+        && entry.parent.constructor.name === 'Node'
+        && entry.parent.id !== this.parent.id) {
+
+      this.parent.remove(this)
+      entry.parent.add(this)
+      this.parent = entry.parent
     }
   }
 
   remove(children) {
-    if (!Array.isArray(children)) {
-      children = [children]
-    }
-    for (let c of children) {
-      delete this.children[c.id]
+    if (!children) {
+      if (children.parent) {
+        children.parent.remove(this)
+      } else {
+        throw new Error('Root cannot be removed')
+      }
+    } else {
+      if (!Array.isArray(children)) {
+        children = [children]
+      }
+      for (let c of children) {
+        delete this.children[c.id]
+      }
     }
   }
 

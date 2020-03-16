@@ -60,7 +60,7 @@ class Edit extends require('../Command') {
       name: 'newContent',
       message: 'Editing...',
       default: content,
-      tempDir: this.config.secrez.tmpPath,
+      tempDir: this.config.tmpPath,
       validate: function (text) {
         return true
       },
@@ -68,7 +68,7 @@ class Edit extends require('../Command') {
     }])
 
     if (newContent !== content) {
-      let encContent = await internalFs.secrez.encryptItem(newContent)
+      let encContent = await internalFs.secrez.encryptEntry(newContent)
       ver++
       await this.fs.appendFile(filePath, `\n${ver};${Crypto.scrambledTimestamp(true)};${encContent}`)
       this.Logger.reset(`File saved. Version: ${ver}`)

@@ -2,6 +2,7 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const Node = require('./Node')
+const {config, Entry} = require('@secrez/core')
 
 class Tree {
 
@@ -15,8 +16,9 @@ class Tree {
 
     if (secrez && secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
-      this.dataPath = this.secrez.config.secrez.dataPath
+      this.dataPath = secrez.config.dataPath
       this.status = this.statutes.UNLOADED
+      this.errors = []
     } else {
       throw new Error('Tree requires a Secrez instance during construction')
     }
@@ -24,317 +26,94 @@ class Tree {
 
   async load() {
 
-    const self = this
-
     if (this.status === this.statutes.LOADED) {
       return
     }
 
-    let allFiles = {}
-    let types = this.secrez.types
-    for (let t in types) {
-      allFiles[types[t]] = {}
-    }
+    let allIndexes = []
+    let allFiles = []
     let files = await fs.readdir(this.dataPath)
+    let warning = 'The database looks corrupted. Execute `fix tree` to fix it.'
+
+    const setWarning = () => {
+      if (!this.errors.length || this.errors[0].message !== warning) {
+        this.errors[0].unshift({
+          type: 'warning',
+          message: warning
+        })
+      }
+    }
+
     for (let file of files) {
-
-      // TODO need fixes
-
       if (/\./.test(file)) {
         continue
       }
       this.notEmpty = true
       try {
-        let data
+        let entry = new Entry({
+          encryptedName: file
+        })
         if (file[file.length - 1] === 'O') {
           // there is an extraName
           let content = await fs.readFile(file, 'utf8')
-          if (content) {
-            content = content.split('\n')
+          content = content.split('\n')
+          if (!content[1]) {
+            throw new Error()
           }
-          data = file.substring(0, 254) + _.trim(content[1])
+          entry.set({
+            encryptedName: file.substring(0, 254) + _.trim(content[1])
+          })
+        }
+        let decryptedEntry = this.secrez.decryptEntry(entry)
+        if (decryptedEntry.type === config.types.ROOT) {
+          let content = await fs.readFile(file, 'utf8')
+          entry.set({
+            encryptedContent: content.split('\n')[0]
+          })
+          decryptedEntry = this.secrez.decryptEntry(entry)
+          allIndexes.push(decryptedEntry)
         } else {
-          data = file
+          allFiles.push(decryptedEntry)
         }
-        let [id, type, ts, name] = this.secrez.decryptItem(data)
-        if (allFiles[type]) {
-          // should we generate a warning because there is some unexpected encrypted file in the folder?
-          continue
-        }
-        if (!allFiles[type][id]) {
-          allFiles[type][id] = []
-        }
-        allFiles[type][id].push({
-          ts,
-          name,
-          file
-        })
-      } catch (err) {
-        // the file is an unexpected not encrypted file. We ignore it, for now.
+      } catch (e) {
+        setWarning()
       }
     }
 
     if (this.notEmpty) {
 
-      for (let category in allFiles) {
-        for (let id in allFiles[category]) {
-          allFiles[category][id].sort(Tree.sortItem)
-        }
-      }
-
-      // check the index
-      let ik = Object.keys(allFiles[types.ROOT])
-      if (ik.length > 1) {
-        this.status = this.statutes.BROKEN
-        throw new Error('There is more than one index. Execute `fix --tree` to build a valid index')
+      if (!allIndexes.length) {
+        setWarning()
       } else {
+
+        allIndexes.sort(Node.sortEntry)
+        allFiles.sort(Node.sortEntry)
+
+        let json = allIndexes[0].decryptedContent
         try {
-          this.tree = {
-            root: [
-              JSON.parse(allFiles[types.ROOT][ik[0]][0]),
-              [[Date.now(), '/']]
-            ]
-          }
-        } catch (err) {
-          this.status = this.statutes.BROKEN
-          throw new Error('Index is corrupted. Execute `fix --tree` to try to build a new valid index')
-        }
-      }
-      let dk = Object.keys(allFiles[types.DIR]).length
-      let fk = Object.keys(allFiles[types.FILE]).length
-      if (dk || fk) {
-        this.status = this.statutes.BROKEN
-        throw new Error('There are files without any index. Execute `fix --tree` to build a valid, flat index')
-      }
-
-      // verify that the index is aligned with the contents
-      // eslint-disable-next-line no-inner-declarations
-      async function fillTree(dir) {
-        for (let id of dir) {
-          let t = dir[id] === true ? types.DIR : types.FILE
-          let data = allFiles[t][id]
-          if (data) {
-            // index contains only latest version
-            dir[id][1] = data[0]
-          } else {
-            this.status = this.statutes.BROKEN
-            throw new Error('Index contains not existing files. Execute `fix --tree` to try to rebuild a valid index')
-          }
-          self.index[id] = dir[id]
-          if (t === types.DIR) {
-            await fillTree(dir[id][0])
-            dk--
-          } else {
-            fk--
-          }
+          this.root = Node.fromJSON(JSON.parse(json), allFiles.map(e => e.encryptedName))
+        } catch(e) {
+          setWarning()
         }
       }
 
-      this.index = {
-        root: this.tree.root
-      }
-      await fillTree(this.tree.root[0])
-      if (dk !== 0 || fk !== 0) {
-        this.status = this.statutes.BROKEN
-        throw new Error('Index does not contain some of the existing files. Execute `fix --tree` to add them to the index')
-      }
     } else {
-      this.tree = {
-        root: new TreeItem(this, {
-          ts: Date.now(),
-          name: 'root',
-          id: 'root',
-          parentId: null
-        })
-      }
-      // {
-      //   root: [
-      //     {},
-      //     [[Date.now(), '/']]
-      //   ]
-      // }
-      this.index = {
-        root: this.tree.root
-      }
+      this.root = new Node(
+            new Entry({
+              type: config.types.ROOT
+            })
+        )
     }
-    this.workingDirectoryId = 'root'
-    this.workingDirectory = this.tree.root
+    this.workingNode = this.root
     this.status = this.statutes.LOADED
-  }
-
-  getPathTo(childId, parent = this.tree.root, fullpath = '/') {
-    if (!this.index[childId]) {
-      return undefined
-    }
-    if (parent[0][childId]) {
-      return path.resolve(fullpath, parent[1][0][1], parent[0][childId][1][0][1])
-    } else {
-      for (let id in parent[0]) {
-        if (typeof parent[0][id][0] === 'object') {
-          let p = this.getPathTo(childId, parent[0][id], path.resolve(fullpath, parent[1][0][1]))
-          if (p) {
-            return p
-          }
-        }
-      }
-      return undefined
-    }
-  }
-
-  static sortItem(a, b) {
-    let A = a.ts || a[0]
-    let B = b.ts || b[0]
-    // descending order
-    return A < B ? 1 : A > B ? -1 : 0
-  }
-
-  getParentFromIndex(id) {
-    return this.index[id]
   }
 
   fileExists(file) {
     if (!file || typeof file !== 'string') {
-      throw new Error('File is required')
+      throw new Error('A valid file name is required')
     }
     return fs.existsSync(path.join(this.dataPath, file))
   }
-
-  addChild(parentId, child, simulate) {
-    let parent
-    if (!parentId || parentId === this.workingDirectoryId) {
-      parent = this.workingDirectory
-    } else {
-      parent = this.getParentFromIndex(parentId)
-    }
-    if (!parent) {
-      if (simulate) {
-        return false
-      } else {
-        throw new Error('Parent does not exist')
-      }
-    }
-    if (this.index[child.id]) {
-      if (simulate) {
-        return false
-      } else {
-        throw new Error('Child already exists')
-      }
-    }
-    if (simulate) {
-      return true
-    }
-    if (!this.fileExists(child.encryptedName)) {
-      throw new Error('The relative file does not exist')
-    }
-    this.index[child.id] = parent[0][child.id] = [child.type === this.secrez.types.DIR ? {} : true, [[child.ts, child.name, child.encryptedName]]]
-  }
-
-  updateChild(child) {
-    if (!this.index[child.id]) {
-      throw new Error('Child does not exist')
-    }
-    if (!this.fileExists(child.encryptedName)) {
-      throw new Error('The relative file does not exist')
-    }
-    this.index[child.id][1]
-        // We assume it is more recent than the previous version.
-        // If not, there is something wrong somewhere else
-        // (we could throw an error if that happens)
-        .unshift([child.ts, child.name, child.encryptedName])
-  }
-
-  findParent(childId, parent) {
-    // we could optimize adding a second index with the parent of any child
-    if (!this.index[childId]) {
-      return undefined
-    }
-    if (!parent) {
-      parent = this.tree.root
-    }
-    if (parent[0][childId]) {
-      return parent
-    } else {
-      for (let id in parent[0]) {
-        if (typeof parent[0][id][0] === 'object') {
-          let p = this.findParent(childId, parent[0][id])
-          if (p) {
-            return p
-          }
-        }
-      }
-      return undefined
-    }
-  }
-
-  absolutizePath(childPath) {
-    // TODO
-    return childPath
-  }
-
-  getChildFromPath(childPath) {
-    childPath = this.absolutizePath(childPath).split('/')
-    let child
-    let childId
-    try {
-      FOR: for (let c of childPath) {
-        if (!child) {
-          child = this.tree.root
-        } else {
-          for (let id in child[0]) {
-            console.log(id, child[0][id][1][0][1])
-            if (child[0][id][1][0][1] === c) {
-              child = child[0][id]
-              childId = id
-              console.log(child)
-              continue FOR
-            }
-            throw new Error()
-          }
-        }
-      }
-    } catch(e) {
-      throw new Error('Path does not exist')
-    }
-    return child
-  }
-
-  moveChild(newParentId, childId) {
-    let newParent
-    if (!newParentId || newParentId === this.workingDirectoryId) {
-      newParent = this.workingDirectory
-    } else {
-      newParent = this.getParentFromIndex(newParentId)
-    }
-    if (!newParent) {
-      throw new Error('New parent does not exist')
-    }
-    let oldParent = this.findParent(childId)
-    if (!oldParent) {
-      throw new Error('Fatal error. Current parent not found')
-    }
-    newParent[0][childId] = oldParent[0][childId]
-    delete oldParent[0][childId]
-  }
-
-  deleteChild(childId) {
-    let parent = this.findParent(childId)
-    if (!parent) {
-      throw new Error('Fatal error. Current parent not found')
-    }
-    for (let i of parent[0][childId][1]) {
-      let file = i[2]
-      if (this.fileExists(file)) {
-        throw new Error('Can remove a child only if related files do not exist')
-      }
-    }
-    delete parent[0][childId]
-  }
-
-
-  async fixTree() {
-    // TODO
-  }
-
 
 }
 

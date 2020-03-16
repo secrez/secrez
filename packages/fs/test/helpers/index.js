@@ -1,4 +1,4 @@
-const {Crypto, config} = require('@secrez/core')
+const {Crypto, config, Entry} = require('@secrez/core')
 const Node = require('../../src/Node')
 
 const helpers = {
@@ -34,35 +34,41 @@ const helpers = {
 
   },
 
-  initRandomNode: (type, secrez, getItem) => {
-    let item = {
+  initRandomNode: (type, secrez, getEntry) => {
+    let entry = new Entry({
       id: Crypto.getRandomId(),
       name: Crypto.getRandomId() + Crypto.getRandomId(),
       type,
       preserveContent: true
+    })
+    entry = secrez.encryptEntry(entry)
+    entry.set({
+      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.pseudoMicroseconds)
+    })
+    if (getEntry) {
+      return [entry, new Node(entry)]
     }
-    item = secrez.encryptItem(item)
-    item.ts = Crypto.unscrambleTimestamp(item.scrambledTs, item.pseudoMicroseconds)
-    if (getItem) {
-      return [item, new Node(item)]
-    }
-    return new Node(item)
+    return new Node(entry)
   },
 
-  setNewNodeVersion: (item, node, secrez) => {
-    item.id = node.id
-    item.type = node.type
-    item.preserveContent = true
-    item.lastTs = node.lastTs
-    item = secrez.encryptItem(item)
-    item.ts = Crypto.unscrambleTimestamp(item.scrambledTs, item.pseudoMicroseconds)
-    return item
+  setNewNodeVersion: (entry, node, secrez) => {
+    entry.set({
+      id: node.id,
+      type: node.type,
+      preserveContent: true,
+      lastTs: node.lastTs
+    })
+    entry = secrez.encryptEntry(entry)
+    entry.set({
+      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.pseudoMicroseconds)
+    })
+    return entry
   },
 
   getRoot: () => {
-    return new Node({
+    return new Node(new Entry({
       type: config.types.ROOT
-    })
+    }))
   }
 
 }

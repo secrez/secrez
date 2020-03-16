@@ -16,7 +16,7 @@ class Pwd extends require('../Command') {
 
   async exec(options) {
     try {
-      this.Logger.log(`${this.config.secrez.workingDir}`)
+      this.Logger.log(`${this.config.workingDir}`)
     } catch (e) {
       this.Logger.red(e.message)
     }

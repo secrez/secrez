@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const fs = require('fs-extra')
 const path = require('path')
-const {config, Secrez, Crypto} = require('@secrez/core')
+const {config, Secrez, Crypto, Entry} = require('@secrez/core')
 const Node = require('../src/Node')
 const {compareJson, initRandomNode, setNewNodeVersion, getRoot} = require('./helpers')
 
@@ -13,7 +13,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('./helpers/jlog')
 
-describe.only('#Node', function () {
+describe('#Node', function () {
 
   let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
@@ -25,26 +25,26 @@ describe.only('#Node', function () {
     it('should instantiate the Node', async function () {
 
       let root = getRoot()
-      assert.equal(root.id, 'rOOt')
+      assert.equal(root.id, config.rOOt)
 
     })
 
     it('should throw if passing a rot without required parameters', async function () {
 
       try {
-        new Node({
+        new Node(new Entry({
           type: D
-        })
+        }))
         assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Missing parameters')
       }
 
       try {
-        new Node({
+        new Node(new Entry({
           type: D,
           name: 'Some name'
-        })
+        }))
         assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Missing parameters')
@@ -55,10 +55,17 @@ describe.only('#Node', function () {
     it('should throw if not passing an object', async function () {
 
       try {
+        new Node(new Object())
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Node constructor expects an Entry instance')
+      }
+
+      try {
         new Node()
         assert.isFalse(true)
       } catch (e) {
-        assert.equal(e.message, 'Invalid options passed to constructor')
+        assert.equal(e.message, 'Node constructor expects an Entry instance')
       }
 
     })
@@ -66,10 +73,10 @@ describe.only('#Node', function () {
     it('should throw if not passing wrong type', async function () {
 
       try {
-        new Node({
+        new Node(new Entry({
           type: 4,
           name: 'Wrong type'
-        })
+        }))
         assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Unsupported type')
@@ -100,7 +107,7 @@ describe.only('#Node', function () {
       let root = getRoot()
       let options = root.getOptions()
       assert.equal(options.name, undefined)
-      assert.equal(options.id, 'rOOt')
+      assert.equal(options.id, config.rOOt)
     })
 
     it('should throw if version not found', async function () {
@@ -159,7 +166,7 @@ describe.only('#Node', function () {
         file1.add(dir1)
         assert.isFalse(true)
       } catch (e) {
-        assert.equal(e.message, 'This item does not represent a folder')
+        assert.equal(e.message, 'This entry does not represent a folder')
       }
 
     })
@@ -181,9 +188,9 @@ describe.only('#Node', function () {
       let file1 = initRandomNode(F, secrez)
 
       root.add(file1)
-      let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
-      file1.move(item)
-      assert.isTrue(Object.keys(file1.versions).includes(item.ts))
+      let entry = setNewNodeVersion(new Entry({name: 'Some name'}), file1, secrez)
+      file1.move(entry)
+      assert.isTrue(Object.keys(file1.versions).includes(entry.ts))
     })
 
     it('should move a node', async function () {
@@ -198,9 +205,9 @@ describe.only('#Node', function () {
 
       assert.isTrue(!!dir1.children[file1.id])
 
-      let options = file1.getOptions()
-      options.parent = dir2
-      file1.move(options)
+      let entry = file1.getEntry()
+      entry.set({parent: dir2})
+      file1.move(entry)
       assert.isTrue(!dir1.children[file1.id])
       assert.isTrue(!!dir2.children[file1.id])
     })
@@ -230,11 +237,11 @@ describe.only('#Node', function () {
       let file1 = initRandomNode(F, secrez)
 
       root.add(file1)
-      let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
-      item.id = Crypto.getRandomId()
+      let entry = setNewNodeVersion(new Entry({name: 'Some name'}), file1, secrez)
+      entry.id = Crypto.getRandomId()
 
       try {
-        file1.move(item)
+        file1.move(entry)
         assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Id does not match')
@@ -292,8 +299,8 @@ describe.only('#Node', function () {
       dir2.add(dir3)
       dir3.add(file2)
 
-      let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
-      file1.move(item)
+      let entry = setNewNodeVersion(new Entry({name: 'Some name'}), file1, secrez)
+      file1.move(entry)
 
       let json = root.toJSON()
       let minSize = json.c[0].v[0].length
@@ -321,8 +328,8 @@ describe.only('#Node', function () {
       dir3.add([dir4, file2])
       dir4.add(file3)
 
-      let item = setNewNodeVersion({name: 'Some name'}, file1, secrez)
-      file1.move(item)
+      let entry = setNewNodeVersion(new Entry({name: 'Some name'}), file1, secrez)
+      file1.move(entry)
 
       let json = root.toJSON()
       let allFiles = root.getAllFiles()

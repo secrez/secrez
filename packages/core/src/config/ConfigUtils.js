@@ -21,16 +21,15 @@ class ConfigUtils {
       container,
       localWorkingDir
   ) {
-    let s = config.secrez
-    s.root = path.basename(container)
-    s.dataPath = path.join(container, 'data')
-    s.tmpPath = path.join(s.dataPath, '.tmp')
-    s.workingDir = '/'
-    s.localWorkingDir = localWorkingDir
-    s.envPath = path.join(container, '.env.json')
-    s.confPath = path.join(s.dataPath, 'keys.json')
-    await fs.emptyDir(s.tmpPath)
-    await fs.ensureDir(s.dataPath)
+    config.root = path.basename(container)
+    config.dataPath = path.join(container, 'data')
+    config.tmpPath = path.join(config.dataPath, '.tmp')
+    config.workingDir = '/'
+    config.localWorkingDir = localWorkingDir
+    config.envPath = path.join(container, '.env.json')
+    config.confPath = path.join(config.dataPath, 'keys.json')
+    await fs.emptyDir(config.tmpPath)
+    await fs.ensureDir(config.dataPath)
     let readmePath = path.join(container, 'README')
     if (!fs.existsSync(readmePath)) {
       await fs.writeFile(readmePath, `
