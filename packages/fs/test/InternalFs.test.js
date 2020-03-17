@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const {Secrez, config} = require('@secrez/core')
+const {Secrez, config, Entry} = require('@secrez/core')
 const Node = require('../src/Node')
 const InternalFs = require('../src/InternalFs')
 const {initRandomEntry, compareJson} = require('./helpers')
@@ -136,6 +136,54 @@ describe.only('#InternalFs', function () {
       })
       assert.equal(file2.getName(), 'file2')
       assert.equal(root.toJSON().c[0].c.length, 2)
+    })
+
+  })
+
+  describe.only('update', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+      root = internalFs.tree.root
+    })
+
+    it('should create directories and files and update them', async function() {
+
+      let folder1 = await internalFs.make({
+        path: '/folder1',
+        type: config.types.DIR
+      })
+
+      let file1 = await internalFs.make({
+        path: 'folder1/nodir/../file1',
+        type: config.types.FILE,
+        content: 'Password: 373u363y35e'
+      })
+
+      internalFs.tree.workingNode = folder1
+      let file2 = await internalFs.make({
+        path: 'file2',
+        type: config.types.FILE,
+        content: 'PIN: 1234'
+      })
+
+      await internalFs.change({
+        path: '/folder1/file2',
+        content: 'PIN: 5678'
+      })
+
+      await internalFs.change({
+        path: '/folder1/file1',
+        newpath: '/folder1/file3',
+        content: 'PIN: 5678'
+      })
+
+
     })
 
   })

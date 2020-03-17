@@ -67,19 +67,9 @@ class InternalFs {
     }
   }
 
-  async update(entry, node) {
-    if (!entry.id) {
-      throw new Error('Entry has no id')
-    }
-    if (node) {
-      if (node.id !== entry.id) {
-        throw new Error('Id mismatch')
-      }
-    } else {
-      this.tree.root.findChildById(entry.id)
-    }
-    if (!node) {
-      throw new Error('Node does not exist')
+  async update(node, entry) {
+    if (!node || !entry) {
+      throw new Error('A Node and an Entry are required')
     }
     entry.preserveContent = true
     entry = this.secrez.encryptEntry(entry)
@@ -153,6 +143,21 @@ class InternalFs {
       }
     }
     return child
+  }
+
+  async change(options) {
+    if (!options.path || typeof options.path !== 'string') {
+      throw new Error('The "path" option must exist and be of type string')
+    }
+    let p = path.resolve(this.tree.workingNode.getPath(), options.path)
+    // if (options.newPath
+    let node = this.tree.root.getChildFromPath(p)
+    if (!node) {
+      throw new Error('Path does not exist')
+    }
+    let entry = new Entry(Object.assign(options, node.getEntry()))
+    await this.update(node, entry)
+    return node
   }
 
   //////////

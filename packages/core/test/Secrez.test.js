@@ -39,7 +39,7 @@ describe('#Secrez', function () {
 
     it('should use the default ~/.secrez folder', async function () {
 
-      assert.equal(secrez.config.dataPath, homedir() + '/.secrez/data')
+      assert.equal(secrez.config.dataPath, homedir() + '/.secrez/blobs')
       assert.equal(secrez.config.localWorkingDir, homedir())
     })
 
@@ -171,7 +171,7 @@ describe('#Secrez', function () {
         it('trying to signin with the right password but using a wrong hash on file', async function () {
           await secrez.init(rootDir)
           await secrez.signup(password, iterations)
-          let conf = require(secrez.config.confPath)
+          let conf = JSON.parse(await fs.readFile(secrez.config.confPath, 'utf8'))
           conf.data.hash = hash23456iterationsNoSalt
           await fs.writeFile(secrez.config.confPath, JSON.stringify(conf))
           try {
