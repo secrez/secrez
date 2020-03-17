@@ -51,6 +51,15 @@ const helpers = {
     return new Node(entry)
   },
 
+  initRandomEntry: (type) => {
+    return new Entry({
+      id: Crypto.getRandomId(),
+      name: Crypto.getRandomBase58String(16),
+      type,
+      preserveContent: true
+    })
+  },
+
   setNewNodeVersion: (entry, node, secrez) => {
     entry.set({
       id: node.id,

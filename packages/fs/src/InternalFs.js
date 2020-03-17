@@ -3,6 +3,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const {config, Crypto, Entry} = require('@secrez/core')
 const FileSystemsUtils = require('./FsUtils')
+const Node = require('./Node')
 const Tree = require('./Tree')
 
 class InternalFs {
@@ -99,9 +100,11 @@ class InternalFs {
       this.unsave
     }
     root.set({
-      name: Crypto.getRandomBase58String(Math.round(Math.random() * 20)),
-      content: this.tree.root.toJSON()
+      name: Crypto.getRandomBase58String(4),
+      content: JSON.stringify(this.tree.root.toJSON()),
+      preserveContent: true
     })
+    root = this.secrez.encryptEntry(root)
     await this.save(root)
     this.previousRoot = root
   }
@@ -127,33 +130,34 @@ class InternalFs {
     }
   }
 
-  make(options) {
-    let p = options.path
-    try {
-      let [ancestor, remainingPath] = this.tree.workingNode.getChildFromPath(p)
-      p = remainingPath.split('/')
-      let len = p.len
-      for (let i = 0; i < len; i++) {
-        let entry = new Entry({
-          name: p[i]
-        })
-        if (options.content) {
-          entry.set({content: options.content})
-        }
-        // this.add(ancestor
-        let child
-        if (i === len - 1) {
-          child = this.add(ancestor, entry)
-        }
+  async make(options) {
+    if (!options.path || typeof options.path !== 'string') {
+      throw new Error('The "path" option must exist and be of type string')
+    }
+    let p = path.resolve(this.tree.workingNode.getPath(), options.path)
+    let [ancestor, remainingPath] = this.tree.root.getChildFromPath(p, true)
+    p = remainingPath.split('/')
+    let len = p.length
+    let child
+    for (let i = 0; i < len; i++) {
+      let entry = new Entry({
+        name: p[i],
+        type: options.type
+      })
+      if (options.type === config.types.FILE && options.content) {
+        entry.set({content: options.content})
+      }
+      child = await this.add(ancestor, entry)
+      if (i < len - 1) {
         ancestor = child
       }
-    } catch (e) {
-      return e.message
     }
+    return child
   }
 
   //////////
 
+  /*
   pickDir(parent, d, id) {
     for (let p in parent) {
       if (d) {
@@ -444,6 +448,8 @@ class InternalFs {
   //   }
   // }
 
+
+   */
 
 }
 

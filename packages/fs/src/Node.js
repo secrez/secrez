@@ -56,8 +56,11 @@ class Node {
   static fromJSON(json, secrez, allFiles) {
     // It takes an already parsed object to make it an instance of the class.
     // It needs the list of files on disk to correctly recover timestamps and names
-
     let minSize
+
+    if (typeof json === 'string') {
+      json = JSON.parse(json)
+    }
     for (let c of json.c) {
       minSize = c.v[0].length
     }
@@ -94,10 +97,10 @@ class Node {
     let [A, C] = a.ts.split('.').map(e => parseInt(e))
     let [B, D] = b.ts.split('.').map(e => parseInt(e))
     return (
-        A > B ? 1
-            : A < B ? -1
-            : C > D ? 1
-                : C < D ? -1
+        A > B ? -1
+            : A < B ? 1
+            : C > D ? -1
+                : C < D ? 1
                     : 0
     )
   }
@@ -362,6 +365,17 @@ class Node {
       p = '/' + p
     }
     return p
+  }
+
+  getPath() {
+
+    let p = ''
+    let node = this
+    while (node.id !== config.rOOt) {
+      p = node.getName() + (p ? '/' + p : '')
+      node = node.parent
+    }
+    return '/' + p
   }
 
   getOptions() {

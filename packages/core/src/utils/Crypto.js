@@ -36,19 +36,14 @@ class Crypto {
   }
 
   static getRandomBase58String(size) {
-    let len = Crypto.base58Alphabet.length
-    let ret = ''
-    for (let i = 0; i < size; i++) {
-      ret += Crypto.base58Alphabet[Math.round(len * Math.random()) % len]
-    }
-    return ret
+    return bs58.encode(Buffer.from(randomBytes(size))).substring(0, size)
   }
 
   static getRandomId(allIds) {
     let id
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      id = bs58.encode(Buffer.from(randomBytes(4))).substring(0, 4)
+      id = Crypto.getRandomBase58String(4)
       if (allIds) {
         /* istanbul ignore if  */
         if (allIds[id]) {

@@ -37,7 +37,7 @@ class Tree {
 
     const setWarning = () => {
       if (!this.errors.length || this.errors[0].message !== warning) {
-        this.errors[0].unshift({
+        this.errors.unshift({
           type: 'warning',
           message: warning
         })
@@ -51,8 +51,11 @@ class Tree {
       this.notEmpty = true
       try {
         let entry = new Entry({
-          encryptedName: file
+          encryptedName: file,
+          preserveContent: true
         })
+        // console.log(entry.get())
+
         if (file[file.length - 1] === 'O') {
           // there is an extraName
           let content = await fs.readFile(file, 'utf8')
@@ -66,7 +69,7 @@ class Tree {
         }
         let decryptedEntry = this.secrez.decryptEntry(entry)
         if (decryptedEntry.type === config.types.ROOT) {
-          let content = await fs.readFile(file, 'utf8')
+          let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
           entry.set({
             encryptedContent: content.split('I')[0]
           })
@@ -88,10 +91,9 @@ class Tree {
 
         allIndexes.sort(Node.sortEntry)
         allFiles.sort(Node.sortEntry)
-
-        let json = allIndexes[0].decryptedContent
+        let json = allIndexes[0].content
         try {
-          this.root = Node.fromJSON(JSON.parse(json), allFiles.map(e => e.encryptedName))
+          this.root = Node.fromJSON(json, this.secrez, allFiles.map(e => e.encryptedName))
         } catch(e) {
           setWarning()
         }
