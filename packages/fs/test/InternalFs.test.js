@@ -238,7 +238,7 @@ describe('#InternalFs', function () {
       assert.equal(file2.getName(), 'file2')
       assert.equal(file2.getContent(), 'PIN: 1234')
 
-      jlog(internalFs.tree.root.toJSON(undefined, true))
+      // jlog(internalFs.tree.root.toJSON(undefined, true))
 
       await internalFs.change({
         path: '/folder1/file1',
@@ -248,17 +248,17 @@ describe('#InternalFs', function () {
       assert.equal(file1.getName(), 'file3')
       assert.equal(file1.parent.getName(), 'folder1')
 
-      jlog(internalFs.tree.root.toJSON(undefined, true))
+      // jlog(internalFs.tree.root.toJSON(undefined, true))
 
       await internalFs.change({
         path: '/folder1/file3',
         newPath: '/folder2/file4'
       })
 
-
       assert.equal(file1.getName(), 'file4')
       assert.equal(file1.parent.getName(), 'folder2')
 
+      jlog(internalFs.tree.root.toJSON(undefined, true))
 
       await internalFs.change({
         path: '/folder1/file2',
