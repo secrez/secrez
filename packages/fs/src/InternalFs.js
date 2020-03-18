@@ -1,4 +1,4 @@
-const _ = require('lodash')
+// const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const {config, Crypto, Entry} = require('@secrez/core')
@@ -84,6 +84,23 @@ class InternalFs {
     }
   }
 
+  async rm(node) {
+    if (!node) {
+      throw new Error('A Node is required')
+    }
+    let entry = node.getEntry()
+    console.log(entry)
+    // try {
+    //   await this.save(entry)
+    //   node.move(entry)
+    //   await this.saveTree()
+    //   return node
+    // } catch (e) {
+    //   this.unsave(entry)
+    //   throw e
+    // }
+  }
+
   async saveTree() {
     let root = this.tree.root.getEntry()
     if (this.previousRoot) {
@@ -121,42 +138,79 @@ class InternalFs {
   }
 
   async make(options) {
-    if (!options.path || typeof options.path !== 'string') {
-      throw new Error('The "path" option must exist and be of type string')
-    }
-    let p = path.resolve(this.tree.workingNode.getPath(), options.path)
+    let p = this.normalizePath(options.path)
     let [ancestor, remainingPath] = this.tree.root.getChildFromPath(p, true)
     p = remainingPath.split('/')
     let len = p.length
     let child
     for (let i = 0; i < len; i++) {
+      let notLast = i < len - 1
       let entry = new Entry({
         name: p[i],
-        type: options.type
+        type: notLast ? config.types.DIR : options.type
       })
       if (options.type === config.types.FILE && options.content) {
         entry.set({content: options.content})
       }
       child = await this.add(ancestor, entry)
-      if (i < len - 1) {
+      if (notLast) {
         ancestor = child
       }
     }
     return child
   }
 
-  async change(options) {
-    if (!options.path || typeof options.path !== 'string') {
+  normalizePath(p) {
+    if (!p || typeof p !== 'string') {
       throw new Error('The "path" option must exist and be of type string')
     }
-    let p = path.resolve(this.tree.workingNode.getPath(), options.path)
-    // if (options.newPath
+    p = p.replace(/^~+/, '/').replace(/~+/g, '')
+    p = path.resolve(this.tree.workingNode.getPath(), p)
+    for (let v of p.split('/')) {
+      if (v.length > 255) {
+        throw new Error('File names cannot be longer that 255 characters')
+      }
+    }
+    return p
+  }
+
+  async change(options) {
+    let p = this.normalizePath(options.path)
+    let n
+    if (options.newPath) {
+      n = this.normalizePath(options.newPath)
+      if (p === n) {
+        n = undefined
+      }
+    }
+
     let node = this.tree.root.getChildFromPath(p)
     if (!node) {
       throw new Error('Path does not exist')
     }
     let entry = new Entry(Object.assign(options, node.getEntry()))
+    let [ancestor, remainingPath] = n ? this.tree.root.getChildFromPath(n, true) : []
+    if (ancestor) {
+      remainingPath = remainingPath.split('/')
+      if (remainingPath.length > 1) {
+        throw new Error('Cannot move a node to a not existing folder')
+      }
+      entry.name = remainingPath
+      if (ancestor.id !== node.parent.id) {
+        entry.parent = ancestor
+      }
+    }
     await this.update(node, entry)
+    return node
+  }
+
+  async remove(options) {
+    let p = this.normalizePath(options.path)
+    let node = this.tree.root.getChildFromPath(p)
+    if (!node) {
+      throw new Error('Path does not exist')
+    }
+    await this.rm(node)
     return node
   }
 

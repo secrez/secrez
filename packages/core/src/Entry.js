@@ -1,5 +1,3 @@
-const _ = require('lodash')
-
 class Entry {
 
   isValid(option) {

@@ -39,12 +39,14 @@ class Node {
 
         this.parent = entry.parent
       }
-
       this.versions = {}
       this.lastTs = entry.ts
       this.versions[entry.ts] = {
         name: entry.name,
         file: entry.encryptedName
+      }
+      if (entry.content) {
+        this.versions[entry.ts].content = entry.content
       }
     }
   }
@@ -133,7 +135,10 @@ class Node {
     return node
   }
 
-  toJSON(minSize) {
+  toJSON(
+      minSize,
+      verbose // for testing purposes only
+  ) {
     // prepare the object to be stringified and saved on disk
 
     const result = {
@@ -144,15 +149,26 @@ class Node {
       minSize = this.calculateMinSize()
     }
 
-    if (this.versions)
+    if (this.versions) {
       for (let ts in this.versions) {
-        result.v.push(this.versions[ts].file.substring(0, minSize))
+        let version = this.versions[ts]
+        let str = version.file.substring(0, minSize)
+        if (verbose) {
+          result.v.push(str + ' ' + ts + ' ' + version.name)
+        } else {
+          result.v.push(str)
+        }
       }
-
+      if (verbose) {
+        result.id = this.id
+        result.l = this.lastTs
+      }
+    }
     if (this.children) {
       result.c = []
       for (let id in this.children) {
-        result.c.push(this.children[id].toJSON(minSize))
+        let child = this.children[id]
+        result.c.push(child.toJSON(minSize, verbose))
       }
     }
 
@@ -247,7 +263,7 @@ class Node {
     }
     for (let c in node.children) {
       let child = node.children[c]
-      if (child.versions[child.lastTs].name === name) {
+      if (child.getName() === name) {
         return child
       }
     }
@@ -279,6 +295,7 @@ class Node {
   }
 
   getChildFromPath(p, returnCloserAncestor) {
+    console.log(p, returnCloserAncestor)
     p = p.split('/')
     let node
     let ancestorNode
@@ -422,6 +439,9 @@ class Node {
       this.versions[entry.ts] = {
         name: entry.name,
         file: entry.encryptedName
+      }
+      if (entry.content) {
+        this.versions[entry.ts].content = entry.content
       }
       this.lastTs = entry.ts
     } // else we are just moving it on the tree because versions are immutable

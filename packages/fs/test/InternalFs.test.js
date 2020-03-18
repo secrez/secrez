@@ -2,10 +2,10 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const {Secrez, config, Entry} = require('@secrez/core')
+const {Secrez, config} = require('@secrez/core')
 const Node = require('../src/Node')
 const InternalFs = require('../src/InternalFs')
-const {initRandomEntry, compareJson} = require('./helpers')
+const {compareJson} = require('./helpers')
 
 const {
   password,
@@ -15,12 +15,10 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('./helpers/jlog')
 
-describe.only('#InternalFs', function () {
+describe('#InternalFs', function () {
 
   let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-  const D = config.types.DIR
-  const F = config.types.FILE
   let internalFs
   let root
 
@@ -54,7 +52,7 @@ describe.only('#InternalFs', function () {
       try {
         new InternalFs(new Object())
         assert.isFalse(true)
-      } catch(e) {
+      } catch (e) {
         assert.equal(e.message, 'InternalFs requires a Secrez instance during construction')
       }
 
@@ -99,6 +97,57 @@ describe.only('#InternalFs', function () {
 
   })
 
+  describe('normalizePath', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+    })
+
+    it('should normalize a path', async function () {
+      let p = 'casa/sasa/sasa/./cas/../../ra'
+      assert.equal(internalFs.normalizePath(p), '/casa/sasa/ra')
+
+      p = '~~~///casa/sasa//../../ra'
+      assert.equal(internalFs.normalizePath(p), '/ra')
+
+      p = '~~~///~/casa/~~/sasa//../ra'
+      assert.equal(internalFs.normalizePath(p), '/casa/ra')
+
+    })
+
+    it('should throw if the path is empty, is not a string or is longer than 255 chars', async function () {
+
+      try {
+        let p = 123
+        internalFs.normalizePath(p)
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'The "path" option must exist and be of type string')
+      }
+
+      try {
+        internalFs.normalizePath()
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'The "path" option must exist and be of type string')
+      }
+
+      try {
+        let p = '/vi/'+ 'a'.repeat(300)
+        internalFs.normalizePath(p)
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'File names cannot be longer that 255 characters')
+      }
+
+    })
+  })
+
   describe('make', async function () {
 
     beforeEach(async function () {
@@ -111,7 +160,7 @@ describe.only('#InternalFs', function () {
       root = internalFs.tree.root
     })
 
-    it('should create directories and files', async function() {
+    it('should create directories and files', async function () {
 
       let folder1 = await internalFs.make({
         path: '/folder1',
@@ -126,6 +175,7 @@ describe.only('#InternalFs', function () {
         content: 'Password: 373u363y35e'
       })
       assert.equal(file1.getName(), 'file1')
+      assert.equal(file1.getContent(), 'Password: 373u363y35e')
       assert.equal(root.toJSON().c[0].c[0].v[0], '2')
 
       internalFs.tree.workingNode = folder1
@@ -136,6 +186,13 @@ describe.only('#InternalFs', function () {
       })
       assert.equal(file2.getName(), 'file2')
       assert.equal(root.toJSON().c[0].c.length, 2)
+
+      let dir = await internalFs.make({
+        path: 'folder1/nodir/bilit/dir',
+        type: config.types.FILE
+      })
+      assert.equal(dir.getName(), 'dir')
+
     })
 
   })
@@ -152,10 +209,15 @@ describe.only('#InternalFs', function () {
       root = internalFs.tree.root
     })
 
-    it('should create directories and files and update them', async function() {
+    it('should create directories and files and update them', async function () {
 
       let folder1 = await internalFs.make({
         path: '/folder1',
+        type: config.types.DIR
+      })
+
+      let folder2 = await internalFs.make({
+        path: '/folder2',
         type: config.types.DIR
       })
 
@@ -170,6 +232,67 @@ describe.only('#InternalFs', function () {
         path: 'file2',
         type: config.types.FILE,
         content: 'PIN: 1234'
+      })
+
+      assert.equal(file1.getName(), 'file1')
+      assert.equal(file2.getName(), 'file2')
+      assert.equal(file2.getContent(), 'PIN: 1234')
+
+      // jlog(internalFs.tree.root.toJSON(undefined, true))
+
+      await internalFs.change({
+        path: '/folder1/file1',
+        newPath: '/folder1/file3'
+      })
+
+      assert.equal(file1.getName(), 'file3')
+      assert.equal(file1.parent.getName(), 'folder1')
+
+      // jlog(internalFs.tree.root.toJSON(undefined, true))
+
+      await internalFs.change({
+        path: '/folder1/file3',
+        newPath: '/folder2/file4'
+      })
+
+
+      assert.equal(file1.getName(), 'file4')
+      assert.equal(file1.parent.getName(), 'folder2')
+
+
+      await internalFs.change({
+        path: '/folder1/file2',
+        content: 'PIN: 5678'
+      })
+
+      assert.equal(file2.getContent(), 'PIN: 5678')
+    })
+
+  })
+
+  describe('remove', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+      root = internalFs.tree.root
+    })
+
+    it('should remove a file from the tree', async function () {
+
+      let folder1 = await internalFs.make({
+        path: '/folder1',
+        type: config.types.DIR
+      })
+
+      await internalFs.make({
+        path: 'folder1/nodir/../file1',
+        type: config.types.FILE,
+        content: 'Password: 373u363y35e'
       })
 
       await internalFs.change({
@@ -199,7 +322,7 @@ describe.only('#InternalFs', function () {
       await internalFs.init()
     })
 
-    it('should create directories and files and loading a tree from disk', async function() {
+    it('should create directories and files and loading a tree from disk', async function () {
 
       await internalFs.make({
         path: '/folder1',
