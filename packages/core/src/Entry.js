@@ -15,7 +15,7 @@ class Entry {
       'content',
       'encryptedName',
       'encryptedContent',
-      'pseudoMicroseconds',
+      'microseconds',
       'extraName',
       'nameId',
       'nameTs',

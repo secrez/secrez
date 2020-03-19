@@ -40,7 +40,7 @@ class InternalFs {
             : ''
     await fs.writeFile(fullPath, encryptedContent)
     entry.set({
-      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.pseudoMicroseconds)
+      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
     })
     return entry
   }

@@ -381,7 +381,7 @@ describe('#Secrez', function () {
           encryptedData.encryptedContent = encryptedData2.encryptedContent
           encryptedData.set({
             nameId: id,
-            nameTs: Crypto.unscrambleTimestamp(encryptedData.scrambledTs, encryptedData.pseudoMicroseconds)
+            nameTs: Crypto.unscrambleTimestamp(encryptedData.scrambledTs, encryptedData.microseconds)
           })
           encryptedData.unset(['encryptedName'])
           secrez.decryptEntry(encryptedData)

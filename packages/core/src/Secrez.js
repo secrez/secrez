@@ -150,8 +150,7 @@ class Secrez {
       name,
       content,
       preserveContent,
-      id,
-      lastTs
+      id
     } = entry.get()
 
     if (this.masterKey) {
@@ -160,19 +159,19 @@ class Secrez {
         throw new Error('Unsupported type')
       }
 
-      let [scrambledTs, pseudoMicroseconds] = Crypto.scrambledTimestamp(lastTs)
+      let [scrambledTs, microseconds] = Crypto.scrambledTimestamp()
       let encryptedEntry = new Entry({
         id,
         type,
         scrambledTs,
-        pseudoMicroseconds
+        microseconds
       })
       if (name) {
         let encryptedName = type + Crypto.encrypt(
             id
             + scrambledTs
             + Crypto.randomCharNotInBase58()
-            + pseudoMicroseconds
+            + microseconds
             + Crypto.randomCharNotInBase58()
             + name,
             this.masterKey
@@ -199,7 +198,7 @@ class Secrez {
               id
               + scrambledTs
               + Crypto.randomCharNotInBase58()
-              + pseudoMicroseconds
+              + microseconds
               + Crypto.randomCharNotInBase58()
               + content,
               this.masterKey
