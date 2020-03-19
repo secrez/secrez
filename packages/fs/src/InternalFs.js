@@ -25,6 +25,10 @@ class InternalFs {
 
   async save(entry) {
     let fullPath = path.join(this.dataPath, entry.encryptedName)
+    /* istanbul ignore if  */
+    if (fs.existsSync(fullPath)) {
+      throw new Error('File already exists')
+    }
     let encryptedContent =
         entry.encryptedContent || entry.extraName
             ? (entry.encryptedContent || '') +
@@ -85,23 +89,6 @@ class InternalFs {
     }
   }
 
-  async rm(node) {
-    if (!node) {
-      throw new Error('A Node is required')
-    }
-    let entry = node.getEntry()
-    console.log(entry.get())
-    try {
-      await this.save(entry)
-      node.move(entry)
-      await this.saveTree()
-      return node
-    } catch (e) {
-      this.unsave(entry)
-      throw e
-    }
-  }
-
   async saveTree() {
     let root = this.tree.root.getEntry()
     if (this.previousRoot) {
@@ -109,8 +96,9 @@ class InternalFs {
     }
     root.set({
       name: Crypto.getRandomBase58String(4),
-      content: JSON.stringify(this.tree.root.toJSON()),
-      preserveContent: true
+      content: JSON.stringify(this.tree.root.toJSON(null, null, await this.tree.getAllFiles())),
+      preserveContent: true,
+      lastTs: this.previousRoot ? this.previousRoot.lastTs : undefined
     })
     root = this.secrez.encryptEntry(root)
     await this.save(root)
@@ -211,8 +199,11 @@ class InternalFs {
     if (!node) {
       throw new Error('Path does not exist')
     }
-    await this.rm(node)
-    return node
+    let deletedEntries = await node.remove(options.versions || node.lastTs)
+    this.tree.addToDeletedEntries(deletedEntries)
+    await this.saveTree()
+
+    return true
   }
 
   //////////

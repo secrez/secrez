@@ -59,10 +59,10 @@ class Node {
     // It takes an already parsed object to make it an instance of the class.
     // It needs the list of files on disk to correctly recover timestamps and names
     let minSize
-
     if (typeof json === 'string') {
       json = JSON.parse(json)
     }
+
     for (let c of json.c) {
       minSize = c.v[0].length
     }
@@ -71,7 +71,12 @@ class Node {
       files[f.substring(0, minSize)] = f
     }
     json = Node.preFormat(json, secrez, files)
-    return Node.initNode(json)
+    let root = Node.initNode(json)
+    let f = Object.values(files)
+    if (f.length) {
+      root.deletedEntries = f.map(e => e.substring(0, 16))
+    }
+    return root
   }
 
   static preFormat(json, secrez, files) {
@@ -84,6 +89,7 @@ class Node {
         let obj = entry.get(['id', 'ts', 'name'])
         obj.encryptedName = files[v]
         json.V.push(obj)
+        delete files[v]
       }
       json.V.sort(Node.sortEntry)
     }
@@ -137,7 +143,8 @@ class Node {
 
   toJSON(
       minSize,
-      verbose // for testing purposes only
+      verbose, // for testing purposes only
+      allFiles // in a real scenario, when called by Tree, this should be passed listing all the files in config.dataPath
   ) {
     // prepare the object to be stringified and saved on disk
 
@@ -146,7 +153,7 @@ class Node {
     }
 
     if (this.type === config.types.ROOT) {
-      minSize = this.calculateMinSize()
+      minSize = this.calculateMinSize(allFiles)
     }
 
     if (this.versions) {
@@ -193,8 +200,11 @@ class Node {
     return result
   }
 
-  calculateMinSize() {
-    let allFiles = this.getAllFiles()
+  calculateMinSize(allFiles) {
+
+    if (!allFiles) {
+      allFiles = this.getAllFiles()
+    }
     let min = 0
     let minSize
     let arr = {}
@@ -254,15 +264,15 @@ class Node {
     }
   }
 
-  static findDirectChildByName(node, name) {
-    if (node.type === config.types.FILE) {
+  findDirectChildByName(name) {
+    if (this.type === config.types.FILE) {
       throw new Error('A file does not have children')
     }
     if (!name) {
       throw new Error('Name parameter is missing')
     }
-    for (let c in node.children) {
-      let child = node.children[c]
+    for (let c in this.children) {
+      let child = this.children[c]
       if (child.getName() === name) {
         return child
       }
@@ -323,7 +333,7 @@ class Node {
               }
               break
             default:
-              node = Node.findDirectChildByName(this, name)
+              node = this.findDirectChildByName(name)
           }
         } else {
           switch (name) {
@@ -338,7 +348,7 @@ class Node {
               }
               break
             default:
-              node = Node.findDirectChildByName(node, name)
+              node = node.findDirectChildByName(name)
           }
         }
         if (!node) {
@@ -446,19 +456,17 @@ class Node {
     } // else we are just moving it on the tree because versions are immutable
 
     if (Node.isNode(entry.parent)) {
-// console.log(entry.parent.id, this.parent.id)
-//       console.log(entry.parent.getName(), this.parent.getName())
-
       if (entry.parent.id !== this.parent.id) {
-        this.parent.remove(this)
+        this.parent.removeChild(this)
         entry.parent.add(this)
-        this.parent = entry.parent
+        // this.parent = entry.parent
       }
     }
   }
 
   remove(versions = []) {
     // This apply to the node itself
+    let deletedFiles = []
     if (this.parent) {
       if (!Array.isArray(versions)) {
         versions = [versions]
@@ -466,16 +474,21 @@ class Node {
       let deleteAll = versions.length === 0
       for (let v in this.versions) {
         if (deleteAll || versions.includes(v)) {
-          1
+          deletedFiles.push(this.versions[v].file)
+          delete this.versions[v]
         }
       }
-
-
-
-      this.parent.remove(this)
+      if (!Object.keys(this.versions).length && this.parent.children[this.id]) {
+        this.parent.removeChild(this)
+      }
+      return deletedFiles
     } else {
       throw new Error('Root cannot be removed')
     }
+  }
+
+  removeChild(child) {
+    delete this.children[child.id]
   }
 
 }

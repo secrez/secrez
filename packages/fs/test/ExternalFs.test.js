@@ -6,7 +6,7 @@ const {config, Secrez} = require('@secrez/core')
 
 const ExternalFs = require('../src/ExternalFs')
 
-describe('#ExternalFs', function () {
+describe.skip('#ExternalFs', function () {
 
   let secrez
   let externalFs

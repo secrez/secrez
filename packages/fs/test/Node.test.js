@@ -3,7 +3,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const {config, Secrez, Crypto, Entry} = require('@secrez/core')
 const Node = require('../src/Node')
-const {compareJson, initRandomNode, setNewNodeVersion, initARootNode} = require('./helpers')
+const {jsonEqual, initRandomNode, setNewNodeVersion, initARootNode} = require('./helpers')
 
 const {
   password,
@@ -258,7 +258,13 @@ describe('#Node', function () {
 
       let entry = file1.getEntry()
       entry.set({parent: dir2})
+
+      // jlog(root.toJSON(null, true))
+
       file1.move(entry)
+
+      // jlog(root.toJSON(null, true))
+
       assert.isTrue(!dir1.children[file1.id])
       assert.isTrue(!!dir2.children[file1.id])
     })
@@ -321,7 +327,7 @@ describe('#Node', function () {
       dir1.add(file1)
 
       assert.isTrue(!!dir1.children[file1.id])
-      dir1.remove(file1)
+      file1.remove()
       assert.isTrue(!dir1.children[file1.id])
     })
 
@@ -419,7 +425,9 @@ describe('#Node', function () {
       json2.c[0] = json2.c[1]
       json2.c[1] = child
 
-      assert.isTrue(compareJson(root.toJSON(), json2))
+      assert.isTrue(jsonEqual(root.toJSON(), json2))
+
+      assert.equal(root.toJSON(null, true).c[0].id, dir1.id)
 
     })
   })
@@ -664,6 +672,83 @@ describe('#Node', function () {
 
 
     })
+
+
+  })
+
+  describe('#findDirectChildByName && #findChildById', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(rootDir)
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+    })
+
+    it('should find a direct child by name and by id', async function () {
+
+      let root = initARootNode()
+      let dir1 = initRandomNode(D, secrez)
+      let dir2 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+
+      root.add(dir1)
+      dir1.add(dir2)
+      dir2.add(file1)
+      assert.equal(dir1.findChildById(file1.id).getName(), file1.getName())
+      assert.equal(dir2.findDirectChildByName(file1.getName()).getName(), file1.getName())
+
+    })
+
+    it('should throw if looking for child of a file', async function () {
+
+      let root = initARootNode()
+      let dir1 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+      root.add([file1, dir1])
+
+      try {
+        file1.findChildById()
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'A file does not have children')
+      }
+
+      try {
+        file1.findDirectChildByName(dir1.getName())
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'A file does not have children')
+      }
+
+
+    })
+
+    it('should throw if looking for child of a file', async function () {
+
+      let root = initARootNode()
+      let dir1 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez)
+      root.add([file1, dir1])
+
+      try {
+        dir1.findChildById()
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Id parameter is missing')
+      }
+
+      try {
+        dir1.findDirectChildByName()
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Name parameter is missing')
+      }
+
+
+    })
+
+
 
 
   })

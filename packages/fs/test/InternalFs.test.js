@@ -5,7 +5,7 @@ const path = require('path')
 const {Secrez, config} = require('@secrez/core')
 const Node = require('../src/Node')
 const InternalFs = require('../src/InternalFs')
-const {compareJson} = require('./helpers')
+const {jsonEqual} = require('./helpers')
 
 const {
   password,
@@ -138,7 +138,7 @@ describe('#InternalFs', function () {
       }
 
       try {
-        let p = '/vi/'+ 'a'.repeat(300)
+        let p = '/vi/' + 'a'.repeat(300)
         internalFs.normalizePath(p)
         assert.isFalse(true)
       } catch (e) {
@@ -195,6 +195,24 @@ describe('#InternalFs', function () {
 
     })
 
+    it('should throw trying to re-add the same entry', async function () {
+
+      let folder1 = await internalFs.make({
+        path: '/folder1',
+        type: config.types.DIR
+      })
+
+      try {
+        await internalFs.make({
+          path: '/folder1',
+          type: config.types.DIR
+        })
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Ancestor not found')
+      }
+    })
+
   })
 
   describe('update', async function () {
@@ -234,18 +252,15 @@ describe('#InternalFs', function () {
         content: 'PIN: 1234'
       })
 
-      // jlog(internalFs.tree.root.toJSON(undefined, true))
-
       assert.equal(file1.getName(), 'file1')
       assert.equal(file2.getName(), 'file2')
       assert.equal(file2.getContent(), 'PIN: 1234')
 
       await internalFs.change({
         path: '/folder1/file1',
-        newPath: '/folder1/file3'
+        newPath: '/folder1/file3',
+        content: 'Some password'
       })
-
-      // jlog(internalFs.tree.root.toJSON(undefined, true))
 
       assert.equal(file1.getName(), 'file3')
       assert.equal(file1.parent.getName(), 'folder1')
@@ -254,8 +269,6 @@ describe('#InternalFs', function () {
         path: '/folder1/file3',
         newPath: '/folder2/file4'
       })
-
-      // jlog(internalFs.tree.root.toJSON(undefined, true))
 
       assert.equal(file1.getName(), 'file4')
       assert.equal(file1.parent.getName(), 'folder2')
@@ -271,7 +284,7 @@ describe('#InternalFs', function () {
 
   })
 
-  describe.only('remove', async function () {
+  describe('remove', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(rootDir)
@@ -296,13 +309,16 @@ describe('#InternalFs', function () {
         content: 'Password: 373u363y35e'
       })
 
+      assert.equal(Object.keys(folder1.children).length, 1)
+      // jlog(root.toJSON(undefined, true))
+
       await internalFs.remove({
         path: '/folder1/file1'
       })
 
+      // jlog(root.toJSON(undefined, true))
 
-
-
+      assert.equal(Object.keys(folder1.children).length, 0)
     })
 
   })
@@ -318,7 +334,7 @@ describe('#InternalFs', function () {
       await internalFs.init()
     })
 
-    it('should create directories and files and loading a tree from disk', async function () {
+    it.skip('should create directories and files and loading a tree from disk', async function () {
 
       await internalFs.make({
         path: '/folder1',
@@ -337,12 +353,48 @@ describe('#InternalFs', function () {
 
       let internalFs2 = new InternalFs(secrez)
       await internalFs2.init()
-      await internalFs2.tree.load()
       root = internalFs2.tree.root
 
       let file1b = root.findChildById(file1.id)
       assert.equal(file1b.getName(), file1.getName())
-      assert.isTrue(compareJson(root.toJSON(), internalFs.tree.root.toJSON()))
+      assert.isTrue(jsonEqual(root.toJSON(), internalFs.tree.root.toJSON()))
+
+    })
+
+    it('should create directories and files, delete one file and loading a tree from disk', async function () {
+
+      await internalFs.make({
+        path: '/folder1',
+        type: config.types.DIR
+      })
+      let file1 = await internalFs.make({
+        path: 'folder1/nodir/../file1',
+        type: config.types.FILE,
+        content: 'Password: 373u363y35e'
+      })
+      await internalFs.make({
+        path: 'folder1/file2',
+        type: config.types.FILE,
+        content: 'PIN: 1234'
+      })
+
+      await internalFs.remove({
+        path: 'folder1/file2'
+      })
+
+      let internalFs2 = new InternalFs(secrez)
+      await internalFs2.init()
+      root = internalFs2.tree.root
+
+      let file1b = root.findChildById(file1.id)
+      assert.equal(file1b.getName(), file1.getName())
+      let json1 = root.toJSON(null, null, await internalFs.tree.getAllFiles())
+      let json2 = internalFs.tree.root.toJSON(null, null, await internalFs.tree.getAllFiles())
+
+      assert.isTrue(jsonEqual(json1, json2))
+
+      assert.equal(internalFs.tree.deletedEntries.length, 1)
+      assert.equal(internalFs2.tree.deletedEntries.length, 1)
 
     })
 

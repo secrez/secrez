@@ -24,6 +24,10 @@ class Tree {
     }
   }
 
+  async getAllFiles() {
+    return (await fs.readdir(this.dataPath)).filter(file => !/\./.test(file))
+  }
+
   async load() {
 
     if (this.status === this.statutes.LOADED) {
@@ -32,7 +36,7 @@ class Tree {
 
     let allIndexes = []
     let allFiles = []
-    let files = await fs.readdir(this.dataPath)
+    let files = await this.getAllFiles()
     let warning = 'The database looks corrupted. Execute `fix tree` to fix it.'
 
     const setWarning = () => {
@@ -45,9 +49,6 @@ class Tree {
     }
 
     for (let file of files) {
-      if (/\./.test(file)) {
-        continue
-      }
       this.notEmpty = true
       try {
         let entry = new Entry({
@@ -94,6 +95,10 @@ class Tree {
         let json = allIndexes[0].content
         try {
           this.root = Node.fromJSON(json, this.secrez, allFiles.map(e => e.encryptedName))
+          if (this.root.deletedEntries) {
+            this.addToDeletedEntries(this.root.deletedEntries)
+            delete this.root.deletedEntries
+          }
         } catch(e) {
           setWarning()
         }
@@ -108,6 +113,30 @@ class Tree {
     }
     this.workingNode = this.root
     this.status = this.statutes.LOADED
+  }
+
+  addToDeletedEntries(deletedEntries = []) {
+    if (deletedEntries.length) {
+      if (!this.deletedEntries) {
+        this.deletedEntries = []
+      }
+      for (let d of deletedEntries) {
+        if (!this.deletedEntries.includes(d)) {
+          this.deletedEntries.push(d)
+        }
+      }
+    }
+  }
+
+  removeFromDeletedEntries(undeletedEntries = []) {
+    // reversing a deletion, in a future version
+    if (undeletedEntries.length && this.deletedEntries) {
+      for (let d of undeletedEntries) {
+        if (this.deletedEntries.includes(d)) {
+          this.deletedEntries = this.deletedEntries.filter(e => e !== d)
+        }
+      }
+    }
   }
 
 }

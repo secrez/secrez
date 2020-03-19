@@ -4,7 +4,7 @@ const Node = require('../../src/Node')
 const helpers = {
 
 
-  compareJson: (j, k) => {
+  jsonEqual: (j, k) => {
 
 
     if (j.id !== k.id) return false
@@ -26,7 +26,7 @@ const helpers = {
       j.c.sort(s)
       k.c.sort(s)
       for (let i = 0; i < j.c.length; i++) {
-        if (!helpers.compareJson(j.c[i], k.c[i])) return false
+        if (!helpers.jsonEqual(j.c[i], k.c[i])) return false
       }
     }
 
