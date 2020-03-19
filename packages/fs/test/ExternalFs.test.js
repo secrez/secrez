@@ -6,7 +6,7 @@ const {config, Secrez} = require('@secrez/core')
 
 const ExternalFs = require('../src/ExternalFs')
 
-describe.skip('#ExternalFs', function () {
+describe('#ExternalFs', function () {
 
   let secrez
   let externalFs
@@ -56,14 +56,14 @@ describe.skip('#ExternalFs', function () {
     it('should return a list of files', async function () {
       files = './fixtures/tree'
       results = await externalFs.fileCompletion(files)
-      assert.equal(results.length, 5)
+      assert.equal(results.length, 4)
 
     })
 
     it('should return a list of only directories', async function () {
       files = './fixtures/tree'
       results = await externalFs.fileCompletion(files, config.onlyDir)
-      assert.equal(results.length, 2)
+      assert.equal(results.length, 1)
 
     })
 
@@ -77,7 +77,7 @@ describe.skip('#ExternalFs', function () {
     it('should return the list of the parent folder if files is a file', async function () {
       files = './fixtures/tree/a'
       results = await externalFs.fileCompletion(files)
-      assert.equal(results.length, 5)
+      assert.equal(results.length, 4)
 
     })
 
@@ -179,7 +179,7 @@ describe.skip('#ExternalFs', function () {
     it('should return a list of files as "ls ./"', async function () {
       files = './'
       results = await externalFs.ls(files)
-      assert.equal(results.length, 5)
+      assert.equal(results.length, 4)
 
     })
 
@@ -187,7 +187,7 @@ describe.skip('#ExternalFs', function () {
       await externalFs.cd('d')
       files = '..'
       results = await externalFs.ls(files)
-      assert.equal(results.length, 5)
+      assert.equal(results.length, 4)
     })
 
     it('should return a single file', async function () {

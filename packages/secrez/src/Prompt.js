@@ -1,5 +1,5 @@
 const {Secrez, Utils} = require('@secrez/core')
-const {FileSystemsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
+const {FsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
 const fs = require('fs-extra')
 
 const inquirer = require('inquirer')
@@ -142,7 +142,7 @@ class Prompt {
             commandLine = ' '
           }
           try {
-            const options = FileSystemsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
+            const options = FsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
             await this.commands[command].exec(options)
           } catch (e) {
             // console.error(e)

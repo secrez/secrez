@@ -2,7 +2,7 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')
-const FileSystemsUtils = require('./FsUtils')
+const FsUtils = require('./FsUtils')
 
 
 class ExternalFs {
@@ -90,7 +90,7 @@ class ExternalFs {
   }
 
   async ls(files) {
-    return FileSystemsUtils.filterLs(files, await this.fileCompletion(files))
+    return FsUtils.filterLs(files, await this.fileCompletion(files))
   }
 
   async pwd() {

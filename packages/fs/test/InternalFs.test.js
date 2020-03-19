@@ -334,7 +334,7 @@ describe('#InternalFs', function () {
       await internalFs.init()
     })
 
-    it.skip('should create directories and files and loading a tree from disk', async function () {
+    it('should create directories and files and loading a tree from disk', async function () {
 
       await internalFs.make({
         path: '/folder1',
@@ -372,6 +372,13 @@ describe('#InternalFs', function () {
         type: config.types.FILE,
         content: 'Password: 373u363y35e'
       })
+
+      await internalFs.make({
+        path: 'folder1/' + 'a'.repeat(200),
+        type: config.types.FILE,
+        content: 'Password: 373u363y35e'
+      })
+
       await internalFs.make({
         path: 'folder1/file2',
         type: config.types.FILE,

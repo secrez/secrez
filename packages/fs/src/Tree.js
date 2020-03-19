@@ -37,79 +37,60 @@ class Tree {
     let allIndexes = []
     let allFiles = []
     let files = await this.getAllFiles()
-    let warning = 'The database looks corrupted. Execute `fix tree` to fix it.'
-
-    const setWarning = () => {
-      if (!this.errors.length || this.errors[0].message !== warning) {
-        this.errors.unshift({
-          type: 'warning',
-          message: warning
-        })
-      }
-    }
 
     for (let file of files) {
+      let filePath = path.join(this.dataPath, file)
       this.notEmpty = true
-      try {
-        let entry = new Entry({
-          encryptedName: file,
-          preserveContent: true
+      let entry = new Entry({
+        encryptedName: file,
+        preserveContent: true
+      })
+      if (file[file.length - 1] === 'O') {
+        // there is an extraName
+        let content = await fs.readFile(filePath, 'utf8')
+        content = content.split('I')
+        if (!content[1]) {
+          throw new Error()
+        }
+        entry.set({
+          encryptedName: file.substring(0, 254) + content[1]
         })
-        // console.log(entry.get())
-
-        if (file[file.length - 1] === 'O') {
-          // there is an extraName
-          let content = await fs.readFile(file, 'utf8')
-          content = content.split('I')
-          if (!content[1]) {
-            throw new Error()
-          }
-          entry.set({
-            encryptedName: file.substring(0, 254) + content[1]
-          })
-        }
-        let decryptedEntry = this.secrez.decryptEntry(entry)
-        if (decryptedEntry.type === config.types.ROOT) {
-          let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
-          entry.set({
-            encryptedContent: content.split('I')[0]
-          })
-          decryptedEntry = this.secrez.decryptEntry(entry)
-          allIndexes.push(decryptedEntry)
-        } else {
-          allFiles.push(decryptedEntry)
-        }
-      } catch (e) {
-        setWarning()
+      }
+      let decryptedEntry = this.secrez.decryptEntry(entry)
+      if (decryptedEntry.type === config.types.ROOT) {
+        let content = await fs.readFile(filePath, 'utf8')
+        entry.set({
+          encryptedContent: content.split('I')[0]
+        })
+        decryptedEntry = this.secrez.decryptEntry(entry)
+        allIndexes.push(decryptedEntry)
+      } else {
+        allFiles.push(decryptedEntry)
       }
     }
 
     if (this.notEmpty) {
 
       if (!allIndexes.length) {
-        setWarning()
+        throw new Error('A valid tree is missing. Run secrez with the options --fix to build a new flat tree')
       } else {
 
         allIndexes.sort(Node.sortEntry)
         allFiles.sort(Node.sortEntry)
         let json = allIndexes[0].content
-        try {
-          this.root = Node.fromJSON(json, this.secrez, allFiles.map(e => e.encryptedName))
-          if (this.root.deletedEntries) {
-            this.addToDeletedEntries(this.root.deletedEntries)
-            delete this.root.deletedEntries
-          }
-        } catch(e) {
-          setWarning()
+        this.root = Node.fromJSON(json, this.secrez, allFiles.map(e => e.encryptedName))
+        if (this.root.deletedEntries) {
+          this.addToDeletedEntries(this.root.deletedEntries)
+          delete this.root.deletedEntries
         }
       }
 
     } else {
       this.root = new Node(
-            new Entry({
-              type: config.types.ROOT
-            })
-        )
+          new Entry({
+            type: config.types.ROOT
+          })
+      )
     }
     this.workingNode = this.root
     this.status = this.statutes.LOADED

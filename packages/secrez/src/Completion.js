@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {FileSystemsUtils} = require('@secrez/fs')
+const {FsUtils} = require('@secrez/fs')
 
 class _Completion {
 
@@ -37,7 +37,7 @@ class _Completion {
       if (c._func) {
         let commandLine = _.trim(line).split(' ').slice(1).join(' ')
         const definitions = c._self.optionDefinitions
-        options = FileSystemsUtils.parseCommandLine(definitions, commandLine, true)
+        options = FsUtils.parseCommandLine(definitions, commandLine, true)
         let files = await c._func(options.path)
         isFolder = files[0]
         commands = files[1]
