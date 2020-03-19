@@ -129,6 +129,16 @@ class Secrez {
     }
   }
 
+  preserveEntry(prev, next) {
+    let options = prev.get()
+    for (let o in options) {
+      if (!next[o]) {
+        next.set(o, options[o])
+      }
+    }
+    return next
+  }
+
   encryptEntry(entry) {
 
     if (!entry || entry.constructor.name !== 'Entry') {
@@ -151,7 +161,7 @@ class Secrez {
       }
 
       let [scrambledTs, pseudoMicroseconds] = Crypto.scrambledTimestamp(lastTs)
-      let eEntry = new Entry({
+      let encryptedEntry = new Entry({
         id,
         type,
         scrambledTs,
@@ -173,20 +183,18 @@ class Secrez {
           encryptedName = encryptedName.substring(0, 254) + 'O'
         }
 
-        eEntry.set({
+        encryptedEntry.set({
           encryptedName,
           extraName
         })
 
         if (preserveContent) {
-          eEntry.set({
-            name
-          })
+          encryptedEntry = this.preserveEntry(entry, encryptedEntry)
         }
 
       }
       if (content) {
-        eEntry.set({
+        encryptedEntry.set({
           encryptedContent: Crypto.encrypt(
               id
               + scrambledTs
@@ -198,13 +206,11 @@ class Secrez {
           )
         })
         if (preserveContent) {
-          eEntry.set({
-            content
-          })
+          encryptedEntry = this.preserveEntry(entry, encryptedEntry)
         }
       }
 
-      return eEntry
+      return encryptedEntry
 
     } else {
       throw new Error('User not logged')
@@ -271,7 +277,7 @@ class Secrez {
             content = c
           }
 
-          let dEntry = new Entry({
+          let decryptedEntry = new Entry({
             id,
             type,
             ts,
@@ -280,13 +286,10 @@ class Secrez {
           })
 
           if (preserveContent) {
-            dEntry.set({
-              encryptedName,
-              extraName
-            })
+            decryptedEntry = this.preserveEntry(encryptedEntry, decryptedEntry)
           }
 
-          return dEntry
+          return decryptedEntry
         }
 
         // when the encryptedName has been already decrypted and we need only the content
@@ -297,19 +300,17 @@ class Secrez {
             throw new Error('Content is corrupted')
           }
 
-          let dEntry = new Entry({
+          let decryptedEntry = new Entry({
             id,
             ts,
             content
           })
 
           if (preserveContent) {
-            dEntry.set({
-              encryptedContent
-            })
+            decryptedEntry = this.preserveEntry(encryptedEntry, decryptedEntry)
           }
 
-          return dEntry
+          return decryptedEntry
         }
 
       } catch (e) {

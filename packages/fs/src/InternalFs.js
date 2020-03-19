@@ -68,6 +68,7 @@ class InternalFs {
   }
 
   async update(node, entry) {
+
     if (!node || !entry) {
       throw new Error('A Node and an Entry are required')
     }
@@ -89,16 +90,16 @@ class InternalFs {
       throw new Error('A Node is required')
     }
     let entry = node.getEntry()
-    console.log(entry)
-    // try {
-    //   await this.save(entry)
-    //   node.move(entry)
-    //   await this.saveTree()
-    //   return node
-    // } catch (e) {
-    //   this.unsave(entry)
-    //   throw e
-    // }
+    console.log(entry.get())
+    try {
+      await this.save(entry)
+      node.move(entry)
+      await this.saveTree()
+      return node
+    } catch (e) {
+      this.unsave(entry)
+      throw e
+    }
   }
 
   async saveTree() {
@@ -183,7 +184,6 @@ class InternalFs {
         n = undefined
       }
     }
-
     let node = this.tree.root.getChildFromPath(p)
     if (!node) {
       throw new Error('Path does not exist')
@@ -195,7 +195,8 @@ class InternalFs {
       if (remainingPath.length > 1) {
         throw new Error('Cannot move a node to a not existing folder')
       }
-      entry.name = remainingPath
+      entry.name = remainingPath[0]
+      // console.log(remainingPath[0], 'ancestor.id !== node.parent.id', ancestor.id, node.parent.id)
       if (ancestor.id !== node.parent.id) {
         entry.parent = ancestor
       }

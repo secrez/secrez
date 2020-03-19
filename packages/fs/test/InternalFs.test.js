@@ -197,7 +197,7 @@ describe('#InternalFs', function () {
 
   })
 
-  describe.only('update', async function () {
+  describe('update', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(rootDir)
@@ -216,7 +216,7 @@ describe('#InternalFs', function () {
         type: config.types.DIR
       })
 
-      let folder2 = await internalFs.make({
+      await internalFs.make({
         path: '/folder2',
         type: config.types.DIR
       })
@@ -234,31 +234,32 @@ describe('#InternalFs', function () {
         content: 'PIN: 1234'
       })
 
+      // jlog(internalFs.tree.root.toJSON(undefined, true))
+
       assert.equal(file1.getName(), 'file1')
       assert.equal(file2.getName(), 'file2')
       assert.equal(file2.getContent(), 'PIN: 1234')
-
-      // jlog(internalFs.tree.root.toJSON(undefined, true))
 
       await internalFs.change({
         path: '/folder1/file1',
         newPath: '/folder1/file3'
       })
 
+      // jlog(internalFs.tree.root.toJSON(undefined, true))
+
       assert.equal(file1.getName(), 'file3')
       assert.equal(file1.parent.getName(), 'folder1')
-
-      // jlog(internalFs.tree.root.toJSON(undefined, true))
 
       await internalFs.change({
         path: '/folder1/file3',
         newPath: '/folder2/file4'
       })
 
+      // jlog(internalFs.tree.root.toJSON(undefined, true))
+
       assert.equal(file1.getName(), 'file4')
       assert.equal(file1.parent.getName(), 'folder2')
 
-      jlog(internalFs.tree.root.toJSON(undefined, true))
 
       await internalFs.change({
         path: '/folder1/file2',
@@ -270,7 +271,7 @@ describe('#InternalFs', function () {
 
   })
 
-  describe('remove', async function () {
+  describe.only('remove', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(rootDir)
@@ -290,21 +291,16 @@ describe('#InternalFs', function () {
       })
 
       await internalFs.make({
-        path: 'folder1/nodir/../file1',
+        path: 'folder1/file1',
         type: config.types.FILE,
         content: 'Password: 373u363y35e'
       })
 
-      await internalFs.change({
-        path: '/folder1/file2',
-        content: 'PIN: 5678'
+      await internalFs.remove({
+        path: '/folder1/file1'
       })
 
-      await internalFs.change({
-        path: '/folder1/file1',
-        newpath: '/folder1/file3',
-        content: 'PIN: 5678'
-      })
+
 
 
     })

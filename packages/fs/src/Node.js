@@ -295,7 +295,6 @@ class Node {
   }
 
   getChildFromPath(p, returnCloserAncestor) {
-    console.log(p, returnCloserAncestor)
     p = p.split('/')
     let node
     let ancestorNode
@@ -446,29 +445,36 @@ class Node {
       this.lastTs = entry.ts
     } // else we are just moving it on the tree because versions are immutable
 
-    if (Node.isNode(entry.parent)
-        && entry.parent.id !== this.parent.id) {
+    if (Node.isNode(entry.parent)) {
+// console.log(entry.parent.id, this.parent.id)
+//       console.log(entry.parent.getName(), this.parent.getName())
 
-      this.parent.remove(this)
-      entry.parent.add(this)
-      this.parent = entry.parent
+      if (entry.parent.id !== this.parent.id) {
+        this.parent.remove(this)
+        entry.parent.add(this)
+        this.parent = entry.parent
+      }
     }
   }
 
-  remove(children) {
-    if (!children) {
-      if (this.parent) {
-        this.parent.remove(this)
-      } else {
-        throw new Error('Root cannot be removed')
+  remove(versions = []) {
+    // This apply to the node itself
+    if (this.parent) {
+      if (!Array.isArray(versions)) {
+        versions = [versions]
       }
+      let deleteAll = versions.length === 0
+      for (let v in this.versions) {
+        if (deleteAll || versions.includes(v)) {
+          1
+        }
+      }
+
+
+
+      this.parent.remove(this)
     } else {
-      if (!Array.isArray(children)) {
-        children = [children]
-      }
-      for (let c of children) {
-        delete this.children[c.id]
-      }
+      throw new Error('Root cannot be removed')
     }
   }
 

@@ -36,7 +36,13 @@ class Entry {
     return obj
   }
 
-  set(options = {}) {
+  set(key, value) {
+    let options = {}
+    if (typeof key === 'object') {
+      options = key
+    } else {
+      options[key] = value
+    }
     for (let o in options) {
       if (this.isValid(o) && typeof options[o] !== 'undefined') {
         this[o] = options[o]
