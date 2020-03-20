@@ -3,12 +3,15 @@
   "version": "0.4.0",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint -c .eslintrc 'src/**/*.js'",
     "clean": "rm -rf build",
-    "update": "npm version patch && npm publish",
-    "test": "rm -rf tmp && mkdir tmp && mocha test/src/*.js",
-    "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3"
+    "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3",
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
+    "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
+    "test-only": "./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
+    "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
+    "posttest": "nyc check-coverage --statements 95 --branches 95 --functions 95 --lines 95"
   },
+
   "disabledScripts": {
     "coverage": "rm -rf tmp && mkdir tmp && cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/*.js",
     "posttest": "istanbul check-coverage --statements 85 --branches 70 --functions 85 --lines 85"
@@ -28,6 +31,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chalk": "^3.0.0",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-plugin-node": "^11.0.0",

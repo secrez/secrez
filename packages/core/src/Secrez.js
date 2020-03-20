@@ -18,7 +18,7 @@ class Secrez {
       container = `${homedir()}/.secrez`,
       localWorkingDir = homedir()
   ) {
-    this.config = ConfigUtils.setSecrez(config, container, localWorkingDir)
+    this.config = await ConfigUtils.setSecrez(config, container, localWorkingDir)
   }
 
   async derivePassword(password, iterations) {

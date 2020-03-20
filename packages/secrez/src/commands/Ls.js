@@ -1,11 +1,11 @@
 class Ls extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.ls = {
+    this.cliConfig.completion.ls = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.ls = true
+    this.cliConfig.completion.help.ls = true
     this.optionDefinitions = [
       {
         name: 'path',
@@ -34,7 +34,7 @@ class Ls extends require('../Command') {
 
   async exec(options) {
     try {
-      let list = await this.prompt.internalFs.ls(options, this.pseudoFileCompletion(options.path))
+      let list = await this.prompt.internalFs.ls(options)
       if (list) {
         if (list.length) {
           this.Logger.reset(options.list

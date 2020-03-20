@@ -1,18 +1,16 @@
-const {Secrez, Utils} = require('@secrez/core')
-const {FsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
+const homedir = require('homedir')
+const chalk = require('chalk')
+const path = require('path')
+const _ = require('lodash')
 const fs = require('fs-extra')
-
 const inquirer = require('inquirer')
-
 // eslint-disable-next-line node/no-unpublished-require
 // const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
-const homedir = require('homedir')
-const chalk = require('chalk')
-const path = require('path')
-const _ = require('lodash')
+const {Secrez, Utils} = require('@secrez/core')
+const {FsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
 
 const Logger = require('./utils/Logger')
 const Completion = require('./Completion')
@@ -25,13 +23,13 @@ inquirer.registerPrompt('multiEditor', multiEditorPrompt)
 
 class Prompt {
 
-  constructor(options) {
+  async init(options) {
     this.commands = (new Commands(this, cliConfig)).getCommands()
     this.inquirer = inquirer
     this.commandPrompt = inquirerCommandPrompt
     this.getHistory = inquirerCommandPrompt.getHistory
     this.secrez = new Secrez
-    this.secrez.init(options.container, options.localDir)
+    await this.secrez.init(options.container, options.localDir)
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
     inquirerCommandPrompt.setConfig({
@@ -99,6 +97,7 @@ class Prompt {
       this.internalFs.init().then(() => delete this.showLoading)
       this.loadingMessage = 'Initializing'
       await this.loading()
+      await this.internalFs.init()
       this.loggedIn = true
     }
     try {

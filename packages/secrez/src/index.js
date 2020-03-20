@@ -107,7 +107,9 @@ Examples:
 `)
 }
 
-const prompt = new Prompt(options)
-prompt.run(options)
-
+(async () => {
+  const prompt = new Prompt
+  await prompt.init(options)
+  prompt.run(options)
+})()
 
