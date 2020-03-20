@@ -1,11 +1,11 @@
 class Els extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.els = {
+    this.cliConfig.completion.els = {
       _func: this.fileCompletion(this),
       _self: this
     }
-    this.config.completion.help.els = true
+    this.cliConfig.completion.help.els = true
     this.optionDefinitions = [
       {
         name: 'path',

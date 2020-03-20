@@ -1,8 +1,8 @@
 class Pwd extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.pwd = {}
-    this.config.completion.help.pwd = true
+    this.cliConfig.completion.pwd = {}
+    this.cliConfig.completion.help.pwd = true
   }
 
   help() {

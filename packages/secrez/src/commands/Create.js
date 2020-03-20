@@ -3,11 +3,11 @@ const {Crypto} = require('@secrez/core')
 class Create extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.create = {
+    this.cliConfig.completion.create = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.create = true
+    this.cliConfig.completion.help.create = true
     this.optionDefinitions = [
       {
         name: 'content',
@@ -51,7 +51,7 @@ class Create extends require('../Command') {
       if (!options.path) {
         this.Logger.red('A path where to save the secret is required.')
       } else {
-        this.Logger.grey(`Fullpath: ${this.path.resolve(this.config.workingDir, `./${options.path}`)}`)
+        this.Logger.grey(`Fullpath: ${this.path.resolve(this.cliConfig.workingDir, `./${options.path}`)}`)
         if (!options.content) {
           let {content} = await prompt.inquirer.prompt([
             {

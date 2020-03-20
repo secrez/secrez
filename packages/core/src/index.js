@@ -5,6 +5,6 @@ module.exports = {
   Entry: require('./Entry'),
   PrivateKeyGenerator: require('./utils/PrivateKeyGenerator'),
   config: require('./config'),
-  configUtils: require('./config/ConfigUtils'),
+  ConfigUtils: require('./config/ConfigUtils'),
   version: require('../package').version
 }

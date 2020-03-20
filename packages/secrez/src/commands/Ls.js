@@ -34,7 +34,7 @@ class Ls extends require('../Command') {
 
   async exec(options) {
     try {
-      let list = await this.prompt.internalFs.ls(options.path)
+      let list = await this.prompt.internalFs.ls(options)
       if (list) {
         if (list.length) {
           this.Logger.reset(options.list

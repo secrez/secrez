@@ -3,11 +3,11 @@ const {Crypto} = require('@secrez/core')
 class Edit extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.edit = {
+    this.cliConfig.completion.edit = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.edit = true
+    this.cliConfig.completion.help.edit = true
     this.optionDefinitions = [
       {
         name: 'path',
@@ -60,7 +60,7 @@ class Edit extends require('../Command') {
       name: 'newContent',
       message: 'Editing...',
       default: content,
-      tempDir: this.config.tmpPath,
+      tempDir: this.cliConfig.tmpPath,
       validate: function (text) {
         return true
       },

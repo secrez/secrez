@@ -1,11 +1,11 @@
 class Xcp extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.xcp = {
+    this.cliConfig.completion.xcp = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.xcp = true
+    this.cliConfig.completion.help.xcp = true
     this.optionDefinitions = [
       {
         name: 'path',

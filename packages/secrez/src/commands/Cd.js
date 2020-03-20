@@ -1,11 +1,11 @@
 class Cd extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.cd = {
-      _func: this.pseudoFileCompletion(this, this.config.onlyDir),
+    this.cliConfig.completion.cd = {
+      _func: this.pseudoFileCompletion(this, this.cliConfig.onlyDir),
       _self: this
     }
-    this.config.completion.help.cd = true
+    this.cliConfig.completion.help.cd = true
     this.optionDefinitions = [
       {
         name: 'path',

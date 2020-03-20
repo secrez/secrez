@@ -4,14 +4,14 @@ const path = require('path')
 const fs = require('fs-extra')
 
 const Logger = require('./utils/Logger')
-const config = require('./config')
+const cliConfig = require('./cliConfig')
 
 class Command {
 
   constructor(prompt) {
     this.prompt = prompt
     this.optionDefinitions = []
-    this.config = config
+    this.cliConfig = cliConfig
     this.Logger = Logger
     this.chalk = chalk
     this.fs = fs

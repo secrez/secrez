@@ -5,7 +5,6 @@ const Logger = require('./utils/Logger')
 const chalk = require('chalk')
 const {FsUtils} = require('@secrez/fs')
 const {version} = require('@secrez/core')
-const config = require('./config')
 const Prompt = require('./Prompt')
 
 const optionDefinitions = [
@@ -28,7 +27,17 @@ const optionDefinitions = [
     name: 'saveIterations',
     alias: 's',
     type: Boolean
-  }
+  },
+  {
+    name: 'fix',
+    alias: 'x',
+    type: Boolean
+  },
+  {
+    name: 'localHomedir',
+    alias: 'l',
+    type: Boolean
+  },
 ]
 
 function error(message) {
@@ -64,6 +73,10 @@ if (options.container) {
   }
 }
 
+if (!options.localDir) {
+  options.localDir = homedir()
+}
+
 Logger.log('bold', chalk.grey(`
 Secrez v${pkg.version}`), 'grey',`(@secrez/core v${version})`)
 
@@ -82,17 +95,19 @@ Options:
                         94543 or 725642 (the larger the safer, but also the slower).
                         It increases exponentially the safety of your password.
   -s, --saveIterations  Saves the number of iterations in .env.json (which 
-                        is .gitignored). Do it only if you computer is very safe.                      
+                        is .gitignored). Do it only if you computer is very safe.               
+  -x, --fix             Fix the tree in case files are missing or corrupted.  
+  -l, --localDir        The local (out of the enctrypted fs) working dir
+                      
 Examples:
   $ secrez
-  $ secrez -p /var/my-secrets -i 787099
-  $ secrez -si 1213672                    (sets the iterations and saves them)
+  $ secrez -p /var/my-secrets -i 787099 -l ~/Desktop
+  $ secrez -si 1213672
+  $ secrez --fix
 `)
 }
 
-config.setSecrez(options.container, homedir())
-
-const prompt = new Prompt()
+const prompt = new Prompt(options)
 prompt.run(options)
 
 

@@ -16,7 +16,7 @@ const _ = require('lodash')
 
 const Logger = require('./utils/Logger')
 const Completion = require('./Completion')
-const config = require('./config')
+const cliConfig = require('./cliConfig')
 const Commands = require('./commands')
 const welcome = require('./Welcome')
 
@@ -25,19 +25,19 @@ inquirer.registerPrompt('multiEditor', multiEditorPrompt)
 
 class Prompt {
 
-  constructor() {
-    this.commands = (new Commands(this, config)).getCommands()
+  constructor(options) {
+    this.commands = (new Commands(this, cliConfig)).getCommands()
     this.inquirer = inquirer
     this.commandPrompt = inquirerCommandPrompt
     this.getHistory = inquirerCommandPrompt.getHistory
     this.secrez = new Secrez
+    this.secrez.init(options.container, options.localDir)
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
-
     inquirerCommandPrompt.setConfig({
       history: {
         save: true,
-        folder: path.join(homedir(), config.root),
+        folder: path.join(homedir(), cliConfig.root),
         limit: 100,
         blacklist: ['exit']
       }
@@ -92,11 +92,11 @@ class Prompt {
 
   async run(options) {
     if (!this.loggedIn) {
-      this.getCommands = Completion(config.completion)
+      this.getCommands = Completion(cliConfig.completion)
       this.basicCommands = await this.getCommands()
       this.getCommands.bind(this)
       await welcome.start(this.secrez, options)
-      this.internalFs.init(() => delete this.showLoading)
+      this.internalFs.init().then(() => delete this.showLoading)
       this.loadingMessage = 'Initializing'
       await this.loading()
       this.loggedIn = true
@@ -110,11 +110,11 @@ class Prompt {
           short: this.short,
           prefix: '[',
           noColorOnAnswered: true,
-          message: `${chalk.reset(`Secrez:/${path.basename(config.workingDir)} ]`)}$`,
+          message: `${chalk.reset(`Secrez:/${path.basename(cliConfig.workingDir)} ]`)}$`,
           context: 0,
           ellipsize: true,
           onClose: () => {
-            fs.emptyDirSync(config.tmpPath)
+            fs.emptyDirSync(cliConfig.tmpPath)
           },
           validate: val => {
             return val

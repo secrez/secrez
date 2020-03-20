@@ -114,8 +114,8 @@ class InternalFs {
 
 
   // maybe TODO
-  async ls(files) {
-    return FsUtils.filterLs(files, await this.pseudoFileCompletion(files))
+  async ls(options) {
+    return FsUtils.filterLs(options.path, await this.pseudoFileCompletion(options.path))
   }
 
   pwd(options) {

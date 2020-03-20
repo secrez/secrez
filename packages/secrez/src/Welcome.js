@@ -1,6 +1,6 @@
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
-const config = require('./config')
+const cliConfig = require('./cliConfig')
 const Logger = require('./utils/Logger')
 
 class Welcome {
@@ -8,7 +8,7 @@ class Welcome {
   async start(secrez, options) {
     this.options = options
     this.iterations = options.iterations || await this.getIterations()
-    if (fs.existsSync(config.confPath)) {
+    if (fs.existsSync(cliConfig.confPath)) {
       await this.login(secrez)
     } else {
       Logger.grey('Please signup to create your local account')
@@ -17,8 +17,8 @@ class Welcome {
   }
 
   async getIterations() {
-    if (fs.existsSync(config.envPath)) {
-      return require(config.envPath).iterations
+    if (fs.existsSync(cliConfig.envPath)) {
+      return require(cliConfig.envPath).iterations
     } else {
       let {iterations} = await inquirer.prompt([{
         name: 'iterations',
@@ -37,8 +37,8 @@ class Welcome {
   }
 
   async saveIterations() {
-    if (this.options.saveIterations && !fs.existsSync(config.envPath)) {
-      fs.writeFile(config.envPath, JSON.stringify({iterations: this.iterations}))
+    if (this.options.saveIterations && !fs.existsSync(cliConfig.envPath)) {
+      fs.writeFile(cliConfig.envPath, JSON.stringify({iterations: this.iterations}))
     }
   }
 

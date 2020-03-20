@@ -1,8 +1,8 @@
 class Epwd extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.epwd = {}
-    this.config.completion.help.epwd = true
+    this.cliConfig.completion.epwd = {}
+    this.cliConfig.completion.help.epwd = true
   }
 
   help() {

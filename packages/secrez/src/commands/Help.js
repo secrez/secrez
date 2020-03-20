@@ -16,7 +16,7 @@ class Help extends require('../Command') {
     if (!this.helpDescription) {
       this.helpDescription = ['Available commands:']
       let maxSize = 0
-      let commands = Object.keys(this.config.completion.help)
+      let commands = Object.keys(this.cliConfig.completion.help)
       for (let command of commands) {
         maxSize = Math.max(maxSize, command.length)
       }

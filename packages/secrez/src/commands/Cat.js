@@ -3,11 +3,11 @@ const {Crypto} = require('@secrez/core')
 class Cat extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.cat = {
+    this.cliConfig.completion.cat = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.cat = true
+    this.cliConfig.completion.help.cat = true
     this.optionDefinitions = [
       {
         name: 'path',

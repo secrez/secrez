@@ -1,11 +1,11 @@
 class Ecd extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.ecd = {
-      _func: this.fileCompletion(this, this.config.onlyDir),
+    this.cliConfig.completion.ecd = {
+      _func: this.fileCompletion(this, this.cliConfig.onlyDir),
       _self: this
     }
-    this.config.completion.help.ecd = true
+    this.cliConfig.completion.help.ecd = true
     this.optionDefinitions = [
       {
         name: 'path',
