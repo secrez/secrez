@@ -17,7 +17,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Mkdir', function () {
+describe('#Touch', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
@@ -35,44 +35,48 @@ describe('#Mkdir', function () {
     await prompt.internalFs.init()
   })
 
-  it('should instantiate a Mkdir object', async function () {
+  it('should instantiate a Touch object', async function () {
 
-    let mkdir = new Mkdir(prompt)
-    assert.isTrue(Array.isArray(mkdir.optionDefinitions))
+    let touch = new Touch(prompt)
+    assert.isTrue(Array.isArray(touch.optionDefinitions))
   })
 
 
-  it('should create a folder', async function () {
+  it('should create a file', async function () {
 
-    let mkdir = new Mkdir(prompt)
-    await mkdir.exec({
-      path: '/folder'
+    let touch = new Touch(prompt)
+    await touch.exec({
+      path: '/folder2/file1'
     })
 
-    assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder').getName(), 'folder')
+    assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder2/file1').type, prompt.secrez.config.types.FILE)
+
   })
 
-  it('should create a nested folder', async function () {
 
-    let mkdir = new Mkdir(prompt)
-    await mkdir.exec({
-      path: '/folder1/folder2'
+  it('should create a file with content', async function () {
+
+    let touch = new Touch(prompt)
+    let p = '/folder2/file1'
+    let content = 'Password: eh3h447d743yh4r'
+    await touch.exec({
+      path: p,
+      content
     })
 
-    assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder1/folder2').getName(), 'folder2')
+    assert.equal(prompt.internalFs.tree.root.getChildFromPath(p).getContent(), content)
 
   })
 
   it('should throw if trying to create a child of a file', async function () {
 
-    let mkdir = new Mkdir(prompt)
     let touch = new Touch(prompt)
     await touch.exec({
       path: '/folder/file1'
     })
 
     let inspect = stdout.inspect()
-    await mkdir.exec({
+    await touch.exec({
       path: '/folder/file1/file2'
     })
     inspect.restore()
@@ -82,26 +86,26 @@ describe('#Mkdir', function () {
 
   it('should throw if wrong parameters', async function () {
 
-    let mkdir = new Mkdir(prompt)
+    let touch = new Touch(prompt)
 
     let inspect = stdout.inspect()
-    await mkdir.exec({})
+    await touch.exec({})
     inspect.restore()
-    assertConsole(inspect, 'Directory path not specified.')
+    assertConsole(inspect, 'File path not specified.')
 
     inspect = stdout.inspect()
-    await mkdir.exec({
+    await touch.exec({
       path: {}
     })
     inspect.restore()
     assertConsole(inspect, 'The "path" option must exist and be of type string')
 
-    await mkdir.exec({
-      path: '/folder'
+    await touch.exec({
+      path: '/file'
     })
     inspect = stdout.inspect()
-    await mkdir.exec({
-      path: '/folder'
+    await touch.exec({
+      path: '/file'
     })
     inspect.restore()
     assertConsole(inspect, 'Ancestor not found')

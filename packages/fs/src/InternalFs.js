@@ -212,10 +212,25 @@ class InternalFs {
   async pseudoFileCompletion(files = '*', only) {
     if (!files) files = './'
     let p = this.getNormalizedPath(files)
-    let node = this.tree.root.getChildFromPath(p)
+    let end
+    let node
+    try {
+      node = this.tree.root.getChildFromPath(p)
+    } catch(e) {
+      end = path.basename(p)
+      node = this.tree.root.getChildFromPath(path.dirname(p))
+    }
     if (node) {
       if (node.type !== config.types.FILE) {
-        return node.getChildrenNames()
+        let children =  node.getChildrenNames()
+        if (end) {
+          end = end.replace(/\?/g, '.{1}').replace(/\*/g, '.*')
+          let re = RegExp(end)
+          children = children.filter(e => {
+            return re.test(e)
+          })
+        }
+      return children
       } else if (node.getName() === path.basename(p)) {
         return [node.getName()]
       }

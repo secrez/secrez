@@ -52,8 +52,8 @@ const helpers = {
       for (let i = 0; i < message.length; i++) {
         assert.equal(output[i], message[i])
       }
+      return output
     } else {
-      console.error('Expected', output, 'to be equal to', message)
       assert.isTrue(false)
     }
   }
