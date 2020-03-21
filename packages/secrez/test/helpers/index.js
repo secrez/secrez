@@ -1,5 +1,8 @@
-const {Crypto, config, Entry} = require('@secrez/core')
-const {Node} = require('@secrez/fs')
+const chai = require('chai')
+const assert = chai.assert
+
+// const {Crypto, config, Entry} = require('@secrez/core')
+// const {Node} = require('@secrez/fs')
 
 const helpers = {
 
@@ -33,50 +36,28 @@ const helpers = {
 
   },
 
-  initRandomNode: (type, secrez, getEntry) => {
-    let entry = new Entry({
-      id: Crypto.getRandomId(),
-      name: Crypto.getRandomBase58String(16),
-      type,
-      preserveContent: true
-    })
-    entry = secrez.encryptEntry(entry)
-    entry.set({
-      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
-    })
-    if (getEntry) {
-      return [entry, new Node(entry)]
+  decolorize: (str) => {
+    // eslint-disable-next-line no-control-regex
+    return str.replace(/\x1b\[[0-9;]*m/g, '')
+  },
+
+  assertConsole: (inspect, message) => {
+    let output = inspect.output.map(e => helpers.decolorize(e))
+    if (output[0]) {
+      output = output[0].split('\n')
+      if (!Array.isArray(message)) {
+        message = [message]
+      }
+      assert.equal(output.length, message.length + 1)
+      for (let i = 0; i < message.length; i++) {
+        assert.equal(output[i], message[i])
+      }
+    } else {
+      console.error('Expected', output, 'to be equal to', message)
+      assert.isTrue(false)
     }
-    return new Node(entry)
-  },
-
-  initRandomEntry: (type) => {
-    return new Entry({
-      id: Crypto.getRandomId(),
-      name: Crypto.getRandomBase58String(16),
-      type,
-      preserveContent: true
-    })
-  },
-
-  setNewNodeVersion: (entry, node, secrez) => {
-    entry.set({
-      id: node.id,
-      type: node.type,
-      preserveContent: true
-    })
-    entry = secrez.encryptEntry(entry)
-    entry.set({
-      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
-    })
-    return entry
-  },
-
-  initARootNode: () => {
-    return new Node(new Entry({
-      type: config.types.ROOT
-    }))
   }
+
 
 }
 

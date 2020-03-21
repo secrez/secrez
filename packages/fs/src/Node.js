@@ -141,7 +141,7 @@ class Node {
     return node
   }
 
-  toJSON(
+  toCompressedJSON(
       minSize,
       verbose, // for testing purposes only
       allFiles // in a real scenario, when called by Tree, this should be passed listing all the files in config.dataPath
@@ -175,7 +175,7 @@ class Node {
       result.c = []
       for (let id in this.children) {
         let child = this.children[id]
-        result.c.push(child.toJSON(minSize, verbose))
+        result.c.push(child.toCompressedJSON(minSize, verbose))
       }
     }
 

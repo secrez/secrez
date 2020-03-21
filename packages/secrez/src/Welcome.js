@@ -59,7 +59,7 @@ class Welcome {
         }])
         try {
           await secrez.signin(p.password, this.iterations)
-          if (secrez.masterKey) {
+          if (secrez.masterKeyHash) {
             this.saveIterations()
             return
           }

@@ -8,6 +8,15 @@ const utils = require('./utils')
 const bs58 = require('bs58')
 const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
 
+class _Secrez {
+
+  constructor(masterKey) {
+    this.masterKey = masterKey
+  }
+}
+
+let _secrez
+
 class Secrez {
 
   constructor() {
@@ -47,28 +56,28 @@ class Secrez {
       let id = Crypto.b58Hash(Crypto.generateKey())
 
       let derivedPassword = await this.derivePassword(password, iterations)
-      this.masterKey = Crypto.generateKey()
-      let key = Crypto.encrypt(this.masterKey, derivedPassword)
-      let hash = Crypto.b58Hash(this.masterKey)
+      _secrez = new _Secrez(Crypto.generateKey())
+      let key = Crypto.encrypt(_secrez.masterKey, derivedPassword)
+      let hash = this.masterKeyHash = Crypto.b58Hash(_secrez.masterKey)
 
       // x25519-xsalsa20-poly1305
       const boxPair = Crypto.generateBoxKeyPair()
       const box = {
-        secretKey: Crypto.encrypt(Crypto.toBase58(boxPair.secretKey), this.masterKey),
+        secretKey: Crypto.encrypt(Crypto.toBase58(boxPair.secretKey), _secrez.masterKey),
         publicKey: Crypto.toBase58(boxPair.publicKey)
       }
 
       // ed25519
       const ed25519Pair = Crypto.generateSignatureKeyPair()
       const sign = {
-        secretKey: Crypto.encrypt(Crypto.toBase58(ed25519Pair.secretKey), this.masterKey),
+        secretKey: Crypto.encrypt(Crypto.toBase58(ed25519Pair.secretKey), _secrez.masterKey),
         publicKey: Crypto.toBase58(ed25519Pair.publicKey)
       }
 
       // secp256k1
       const account = await PrivateKeyGenerator.generate({accounts: 1})
-      account.mnemonic = Crypto.encrypt(account.mnemonic, this.masterKey)
-      account.privateKey = Crypto.encrypt(account.privateKeys[0], this.masterKey)
+      account.mnemonic = Crypto.encrypt(account.mnemonic, _secrez.masterKey)
+      account.privateKey = Crypto.encrypt(account.privateKeys[0], _secrez.masterKey)
       account.hdPath = Crypto.toBase58(account.hdPath)
       delete account.privateKeys
       const when = utils.intToBase58(Date.now())
@@ -120,7 +129,8 @@ class Secrez {
         throw new Error('Wrong password or wrong number of iterations')
       }
       if (utils.secureCompare(Crypto.b58Hash(masterKey), hash)) {
-        this.masterKey = masterKey
+        _secrez = new _Secrez(masterKey)
+        this.masterKeyHash = hash
       } else {
         throw new Error('Hash on file does not match the master key')
       }
@@ -153,7 +163,7 @@ class Secrez {
       id
     } = entry.get()
 
-    if (this.masterKey) {
+    if (this.masterKeyHash) {
 
       if (!ConfigUtils.isValidType(type)) {
         throw new Error('Unsupported type')
@@ -174,7 +184,7 @@ class Secrez {
             + microseconds
             + Crypto.randomCharNotInBase58()
             + name,
-            this.masterKey
+            _secrez.masterKey
         )
         let extraName
         if (encryptedName.length > 255) {
@@ -201,7 +211,7 @@ class Secrez {
               + microseconds
               + Crypto.randomCharNotInBase58()
               + content,
-              this.masterKey
+              _secrez.masterKey
           )
         })
         if (preserveContent) {
@@ -254,7 +264,7 @@ class Secrez {
       return [id, Crypto.unscrambleTimestamp(ts, ms), data]
     }
 
-    if (this.masterKey) {
+    if (this.masterKeyHash) {
 
       try {
 
@@ -264,12 +274,12 @@ class Secrez {
             data = encryptedName.substring(0, 254) + extraName
           }
           let type = parseInt(data.substring(0, 1))
-          let [id, ts, name] = decrypt(data.substring(1), this.masterKey)
+          let [id, ts, name] = decrypt(data.substring(1), _secrez.masterKey)
           let content = ''
 
           // during the indexing internalFS reads only the names of the files
           if (encryptedContent) {
-            let [id2, ts2, c] = decrypt(encryptedContent, this.masterKey)
+            let [id2, ts2, c] = decrypt(encryptedContent, _secrez.masterKey)
             if (id !== id2 || ts !== ts2) {
               throw new Error('Data is corrupted')
             }
@@ -293,7 +303,7 @@ class Secrez {
 
         // when the encryptedName has been already decrypted and we need only the content
         if (encryptedContent) {
-          let [id, ts, content] = decrypt(encryptedContent, this.masterKey)
+          let [id, ts, content] = decrypt(encryptedContent, _secrez.masterKey)
 
           if ((nameId && id !== nameId) || (nameTs && ts !== nameTs)) {
             throw new Error('Content is corrupted')
@@ -328,8 +338,9 @@ class Secrez {
   }
 
   signout() {
-    if (this.masterKey) {
-      delete this.masterKey
+    if (this.masterKeyHash) {
+      delete this.masterKeyHash
+      _secrez = undefined
     } else {
       throw new Error('User not logged')
     }

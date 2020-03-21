@@ -166,7 +166,7 @@ describe('#InternalFs', function () {
         path: '/folder1',
         type: config.types.DIR
       })
-      assert.equal(root.toJSON().c[0].v[0], '1')
+      assert.equal(root.toCompressedJSON().c[0].v[0], '1')
       assert.equal(folder1.getName(), 'folder1')
 
       let file1 = await internalFs.make({
@@ -176,7 +176,7 @@ describe('#InternalFs', function () {
       })
       assert.equal(file1.getName(), 'file1')
       assert.equal(file1.getContent(), 'Password: 373u363y35e')
-      assert.equal(root.toJSON().c[0].c[0].v[0], '2')
+      assert.equal(root.toCompressedJSON().c[0].c[0].v[0], '2')
 
       internalFs.tree.workingNode = folder1
       let file2 = await internalFs.make({
@@ -185,7 +185,7 @@ describe('#InternalFs', function () {
         content: 'PIN: 1234'
       })
       assert.equal(file2.getName(), 'file2')
-      assert.equal(root.toJSON().c[0].c.length, 2)
+      assert.equal(root.toCompressedJSON().c[0].c.length, 2)
 
       let dir = await internalFs.make({
         path: 'folder1/nodir/bilit/dir',
@@ -310,13 +310,13 @@ describe('#InternalFs', function () {
       })
 
       assert.equal(Object.keys(folder1.children).length, 1)
-      // jlog(root.toJSON(undefined, true))
+      // jlog(root.toCompressedJSON(undefined, true))
 
       await internalFs.remove({
         path: '/folder1/file1'
       })
 
-      // jlog(root.toJSON(undefined, true))
+      // jlog(root.toCompressedJSON(undefined, true))
 
       assert.equal(Object.keys(folder1.children).length, 0)
     })
@@ -357,7 +357,7 @@ describe('#InternalFs', function () {
 
       let file1b = root.findChildById(file1.id)
       assert.equal(file1b.getName(), file1.getName())
-      assert.isTrue(jsonEqual(root.toJSON(), internalFs.tree.root.toJSON()))
+      assert.isTrue(jsonEqual(root.toCompressedJSON(), internalFs.tree.root.toCompressedJSON()))
 
     })
 
@@ -395,8 +395,8 @@ describe('#InternalFs', function () {
 
       let file1b = root.findChildById(file1.id)
       assert.equal(file1b.getName(), file1.getName())
-      let json1 = root.toJSON(null, null, await internalFs.tree.getAllFiles())
-      let json2 = internalFs.tree.root.toJSON(null, null, await internalFs.tree.getAllFiles())
+      let json1 = root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
+      let json2 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
 
       assert.isTrue(jsonEqual(json1, json2))
 

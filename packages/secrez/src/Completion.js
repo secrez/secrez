@@ -19,6 +19,7 @@ class _Completion {
   }
 
   async subCommands(line = '', forceCommand) {
+    // eslint-disable-next-line no-console
     console.log()
 
     // line = _.trim(line).replace(/ +/g, ' ')

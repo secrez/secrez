@@ -23,7 +23,7 @@ describe('#Secrez', function () {
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 
   let secrez
-  let masterKey
+  let masterKeyHash
 
   const D = config.types.DIR
   const F = config.types.FILE
@@ -74,11 +74,11 @@ describe('#Secrez', function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
         assert.isTrue(fs.existsSync(secrez.config.confPath))
-        masterKey = secrez.masterKey
+        masterKeyHash = secrez.masterKeyHash
         secrez.signout()
-        assert.isUndefined(secrez.masterKey)
+        assert.isUndefined(secrez.masterKeyHash)
         await secrez.signin(password, iterations)
-        assert.isTrue(utils.secureCompare(masterKey, secrez.masterKey))
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
       })
 
       it('should signup the user and signin saved the iterations', async function () {
@@ -86,11 +86,11 @@ describe('#Secrez', function () {
         await secrez.signup(password, iterations, true)
         assert.isTrue(fs.existsSync(secrez.config.confPath))
         assert.isTrue(fs.existsSync(secrez.config.envPath))
-        let masterKey = secrez.masterKey
+        masterKeyHash = secrez.masterKeyHash
         secrez.signout()
-        assert.isUndefined(secrez.masterKey)
+        assert.isUndefined(secrez.masterKeyHash)
         await secrez.signin(password)
-        assert.isTrue(utils.secureCompare(masterKey, secrez.masterKey))
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
 
       })
 

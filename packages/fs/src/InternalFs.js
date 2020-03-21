@@ -96,7 +96,7 @@ class InternalFs {
     }
     root.set({
       name: Crypto.getRandomBase58String(4),
-      content: JSON.stringify(this.tree.root.toJSON(null, null, await this.tree.getAllFiles())),
+      content: JSON.stringify(this.tree.root.toCompressedJSON(null, null, await this.tree.getAllFiles())),
       preserveContent: true,
       lastTs: this.previousRoot ? this.previousRoot.lastTs : undefined
     })
@@ -139,7 +139,7 @@ class InternalFs {
     if (!p || typeof p !== 'string') {
       throw new Error('The "path" option must exist and be of type string')
     }
-    p = p.replace(/^~+/, '/').replace(/~+/g, '')
+    p = p.replace(/^~\/+/, '/').replace(/~+/g, '')
     p = path.resolve(this.tree.workingNode.getPath(), p)
     for (let v of p.split('/')) {
       if (v.length > 255) {
@@ -194,61 +194,33 @@ class InternalFs {
 
   /* commands */
 
-  // maybe TODO
   async ls(options) {
-    if (!options.path) {
-      options.path = '.'
-    }
-    return FsUtils.filterLs(options.path, await this.pseudoFileCompletion(options.path))
+    let list = await this.pseudoFileCompletion(options.path || '.')
+    return list //FsUtils.filterLs(options.path, list)
   }
 
-  getNormalizedPath(dir = '/') {
-    dir = dir.replace(/^~/, '')
-    if (!dir) {
-      dir = '/'
+  getNormalizedPath(p = '/') {
+    p = p.replace(/^~\/+/, '/').replace(/~+/g, '')
+    if (!p) {
+      p = '/'
     }
-    let resolvedDir = path.resolve(config.workingDir, dir)
+    let resolvedDir = path.resolve(this.tree.workingNode.getPath(), p)
     let normalized = path.normalize(resolvedDir)
     return normalized
   }
 
   async pseudoFileCompletion(files = '*', only) {
-    let originalFiles = files
     if (!files) files = './'
-    let dir = this.getNormalizedPath(files)
-    let dirObj = this.getDir(dir, true)[1]
-    if (dirObj) {
-      let list = []
-      for (let e in dirObj) {
-        list.push(e.replace(/^\d+;/, '') + (dirObj[e] === true ? '' : '/'))
+    let p = this.getNormalizedPath(files)
+    let node = this.tree.root.getChildFromPath(p)
+    if (node) {
+      if (node.type !== config.types.FILE) {
+        return node.getChildrenNames()
+      } else if (node.getName() === path.basename(p)) {
+        return [node.getName()]
       }
-      let prefix
-      list = list.map(e => {
-        if (/(^\.|\/)/.test(originalFiles)) {
-          if (!prefix) {
-            prefix = originalFiles.replace(/(\/)[^/]*$/, '$1')
-            if (/^\.+$/.test(prefix)) {
-              prefix += '/'
-            }
-          }
-          return prefix + e
-        } else {
-          return e
-        }
-      })
-      if (only) {
-        list = _.filter(list, f => {
-          if (only === config.onlyDir) {
-            return /\/$/.test(f)
-          } else {
-            return !/\/$/.test(f)
-          }
-        })
-      }
-      return list
-    } else {
-      return []
     }
+    return []
   }
 
   pwd(options) {

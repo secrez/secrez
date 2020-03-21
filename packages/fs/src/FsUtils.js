@@ -43,15 +43,15 @@ class FsUtils {
     return {}
   }
 
-  static async filterLs(files, list = []) {
-    let bn = files ? path.basename(files) : ''
+  static async filterLs(file, list = []) {
+    let bn = file ? path.basename(file) : ''
     if (bn === '.' || bn === '..') {
       bn = ''
     }
     if (bn && list.includes(bn)) {
       return [bn]
     } else if (bn) {
-      bn = bn.replace(/\./g,'\\.').replace(/\*/g, '.*')
+      bn = bn.replace(/\./g,'\\.').replace(/\*/g, '.*').replace(/\?/g, '.{1}}')
       let re = RegExp(bn)
       list = _.filter(list, e => re.test(e))
     }

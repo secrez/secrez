@@ -259,11 +259,11 @@ describe('#Node', function () {
       let entry = file1.getEntry()
       entry.set({parent: dir2})
 
-      // jlog(root.toJSON(null, true))
+      // jlog(root.toCompressedJSON(null, true))
 
       file1.move(entry)
 
-      // jlog(root.toJSON(null, true))
+      // jlog(root.toCompressedJSON(null, true))
 
       assert.isTrue(!dir1.children[file1.id])
       assert.isTrue(!!dir2.children[file1.id])
@@ -360,7 +360,7 @@ describe('#Node', function () {
 
   })
 
-  describe('#toJSON && Node#fromJSON', async function () {
+  describe('#toCompressedJSON && Node#fromJSON', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(rootDir)
@@ -386,7 +386,7 @@ describe('#Node', function () {
       let entry = setNewNodeVersion(new Entry({name: 'Some name'}), file1, secrez)
       file1.move(entry)
 
-      let json = root.toJSON()
+      let json = root.toCompressedJSON()
       let minSize = json.c[0].v[0].length
       let v = file1.versions
       assert.equal(
@@ -415,19 +415,19 @@ describe('#Node', function () {
       let entry = setNewNodeVersion(new Entry({name: 'Some name'}), file1, secrez)
       file1.move(entry)
 
-      let json = root.toJSON()
+      let json = root.toCompressedJSON()
       let allFiles = root.getAllFiles()
       let root2 = Node.fromJSON(json, secrez, allFiles)
-      let json2 = root2.toJSON()
+      let json2 = root2.toCompressedJSON()
 
       // let's scramble the order because that can be randomly different
       let child = json2.c[0]
       json2.c[0] = json2.c[1]
       json2.c[1] = child
 
-      assert.isTrue(jsonEqual(root.toJSON(), json2))
+      assert.isTrue(jsonEqual(root.toCompressedJSON(), json2))
 
-      assert.equal(root.toJSON(null, true).c[0].id, dir1.id)
+      assert.equal(root.toCompressedJSON(null, true).c[0].id, dir1.id)
 
     })
   })
