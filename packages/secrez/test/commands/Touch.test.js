@@ -21,6 +21,7 @@ describe('#Touch', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+  let inspect
 
   let options = {
     container: rootDir,
@@ -75,7 +76,7 @@ describe('#Touch', function () {
       path: '/folder/file1'
     })
 
-    let inspect = stdout.inspect()
+    inspect = stdout.inspect()
     await touch.exec({
       path: '/folder/file1/file2'
     })
@@ -88,7 +89,7 @@ describe('#Touch', function () {
 
     let touch = new Touch(prompt)
 
-    let inspect = stdout.inspect()
+    inspect = stdout.inspect()
     await touch.exec({})
     inspect.restore()
     assertConsole(inspect, 'File path not specified.')

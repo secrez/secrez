@@ -29,9 +29,9 @@ class Cd extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
-      await this.prompt.internalFs.cd(options.path)
+      await this.prompt.internalFs.cd(options)
     } catch (e) {
       this.Logger.red(e.message)
     }

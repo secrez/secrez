@@ -21,6 +21,7 @@ describe('#Mkdir', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+  let inspect
 
   let options = {
     container: rootDir,
@@ -71,7 +72,7 @@ describe('#Mkdir', function () {
       path: '/folder/file1'
     })
 
-    let inspect = stdout.inspect()
+    inspect = stdout.inspect()
     await mkdir.exec({
       path: '/folder/file1/file2'
     })
@@ -84,7 +85,7 @@ describe('#Mkdir', function () {
 
     let mkdir = new Mkdir(prompt)
 
-    let inspect = stdout.inspect()
+    inspect = stdout.inspect()
     await mkdir.exec({})
     inspect.restore()
     assertConsole(inspect, 'Directory path not specified.')

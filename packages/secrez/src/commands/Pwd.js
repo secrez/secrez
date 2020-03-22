@@ -16,7 +16,7 @@ class Pwd extends require('../Command') {
 
   async exec(options) {
     try {
-      this.Logger.log(`${this.config.workingDir}`)
+      this.Logger.log(`${this.prompt.internalFs.tree.workingNode.getPath()}`)
     } catch (e) {
       this.Logger.red(e.message)
     }

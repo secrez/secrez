@@ -124,7 +124,7 @@ class InternalFs {
         name: p[i],
         type: notLast ? config.types.DIR : options.type
       })
-      if (options.type === config.types.FILE && options.content) {
+      if (this.isFile(options) && options.content) {
         entry.set({content: options.content})
       }
       child = await this.add(ancestor, entry)
@@ -192,11 +192,35 @@ class InternalFs {
     return true
   }
 
+  isDir(node = {}) {
+    return node.type !== config.types.FILE
+  }
+
+  isFile(node = {}) {
+    return node.type === config.types.FILE
+  }
+
   /* commands */
 
   async ls(options) {
     let list = await this.pseudoFileCompletion(options.path || '.')
     return list //FsUtils.filterLs(options.path, list)
+  }
+
+  cd(options) {
+    let p = options.path
+    if (!p || /^(\/|~|~\/)$/.test(p)) {
+      this.tree.workingNode = this.tree.root
+    } else if (p === '.') {
+      // nothing
+    } else {
+      let node = this.tree.root.getChildFromPath(p)
+      if (!this.isFile(node)) {
+        this.tree.workingNode = node
+      } else {
+        throw new Error('You cannot cd to a file')
+      }
+    }
   }
 
   getNormalizedPath(p = '/') {
@@ -216,13 +240,15 @@ class InternalFs {
     let node
     try {
       node = this.tree.root.getChildFromPath(p)
-    } catch(e) {
+    } catch (e) {
       end = path.basename(p)
       node = this.tree.root.getChildFromPath(path.dirname(p))
     }
     if (node) {
-      if (node.type !== config.types.FILE) {
-        let children =  node.getChildrenNames()
+      if (this.isFile(node)) {
+        return [node.getName()]
+      } else {
+        let children = node.getChildrenNames()
         if (end) {
           end = end.replace(/\?/g, '.{1}').replace(/\*/g, '.*')
           let re = RegExp(end)
@@ -230,9 +256,7 @@ class InternalFs {
             return re.test(e)
           })
         }
-      return children
-      } else if (node.getName() === path.basename(p)) {
-        return [node.getName()]
+        return children
       }
     }
     return []

@@ -3,11 +3,11 @@ const {config} = require('@secrez/core')
 class Touch extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.cliConfig.completion.mkdir = {
+    this.cliConfig.completion.touch = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.cliConfig.completion.help.mkdir = true
+    this.cliConfig.completion.help.touch = true
     this.optionDefinitions = [
       {
         name: 'path',
