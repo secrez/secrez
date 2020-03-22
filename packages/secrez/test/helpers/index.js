@@ -48,6 +48,7 @@ const helpers = {
       if (!Array.isArray(message)) {
         message = [message]
       }
+      assert.equal(output.length, message.length + 1)
       for (let i = 0; i < message.length; i++) {
         assert.equal(output[i], message[i])
       }

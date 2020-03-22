@@ -51,7 +51,7 @@ class Secrez {
     if (!this.config || !this.config.confPath) {
       throw new Error('Secrez not initiated')
     }
-    if (!fs.existsSync(this.config.confPath)) {
+    if (!await fs.pathExists(this.config.confPath)) {
 
       let id = Crypto.b58Hash(Crypto.generateKey())
 
@@ -110,7 +110,7 @@ class Secrez {
       throw new Error('Secrez not initiated')
     }
     if (!iterations) {
-      if (fs.existsSync(this.config.envPath)) {
+      if (await fs.pathExists(this.config.envPath)) {
         let env = JSON.parse(await fs.readFile(this.config.envPath, 'utf8'))
         iterations = env.iterations
       }
@@ -119,7 +119,7 @@ class Secrez {
       throw new Error('Iterations is missed')
     }
     iterations = parseInt(iterations)
-    if (await fs.existsSync(this.config.confPath)) {
+    if (await fs.pathExists(this.config.confPath)) {
       let {key, hash} = JSON.parse(await fs.readFile(this.config.confPath, 'utf8')).data
       let derivedPassword = await this.derivePassword(password, iterations)
       let masterKey

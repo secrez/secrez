@@ -73,7 +73,7 @@ describe('#Secrez', function () {
       it('should signup the user and signin without saving the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
-        assert.isTrue(fs.existsSync(secrez.config.confPath))
+        assert.isTrue(await fs.pathExists(secrez.config.confPath))
         masterKeyHash = secrez.masterKeyHash
         secrez.signout()
         assert.isUndefined(secrez.masterKeyHash)
@@ -84,8 +84,8 @@ describe('#Secrez', function () {
       it('should signup the user and signin saved the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations, true)
-        assert.isTrue(fs.existsSync(secrez.config.confPath))
-        assert.isTrue(fs.existsSync(secrez.config.envPath))
+        assert.isTrue(await fs.pathExists(secrez.config.confPath))
+        assert.isTrue(await fs.pathExists(secrez.config.envPath))
         masterKeyHash = secrez.masterKeyHash
         secrez.signout()
         assert.isUndefined(secrez.masterKeyHash)

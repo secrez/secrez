@@ -26,7 +26,7 @@ class InternalFs {
   async save(entry) {
     let fullPath = path.join(this.dataPath, entry.encryptedName)
     /* istanbul ignore if  */
-    if (fs.existsSync(fullPath)) {
+    if (await fs.pathExists(fullPath)) {
       throw new Error('File already exists')
     }
     let encryptedContent =
@@ -47,7 +47,7 @@ class InternalFs {
 
   async unsave(entry) {
     let fullPath = path.join(this.dataPath, entry.encryptedName)
-    if (this.fileExists(fullPath)) {
+    if (await fs.pathExists(fullPath)) {
       await fs.unlink(fullPath)
     }
   }
@@ -66,7 +66,7 @@ class InternalFs {
       await this.saveTree()
       return node
     } catch (e) {
-      this.unsave(entry)
+      await this.unsave(entry)
       throw e
     }
   }
@@ -84,7 +84,7 @@ class InternalFs {
       await this.saveTree()
       return node
     } catch (e) {
-      this.unsave(entry)
+      await this.unsave(entry)
       throw e
     }
   }
@@ -92,24 +92,18 @@ class InternalFs {
   async saveTree() {
     let root = this.tree.root.getEntry()
     if (this.previousRoot) {
-      this.unsave
+      // this creates a single index file per session.
+      // TODO When git is used to distribute the data, after committing this.previousRoot must be canceled to avoid conflicts
+      await this.unsave(this.previousRoot)
     }
     root.set({
       name: Crypto.getRandomBase58String(4),
       content: JSON.stringify(this.tree.root.toCompressedJSON(null, null, await this.tree.getAllFiles())),
-      preserveContent: true,
-      lastTs: this.previousRoot ? this.previousRoot.lastTs : undefined
+      preserveContent: true
     })
     root = this.secrez.encryptEntry(root)
     await this.save(root)
     this.previousRoot = root
-  }
-
-  fileExists(file) {
-    if (!file || typeof file !== 'string') {
-      throw new Error('A valid file name is required')
-    }
-    return fs.existsSync(path.join(this.dataPath, file))
   }
 
   async make(options) {
