@@ -229,7 +229,7 @@ class Node {
 
   getName(ts) {
     try {
-      return this.versions[ts || this.lastTs].name
+      return this.get('name', ts)
     } catch (e) {
       throw new Error('Version not found')
     }
@@ -248,7 +248,7 @@ class Node {
 
   getFile(ts) {
     try {
-      return this.versions[ts || this.lastTs].file
+      return this.get('file', ts)
     } catch (e) {
       throw new Error('Version not found')
     }
@@ -256,7 +256,7 @@ class Node {
 
   getContent(ts) {
     try {
-      return this.versions[ts || this.lastTs].content
+      return this.get('content', ts)
     } catch (e) {
       throw new Error('Version not found')
     }
@@ -268,6 +268,10 @@ class Node {
     } else {
       return Object.keys(this.versions).sort(Node.sortEntry)
     }
+  }
+
+  get(what, ts = this.lastTs) {
+    return this.versions[ts][what]
   }
 
 
@@ -419,20 +423,20 @@ class Node {
     return '/' + p
   }
 
-  getOptions() {
+  getOptions(ts = this.lastTs) {
     let options = {
       id: this.id,
       type: this.type,
-      ts: this.lastTs,
+      ts,
       parent: this.parent,
-      name: this.versions ? this.versions[this.lastTs].name : undefined,
-      encryptedName: this.versions ? this.versions[this.lastTs].file : undefined
+      name: this.getName(ts),
+      encryptedName: this.getFile(ts)
     }
     return options
   }
 
-  getEntry() {
-    return new Entry(this.getOptions())
+  getEntry(ts) {
+    return new Entry(this.getOptions(ts))
   }
 
   add(children) {

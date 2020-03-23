@@ -23,8 +23,12 @@ class InternalFs {
     await this.tree.load()
   }
 
+  getFullPath(entry) {
+    return path.join(this.dataPath, entry.encryptedName)
+  }
+
   async save(entry) {
-    let fullPath = path.join(this.dataPath, entry.encryptedName)
+    let fullPath = this.getFullPath(entry)
     /* istanbul ignore if  */
     if (await fs.pathExists(fullPath)) {
       throw new Error('File already exists')
@@ -46,7 +50,7 @@ class InternalFs {
   }
 
   async unsave(entry) {
-    let fullPath = path.join(this.dataPath, entry.encryptedName)
+    let fullPath = this.getFullPath(entry)
     if (await fs.pathExists(fullPath)) {
       await fs.unlink(fullPath)
     }
@@ -202,17 +206,17 @@ class InternalFs {
   }
 
   async cat(options) {
-    let p = options.path
+    let p = this.getNormalizedPath(options.path)
     let node = this.tree.root.getChildFromPath(p)
     if (node && this.isFile(node)) {
       let result  = []
       if (options.all) {
         let versions = node.getVersions()
         for (let ts of versions) {
-          result.push(this.getEntryDetails(node, ts))
+          result.push(await this.getEntryDetails(node, ts))
         }
       } else {
-        result.push(this.getEntryDetails(node, options.ts))
+        result.push(await this.getEntryDetails(node, options.ts))
       }
       return result
     } else {
@@ -220,11 +224,25 @@ class InternalFs {
     }
   }
 
-  getEntryDetails(node, ts) {
+  async getEntryDetails(node, ts) {
+    let content
+    if (node.type === config.types.FILE) {
+      content = node.getContent(ts)
+      if (!content) {
+        // must be read from disk
+        let entry = node.getEntry(ts)
+        let fullPath = this.getFullPath(entry)
+        let [encryptedContent, extraName] = (await fs.readFile(fullPath, 'utf8')).split('I')
+        entry.encryptedContent = encryptedContent
+        entry.extraName = extraName
+        let decryptedEntry = this.secrez.decryptEntry(entry)
+        content = decryptedEntry.content
+      }
+    }
     return {
       id: node.id,
       name: node.getName(ts),
-      content: node.getContent(ts),
+      content,
       ts: ts || node.lastTs
     }
   }
