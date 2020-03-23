@@ -201,6 +201,34 @@ class InternalFs {
     return list //FsUtils.filterLs(options.path, list)
   }
 
+  async cat(options) {
+    let p = options.path
+    let node = this.tree.root.getChildFromPath(p)
+    if (node && this.isFile(node)) {
+      let result  = []
+      if (options.all) {
+        let versions = node.getVersions()
+        for (let ts of versions) {
+          result.push(this.getEntryDetails(node, ts))
+        }
+      } else {
+        result.push(this.getEntryDetails(node, options.ts))
+      }
+      return result
+    } else {
+      throw new Error('Cat requires a valid file')
+    }
+  }
+
+  getEntryDetails(node, ts) {
+    return {
+      id: node.id,
+      name: node.getName(ts),
+      content: node.getContent(ts),
+      ts: ts || node.lastTs
+    }
+  }
+
   cd(options) {
     let p = options.path
     if (!p || /^(\/|~|~\/)$/.test(p)) {

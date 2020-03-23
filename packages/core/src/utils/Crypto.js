@@ -107,11 +107,12 @@ class Crypto {
     return '' + utils.base58ToInt(ret) + (utils.base58ToInt(microseconds) / 1e6).toString().substring(1)
   }
 
-  // static dateFromB58(b58, full) {
-  //   let ts = utils.base58ToInt(b58)
-  //   let d = (new Date(ts * 1000)).toISOString()
-  //   return full ? d : d.split('.000Z')[0]
-  // }
+  static fromTsToDate(ts) {
+    let [seconds, microseconds] = ts.split('.')
+    let milliseconds = microseconds.substring(0,3)
+    let timestamp = parseInt(seconds) * 1000 + parseInt(milliseconds)
+    return [(new Date(timestamp)).toISOString(), parseInt(microseconds.substring(3))]
+  }
 
   static b58Hash(data) {
     if (!Buffer.isBuffer(data)) {

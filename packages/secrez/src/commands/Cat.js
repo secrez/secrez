@@ -59,25 +59,23 @@ class Cat extends require('../Command') {
     return content
   }
 
+  static formatTs(ts) {
+    ts = Crypto.fromTsToDate(ts)
+    let date = ts[0].split('Z')[0].split('T')
+    return `Date: ${date[0]} - Time: ${date[1]}`
+  }
+
   async exec(options) {
     try {
       let data = await this.prompt.internalFs.cat(options)
       if (data) {
-        if (Array.isArray(data[0])) {
-          for (let d of data) {
-            // eslint-disable-next-line no-unused-vars
-            let [content, a, ver, ts] = d
-            // TODO fix date
-            this.Logger.yellow(`Version: ${ver} - Date: ${Crypto.dateFromB58(ts)}`)
-            this.Logger.reset(this.getContent(content, options))
-          }
-        } else {
+        for (let d of data) {
           // eslint-disable-next-line no-unused-vars
-          let [content, a, ver, ts] = data
-          if (options.metadata) {
-            this.Logger.yellow(`Version: ${ver} - Date: ${Crypto.dateFromB58(ts)}`)
+          let {content, version, ts} = d
+          if (options.all || options.metadata) {
+            this.Logger.yellow(`${version ? `Pseudoversion: ${version} - ` : ''}${Cat.formatTs(ts)}`)
           }
-          this.Logger.reset(this.getContent(content, options))
+          this.Logger.reset(content)
         }
       }
     } catch (e) {

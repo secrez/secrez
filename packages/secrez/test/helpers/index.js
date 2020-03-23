@@ -43,19 +43,22 @@ const helpers = {
 
   assertConsole: (inspect, message) => {
     let output = inspect.output.map(e => helpers.decolorize(e))
-    if (output[0]) {
-      output = output[0].split('\n')
-      if (!Array.isArray(message)) {
-        message = [message]
+    let result = []
+    for (let o of output) {
+      o = o.split('\n')
+      for (let i of o) {
+        if (i) {
+          result.push(i)
+        }
       }
-      assert.equal(output.length, message.length + 1)
-      for (let i = 0; i < message.length; i++) {
-        assert.equal(output[i], message[i])
-      }
-      return output
-    } else {
-      assert.isTrue(false)
     }
+    if (!Array.isArray(message)) {
+      message = [message]
+    }
+    for (let i = 0; i < message.length; i++) {
+      assert.equal(result[i], message[i])
+    }
+    return output
   }
 
 

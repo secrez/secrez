@@ -102,8 +102,14 @@ class Node {
   }
 
   static sortEntry(a, b) {
-    let [A, C] = a.ts.split('.').map(e => parseInt(e))
-    let [B, D] = b.ts.split('.').map(e => parseInt(e))
+    let ta = a
+    let tb = b
+    if (typeof a === 'object') {
+      ta = a.ts
+      tb = b.ts
+    }
+    let [A, C] = ta.split('.').map(e => parseInt(e))
+    let [B, D] = tb.split('.').map(e => parseInt(e))
     return (
         A > B ? -1
             : A < B ? 1
@@ -255,6 +261,15 @@ class Node {
       throw new Error('Version not found')
     }
   }
+
+  getVersions() {
+    if (this.id === config.types.ROOT) {
+      return []
+    } else {
+      return Object.keys(this.versions).sort(Node.sortEntry)
+    }
+  }
+
 
   static getRoot(node) {
     if (node.type === config.types.ROOT) {
