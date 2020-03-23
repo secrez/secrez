@@ -113,7 +113,7 @@ describe('#Crypto', function () {
     it('should get scrambled timestamp with pseudo-microseconds in b58 format', async function () {
       let ts = Date.now()
       let [timestamp, microseconds] = await Crypto.scrambledTimestamp()
-      console.log(timestamp, microseconds)
+      // console.log(timestamp, microseconds)
       let original = Crypto.unscrambleTimestamp(timestamp, microseconds)
       assert.isTrue(parseInt(original.split('.')[0]) - Math.round(ts/1000)  <= 2)
     })

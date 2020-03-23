@@ -228,11 +228,7 @@ class Node {
   }
 
   getName(ts) {
-    try {
-      return this.get('name', ts)
-    } catch (e) {
-      throw new Error('Version not found')
-    }
+    return this.get('name', ts)
   }
 
   getChildrenNames() {
@@ -247,19 +243,11 @@ class Node {
   }
 
   getFile(ts) {
-    try {
-      return this.get('file', ts)
-    } catch (e) {
-      throw new Error('Version not found')
-    }
+    return this.get('file', ts)
   }
 
   getContent(ts) {
-    try {
-      return this.get('content', ts)
-    } catch (e) {
-      throw new Error('Version not found')
-    }
+    return this.get('content', ts)
   }
 
   getVersions() {
@@ -271,7 +259,14 @@ class Node {
   }
 
   get(what, ts = this.lastTs) {
-    return this.versions[ts][what]
+    if (this.type === config.types.ROOT) {
+      return undefined
+    }
+    try {
+      return this.versions[ts][what]
+    } catch (e) {
+      throw new Error('Version not found')
+    }
   }
 
 
@@ -413,7 +408,6 @@ class Node {
   }
 
   getPath() {
-
     let p = ''
     let node = this
     while (node.id !== config.rOOt) {

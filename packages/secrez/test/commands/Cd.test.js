@@ -51,6 +51,7 @@ describe('#Cd', function () {
     let cd = new Cd(prompt)
     await mkdir.exec({path: '/dir1/dirA1/dirA2'})
     await cd.exec({path: 'dir1/dirA1'})
+
     assert.equal(prompt.internalFs.tree.workingNode.getPath(), ['/dir1/dirA1'])
 
   })

@@ -57,8 +57,11 @@ describe('#Cat', function () {
     inspect.restore()
     assertConsole(inspect, [formattedDate, 'Some password'])
 
+    let dir1 = prompt.internalFs.tree.root.getChildFromPath('/dir1')
+    prompt.internalFs.tree.workingNode = dir1
+
     inspect = stdout.inspect()
-    await cat.exec({path: '/dir1/file1'})
+    await cat.exec({path: 'file1'})
     inspect.restore()
     assertConsole(inspect, ['Some password'])
   })

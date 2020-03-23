@@ -52,13 +52,6 @@ class Cat extends require('../Command') {
     }
   }
 
-  getContent(content, options) {
-    if (options.utf8) {
-      content = JSON.stringify(content).replace(/(^"|"$)/g, '')
-    }
-    return content
-  }
-
   static formatTs(ts) {
     ts = Crypto.fromTsToDate(ts)
     let date = ts[0].split('Z')[0].split('T')

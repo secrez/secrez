@@ -2,7 +2,6 @@
 const fs = require('fs-extra')
 const path = require('path')
 const {config, Crypto, Entry} = require('@secrez/core')
-const FsUtils = require('./FsUtils')
 const Node = require('./Node')
 const Tree = require('./Tree')
 
@@ -168,7 +167,6 @@ class InternalFs {
         throw new Error('Cannot move a node to a not existing folder')
       }
       entry.name = remainingPath[0]
-      // console.log(remainingPath[0], 'ancestor.id !== node.parent.id', ancestor.id, node.parent.id)
       if (ancestor.id !== node.parent.id) {
         entry.parent = ancestor
       }
