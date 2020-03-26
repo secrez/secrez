@@ -35,9 +35,10 @@ class FsUtils {
     if (definitions && definitions.length) {
       if (commandLine) {
         const argv = this.preParseCommandLine(commandLine)
+        argv.partial = true
         return commandLineArgs(definitions, {argv})
       } else {
-        return commandLineArgs(definitions)
+        return commandLineArgs(definitions, {partial: true})
       }
     }
     return {}

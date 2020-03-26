@@ -39,9 +39,11 @@ class _Completion {
         let commandLine = _.trim(line).split(' ').slice(1).join(' ')
         const definitions = c._self.optionDefinitions
         options = FsUtils.parseCommandLine(definitions, commandLine, true)
+        if (options._unknown) {
+          options = {path: '.'}
+        }
         let files = await c._func(options.path)
-        isFolder = files[0]
-        commands = files[1]
+        commands = files
       } else {
         commands = _.filter(
             Object.keys(c),
