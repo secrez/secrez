@@ -33,7 +33,6 @@ class _Completion {
     }
     if (typeof c === 'object') {
       let commands
-      let isFolder = false
       let options = {}
       if (c._func) {
         let commandLine = _.trim(line).split(' ').slice(1).join(' ')
@@ -54,12 +53,20 @@ class _Completion {
       }
       if (commands.length) {
         let prefix = [command]
+        // console.log(0, prefix, params)
         for (let param of params) {
           if (c[param.split('=')[0]] || /-[a-zA-Z0-9]+/.test(param)) {
             prefix.push(param)
           }
         }
-        commands = commands.map(e => `${prefix.join` `} ${e.replace(/ /g, '\\ ')}`)
+        let last = params.pop()
+        if (last === command || /(=|-[a-zA-Z0-9]+)/.test(last)) {
+          last = undefined
+        }
+        // console.log(1, prefix)
+        // console.log(2, commands)
+        commands = commands.map(e => `${prefix.join` `} ${last ? last.replace(/\/[^/]+/, '/') : ''}${e.replace(/ /g, '\\ ')}`)
+        // console.log(3, commands)
         return commands
       }
     }
