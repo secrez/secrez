@@ -1,4 +1,3 @@
-
 class Help extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -14,7 +13,7 @@ class Help extends require('../Command') {
 
   help() {
     if (!this.helpDescription) {
-      this.helpDescription = ['Available commands:']
+      this.helpDescription = ['Available options:']
       let maxSize = 0
       let commands = Object.keys(this.cliConfig.completion.help)
       for (let command of commands) {

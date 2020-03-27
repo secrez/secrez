@@ -5,8 +5,8 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const inquirer = require('inquirer')
 // eslint-disable-next-line node/no-unpublished-require
-const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
-// const inquirerCommandPrompt = require('inquirer-command-prompt')
+// const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
+const inquirerCommandPrompt = require('inquirer-command-prompt')
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
 const {Secrez, Utils} = require('@secrez/core')
@@ -112,6 +112,7 @@ class Prompt {
           message: `${chalk.reset(`Secrez:/${path.basename(cliConfig.workingDir)} ]`)}$`,
           context: 0,
           ellipsize: true,
+          autocompletePrompt: chalk.grey('Available options:'),
           onClose: () => {
             fs.emptyDirSync(cliConfig.tmpPath)
           },

@@ -1,3 +1,7 @@
+const chalk = require('chalk')
+const path = require('path')
+const fs = require('fs-extra')
+
 const {Crypto} = require('@secrez/core')
 
 class Edit extends require('../Command') {
@@ -45,14 +49,14 @@ class Edit extends require('../Command') {
   async edit(internalFs, options) {
     let file = options.path
     let [content, filePath, ver] = await internalFs.cat({path: file})
-    let extraMessage = this.chalk.dim('Press <enter> to launch ')
+    let extraMessage = chalk.dim('Press <enter> to launch ')
         + (
             !options.editor ? 'the editor.'
                 : options.editor !== '*' ? `${options.editor}.`
                 : 'your OS default editor.'
         )
-        + this.chalk.reset(
-            options.editor ? '' : this.chalk.grey('\n  Ctrl-d to save the changes. Ctrl-c to abort.')
+        + chalk.reset(
+            options.editor ? '' : chalk.grey('\n  Ctrl-d to save the changes. Ctrl-c to abort.')
         )
 
     let {newContent} = await this.prompt.inquirer.prompt([{
@@ -70,7 +74,7 @@ class Edit extends require('../Command') {
     if (newContent !== content) {
       let encContent = await internalFs.secrez.encryptEntry(newContent)
       ver++
-      await this.fs.appendFile(filePath, `\n${ver};${Crypto.scrambledTimestamp(true)};${encContent}`)
+      await fs.appendFile(filePath, `\n${ver};${Crypto.scrambledTimestamp(true)};${encContent}`)
       this.Logger.reset(`File saved. Version: ${ver}`)
     } else {
       this.Logger.reset('Changes aborted or file not changed')
@@ -79,11 +83,11 @@ class Edit extends require('../Command') {
 
   getTinyCliEditorBinPath() {
     if (!this.editorBinPath) {
-      let bin = this.path.resolve(__dirname, '../../node_modules/tiny-cli-editor/bin.js')
-      if (!this.fs.existsSync(bin)) {
-        bin = this.path.resolve(__dirname, '../../../../node_modules/tiny-cli-editor/bin.js')
+      let bin = path.resolve(__dirname, '../../node_modules/tiny-cli-editor/bin.js')
+      if (!fs.existsSync(bin)) {
+        bin = path.resolve(__dirname, '../../../../node_modules/tiny-cli-editor/bin.js')
       }
-      if (!this.fs.existsSync(bin)) {
+      if (!fs.existsSync(bin)) {
         throw new Error('Default editor not found')
       }
       this.editorBinPath = bin

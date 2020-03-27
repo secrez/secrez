@@ -13,10 +13,6 @@ class Command {
     this.optionDefinitions = []
     this.cliConfig = cliConfig
     this.Logger = Logger
-    this.chalk = chalk
-    this.fs = fs
-    this.path = path
-    this._ = _
   }
 
   help() {
@@ -46,7 +42,7 @@ class Command {
   }
 
   threeRedDots(large) {
-    return this.chalk.red(large ? '•••' : '···')
+    return chalk.red(large ? '•••' : '···')
   }
 
 }

@@ -1,3 +1,6 @@
+const chalk = require('chalk')
+const path = require('path')
+
 const {Crypto} = require('@secrez/core')
 
 class Create extends require('../Command') {
@@ -43,13 +46,13 @@ class Create extends require('../Command') {
             if (val) {
               return true
             }
-            return this.chalk.grey(`Please, type the path of your secret. Cancel typing ${exitCode}`)
+            return chalk.grey(`Please, type the path of your secret. Cancel typing ${exitCode}`)
           }
         }
       ])
       options.path = p
       if (options.path !== exitCode) {
-        this.Logger.grey(`Fullpath: ${this.path.resolve(this.cliConfig.workingDir, `./${options.path}`)}`)
+        this.Logger.grey(`Fullpath: ${path.resolve(this.cliConfig.workingDir, `./${options.path}`)}`)
         if (!options.content) {
           let {content} = await prompt.inquirer.prompt([
             {
@@ -63,7 +66,7 @@ class Create extends require('../Command') {
                   }
                   return true
                 }
-                return this.chalk.grey(`Please, type your secret. Cancel typing ${exitCode}`)
+                return chalk.grey(`Please, type your secret. Cancel typing ${exitCode}`)
               }
             }
           ])

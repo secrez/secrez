@@ -22,7 +22,6 @@ class _Completion {
     // eslint-disable-next-line no-console
     console.log()
 
-    // line = _.trim(line).replace(/ +/g, ' ')
     const params = line.split(' ')
     const normalizedParams = params.map(e => e.split('=')[0])
     const command = params[0]
@@ -52,21 +51,19 @@ class _Completion {
         )
       }
       if (commands.length) {
-        let prefix = [command]
-        // console.log(0, prefix, params)
-        for (let param of params) {
-          if (c[param.split('=')[0]] || /-[a-zA-Z0-9]+/.test(param)) {
-            prefix.push(param)
-          }
-        }
-        let last = params.pop()
-        if (last === command || /(=|-[a-zA-Z0-9]+)/.test(last)) {
-          last = undefined
-        }
-        // console.log(1, prefix)
-        // console.log(2, commands)
-        commands = commands.map(e => `${prefix.join` `} ${last ? last.replace(/\/[^/]+/, '/') : ''}${e.replace(/ /g, '\\ ')}`)
-        // console.log(3, commands)
+        let lasts = [
+          {n: '/', l: line.lastIndexOf('/')},
+          {n: '=', l: line.lastIndexOf('=')},
+          {n: ' ', l: line.lastIndexOf(' ')}
+        ]
+        lasts.sort((a, b) => {
+          let A = a.l
+          let B = b.l
+          return A > B ? -1 : A < B ? 1 : 0
+        })
+        let v = lasts[0].l
+        let prefix = v !== -1 ? line.substring(0, v) + lasts[0].n : line
+        commands = commands.map(e => `${prefix}${e ? e.replace(/ /g, '\\ ') : ' '}`)
         return commands
       }
     }

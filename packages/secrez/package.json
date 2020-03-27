@@ -24,7 +24,7 @@
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
     "inquirer": "^7.1.0",
-    "inquirer-command-prompt": "0.0.23",
+    "inquirer-command-prompt": "0.0.24",
     "lodash": "^4.17.15",
     "tiny-cli-editor": "^0.1.1"
   },
