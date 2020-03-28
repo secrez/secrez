@@ -63,12 +63,12 @@ describe('#Ls', function () {
     let inspect = stdout.inspect()
     await ls.exec({path: '/dir1', list: true})
     inspect.restore()
-    assertConsole(inspect, ['dirA1', 'dirA2', 'dirB1', 'dirB2', 'dir2A', 'dir2B', 'file1', 'file2'])
+    assertConsole(inspect, ['dirA1/', 'dirA2/', 'dirB1/', 'dirB2/', 'dir2A/', 'dir2B/', 'file1', 'file2'])
 
     inspect = stdout.inspect()
     await ls.exec({path: '/dir1/dir2A', list: true})
     inspect.restore()
-    assertConsole(inspect, ['dir6', 'dir7'])
+    assertConsole(inspect, ['dir6/', 'dir7/'])
 
     inspect = stdout.inspect()
     await ls.exec({path: '/dir1/dir2B', list: true})
@@ -105,22 +105,22 @@ describe('#Ls', function () {
     inspect = stdout.inspect()
     await ls.exec({path: '/dir1/d?rB?', list: true})
     inspect.restore()
-    assertConsole(inspect, ['dirB1', 'dirB2', 'dorB3'])
+    assertConsole(inspect, ['dirB1/', 'dirB2/', 'dorB3/'])
 
     inspect = stdout.inspect()
     await ls.exec({path: '/dir1/dir*', list: true})
     inspect.restore()
-    assertConsole(inspect, ['dirA1', 'dirA2', 'dirB1', 'dirB2', 'dir2A', 'dir2B'])
+    assertConsole(inspect, ['dirA1/', 'dirA2/', 'dirB1/', 'dirB2/', 'dir2A/', 'dir2B/'])
 
     inspect = stdout.inspect()
     await ls.exec({path: '/dir1/dir?1', list: true})
     inspect.restore()
-    assertConsole(inspect, ['dirA1', 'dirB1'])
+    assertConsole(inspect, ['dirA1/', 'dirB1/'])
 
     inspect = stdout.inspect()
     await ls.exec({path: '/dir1/dir[AB]*', list: true})
     inspect.restore()
-    assertConsole(inspect, ['dirA1', 'dirA2', 'dirB1', 'dirB2'])
+    assertConsole(inspect, ['dirA1/', 'dirA2/', 'dirB1/', 'dirB2/'])
 
   })
 

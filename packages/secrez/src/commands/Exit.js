@@ -20,6 +20,7 @@ class Exit extends require('../Command') {
   }
 
   async exec() {
+    await this.prompt.saveHistory()
     this.Logger.reset('Bye bye :o)')
     /*eslint-disable-next-line*/
     process.exit(0)

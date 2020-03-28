@@ -22,12 +22,15 @@ class ConfigUtils {
       localWorkingDir
   ) {
     config.root = path.basename(container)
-    config.dataPath = path.join(container, 'blobs')
-    config.tmpPath = path.join(container, 'tmp')
+    config.dataPath = path.join(container, 'data')
     config.workingDir = '/'
     config.localWorkingDir = localWorkingDir
-    config.envPath = path.join(container, '.env')
     config.confPath = path.join(container, 'keys.json')
+
+    config.tmpPath = path.join(container, 'tmp')
+    config.envPath = path.join(container, '.env')
+    config.historyPath = path.join(container, '.history')
+
     await fs.emptyDir(config.tmpPath)
     await fs.ensureDir(config.dataPath)
     let fPath = path.join(container, 'README')
@@ -42,6 +45,7 @@ Be very careful, and don't touch anything :o)
     if (!await fs.pathExists(fPath)) {
       await fs.writeFile(fPath, `tmp
 .env
+.history
 `, 'utf-8')
     }
     return config

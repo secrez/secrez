@@ -5,11 +5,11 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const inquirer = require('inquirer')
 // eslint-disable-next-line node/no-unpublished-require
-const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
-// const inquirerCommandPrompt = require('inquirer-command-prompt')
+// const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
+const inquirerCommandPrompt = require('inquirer-command-prompt')
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
-const {Secrez, Utils} = require('@secrez/core')
+const {Secrez, Utils, Crypto} = require('@secrez/core')
 const {FsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
 
 const Logger = require('./utils/Logger')
@@ -34,12 +34,26 @@ class Prompt {
     this.externalFs = new ExternalFs()
     inquirerCommandPrompt.setConfig({
       history: {
-        // save: true,
-        // folder: path.join(homedir(), cliConfig.root),
+        save: false,
         limit: 100,
         blacklist: ['exit']
       }
     })
+  }
+
+  async saveHistory() {
+    let histories = JSON.stringify(inquirerCommandPrompt.getHistories(true))
+    let encryptedHistory = this.secrez.encryptHistory(histories)
+    await fs.writeFile(this.secrez.config.historyPath, encryptedHistory)
+  }
+
+  async loadSavedHistory() {
+    let previousHistories
+    if (await fs.pathExists(this.secrez.config.historyPath)) {
+      let encryptedHistory = await fs.readFile(this.secrez.config.historyPath, 'utf8')
+      previousHistories = JSON.parse(this.secrez.decryptHistory(encryptedHistory))
+      inquirerCommandPrompt.setHistoryFromPreviousSavedHistories(previousHistories)
+    }
   }
 
   async loading() {
@@ -98,6 +112,7 @@ class Prompt {
       this.loadingMessage = 'Initializing'
       await this.loading()
       await this.internalFs.init()
+      await this.loadSavedHistory()
       this.loggedIn = true
     }
     // eslint-disable-next-line no-console

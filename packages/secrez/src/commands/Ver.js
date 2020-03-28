@@ -17,7 +17,7 @@ class Ver extends require('../Command') {
   }
 
   async exec() {
-    this.Logger.reset(`v${pkg.ver}`)
+    this.Logger.reset(`v${pkg.version}`)
     this.prompt.run()
   }
 }

@@ -56,7 +56,7 @@ class Cat extends require('../Command') {
   static formatTs(ts) {
     ts = Crypto.fromTsToDate(ts)
     let date = ts[0].split('Z')[0].split('T')
-    return `${date[0]} ${date[1].substring(0,12)}${ts[1]}` //  ${date[1].substring(9) + ':' + ts[1]}`
+    return `${Crypto.b58Hash(ts).substring(0, 4)} ${date[0]} ${date[1].substring(0,12)}${ts[1]}` //  ${date[1].substring(9) + ':' + ts[1]}`
   }
 
   async exec(options) {
@@ -72,7 +72,7 @@ class Cat extends require('../Command') {
             // if (!header) {
             //   this.Logger.cyan(chalk.bold('v.id  date        hour      μs '))
             // }
-            this.Logger.yellow(`${header ? '\n' : ''}${Crypto.b58Hash(ts).substring(0, 4)} ${Cat.formatTs(ts)}`)
+            this.Logger.yellow(`${header ? '\n' : ''}${Cat.formatTs(ts)}`)
             header = true
           }
           this.Logger.reset(content)

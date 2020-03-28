@@ -149,6 +149,22 @@ class Secrez {
     return next
   }
 
+  encryptHistory(history) {
+    let encryptedHistory = Crypto.encrypt(
+        history,
+        _secrez.masterKey
+    )
+    return encryptedHistory
+  }
+
+  decryptHistory(encryptedHistory) {
+    let history = Crypto.decrypt(
+        encryptedHistory,
+        _secrez.masterKey
+    )
+    return history
+  }
+
   encryptEntry(entry) {
 
     if (!entry || entry.constructor.name !== 'Entry') {

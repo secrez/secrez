@@ -1,0 +1,9 @@
+{
+  "histories": {
+    "_default": [
+      "ls -l",
+      "cat vita",
+      "ls"
+    ]
+  }
+}

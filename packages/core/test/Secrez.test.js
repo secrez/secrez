@@ -39,7 +39,7 @@ describe('#Secrez', function () {
 
     it('should use the default ~/.secrez folder', async function () {
 
-      assert.equal(secrez.config.dataPath, homedir() + '/.secrez/blobs')
+      assert.equal(secrez.config.dataPath, homedir() + '/.secrez/data')
       assert.equal(secrez.config.localWorkingDir, homedir())
     })
 

@@ -39,11 +39,6 @@ class Ls extends require('../Command') {
       let list = await this.prompt.internalFs.ls(options)
       if (list) {
         if (list.length) {
-          if (options.list) {
-            list = list.map(e => {
-              return chalk.reset(chalk.yellow(e.substring(0,1))) + ' ' + e.substring(2)
-            })
-          }
           this.Logger.reset(options.list
               ? list.join('\n')
               : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
