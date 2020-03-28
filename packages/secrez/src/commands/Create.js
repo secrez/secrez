@@ -13,8 +13,8 @@ class Create extends require('../Command') {
     this.cliConfig.completion.help.create = true
     this.optionDefinitions = [
       {
-        name: 'hidden',
-        alias: 'h',
+        name: 'cleartext',
+        alias: 'c',
         type: Boolean
       }
     ]
@@ -27,8 +27,8 @@ class Create extends require('../Command') {
         '"create" asks for the path and the secret.'
       ],
       examples: [
-        'create',
-        ['create -h', 'prompts a hidden input for the secret']
+        ['create', 'prompts, by default, an hidden input for the secret'],
+        ['create -c', 'prompts a cleartext input']
       ]
     }
   }
@@ -52,11 +52,11 @@ class Create extends require('../Command') {
       ])
       options.path = p
       if (options.path !== exitCode) {
-        this.Logger.grey(`Fullpath: ${path.resolve(this.cliConfig.workingDir, `./${options.path}`)}`)
+        // this.Logger.grey(`Fullpath: ${path.resolve(this.cliConfig.workingDir, `./${options.path}`)}`)
         if (!options.content) {
           let {content} = await prompt.inquirer.prompt([
             {
-              type: options.hidden ? 'password' : 'input',
+              type: options.cleartext ? 'input' : 'password',
               name: 'content',
               message: 'Type your secret',
               validate: val => {
@@ -74,7 +74,8 @@ class Create extends require('../Command') {
           options.content = content
         }
         if (options.content !== exitCode) {
-          await prompt.internalFs.create(options.path, options.content)
+          options.type = this.prompt.secrez.config.types.FILE
+          await prompt.internalFs.make(options)
         }
       }
     } catch (e) {

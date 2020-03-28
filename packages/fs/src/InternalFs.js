@@ -199,7 +199,7 @@ class InternalFs {
   /* commands */
 
   async ls(options) {
-    let list = await this.pseudoFileCompletion(options.path || '.')
+    let list = await this.pseudoFileCompletion(options.path || '.', options.list)
     return list //FsUtils.filterLs(options.path, list)
   }
 
@@ -271,7 +271,7 @@ class InternalFs {
     return normalized
   }
 
-  async pseudoFileCompletion(files = '*', only) {
+  async pseudoFileCompletion(files = '*', showType) {
     if (!files) files = './'
     let p = this.getNormalizedPath(files)
     let end
@@ -282,11 +282,20 @@ class InternalFs {
       end = path.basename(p)
       node = this.tree.root.getChildFromPath(path.dirname(p))
     }
+    const getType = n => {
+      if (showType) {
+        return (n.type === config.types.FILE ? ' ' : 'x') + ' '
+      }
+      return ''
+    }
     if (node) {
       if (this.isFile(node)) {
-        return [node.getName()]
+        return [getType(node) + node.getName()]
       } else {
-        let children = node.getChildrenNames()
+        let children = []
+        for (let id in node.children) {
+          children.push(getType(node.children[id]) + node.children[id].getName())
+        }
         if (end) {
           end = end.replace(/\?/g, '.{1}').replace(/\*/g, '.*')
           let re = RegExp(end)

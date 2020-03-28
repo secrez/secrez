@@ -46,7 +46,7 @@ class Help extends require('../Command') {
       data.description = [data.description]
     }
     console.info()
-    this.Logger.bold(data.description[0])
+    this.Logger.reset(data.description[0])
     if (data.description[1]) {
       data.description.slice(1).map(e => this.Logger.reset(`  ${e}`))
     }
@@ -55,7 +55,7 @@ class Help extends require('../Command') {
       let commandNames = optionDefinitions.map(e => e.name)
       if (commandNames.length) {
         console.info()
-        this.Logger.bold('Available options:')
+        this.Logger.reset('Available options:')
         let max = 0
         for (let c of commandNames) {
           max = Math.max(max, c.length)
@@ -73,7 +73,7 @@ class Help extends require('../Command') {
       }
     }
     console.info()
-    this.Logger.bold('Examples:')
+    this.Logger.reset('Examples:')
     let max = 0
     let c = ''
     for (let e of data.examples) {

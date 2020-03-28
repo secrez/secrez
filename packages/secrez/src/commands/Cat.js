@@ -1,3 +1,4 @@
+const chalk = require('chalk')
 const {Crypto} = require('@secrez/core')
 
 class Cat extends require('../Command') {
@@ -55,18 +56,24 @@ class Cat extends require('../Command') {
   static formatTs(ts) {
     ts = Crypto.fromTsToDate(ts)
     let date = ts[0].split('Z')[0].split('T')
-    return `Date: ${date[0]} - Time: ${date[1]}`
+    return `${date[0]} ${date[1].substring(0,12)}${ts[1]}` //  ${date[1].substring(9) + ':' + ts[1]}`
   }
 
   async exec(options) {
     try {
       let data = await this.prompt.internalFs.cat(options)
+      let extra = options.all || options.metadata
       if (data) {
+        let header = false
         for (let d of data) {
           // eslint-disable-next-line no-unused-vars
-          let {content, version, ts} = d
-          if (options.all || options.metadata) {
-            this.Logger.yellow(`${version ? `Pseudoversion: ${version} - ` : ''}${Cat.formatTs(ts)}`)
+          let {content, ts} = d
+          if (extra) {
+            // if (!header) {
+            //   this.Logger.cyan(chalk.bold('v.id  date        hour      μs '))
+            // }
+            this.Logger.yellow(`${header ? '\n' : ''}${Crypto.b58Hash(ts).substring(0, 4)} ${Cat.formatTs(ts)}`)
+            header = true
           }
           this.Logger.reset(content)
         }

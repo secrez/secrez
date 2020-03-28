@@ -5,8 +5,8 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const inquirer = require('inquirer')
 // eslint-disable-next-line node/no-unpublished-require
-// const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
-const inquirerCommandPrompt = require('inquirer-command-prompt')
+const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
+// const inquirerCommandPrompt = require('inquirer-command-prompt')
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
 const {Secrez, Utils} = require('@secrez/core')
@@ -34,8 +34,8 @@ class Prompt {
     this.externalFs = new ExternalFs()
     inquirerCommandPrompt.setConfig({
       history: {
-        save: true,
-        folder: path.join(homedir(), cliConfig.root),
+        // save: true,
+        // folder: path.join(homedir(), cliConfig.root),
         limit: 100,
         blacklist: ['exit']
       }
@@ -100,16 +100,20 @@ class Prompt {
       await this.internalFs.init()
       this.loggedIn = true
     }
+    // eslint-disable-next-line no-console
+    // console.log()
     try {
+      let pre = chalk.reset(`(${this.internalFs.tree.workingNode.getPath()}) Secrez`)
       let answers = await inquirer.prompt([
         {
           type: 'command',
           name: 'cmd',
           autoCompletion: this.getCommands,
           short: this.short,
-          prefix: '[',
-          noColorOnAnswered: true,
-          message: `${chalk.reset(`Secrez:/${path.basename(cliConfig.workingDir)} ]`)}$`,
+          prefix: pre,
+          // noColorOnAnswered: true,
+          colorOnAnswered: 'grey',
+          message: '$',
           context: 0,
           ellipsize: true,
           autocompletePrompt: chalk.grey('Available options:'),

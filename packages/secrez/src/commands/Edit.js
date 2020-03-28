@@ -48,7 +48,9 @@ class Edit extends require('../Command') {
 
   async edit(internalFs, options) {
     let file = options.path
-    let [content, filePath, ver] = await internalFs.cat({path: file})
+    let data = await internalFs.cat({path: file})
+    let node = internalFs.tree.root.getChildFromPath(file)
+    let {content} = data[0]
     let extraMessage = chalk.dim('Press <enter> to launch ')
         + (
             !options.editor ? 'the editor.'
@@ -71,11 +73,11 @@ class Edit extends require('../Command') {
       extraMessage
     }])
 
-    if (newContent !== content) {
-      let encContent = await internalFs.secrez.encryptEntry(newContent)
-      ver++
-      await fs.appendFile(filePath, `\n${ver};${Crypto.scrambledTimestamp(true)};${encContent}`)
-      this.Logger.reset(`File saved. Version: ${ver}`)
+    if (newContent && newContent !== content) {
+      let entry = node.getEntry()
+      entry.content = newContent
+      await internalFs.update(node, entry)
+      this.Logger.reset('File saved.')
     } else {
       this.Logger.reset('Changes aborted or file not changed')
     }
