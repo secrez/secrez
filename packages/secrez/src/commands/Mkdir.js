@@ -36,7 +36,7 @@ class Mkdir extends require('../Command') {
     } else {
       try {
         options.type = config.types.DIR
-        await this.prompt.internalFs.make(options)
+        await this.internalFs.make(options)
       } catch (e) {
         this.Logger.red(e.message)
       }

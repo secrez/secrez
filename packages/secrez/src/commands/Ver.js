@@ -23,5 +23,3 @@ class Ver extends require('../Command') {
 }
 
 module.exports = Ver
-
-

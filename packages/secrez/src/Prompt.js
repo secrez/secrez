@@ -26,7 +26,6 @@ let thiz
 class Prompt {
 
   async init(options) {
-    this.commands = (new Commands(this, cliConfig)).getCommands()
     this.inquirer = inquirer
     this.commandPrompt = inquirerCommandPrompt
     this.getHistory = inquirerCommandPrompt.getHistory
@@ -43,6 +42,7 @@ class Prompt {
       },
       onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd
     })
+    this.commands = (new Commands(this, cliConfig)).getCommands()
   }
 
   reorderCommandLineWithDefaultAtEnd(line) {

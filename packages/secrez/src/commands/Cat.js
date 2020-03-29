@@ -63,9 +63,29 @@ class Cat extends require('../Command') {
     return `${Crypto.b58Hash(ts).substring(0, 4)} ${date[0]} ${date[1].substring(0,12)}${ts[1]}` //  ${date[1].substring(9) + ':' + ts[1]}`
   }
 
+  async cat(options) {
+    let ifs = this.internalFs
+    let p = ifs.getNormalizedPath(options.path)
+    let node = ifs.tree.root.getChildFromPath(p)
+    if (node && ifs.isFile(node)) {
+      let result  = []
+      if (options.all) {
+        let versions = node.getVersions()
+        for (let ts of versions) {
+          result.push(await ifs.getEntryDetails(node, ts))
+        }
+      } else {
+        result.push(await ifs.getEntryDetails(node, options.ts))
+      }
+      return result
+    } else {
+      throw new Error('Cat requires a valid file')
+    }
+  }
+
   async exec(options) {
     try {
-      let data = await this.prompt.internalFs.cat(options)
+      let data = await this.cat(options)
       let extra = options.all || options.metadata
       if (data) {
         let header = false

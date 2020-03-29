@@ -43,7 +43,7 @@ class Touch extends require('../Command') {
     } else {
       try {
         options.type = config.types.FILE
-        await this.prompt.internalFs.make(options)
+        await this.internalFs.make(options)
       } catch (e) {
         this.Logger.red(e.message)
       }

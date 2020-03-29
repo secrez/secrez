@@ -2,8 +2,6 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')
-const FsUtils = require('./FsUtils')
-
 
 class ExternalFs {
 
@@ -74,30 +72,6 @@ class ExternalFs {
       return fs.lstatSync(fn).isFile()
     }
     return false
-  }
-
-  async cd(options) {
-    let dir = options.path
-    if (!this.initialLocalWorkingDir) {
-      this.initialLocalWorkingDir = config.localWorkingDir
-    }
-    if (/^~\//.test(dir) || dir === '~') {
-      dir = dir.replace(/^~/, this.initialLocalWorkingDir)
-    }
-    dir = this.getNormalizedPath(dir)
-    if (this.isDir(dir)) {
-      config.localWorkingDir = dir
-    } else {
-      throw new Error('No such directory')
-    }
-  }
-
-  async ls(options) {
-    return FsUtils.filterLs(options, await this.fileCompletion(options))
-  }
-
-  async pwd() {
-    return config.localWorkingDir
   }
 
 }

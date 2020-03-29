@@ -1,3 +1,5 @@
+const {FsUtils} = require('@secrez/fs')
+
 class Lls extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -52,7 +54,7 @@ class Lls extends require('../Command') {
 
   async exec(options) {
     try {
-      let list = await this.prompt.externalFs.ls(options)
+      let list = await FsUtils.filterLs(options, await this.externalFs.fileCompletion(options))
       if (list) {
         if (list.length) {
           this.Logger.reset(options.list

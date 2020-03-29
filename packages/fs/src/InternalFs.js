@@ -196,32 +196,6 @@ class InternalFs {
     return node.type === config.types.FILE
   }
 
-  /* commands */
-
-  async ls(options) {
-    let list = await this.pseudoFileCompletion(options.path || '.', true)
-    return list //FsUtils.filterLs(options.path, list)
-  }
-
-  async cat(options) {
-    let p = this.getNormalizedPath(options.path)
-    let node = this.tree.root.getChildFromPath(p)
-    if (node && this.isFile(node)) {
-      let result  = []
-      if (options.all) {
-        let versions = node.getVersions()
-        for (let ts of versions) {
-          result.push(await this.getEntryDetails(node, ts))
-        }
-      } else {
-        result.push(await this.getEntryDetails(node, options.ts))
-      }
-      return result
-    } else {
-      throw new Error('Cat requires a valid file')
-    }
-  }
-
   async getEntryDetails(node, ts) {
     let content
     if (node.type === config.types.FILE) {
@@ -242,22 +216,6 @@ class InternalFs {
       name: node.getName(ts),
       content,
       ts: ts || node.lastTs
-    }
-  }
-
-  cd(options) {
-    let p = this.getNormalizedPath(options.path)
-    if (!p || /^(\/|~|~\/)$/.test(p)) {
-      this.tree.workingNode = this.tree.root
-    } else if (p === '.') {
-      // nothing
-    } else {
-      let node = this.tree.root.getChildFromPath(p)
-      if (!this.isFile(node)) {
-        this.tree.workingNode = node
-      } else {
-        throw new Error('You cannot cd to a file')
-      }
     }
   }
 
@@ -308,15 +266,6 @@ class InternalFs {
     }
     return []
   }
-
-  pwd(options) {
-    if (options.getNode) {
-      return this.tree.workingNode.getName()
-    } else { // getPath default
-      return this.tree.root.getPathToChild(this.tree.workingNode)
-    }
-  }
-
 
 }
 

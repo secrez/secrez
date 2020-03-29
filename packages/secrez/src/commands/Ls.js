@@ -1,5 +1,3 @@
-const chalk = require('chalk')
-
 class Ls extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -34,9 +32,13 @@ class Ls extends require('../Command') {
     }
   }
 
+  async ls(options) {
+    return await this.internalFs.pseudoFileCompletion(options.path || '.', true)
+  }
+
   async exec(options) {
     try {
-      let list = await this.prompt.internalFs.ls(options)
+      let list = await this.ls(options)
       if (list) {
         if (list.length) {
           this.Logger.reset(options.list

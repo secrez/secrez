@@ -13,6 +13,9 @@ class Command {
     this.optionDefinitions = []
     this.cliConfig = cliConfig
     this.Logger = Logger
+    this.internalFs = prompt.internalFs
+    this.externalFs = prompt.externalFs
+    this.crossFs = prompt.crossFs
   }
 
   help() {
@@ -20,21 +23,6 @@ class Command {
 
   setHelpAndCompletion() {
   }
-
-  // multiFileCompletion(self, extraOptions = {}) {
-  //
-  //   return async (options, line) => {
-  //     options = Object.assign(extraOptions, options)
-  //     console.log(options, line)
-  //     // try {
-  //     //   return self.prompt.internalFs.pseudoFileCompletion(files, only)
-  //     // } catch (e) {
-  //     //   Logger.red(['error', e])
-  //     // }
-  //   }
-  // }
-  //
-  //
 
   pseudoFileCompletion(self, extraOptions = {}) {
     return async options => {
