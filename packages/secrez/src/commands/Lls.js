@@ -1,11 +1,11 @@
-class Els extends require('../Command') {
+class Lls extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.cliConfig.completion.els = {
+    this.cliConfig.completion.lls = {
       _func: this.fileCompletion(this),
       _self: this
     }
-    this.cliConfig.completion.help.els = true
+    this.cliConfig.completion.help.lls = true
     this.optionDefinitions = [
       {
         name: 'path',
@@ -17,6 +17,21 @@ class Els extends require('../Command') {
         name: 'list',
         alias: 'l',
         type: Boolean
+      },
+      {
+        name: 'all',
+        alias: 'a',
+        type: Boolean
+      },
+      {
+        name: 'dironly', // has priority on fileonly
+        alias: 'd',
+        type: Boolean
+      },
+      {
+        name: 'fileonly',
+        alias: 'f',
+        type: Boolean
       }
     ]
   }
@@ -27,16 +42,17 @@ class Els extends require('../Command') {
         'Secrez refers to external when refers to unencrypted standard files in the OS.'
       ],
       examples: [
-        'els coin',
-        'els ../passwords',
-        'els ~'
+        'lls coin',
+        'lls -l ../passwords',
+        'lls ~',
+        ['lls -a', 'Shows all the file, included hidden ones']
       ]
     }
   }
 
   async exec(options) {
     try {
-      let list = await this.prompt.externalFs.ls(options.path)
+      let list = await this.prompt.externalFs.ls(options)
       if (list) {
         if (list.length) {
           this.Logger.reset(options.list
@@ -45,7 +61,7 @@ class Els extends require('../Command') {
           )
         }
       } else {
-        this.Logger.reset(`els: ${options.path}: No such file or directory`)
+        this.Logger.reset(`lls: ${options.path}: No such file or directory`)
       }
     } catch (e) {
       this.Logger.red(e.message)
@@ -54,7 +70,7 @@ class Els extends require('../Command') {
   }
 }
 
-module.exports = Els
+module.exports = Lls
 
 
 

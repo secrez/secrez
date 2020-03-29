@@ -18,18 +18,20 @@ class ExternalFs {
     return normalized
   }
 
-  async fileCompletion(files = '', only) {
-    let list = this.getDir(this.getNormalizedPath(files))[1]
-    if (only) {
-      list = _.filter(list, f => {
-        if (only === config.onlyDir) {
-          return /\/$/.test(f)
-        } else {
-          return !/\/$/.test(f)
-        }
-      })
-    }
-    return list
+  async fileCompletion(options = {}) {
+    let files = this.getDir(this.getNormalizedPath(options.path))[1]
+    return files.filter(f => {
+      let pre = true
+      if (options.dironly) {
+        pre = /\/$/.test(f)
+      } else if (options.fileonly) {
+        pre = !/\/$/.test(f)
+      }
+      if (pre && !options.all) {
+        pre = !/^\./.test(f)
+      }
+      return pre
+    })
   }
 
   mapDir(dir) {
@@ -74,7 +76,8 @@ class ExternalFs {
     return false
   }
 
-  async cd(dir) {
+  async cd(options) {
+    let dir = options.path
     if (!this.initialLocalWorkingDir) {
       this.initialLocalWorkingDir = config.localWorkingDir
     }
@@ -89,8 +92,8 @@ class ExternalFs {
     }
   }
 
-  async ls(files) {
-    return FsUtils.filterLs(files, await this.fileCompletion(files))
+  async ls(options) {
+    return FsUtils.filterLs(options, await this.fileCompletion(options))
   }
 
   async pwd() {

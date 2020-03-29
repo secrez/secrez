@@ -1,8 +1,8 @@
-class Epwd extends require('../Command') {
+class Lpwd extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.cliConfig.completion.epwd = {}
-    this.cliConfig.completion.help.epwd = true
+    this.cliConfig.completion.lpwd = {}
+    this.cliConfig.completion.help.lpwd = true
   }
 
   help() {
@@ -11,7 +11,7 @@ class Epwd extends require('../Command') {
         'Secrez refers to external when refers to unencrypted standard files in the OS.'
       ],
       examples: [
-        'epwd'
+        'lpwd'
       ]
     }
   }
@@ -26,6 +26,6 @@ class Epwd extends require('../Command') {
   }
 }
 
-module.exports = Epwd
+module.exports = Lpwd
 
 

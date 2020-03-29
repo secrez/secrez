@@ -11,6 +11,14 @@ class CrossFs {
     this.externalFs = externalFs
   }
 
+  import(options) {
+
+  }
+
+  export(options) {
+
+  }
+
 }
 
 module.exports = CrossFs

@@ -21,20 +21,37 @@ class Command {
   setHelpAndCompletion() {
   }
 
-  pseudoFileCompletion(self, only) {
-    return async files => {
+  // multiFileCompletion(self, extraOptions = {}) {
+  //
+  //   return async (options, line) => {
+  //     options = Object.assign(extraOptions, options)
+  //     console.log(options, line)
+  //     // try {
+  //     //   return self.prompt.internalFs.pseudoFileCompletion(files, only)
+  //     // } catch (e) {
+  //     //   Logger.red(['error', e])
+  //     // }
+  //   }
+  // }
+  //
+  //
+
+  pseudoFileCompletion(self, extraOptions = {}) {
+    return async options => {
+      options = Object.assign(extraOptions, options)
       try {
-        return self.prompt.internalFs.pseudoFileCompletion(files, only)
+        return self.prompt.internalFs.pseudoFileCompletion(options)
       } catch (e) {
         Logger.red(['error', e])
       }
     }
   }
 
-  fileCompletion(self, only) {
-    return async files => {
+  fileCompletion(self, extraOptions = {}) {
+    return async options => {
+      options = Object.assign(extraOptions, options)
       try {
-        return self.prompt.externalFs.fileCompletion(files, only)
+        return self.prompt.externalFs.fileCompletion(options)
       } catch (e) {
         Logger.red(['error', e])
       }

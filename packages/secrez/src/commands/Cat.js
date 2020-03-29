@@ -28,8 +28,7 @@ class Cat extends require('../Command') {
       {
         name: 'version',
         alias: 'v',
-        type: Number,
-        isCompletable: true
+        type: Number
       },
       {
         name: 'all',

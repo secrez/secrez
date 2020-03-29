@@ -1,11 +1,14 @@
-class Ecd extends require('../Command') {
+class Lcd extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.cliConfig.completion.ecd = {
-      _func: this.fileCompletion(this, this.cliConfig.onlyDir),
+    this.cliConfig.completion.lcd = {
+      _func: this.fileCompletion(this, {
+        all: true,
+        dironly: true
+      }),
       _self: this
     }
-    this.cliConfig.completion.help.ecd = true
+    this.cliConfig.completion.help.lcd = true
     this.optionDefinitions = [
       {
         name: 'path',
@@ -23,16 +26,18 @@ class Ecd extends require('../Command') {
         'Secrez refers to external when refers to unencrypted standard files in the OS.'
       ],
       examples: [
-        'ecd ~/Downloads',
-        ['ecd', 'change to home dir, like "ecd ~"'],
-        'ecd /var/nginx/log',
+        'lcd ~/Downloads',
+        ['lcd', 'change to home dir, like "lcd ~"'],
+        'lcd /var/nginx/log',
       ]
     }
   }
 
   async exec(options) {
     try {
-      await this.prompt.externalFs.cd(options.path)
+      options.all = true
+      options.dironly = true
+      await this.prompt.externalFs.cd(options)
     } catch (e) {
       this.Logger.red(e.message)
     }
@@ -40,6 +45,6 @@ class Ecd extends require('../Command') {
   }
 }
 
-module.exports = Ecd
+module.exports = Lcd
 
 

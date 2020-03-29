@@ -21,7 +21,7 @@ class _Completion {
   async subCommands(line = '', forceCommand) {
     // eslint-disable-next-line no-console
     // console.log()
-
+    const originalLine = line
     const params = line.split(' ')
     const normalizedParams = params.map(e => e.split('=')[0])
     const command = params[0]
@@ -40,7 +40,7 @@ class _Completion {
         if (options._unknown) {
           options = {path: '.'}
         }
-        let files = await c._func(options.path)
+        let files = await c._func(options, originalLine)
         commands = files
       } else {
         commands = _.filter(

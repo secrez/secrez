@@ -44,7 +44,8 @@ class FsUtils {
     return {}
   }
 
-  static async filterLs(file, list = []) {
+  static async filterLs(options, list = []) {
+    let file = options.path || ''
     let bn = file ? path.basename(file) : ''
     if (bn === '.' || bn === '..') {
       bn = ''

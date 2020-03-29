@@ -2,7 +2,7 @@ class Cd extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.cd = {
-      _func: this.pseudoFileCompletion(this, this.cliConfig.onlyDir),
+      _func: this.pseudoFileCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.cd = true
