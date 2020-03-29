@@ -1,9 +1,13 @@
 const chalk = require('chalk')
 const {Crypto} = require('@secrez/core')
+const {FsUtils} = require('@secrez/fs')
+
+let thiz
 
 class Cat extends require('../Command') {
 
   setHelpAndCompletion() {
+    thiz = this
     this.cliConfig.completion.cat = {
       _func: this.pseudoFileCompletion(this),
       _self: this
@@ -24,7 +28,8 @@ class Cat extends require('../Command') {
       {
         name: 'version',
         alias: 'v',
-        type: Number
+        type: Number,
+        isCompletable: true
       },
       {
         name: 'all',

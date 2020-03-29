@@ -20,7 +20,7 @@ class _Completion {
 
   async subCommands(line = '', forceCommand) {
     // eslint-disable-next-line no-console
-    console.log()
+    // console.log()
 
     const params = line.split(' ')
     const normalizedParams = params.map(e => e.split('=')[0])
@@ -36,7 +36,7 @@ class _Completion {
       if (c._func) {
         let commandLine = _.trim(line).split(' ').slice(1).join(' ')
         const definitions = c._self.optionDefinitions
-        options = FsUtils.parseCommandLine(definitions, commandLine, true)
+        options = FsUtils.parseCommandLine(definitions, commandLine)
         if (options._unknown) {
           options = {path: '.'}
         }

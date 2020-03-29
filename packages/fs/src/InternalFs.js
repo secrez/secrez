@@ -271,8 +271,7 @@ class InternalFs {
     return normalized
   }
 
-  async pseudoFileCompletion(files = '*', addSlashIfDir) {
-    if (!files) files = './'
+  async pseudoFileCompletion(files = './', addSlashIfDir) {
     let p = this.getNormalizedPath(files)
     let end
     let node

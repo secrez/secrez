@@ -33,13 +33,13 @@ class FsUtils {
 
   static parseCommandLine(definitions, commandLine) {
     if (definitions && definitions.length) {
-      if (commandLine) {
-        const argv = this.preParseCommandLine(commandLine)
-        argv.partial = true
-        return commandLineArgs(definitions, {argv})
-      } else {
-        return commandLineArgs(definitions, {partial: true})
+      let argv = {
+        partial: true
       }
+      if (commandLine) {
+        argv.argv = this.preParseCommandLine(commandLine)
+      }
+      return commandLineArgs(definitions, argv)
     }
     return {}
   }
@@ -52,7 +52,7 @@ class FsUtils {
     if (bn && list.includes(bn)) {
       return [bn]
     } else if (bn) {
-      bn = bn.replace(/\./g,'\\.').replace(/\*/g, '.*').replace(/\?/g, '.{1}}')
+      bn = bn.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.{1}}')
       let re = RegExp(bn)
       list = _.filter(list, e => re.test(e))
     }

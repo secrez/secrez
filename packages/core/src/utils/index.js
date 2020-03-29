@@ -80,6 +80,13 @@ class Utils {
     }
   }
 
+  static getKeyValue(obj, key) {
+    return {
+      key: key,
+      value: obj[key]
+    }
+  }
+
   static secureCompare(a, b) {
     if (!a || !b || a.length !== b.length) {
       return false

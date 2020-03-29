@@ -1,3 +1,5 @@
+const {FsUtils} = require('@secrez/fs')
+
 class Xcp extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -13,7 +15,7 @@ class Xcp extends require('../Command') {
         defaultOption: true,
         multiple: true,
         type: String,
-        defaultValue: '/'
+        defaultValue: '.'
       },
       {
         name: 'recursive',
@@ -23,7 +25,8 @@ class Xcp extends require('../Command') {
       {
         name: 'external',
         alias: 'e',
-        type: String
+        type: String,
+        isCompletable: true
       },
       {
         name: 'move',
@@ -41,6 +44,11 @@ class Xcp extends require('../Command') {
         type: Number
       }
     ]
+  }
+
+  onCtrlEnd(line) {
+    console.log(FsUtils.preParseCommandLine(line))
+    return ''
   }
 
   help() {

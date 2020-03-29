@@ -1,15 +1,15 @@
-const homedir = require('homedir')
 const chalk = require('chalk')
-const path = require('path')
 const _ = require('lodash')
 const fs = require('fs-extra')
 const inquirer = require('inquirer')
+
 // eslint-disable-next-line node/no-unpublished-require
 // const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
+
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
-const {Secrez, Utils, Crypto} = require('@secrez/core')
+const {Secrez, Utils} = require('@secrez/core')
 const {FsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
 
 const Logger = require('./utils/Logger')
@@ -20,6 +20,8 @@ const welcome = require('./Welcome')
 
 inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('multiEditor', multiEditorPrompt)
+
+let thiz
 
 class Prompt {
 
@@ -32,13 +34,73 @@ class Prompt {
     await this.secrez.init(options.container, options.localDir)
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
+    thiz = this
     inquirerCommandPrompt.setConfig({
       history: {
         save: false,
         limit: 100,
         blacklist: ['exit']
-      }
+      },
+      onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd
     })
+  }
+
+  reorderCommandLineWithDefaultAtEnd(line) {
+    // reorder the line to put autocompletable words at the end of the line
+    let previousLine = line
+    line = _.trim(line).split(' ')
+    let cmd = line[0]
+    if (cmd && thiz.commands[cmd]) {
+      let definitions = thiz.commands[cmd].optionDefinitions
+      let def = {}
+      let selfCompletables = 0
+      for (let d of definitions) {
+        def[d.name] = d
+        if (d.defaultOption || d.isCompletable) selfCompletables++
+      }
+      let params = FsUtils.parseCommandLine(definitions, line.slice(1).join(' '))
+      let result = []
+      for (let key in params) {
+        if (key !== '_unknown') {
+          result.push(Utils.getKeyValue(params, key))
+        }
+      }
+      result.sort((a, b) => {
+        let A = def[a.key]
+        let B = def[b.key]
+        return (
+            A.defaultOption ? 1
+                : B.defaultOption ? -1
+                : A.isCompletable ? 1
+                    : B.isCompletable ? -1
+                        : 0
+        )
+      })
+      let ret = [cmd]
+      for (let c of result) {
+        if (!def[c.key].defaultOption) {
+          if (ret.length && /^-/.test(ret[ret.length -1])) {
+            ret[ret.length -1] += def[c.key].alias
+          } else {
+            ret.push('-' + def[c.key].alias)
+          }
+        }
+        if (def[c.key].type !== Boolean) {
+          ret.push(c.value)
+        }
+      }
+      if (selfCompletables === 2 && previousLine === ret.join(' ')) {
+        let len = ret.length
+        if (len > 3) {
+          ret = ret.slice(0, len - 3)
+              .concat(ret.slice(len - 1, len))
+              .concat(ret.slice(len - 3, len - 1))
+        }
+      }
+      return ret.join(' ')
+    } else {
+      return ''
+    }
   }
 
   async saveHistory() {

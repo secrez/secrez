@@ -6,6 +6,7 @@ const chalk = require('chalk')
 const {FsUtils} = require('@secrez/fs')
 const {version} = require('@secrez/core')
 const Prompt = require('./Prompt')
+const commandLineArgs = require('command-line-args')
 
 const optionDefinitions = [
   {
@@ -54,7 +55,7 @@ function error(message) {
 
 let options = {}
 try {
-  options = FsUtils.parseCommandLine(optionDefinitions)
+  options = commandLineArgs(optionDefinitions)
 } catch (e) {
   error(e.message)
 }
