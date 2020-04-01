@@ -1,8 +1,9 @@
 const crypto = require('crypto')
 const {Keccak} = require('sha3')
 const bs58 = require('bs58')
-const utils = require('.')
+const Utils = require('.')
 const microtime = require('microtime')
+
 const {
   box,
   secretbox,
@@ -84,14 +85,14 @@ class Crypto {
     let alphabet = Crypto.base58Alphabet
     let blen = 58
     let [ts, microseconds] = microtime.nowDouble().toString().split('.').map(e => parseInt(e))
-    ts = utils.intToBase58(ts)
+    ts = Utils.intToBase58(ts)
     let rnd = Crypto.getRandomBase58String(ts.length)
     for (let i = 0; i < ts.length; i++) {
       let p = alphabet.indexOf(rnd[i])
       let v = alphabet.indexOf(ts[i])
       rnd += alphabet[(p + v) % blen]
     }
-    return [rnd, utils.intToBase58(microseconds)]
+    return [rnd, Utils.intToBase58(microseconds)]
   }
 
   static unscrambleTimestamp(ts, microseconds) {
@@ -104,7 +105,7 @@ class Crypto {
       let v = alphabet.indexOf(ts[i + len])
       ret += alphabet[(v - p + blen) % blen]
     }
-    return '' + utils.base58ToInt(ret) + (utils.base58ToInt(microseconds) / 1e6).toString().substring(1)
+    return '' + Utils.base58ToInt(ret) + (Utils.base58ToInt(microseconds) / 1e6).toString().substring(1)
   }
 
   static fromTsToDate(ts) {

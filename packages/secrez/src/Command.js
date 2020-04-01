@@ -15,7 +15,6 @@ class Command {
     this.Logger = Logger
     this.internalFs = prompt.internalFs
     this.externalFs = prompt.externalFs
-    this.crossFs = prompt.crossFs
   }
 
   help() {

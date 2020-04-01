@@ -33,7 +33,7 @@ class Lcd extends require('../Command') {
     }
   }
 
-  async cd(options) {
+  async lcd(options) {
     let dir = options.path
     if (!this.externalFs.initialLocalWorkingDir) {
       this.externalFs.initialLocalWorkingDir = this.prompt.secrez.config.localWorkingDir
@@ -53,7 +53,7 @@ class Lcd extends require('../Command') {
     try {
       options.all = true
       options.dironly = true
-      await this.cd(options)
+      await this.lcd(options)
     } catch (e) {
       this.Logger.red(e.message)
     }

@@ -21,7 +21,7 @@ class Lls extends require('../Command') {
         type: Boolean
       },
       {
-        name: 'all',
+        name: 'all', // includes hidden files
         alias: 'a',
         type: Boolean
       },

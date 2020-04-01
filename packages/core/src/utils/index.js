@@ -1,4 +1,6 @@
 const _ = require('lodash')
+const isBinaryFile = require('isbinaryfile').isBinaryFile
+const fs = require('fs-extra')
 
 const Base58 = require('base58')
 
@@ -97,6 +99,18 @@ class Utils {
     }
     return match
   }
+
+  static async isBinary(fileFullPath) {
+    try {
+      const data = await fs.readFile(fileFullPath)
+      const stat = await fs.lstat(fileFullPath)
+      return await isBinaryFile(data, stat.size)
+    } catch(e) {
+      throw new Error('A valid file is required')
+    }
+  }
+
+
 
 }
 

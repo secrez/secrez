@@ -16,9 +16,13 @@ class Lpwd extends require('../Command') {
     }
   }
 
+  async lpwd() {
+    return this.prompt.secrez.config.localWorkingDir
+  }
+
   async exec() {
     try {
-      this.Logger.log(`${this.prompt.secrez.config.localWorkingDir}`)
+      this.Logger.reset(await this.lpwd())
     } catch (e) {
       this.Logger.red(e.message)
     }

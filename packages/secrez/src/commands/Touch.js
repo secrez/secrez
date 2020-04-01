@@ -37,13 +37,17 @@ class Touch extends require('../Command') {
     }
   }
 
+  async touch(options) {
+    await this.internalFs.make(options)
+  }
+
   async exec(options) {
     if (!options.path) {
       this.Logger.red('File path not specified.')
     } else {
       try {
-        options.type = config.types.FILE
-        await this.internalFs.make(options)
+        options.type = config.types.TEXT
+        await this.touch(options)
       } catch (e) {
         this.Logger.red(e.message)
       }

@@ -83,14 +83,10 @@ describe('#FsUtils', function () {
       assert.isTrue(options.files.length >= 4)
     })
 
-    it('should throw if unknown option is passed', async function () {
-      commandLine = '-a -p ~/rossa'
-      try {
+    it('should return an _unknown if not supported option is passed', async function () {
+      commandLine = '-a ~/rossa'
         options = utils.parseCommandLine(definitions, commandLine)
-        assert.isFalse(true)
-      } catch (e) {
-        assert.isTrue(/unknown option/i.test(e.message))
-      }
+        assert.equal(options._unknown, '-a')
     })
 
   })
@@ -158,7 +154,7 @@ describe('#FsUtils', function () {
 
     it('should return all the list array if files are missed', async function () {
 
-      filtered = await utils.filterLs(null, list)
+      filtered = await utils.filterLs(undefined, list)
       assert.equal(filtered.length, 5)
 
     })

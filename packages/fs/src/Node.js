@@ -10,15 +10,13 @@ class Node {
 
     let isRoot = Node.isRoot(entry)
 
-    if (!isRoot
-        && entry.type !== config.types.DIR
-        && entry.type !== config.types.FILE) {
+    if (!(Node.isDir(entry) || Node.isFile(entry))) {
       throw new Error('Unsupported type')
     }
 
     this.id = isRoot ? config.rOOt : entry.id || Crypto.getRandomId()
     this.type = entry.type
-    if (entry.type !== config.types.FILE) {
+    if (Node.isDir(entry)) {
       this.children = {}
     }
 
@@ -53,6 +51,14 @@ class Node {
 
   static isRoot(obj) {
     return obj.type === config.types.ROOT
+  }
+
+  static isDir(node) {
+    return this.isRoot(node) || node.type === config.types.DIR
+  }
+
+  static isFile(node) {
+    return node.type === config.types.TEXT || node.type === config.types.BINARY
   }
 
   static fromJSON(json, secrez, allFiles) {
@@ -138,7 +144,7 @@ class Node {
         file: V.encryptedName
       }
     }
-    if (node.type !== config.types.FILE) {
+    if (Node.isDir(node)) {
       for (let i = 0; i < json.c.length; i++) {
         node.add(Node.initNode(json.c[i], node))
       }
@@ -158,7 +164,7 @@ class Node {
       v: []
     }
 
-    if (this.type === config.types.ROOT) {
+    if (Node.isRoot(this)) {
       minSize = this.calculateMinSize(allFiles)
     }
 
@@ -232,7 +238,7 @@ class Node {
   }
 
   getChildrenNames() {
-    if (this.type === config.types.FILE) {
+    if (Node.isFile(this)) {
       throw new Error('Files do not have children')
     }
     let names = []
@@ -251,7 +257,7 @@ class Node {
   }
 
   getVersions() {
-    if (this.id === config.types.ROOT) {
+    if (Node.isRoot(this)) {
       return []
     } else {
       return Object.keys(this.versions).sort(Node.sortEntry)
@@ -259,7 +265,7 @@ class Node {
   }
 
   get(what, ts = this.lastTs) {
-    if (this.type === config.types.ROOT) {
+    if (Node.isRoot(this)) {
       return undefined
     }
     try {
@@ -269,9 +275,8 @@ class Node {
     }
   }
 
-
   static getRoot(node) {
-    if (node.type === config.types.ROOT) {
+    if (Node.isRoot(node)) {
       return node
     } else {
       return Node.getRoot(node.parent)
@@ -279,7 +284,7 @@ class Node {
   }
 
   findDirectChildByName(name) {
-    if (this.type === config.types.FILE) {
+    if (Node.isFile(this)) {
       throw new Error('A file does not have children')
     }
     if (!name) {
@@ -298,7 +303,7 @@ class Node {
   }
 
   findChildById(id) {
-    if (this.type === config.types.FILE) {
+    if (Node.isFile(this)) {
       throw new Error('A file does not have children')
     }
     if (!id) {
@@ -309,7 +314,7 @@ class Node {
       if (c === id) {
         return child
       }
-      if (child.type === config.types.DIR) {
+      if (Node.isDir(child)) {
         let found = child.findChildById(id)
         if (Node.isNode(found)) {
           return found
@@ -330,7 +335,7 @@ class Node {
           switch (name) {
             case '':
             case '~':
-              if (this.type === config.types.ROOT) {
+              if (Node.isRoot(this)) {
                 node = this
               } else {
                 node = Node.getRoot(this)
@@ -340,7 +345,7 @@ class Node {
               node = this
               break
             case '..':
-              if (this.type === config.types.ROOT) {
+              if (Node.isRoot(this)) {
                 node = this
               } else {
                 node = this.parent
@@ -357,7 +362,7 @@ class Node {
             case '.':
               continue FOR
             case '..':
-              if (node.type !== config.types.ROOT) {
+              if (!Node.isRoot(node)) {
                 node = node.parent
               }
               break
@@ -434,7 +439,7 @@ class Node {
   }
 
   add(children) {
-    if (this.type !== config.types.FILE) {
+    if (Node.isDir(this)) {
       // a child is a Node instance
       if (!Array.isArray(children)) {
         children = [children]
@@ -449,7 +454,7 @@ class Node {
   }
 
   move(entry) {
-    if (this.type === config.types.ROOT) {
+    if (Node.isRoot(this)) {
       throw new Error('You cannot modify a root node')
     }
 

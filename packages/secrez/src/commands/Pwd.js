@@ -14,9 +14,13 @@ class Pwd extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async pwd() {
+    return this.internalFs.tree.workingNode.getPath()
+  }
+
+  async exec() {
     try {
-      this.Logger.log(`${this.internalFs.tree.workingNode.getPath()}`)
+      this.Logger.reset(await this.pwd())
     } catch (e) {
       this.Logger.red(e.message)
     }

@@ -189,16 +189,16 @@ class InternalFs {
   }
 
   isDir(node = {}) {
-    return node.type !== config.types.FILE
+    return Node.isDir(node)
   }
 
   isFile(node = {}) {
-    return node.type === config.types.FILE
+    return Node.isFile(node)
   }
 
   async getEntryDetails(node, ts) {
     let content
-    if (node.type === config.types.FILE) {
+    if (Node.isFile(node)) {
       content = node.getContent(ts)
       if (!content) {
         // must be read from disk
@@ -212,6 +212,7 @@ class InternalFs {
       }
     }
     return {
+      type: node.type,
       id: node.id,
       name: node.getName(ts),
       content,
@@ -229,7 +230,10 @@ class InternalFs {
     return normalized
   }
 
-  async pseudoFileCompletion(options, addSlashIfDir) {
+  async pseudoFileCompletion(options = {}, addSlashIfDir) {
+    if (typeof options === 'string') {
+      options = {path: options}
+    }
     let files = options.path || './'
     let p = this.getNormalizedPath(files)
     let end
@@ -242,7 +246,7 @@ class InternalFs {
     }
     const getType = n => {
       if (addSlashIfDir) {
-        return n.type === config.types.DIR ? '/' : ''
+        return Node.isDir(n) ? '/' : ''
       }
       return ''
     }
@@ -255,7 +259,7 @@ class InternalFs {
           children.push(node.children[id].getName() + getType(node.children[id]))
         }
         if (end) {
-          end = end.replace(/\?/g, '.{1}').replace(/\*/g, '.*')
+          end = '^' + end.replace(/\?/g, '.{1}').replace(/\*/g, '.*') + '(|\\/)$'
           let re = RegExp(end)
           children = children.filter(e => {
             return re.test(e)
@@ -265,6 +269,15 @@ class InternalFs {
       }
     }
     return []
+  }
+
+  async getVersionedName(p) {
+    // eslint-disable-next-line no-constant-condition
+    let p0 = p
+    for (let i=2;;i++) {
+
+      p0 = p + '.' + i
+    }
   }
 
 }

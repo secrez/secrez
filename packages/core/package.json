@@ -17,6 +17,7 @@
     "ethereumjs-wallet": "^0.6.3",
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
+    "isbinaryfile": "^4.0.5",
     "lodash": "^4.17.15",
     "microtime": "^3.0.0",
     "pbkdf2": "^3.0.17",

@@ -75,7 +75,7 @@ describe('#Cat', function () {
 
     let file1 = await internalFs.make({
       path: 'folder1/file1',
-      type: config.types.FILE,
+      type: config.types.TEXT,
       content: 'Password 1'
     })
 

@@ -10,7 +10,7 @@ const inquirerCommandPrompt = require('inquirer-command-prompt')
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
 const {Secrez, Utils} = require('@secrez/core')
-const {FsUtils, InternalFs, ExternalFs, CrossFs} = require('@secrez/fs')
+const {FsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
 
 const Logger = require('./utils/Logger')
 const Completion = require('./Completion')
@@ -175,7 +175,6 @@ class Prompt {
       await this.loading()
       await this.internalFs.init()
       await this.loadSavedHistory()
-      this.crossFs = new CrossFs(this.internalFs, this.externalFs)
       this.loggedIn = true
     }
     // eslint-disable-next-line no-console

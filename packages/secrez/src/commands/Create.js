@@ -74,7 +74,7 @@ class Create extends require('../Command') {
           options.content = content
         }
         if (options.content !== exitCode) {
-          options.type = this.prompt.secrez.config.types.FILE
+          options.type = this.prompt.secrez.config.types.TEXT
           await prompt.internalFs.make(options)
         }
       }

@@ -50,7 +50,7 @@ describe('#Touch', function () {
       path: '/folder2/file1'
     })
 
-    assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder2/file1').type, prompt.secrez.config.types.FILE)
+    assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder2/file1').type, prompt.secrez.config.types.TEXT)
 
   })
 

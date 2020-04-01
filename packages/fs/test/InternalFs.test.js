@@ -134,7 +134,7 @@ describe('#InternalFs', function () {
 
       let file1 = await internalFs.make({
         path: 'folder1/nodir/../file1',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'Password: 373u363y35e'
       })
       assert.equal(file1.getName(), 'file1')
@@ -144,7 +144,7 @@ describe('#InternalFs', function () {
       internalFs.tree.workingNode = folder1
       let file2 = await internalFs.make({
         path: 'file2',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'PIN: 1234'
       })
       assert.equal(file2.getName(), 'file2')
@@ -152,7 +152,7 @@ describe('#InternalFs', function () {
 
       let dir = await internalFs.make({
         path: 'folder1/nodir/bilit/dir',
-        type: config.types.FILE
+        type: config.types.TEXT
       })
       assert.equal(dir.getName(), 'dir')
 
@@ -204,14 +204,14 @@ describe('#InternalFs', function () {
 
       let file1 = await internalFs.make({
         path: 'folder1/nodir/../file1',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'Password: 373u363y35e'
       })
 
       internalFs.tree.workingNode = folder1
       let file2 = await internalFs.make({
         path: 'file2',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'PIN: 1234'
       })
 
@@ -268,7 +268,7 @@ describe('#InternalFs', function () {
 
       await internalFs.make({
         path: 'folder1/file1',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'Password: 373u363y35e'
       })
 
@@ -305,12 +305,12 @@ describe('#InternalFs', function () {
       })
       let file1 = await internalFs.make({
         path: 'folder1/nodir/../file1',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'Password: 373u363y35e'
       })
       await internalFs.make({
         path: 'folder1/file2',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'PIN: 1234'
       })
 
@@ -332,19 +332,19 @@ describe('#InternalFs', function () {
       })
       let file1 = await internalFs.make({
         path: 'folder1/nodir/../file1',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'Password: 373u363y35e'
       })
 
       await internalFs.make({
         path: 'folder1/' + 'a'.repeat(200),
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'Password: 373u363y35e'
       })
 
       await internalFs.make({
         path: 'folder1/file2',
-        type: config.types.FILE,
+        type: config.types.TEXT,
         content: 'PIN: 1234'
       })
 

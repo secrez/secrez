@@ -36,9 +36,14 @@ class Export extends require('../Command') {
     }
   }
 
+
+  async export(options) {
+
+  }
+
   async exec(options) {
     try {
-      await this.prompt.crossFs.export(options)
+      await this.export(options)
     } catch (e) {
       this.Logger.red(e.message)
     }

@@ -18,7 +18,7 @@ describe('#Node', function () {
   let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
   const D = config.types.DIR
-  const F = config.types.FILE
+  const F = config.types.TEXT
 
   describe('#constructor', async function () {
 

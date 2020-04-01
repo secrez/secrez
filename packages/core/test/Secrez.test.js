@@ -26,7 +26,7 @@ describe('#Secrez', function () {
   let masterKeyHash
 
   const D = config.types.DIR
-  const F = config.types.FILE
+  const F = config.types.TEXT
 
 
   describe('default secrez dir', function () {
@@ -289,7 +289,7 @@ describe('#Secrez', function () {
           let id = Crypto.getRandomId()
           let entry = new Entry({
             id,
-            type: 3,
+            type: 9,
             name,
             content
           })
