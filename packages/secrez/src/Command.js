@@ -1,7 +1,4 @@
-const _ = require('lodash')
 const chalk = require('chalk')
-const path = require('path')
-const fs = require('fs-extra')
 
 const Logger = require('./utils/Logger')
 const cliConfig = require('./cliConfig')
@@ -26,6 +23,7 @@ class Command {
   pseudoFileCompletion(self, extraOptions = {}) {
     return async options => {
       options = Object.assign(extraOptions, options)
+      options.forAutoComplete = true
       try {
         return self.prompt.internalFs.pseudoFileCompletion(options)
       } catch (e) {
@@ -37,6 +35,7 @@ class Command {
   fileCompletion(self, extraOptions = {}) {
     return async options => {
       options = Object.assign(extraOptions, options)
+      options.forAutoComplete = true
       try {
         return self.prompt.externalFs.fileCompletion(options)
       } catch (e) {
@@ -46,7 +45,7 @@ class Command {
   }
 
   threeRedDots(large) {
-    return chalk.red(large ? '•••' : '···')
+    return chalk.yellow(large ? '•••' : '···')
   }
 
 }

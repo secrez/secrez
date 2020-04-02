@@ -121,7 +121,7 @@ class InternalFs {
         name: p[i],
         type: notLast ? config.types.DIR : options.type
       })
-      if (this.isFile(options) && options.content) {
+      if (Node.isFile(options) && options.content) {
         entry.set({content: options.content})
       }
       child = await this.add(ancestor, entry)
@@ -188,14 +188,6 @@ class InternalFs {
     return true
   }
 
-  isDir(node = {}) {
-    return Node.isDir(node)
-  }
-
-  isFile(node = {}) {
-    return Node.isFile(node)
-  }
-
   async getEntryDetails(node, ts) {
     let content
     if (Node.isFile(node)) {
@@ -251,7 +243,7 @@ class InternalFs {
       return ''
     }
     if (node) {
-      if (this.isFile(node)) {
+      if (Node.isFile(node)) {
         return [getType(node) + node.getName()]
       } else {
         let children = []
@@ -259,7 +251,8 @@ class InternalFs {
           children.push(node.children[id].getName() + getType(node.children[id]))
         }
         if (end) {
-          end = '^' + end.replace(/\?/g, '.{1}').replace(/\*/g, '.*') + '(|\\/)$'
+          end = '^' + end.replace(/\?/g, '.{1}').replace(/\*/g, '.*')
+              + (options.forAutoComplete ? '' : '(|\\/)$')
           let re = RegExp(end)
           children = children.filter(e => {
             return re.test(e)
@@ -271,12 +264,19 @@ class InternalFs {
     return []
   }
 
-  async getVersionedName(p) {
-    // eslint-disable-next-line no-constant-condition
-    let p0 = p
-    for (let i=2;;i++) {
-
-      p0 = p + '.' + i
+  async getVersionedBasename(p) {
+    p = this.getNormalizedPath(p)
+    let dir = path.dirname(p)
+    let fn = path.basename(p)
+    let name = fn
+    let v = 1
+    for (; ;) {
+      try {
+        this.tree.root.getChildFromPath(path.join(dir, name))
+        name = fn + '.' + (++v)
+      } catch(e) {
+        return name
+      }
     }
   }
 

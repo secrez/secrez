@@ -43,8 +43,7 @@ class Crypto {
 
   static getRandomId(allIds) {
     let id
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
+    for (; ;) {
       id = Crypto.getRandomBase58String(4)
       if (allIds) {
         /* istanbul ignore if  */
@@ -110,7 +109,7 @@ class Crypto {
 
   static fromTsToDate(ts) {
     let [seconds, microseconds] = ts.split('.')
-    let milliseconds = microseconds.substring(0,3)
+    let milliseconds = microseconds.substring(0, 3)
     let timestamp = parseInt(seconds) * 1000 + parseInt(milliseconds)
     return [(new Date(timestamp)).toISOString(), parseInt(microseconds.substring(3))]
   }

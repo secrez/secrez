@@ -1,6 +1,4 @@
-const chalk = require('chalk')
 const {Utils} = require('@secrez/core')
-const {FsUtils} = require('@secrez/fs')
 const fs = require('fs-extra')
 
 class Lcat extends require('../Command') {

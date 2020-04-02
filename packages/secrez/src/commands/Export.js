@@ -1,3 +1,12 @@
+const fs = require('fs-extra')
+const path = require('path')
+const clipboardy = require('clipboardy')
+
+const {Node} = require('@secrez/fs')
+
+const Cat = require('./Cat')
+const Lpwd = require('./Lpwd')
+
 class Export extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -11,14 +20,17 @@ class Export extends require('../Command') {
         name: 'path',
         alias: 'p',
         defaultOption: true,
-        multiple: true,
-        type: String,
-        defaultValue: '.'
+        type: String
       },
       {
         name: 'clipboard',
         alias: 'c',
         type: Number
+      },
+      {
+        name: 'object',
+        alias: 'o',
+        type: Boolean
       }
     ]
   }
@@ -26,24 +38,62 @@ class Export extends require('../Command') {
   help() {
     return {
       description: [
-          'Export encrypted data to the OS in the current local folder',
-          'Files and folders are decrypted during the process.'
+        'Export encrypted data to the OS in the current local folder',
+        'Files and folders are decrypted during the process.',
+        'Export to clipboard works only with text files.'
       ],
       examples: [
         ['export seed.json', 'decrypts and copies seed.json to the disk'],
-        ['export ethKeys -c 20', 'exports to the clipboard for 20 seconds']
+        ['export ethKeys -c 20', 'copies to the clipboard for 20 seconds'],
+        ['export ethKeys -c 20 -o', 'copies to the clipboard the JSON of the object']
       ]
     }
   }
 
+  async export(options = {}) {
+    let ifs = this.internalFs
+    let efs = this.externalFs
+    let cat = new Cat(this.prompt)
+    let lpwd = new Lpwd(this.prompt)
+    let p = ifs.getNormalizedPath(options.path)
+    let file = ifs.tree.root.getChildFromPath(p)
+    if (Node.isFile(file)) {
+      let entry = (await cat.cat({path: p}))[0]
+      if (options.clipboard) {
+        if (Node.isText(entry)) {
+          let {name, content} = entry
+          content = options.all
+              ? JSON.stringify({name, content}, null, 2)
+              : content
+          await clipboardy.write(content)
+          setTimeout(async () => {
+            if (content === (await clipboardy.read())) {
+              await clipboardy.write('')
+            }
 
-  async export(options) {
+          }, 1000 * options.clipboard)
+          return name
+        } else {
+          throw new Error('You can copy to clipboard only text files.')
+        }
 
+      } else {
+        let dir = await lpwd.lpwd()
+        let newPath = path.join(dir, path.basename(p))
+        let name = await efs.getVersionedBasename(newPath)
+        await fs.writeFile(path.join(dir, name), entry.content, Node.isBinary(entry) ? 'base64' : undefined)
+        return name
+      }
+    } else {
+      throw new Error('Cannot export a folder')
+    }
   }
 
   async exec(options) {
     try {
-      await this.export(options)
+      let name = await this.export(options)
+      this.Logger.yellow(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
+      this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)
     }

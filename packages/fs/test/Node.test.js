@@ -90,7 +90,7 @@ describe('#Node', function () {
   describe('#getName && #getFile && #getContent && getOptions', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -143,7 +143,7 @@ describe('#Node', function () {
   describe('#getNames', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -186,7 +186,7 @@ describe('#Node', function () {
   describe('#add', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -227,7 +227,7 @@ describe('#Node', function () {
   describe('#move', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -311,7 +311,7 @@ describe('#Node', function () {
   describe('#remove', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -363,7 +363,7 @@ describe('#Node', function () {
   describe('#toCompressedJSON && Node#fromJSON', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -436,7 +436,7 @@ describe('#Node', function () {
   describe('#getChildFromPath', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -603,7 +603,7 @@ describe('#Node', function () {
   describe('#getPathToChild', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -679,7 +679,7 @@ describe('#Node', function () {
   describe('#findDirectChildByName && #findChildById', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)

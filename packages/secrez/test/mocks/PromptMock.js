@@ -8,11 +8,11 @@ const Commands = require('../../src/commands')
 class PromptMock {
 
   async init(options) {
-    this.commands = (new Commands(this, cliConfig)).getCommands()
     this.secrez = new Secrez
     await this.secrez.init(options.container, options.localDir)
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
+    this.commands = (new Commands(this, cliConfig)).getCommands()
   }
 
   async run(options) {

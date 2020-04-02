@@ -58,7 +58,15 @@ class Node {
   }
 
   static isFile(node) {
-    return node.type === config.types.TEXT || node.type === config.types.BINARY
+    return this.isText(node) || this.isBinary(node)
+  }
+
+  static isBinary(node) {
+    return node.type === config.types.BINARY
+  }
+
+  static isText(node) {
+    return node.type === config.types.TEXT
   }
 
   static fromJSON(json, secrez, allFiles) {

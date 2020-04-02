@@ -2,8 +2,6 @@ const chalk = require('chalk')
 const path = require('path')
 const fs = require('fs-extra')
 
-const {Crypto} = require('@secrez/core')
-
 class Edit extends require('../Command') {
 
   setHelpAndCompletion() {

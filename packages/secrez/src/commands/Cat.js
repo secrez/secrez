@@ -1,4 +1,5 @@
 const {Crypto, config} = require('@secrez/core')
+const {Node} = require('@secrez/fs')
 
 class Cat extends require('../Command') {
 
@@ -52,7 +53,7 @@ class Cat extends require('../Command') {
     }
   }
 
-  static formatTs(ts) {
+  formatTs(ts) {
     ts = Crypto.fromTsToDate(ts)
     let date = ts[0].split('Z')[0].split('T')
     return `${Crypto.b58Hash(ts).substring(0, 4)} ${date[0]} ${date[1].substring(0,12)}${ts[1]}` //  ${date[1].substring(9) + ':' + ts[1]}`
@@ -62,7 +63,7 @@ class Cat extends require('../Command') {
     let ifs = this.internalFs
     let p = ifs.getNormalizedPath(options.path)
     let node = ifs.tree.root.getChildFromPath(p)
-    if (node && ifs.isFile(node)) {
+    if (node && Node.isFile(node)) {
       let result  = []
       if (options.all) {
         let versions = node.getVersions()
@@ -91,7 +92,7 @@ class Cat extends require('../Command') {
             // if (!header) {
             //   this.Logger.cyan(chalk.bold('v.id  date        hour      μs '))
             // }
-            this.Logger.yellow(`${header ? '\n' : ''}${Cat.formatTs(ts)}`)
+            this.Logger.yellow(`${header ? '\n' : ''}${this.formatTs(ts)}`)
             header = true
           }
           if (type === config.types.TEXT) {

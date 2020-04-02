@@ -32,7 +32,7 @@ describe('#Secrez', function () {
   describe('default secrez dir', function () {
 
     before(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init()
     })
@@ -49,7 +49,7 @@ describe('#Secrez', function () {
   describe('custom (testing) secrez dir', function () {
 
     before(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
     })
@@ -66,7 +66,7 @@ describe('#Secrez', function () {
     describe('signup and signin', async function () {
 
       beforeEach(async function () {
-        await fs.emptyDir(rootDir)
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
         secrez = new Secrez()
       })
 
@@ -197,7 +197,7 @@ describe('#Secrez', function () {
     describe('encryptEntry and decryptEntry', async function () {
 
       beforeEach(async function () {
-        await fs.emptyDir(rootDir)
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
         secrez = new Secrez()
         await secrez.init(rootDir)
       })

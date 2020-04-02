@@ -2,8 +2,6 @@ const chai = require('chai')
 const assert = chai.assert
 const stdout = require('test-console').stdout
 
-const Mkdir = require('../../src/commands/Mkdir')
-const Touch = require('../../src/commands/Touch')
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
@@ -20,8 +18,8 @@ const jlog = require('../helpers/jlog')
 describe('#Touch', function () {
 
   let prompt
-  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-  let inspect
+  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let inspect, C
 
   let options = {
     container: rootDir,
@@ -29,24 +27,18 @@ describe('#Touch', function () {
   }
 
   beforeEach(async function () {
-    await fs.emptyDir(rootDir)
+    await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
     prompt = new Prompt
     await prompt.init(options)
+    C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
+
   })
-
-  it('should instantiate a Touch object', async function () {
-
-    let touch = new Touch(prompt)
-    assert.isTrue(Array.isArray(touch.optionDefinitions))
-  })
-
 
   it('should create a file', async function () {
 
-    let touch = new Touch(prompt)
-    await touch.exec({
+    await C.touch.exec({
       path: '/folder2/file1'
     })
 
@@ -57,10 +49,9 @@ describe('#Touch', function () {
 
   it('should create a file with content', async function () {
 
-    let touch = new Touch(prompt)
     let p = '/folder2/file1'
     let content = 'Password: eh3h447d743yh4r'
-    await touch.exec({
+    await C.touch.exec({
       path: p,
       content
     })
@@ -71,13 +62,12 @@ describe('#Touch', function () {
 
   it('should throw if trying to create a child of a file', async function () {
 
-    let touch = new Touch(prompt)
-    await touch.exec({
+    await C.touch.exec({
       path: '/folder/file1'
     })
 
     inspect = stdout.inspect()
-    await touch.exec({
+    await C.touch.exec({
       path: '/folder/file1/file2'
     })
     inspect.restore()
@@ -87,25 +77,24 @@ describe('#Touch', function () {
 
   it('should throw if wrong parameters', async function () {
 
-    let touch = new Touch(prompt)
 
     inspect = stdout.inspect()
-    await touch.exec({})
+    await C.touch.exec({})
     inspect.restore()
     assertConsole(inspect, 'File path not specified.')
 
     inspect = stdout.inspect()
-    await touch.exec({
+    await C.touch.exec({
       path: {}
     })
     inspect.restore()
     assertConsole(inspect, 'The "path" option must exist and be of type string')
 
-    await touch.exec({
+    await C.touch.exec({
       path: '/file'
     })
     inspect = stdout.inspect()
-    await touch.exec({
+    await C.touch.exec({
       path: '/file'
     })
     inspect.restore()

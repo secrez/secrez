@@ -15,15 +15,16 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Cd', function () {
+describe('#Lcd', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
   let inspect, C
 
+
   let options = {
     container: rootDir,
-    localDir: __dirname
+    localDir: path.resolve(__dirname, '../fixtures/files')
   }
 
   beforeEach(async function () {
@@ -37,22 +38,22 @@ describe('#Cd', function () {
 
   it('change to a folder', async function () {
 
-    await C.mkdir.exec({path: '/dir1/dirA1/dirA2'})
-    await C.cd.exec({path: 'dir1/dirA1'})
 
-    assert.equal(prompt.internalFs.tree.workingNode.getPath(), ['/dir1/dirA1'])
+    inspect = stdout.inspect()
+    await C.lcd.exec({path: 'folder1'})
+    inspect.restore()
+    assertConsole(inspect, [])
+
+    assert.equal(await C.lpwd.lpwd(), path.join(options.localDir, 'folder1'))
 
   })
 
   it('return en error if changing to a file', async function () {
 
     inspect = stdout.inspect()
-    await C.touch.exec({
-      path: {path: '/dir1/dir2/file2'}
-    })
-    await C.cd.exec({path: '/dir1/dir2/file2'})
+    await C.lcd.exec({path: 'file1' })
     inspect.restore()
-    assertConsole(inspect, 'The "path" option must exist and be of type string')
+    assertConsole(inspect, 'No such directory')
 
   })
 

@@ -25,7 +25,7 @@ describe('#InternalFs', function () {
   describe('#constructor', async function () {
 
     before(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
     })
@@ -63,7 +63,7 @@ describe('#InternalFs', function () {
   describe('normalizePath', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -114,7 +114,7 @@ describe('#InternalFs', function () {
   describe('make', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -181,7 +181,7 @@ describe('#InternalFs', function () {
   describe('update', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -250,7 +250,7 @@ describe('#InternalFs', function () {
   describe('remove', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -289,7 +289,7 @@ describe('#InternalFs', function () {
   describe('load', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)

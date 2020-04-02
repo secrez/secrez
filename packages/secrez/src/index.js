@@ -3,7 +3,6 @@ const path = require('path')
 const homedir = require('homedir')
 const Logger = require('./utils/Logger')
 const chalk = require('chalk')
-const {FsUtils} = require('@secrez/fs')
 const {version} = require('@secrez/core')
 const Prompt = require('./Prompt')
 const commandLineArgs = require('command-line-args')
@@ -35,9 +34,9 @@ const optionDefinitions = [
     type: Boolean
   },
   {
-    name: 'localHomedir',
+    name: 'localDir',
     alias: 'l',
-    type: Boolean
+    type: String
   },
 ]
 

@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf build",
-    "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3",
+    "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
     "test-only": "./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
@@ -19,6 +19,7 @@
     "@secrez/core": "^0.4.0",
     "@secrez/fs": "^0.4.0",
     "chalk": "^3.0.0",
+    "clipboardy": "^2.3.0",
     "command-line-args": "^5.1.1",
     "external-editor": "^3.1.0",
     "fs-extra": "^8.1.0",

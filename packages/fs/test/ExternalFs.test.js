@@ -14,7 +14,7 @@ describe('#ExternalFs', function () {
   let localWorkingDir = path.resolve(__dirname, '.')
 
   before(async function () {
-    await fs.emptyDir(rootDir)
+    await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
     secrez = new Secrez()
     await secrez.init(rootDir, localWorkingDir)
     externalFs = new ExternalFs()

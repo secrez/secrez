@@ -1,5 +1,4 @@
 const chalk = require('chalk')
-const path = require('path')
 
 const {Crypto} = require('@secrez/core')
 

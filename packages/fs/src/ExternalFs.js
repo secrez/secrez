@@ -19,7 +19,7 @@ class ExternalFs {
     if (typeof options === 'string') {
       options = {path: options}
     }
-    let files = (await this.getDir(this.getNormalizedPath(options.path)))[1]
+    let files = (await this.getDir(this.getNormalizedPath(options.path), options.forAutoComplete))[1]
     return files.filter(f => {
       let pre = true
       if (options.dironly) {
@@ -42,7 +42,7 @@ class ExternalFs {
     return list
   }
 
-  async getDir(dir) {
+  async getDir(dir, forAutoComplete) {
     let list = []
     if (await this.isDir(dir)) {
       list = await this.mapDir(dir)
@@ -56,7 +56,8 @@ class ExternalFs {
           if (await this.isDir(dir)) {
             list = await this.mapDir(dir)
           }
-          fn = '^' + fn.replace(/\?/g, '.{1}').replace(/\*/g, '.*') + '(|\\/)$'
+          fn = '^' + fn.replace(/\?/g, '.{1}').replace(/\*/g, '.*')
+              + (forAutoComplete ? '' : '(|\\/)$')
           let re = RegExp(fn)
           list = list.filter(e => {
             return re.test(e)
@@ -79,6 +80,21 @@ class ExternalFs {
       return (await fs.lstat(fn)).isFile()
     }
     return false
+  }
+
+  async getVersionedBasename(p) {
+    let dir = path.dirname(p)
+    let fn = path.basename(p)
+    let name = fn
+    let v = 1
+    for (; ;) {
+      let filePath = path.join(dir, name)
+      if (!(await fs.pathExists(filePath))) {
+        return name
+      } else {
+        name = fn + '.' + (++v)
+      }
+    }
   }
 
 }

@@ -16,9 +16,7 @@ class Import extends require('../Command') {
         name: 'path',
         alias: 'p',
         defaultOption: true,
-        multiple: true,
-        type: String,
-        defaultValue: '.'
+        type: String
       },
       {
         name: 'move',
@@ -73,7 +71,7 @@ class Import extends require('../Command') {
       let content = []
       for (let fn of list) {
 
-        // recursion not supported
+        // recursion will be supported later :o)
         if (await efs.isDir(fn)) {
           continue
         }
@@ -88,7 +86,7 @@ class Import extends require('../Command') {
       let result = []
       let moved = []
       for (let fn of content) {
-        let name = path.basename(fn[0])
+        let name = await ifs.getVersionedBasename(path.basename(fn[0]))
         result.push(name)
         if (!options.simulate) {
           if (options.move) {

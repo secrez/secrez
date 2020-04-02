@@ -10,7 +10,7 @@ describe('#config', function () {
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
 
   before(async function () {
-    await fs.emptyDir(rootDir)
+    await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
     secrez = new Secrez()
     await secrez.init(rootDir, path.dirname(rootDir))
   })

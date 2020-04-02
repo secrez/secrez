@@ -59,6 +59,10 @@ const helpers = {
       assert.equal(result[i], message[i])
     }
     return output
+  },
+
+  sleep: millis => {
+    return new Promise(resolve => setTimeout(resolve, millis))
   }
 
 

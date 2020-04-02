@@ -42,7 +42,7 @@ class Lcd extends require('../Command') {
       dir = dir.replace(/^~/, this.externalFs.initialLocalWorkingDir)
     }
     dir = this.externalFs.getNormalizedPath(dir)
-    if (this.externalFs.isDir(dir)) {
+    if (await this.externalFs.isDir(dir)) {
       this.prompt.secrez.config.localWorkingDir = dir
     } else {
       throw new Error('No such directory')

@@ -26,7 +26,7 @@ describe('#Command', function () {
   describe('#constructor', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(rootDir)
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       prompt = new Prompt
       await prompt.init(options)
       await prompt.secrez.signup(password, iterations)

@@ -1,3 +1,5 @@
+const {Node} = require('@secrez/fs')
+
 class Cd extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -38,7 +40,7 @@ class Cd extends require('../Command') {
       // nothing
     } else {
       let node = ifs.tree.root.getChildFromPath(p)
-      if (!ifs.isFile(node)) {
+      if (Node.isDir(node)) {
         ifs.tree.workingNode = node
       } else {
         throw new Error('You cannot cd to a file')
