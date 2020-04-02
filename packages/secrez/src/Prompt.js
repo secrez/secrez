@@ -226,7 +226,7 @@ class Prompt {
             const options = FsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
             await this.commands[command].exec(options)
           } catch (e) {
-            // console.error(e)
+            console.error(e)
             Logger.red(e.message)
             this.run()
           }

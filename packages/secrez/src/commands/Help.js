@@ -21,6 +21,7 @@ class Help extends require('../Command') {
       }
       let done = false
       for (let command of commands) {
+        console.log(command)
         if (!done && command > 'help') {
           this.helpDescription.push(`help${' '.repeat(1 + maxSize - 'help'.length)} This help.`)
           done = true
