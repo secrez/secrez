@@ -1,4 +1,5 @@
-const {config, Crypto} = require('@secrez/core')
+const chalk = require('chalk')
+const {config, Crypto, Entry} = require('@secrez/core')
 
 class Mv extends require('../Command') {
 
@@ -14,62 +15,53 @@ class Mv extends require('../Command') {
         alias: 'p',
         defaultOption: true,
         type: String
-      },
-      {
-        name: 'dest',
-        alias: 'd',
-        type: String,
-        isCompletable: true
       }
     ]
   }
 
   help() {
     return {
-      description: ['Moves and renames files or folders.'],
+      description: ['Moves and renames files or folders.',
+        'It asks for the destination.'],
       examples: [
-        'mv somefilename -d somenewname',
-        'mv -p dir1/file -d dir2/file',
-        'mv dir1/file -d dir2/file2',
+        'mv somefile',
+        'mv -p ../dir1/file'
       ]
     }
   }
 
-  async mv(options) {
-    // await this.internalFs.update(options)
-  }
-
   async exec(options) {
-    if (!options.path) {
-      this.Logger.red('Missing parameters.')
-      let prompt = this.prompt
-      let exitCode = Crypto.getRandomBase58String(2)
-      try {
-        let {p} = await prompt.inquirer.prompt([
-          {
-            type: 'input',
-            name: 'p',
-            message: 'Type your path',
-            validate: val => {
-              if (val) {
-                return true
+    try {
+      if (!options.path) {
+        throw new Error('An origin path is required.')
+      } else {
+        if (this.internalFs.tree.root.getChildFromPath(options.path)) {
+          let prompt = this.prompt
+          let exitCode = Crypto.getRandomBase58String(2)
+          let {destination} = await prompt.inquirer.prompt([
+            {
+              type: 'input',
+              name: 'destination',
+              message: 'Type the destination',
+              validate: val => {
+                if (val) {
+                  return true
+                }
+                return chalk.grey(`Please, type the destination. Cancel typing ${exitCode}`)
               }
-              // return chalk.grey(`Please, type the path of your secret. Cancel typing ${exitCode}`)
             }
+          ])
+          if (destination !== exitCode) {
+            await this.internalFs.change({
+              path: options.path,
+              newPath: destination
+            })
+            this.Logger.reset(`${options.path} has been moved to ${destination}`)
           }
-        ])
-        options.path = p
-        if (options.path !== exitCode) {
-        } else {
         }
-      } catch (e) {
-
       }
-      try {
-        await this.mv(options)
-      } catch (e) {
-        this.Logger.red(e.message)
-      }
+    } catch (e) {
+      this.Logger.red(e.message)
     }
     this.prompt.run()
   }

@@ -35,7 +35,10 @@ class Mkdir extends require('../Command') {
       this.Logger.red('Directory path not specified.')
     } else {
       try {
-        options.path = Entry.sanitizePath(options.path)
+        let sanitizedPath = Entry.sanitizePath(options.path)
+        if (sanitizedPath !== options.path) {
+          throw new Error('A filename cannot contain \\/><|:&?* chars.')
+        }
         options.type = config.types.DIR
         await this.internalFs.make(options)
         this.Logger.grey(`New folder "${options.path}" created.`)

@@ -46,7 +46,10 @@ class Touch extends require('../Command') {
       this.Logger.red('File path not specified.')
     } else {
       try {
-        options.path = Entry.sanitizePath(options.path)
+        let sanitizedPath = Entry.sanitizePath(options.path)
+        if (sanitizedPath !== options.path) {
+          throw new Error('A filename cannot contain \\/><|:&?* chars.')
+        }
         options.type = config.types.TEXT
         await this.touch(options)
         this.Logger.grey(`New file "${options.path}" created.`)

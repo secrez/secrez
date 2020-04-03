@@ -25,7 +25,7 @@ class Command {
       options = Object.assign(extraOptions, options)
       options.forAutoComplete = true
       try {
-        return self.prompt.internalFs.pseudoFileCompletion(options)
+        return await self.prompt.internalFs.pseudoFileCompletion(options)
       } catch (e) {
         Logger.red(['error', e])
       }
@@ -37,7 +37,7 @@ class Command {
       options = Object.assign(extraOptions, options)
       options.forAutoComplete = true
       try {
-        return self.prompt.externalFs.fileCompletion(options)
+        return await self.prompt.externalFs.fileCompletion(options)
       } catch (e) {
         Logger.red(['error', e])
       }

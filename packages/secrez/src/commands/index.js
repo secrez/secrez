@@ -25,6 +25,7 @@ class Commands {
     }
     return this.commands
   }
+
 }
 
 module.exports = Commands

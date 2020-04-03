@@ -93,7 +93,15 @@ describe('#Mkdir', function () {
       path: '/folder'
     })
     inspect.restore()
-    assertConsole(inspect, 'An entry with this name already exists')
+    assertConsole(inspect, 'An entry with the name "folder" already exists')
+
+    inspect = stdout.inspect()
+    await C.mkdir.exec({
+      path: '/fol*?der'
+    })
+    inspect.restore()
+    assertConsole(inspect, 'A filename cannot contain \\/><|:&?* chars.')
+
 
   })
 

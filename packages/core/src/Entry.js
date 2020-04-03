@@ -1,3 +1,5 @@
+const {removeNotPrintableChars} = require('./utils')
+
 class Entry {
 
   isValid(option) {
@@ -67,7 +69,7 @@ class Entry {
   static sanitizeName(name) {
     // removes character forbidden by operating systems
     // eslint-disable-next-line no-useless-escape
-    return name.replace(/[\\\/\>\<\|\:\&\?\*]/ig, '')
+    return removeNotPrintableChars(name).replace(/[\\\/\>\<\|\:\&\?\*]/ig, '')
   }
 
   static sanitizePath(p) {

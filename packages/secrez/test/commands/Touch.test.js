@@ -98,7 +98,14 @@ describe('#Touch', function () {
       path: '/file'
     })
     inspect.restore()
-    assertConsole(inspect, 'An entry with this name already exists')
+    assertConsole(inspect, 'An entry with the name "file" already exists')
+
+    inspect = stdout.inspect()
+    await C.touch.exec({
+      path: '/fil|<e'
+    })
+    inspect.restore()
+    assertConsole(inspect, 'A filename cannot contain \\/><|:&?* chars.')
 
   })
 

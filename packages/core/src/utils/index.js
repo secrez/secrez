@@ -110,6 +110,10 @@ class Utils {
     }
   }
 
+  static removeNotPrintableChars(str) {
+    // eslint-disable-next-line no-control-regex
+    return str.replace(/[\x00\x08\x0B\x0C\x0E-\x1F]+/g, '')
+  }
 
 
 }

@@ -38,7 +38,6 @@ class _Completion {
         if (options._unknown) {
           options = {path: '.'}
         }
-        console.log(options)
         let files = await c._func(options, originalLine)
         commands = files
       } else {
@@ -53,10 +52,19 @@ class _Completion {
         }
       }
       if (commands.length) {
+        let l = line
+        let lastSpace = l.lastIndexOf(' ')
+        for (;;) {
+          if (l[lastSpace - 1] !== '\\') {
+            break
+          }
+          l = l.substring(0, lastSpace)
+          lastSpace = l.lastIndexOf(' ')
+        }
         let lasts = [
           {n: '/', l: line.lastIndexOf('/')},
           {n: '=', l: line.lastIndexOf('=')},
-          {n: ' ', l: line.lastIndexOf(' ')}
+          {n: ' ', l: lastSpace}
         ]
         lasts.sort((a, b) => {
           let A = a.l
@@ -65,7 +73,11 @@ class _Completion {
         })
         let v = lasts[0].l
         let prefix = v !== -1 ? line.substring(0, v) + lasts[0].n : line
-        commands = commands.map(e => `${prefix}${e ? e.replace(/ /g, '\\ ') : ' '}`)
+        commands = commands.map(e => `${prefix}${
+            e
+                ? e.replace(/ /g, '\\ ')
+                : ' '
+        }`)
         return commands
       }
     }

@@ -1,9 +1,10 @@
-// const _ = require('lodash')
+const util = require('util')
 const fs = require('fs-extra')
 const path = require('path')
 const {config, Crypto, Entry} = require('@secrez/core')
 const Node = require('./Node')
 const Tree = require('./Tree')
+const {ENTRY_EXISTS} = require('./Messages')
 
 class InternalFs {
 
@@ -160,7 +161,20 @@ class InternalFs {
       throw new Error('Path does not exist')
     }
     let entry = new Entry(Object.assign(options, node.getEntry()))
-    let [ancestor, remainingPath] = n ? this.tree.root.getChildFromPath(n, true) : []
+    let ancestor, remainingPath
+    try {
+      let result = n ? this.tree.root.getChildFromPath(n, true) : []
+      ancestor = result[0]
+      remainingPath = result[1]
+    } catch(e) {
+      if (e.message === util.format(ENTRY_EXISTS, path.basename(n))) {
+        let dir = this.tree.root.getChildFromPath(n)
+        if (dir && Node.isDir(dir)) {
+          ancestor = dir
+          remainingPath = path.basename(p)
+        }
+      }
+    }
     if (ancestor) {
       remainingPath = remainingPath.split('/')
       if (remainingPath.length > 1) {
@@ -251,7 +265,7 @@ class InternalFs {
           children.push(node.children[id].getName() + getType(node.children[id]))
         }
         if (end) {
-          end = '^' + end.replace(/\?/g, '.{1}').replace(/\*/g, '.*')
+          end = '^' + end.replace(/\?/g, '.{1}').replace(/\*/g, '.*').replace(/\\ /g, ' ')
               + (options.forAutoComplete ? '' : '(|\\/)$')
           let re = RegExp(end)
           children = children.filter(e => {
