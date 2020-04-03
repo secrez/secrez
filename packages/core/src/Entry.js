@@ -43,6 +43,9 @@ class Entry {
     } else {
       options[key] = value
     }
+    if (options.name) {
+      options.name = Entry.sanitizeName(options.name)
+    }
     for (let o in options) {
       if (this.isValid(o) && typeof options[o] !== 'undefined') {
         this[o] = options[o]
@@ -60,6 +63,23 @@ class Entry {
       }
     }
   }
+
+  static sanitizeName(name) {
+    // removes character forbidden by operating systems
+    // eslint-disable-next-line no-useless-escape
+    return name.replace(/[\\\/\>\<\|\:\&\?\*]/ig, '')
+  }
+
+  static sanitizePath(p) {
+    if (typeof p === 'string') {
+      // removes character forbidden by operating systems
+      // eslint-disable-next-line no-useless-escape
+      return p.split('/').map(e => Entry.sanitizeName(e)).join('/')
+    } else {
+      throw new Error('Path must be a string')
+    }
+  }
+
 
 }
 

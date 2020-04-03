@@ -3,7 +3,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -35,7 +35,8 @@ describe('#Cat', function () {
 
   it('should show the content of a file', async function () {
 
-    await C.touch.exec({path: '/dir1/file1', content: 'Some password'})
+    await noPrint(C.touch.exec({path: '/dir1/file1', content: 'Some password'}))
+
     let node = prompt.internalFs.tree.root.getChildFromPath('/dir1/file1')
     let formattedDate = C.cat.formatTs(node.lastTs)
 
@@ -59,21 +60,21 @@ describe('#Cat', function () {
     let {internalFs} = prompt
     let {config} = prompt.secrez
 
-    let file1 = await internalFs.make({
+    let file1 = await noPrint(internalFs.make({
       path: 'folder1/file1',
       type: config.types.TEXT,
       content: 'Password 1'
-    })
+    }))
 
-    await internalFs.change({
+    await noPrint(internalFs.change({
       path: '/folder1/file1',
       content: 'Password 2'
-    })
+    }))
 
-    await internalFs.change({
+    await noPrint(internalFs.change({
       path: '/folder1/file1',
       content: 'Password 3'
-    })
+    }))
 
     let versions = file1.getVersions()
 
@@ -91,8 +92,7 @@ describe('#Cat', function () {
   })
 
   it('should throw if entry is not a file or file does not exist', async function () {
-
-    await C.mkdir.exec({path: '/dir1/dir2'})
+    await noPrint(C.mkdir.exec({path: '/dir1/dir2'}))
 
     inspect = stdout.inspect()
     await C.cat.exec({path: '/dir1/dir2'})

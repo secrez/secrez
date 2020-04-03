@@ -1,4 +1,6 @@
+const util = require('util')
 const {config, Crypto, Entry} = require('@secrez/core')
+const {ANCESTOR_NOT_FOUND, ENTRY_EXISTS} = require('./Messages')
 
 class Node {
 
@@ -332,13 +334,14 @@ class Node {
   }
 
   getChildFromPath(p, returnCloserAncestor) {
-    p = p.split('/')
+    p = p.split('/').map(e => Entry.sanitizeName(e))
     let node
     let ancestorNode
     let index
+    let name
     try {
       FOR: for (index = 0; index < p.length; index++) {
-        let name = p[index]
+        name = p[index]
         if (index === 0) {
           switch (name) {
             case '':
@@ -384,12 +387,18 @@ class Node {
         ancestorNode = node
       }
       if (returnCloserAncestor) {
-        throw new Error('Ancestor not found')
+        if (name === p[p.length - 1]) {
+          throw new Error(ENTRY_EXISTS)
+        } else {
+          throw new Error(ANCESTOR_NOT_FOUND)
+        }
       }
       return node
     } catch (e) {
-      if (e.message === 'Ancestor not found') {
+      if (e.message === ANCESTOR_NOT_FOUND) {
         throw e
+      } else if (e.message === ENTRY_EXISTS) {
+        throw new Error(util.format(ENTRY_EXISTS, name))
       }
       if (returnCloserAncestor && ancestorNode) {
         return [

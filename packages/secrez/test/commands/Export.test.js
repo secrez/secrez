@@ -6,7 +6,7 @@ const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, sleep} = require('../helpers')
+const {assertConsole, sleep, noPrint} = require('../helpers')
 
 const {
   password,
@@ -41,14 +41,14 @@ describe('#Export', function () {
     let content = 'Some secret'
     let p = '/folder/file'
 
-    await C.touch.exec({
+    await noPrint(C.touch.exec({
       path: p,
       content
-    })
+    }))
 
-    await C.cd.exec({
+    await noPrint(C.cd.exec({
       path: '/folder'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.export.exec({
@@ -76,15 +76,14 @@ describe('#Export', function () {
 
     let content = 'Some secret'
     let p = '/folder/file'
-
-    await C.touch.exec({
+    await noPrint(C.touch.exec({
       path: p,
       content
-    })
+    }))
 
-    await C.cd.exec({
+    await noPrint(C.cd.exec({
       path: '/folder'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.export.exec({
@@ -104,9 +103,9 @@ describe('#Export', function () {
 
   it('should return an error if the file does not exist or is a folder', async function () {
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.export.exec({
@@ -127,24 +126,22 @@ describe('#Export', function () {
 
   it('should throw if copying to clipboard a binary files', async function () {
 
-    inspect = stdout.inspect()
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
-    await C.cd.exec({
+    }))
+    await noPrint(C.cd.exec({
       path: '/folder'
-    })
-    await C.lcd.exec({
+    }))
+    await noPrint(C.lcd.exec({
       path: '../../test/fixtures/files'
-    })
-    await C.import.exec({
+    }))
+    await noPrint(C.import.exec({
       path: 'folder1/file1.tar.gz',
       binarytoo: true
-    })
-    await C.lcd.exec({
+    }))
+    await noPrint(C.lcd.exec({
       path: '../../../tmp/test'
-    })
-    inspect.restore()
+    }))
 
     inspect = stdout.inspect()
     await C.export.exec({

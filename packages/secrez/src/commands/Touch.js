@@ -1,4 +1,4 @@
-const {config} = require('@secrez/core')
+const {config, Entry} = require('@secrez/core')
 
 class Touch extends require('../Command') {
 
@@ -46,8 +46,10 @@ class Touch extends require('../Command') {
       this.Logger.red('File path not specified.')
     } else {
       try {
+        options.path = Entry.sanitizePath(options.path)
         options.type = config.types.TEXT
         await this.touch(options)
+        this.Logger.grey(`New file "${options.path}" created.`)
       } catch (e) {
         this.Logger.red(e.message)
       }

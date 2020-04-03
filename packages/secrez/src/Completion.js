@@ -19,8 +19,6 @@ class _Completion {
   }
 
   async subCommands(line = '', forceCommand) {
-    // eslint-disable-next-line no-console
-    // console.log()
     const originalLine = line
     const params = line.split(' ')
     const normalizedParams = params.map(e => e.split('=')[0])
@@ -31,7 +29,7 @@ class _Completion {
       line = forceCommand + ' ' + line
     }
     if (typeof c === 'object') {
-      let commands
+      let commands = []
       let options = {}
       if (c._func) {
         let commandLine = _.trim(line).split(' ').slice(1).join(' ')
@@ -40,6 +38,7 @@ class _Completion {
         if (options._unknown) {
           options = {path: '.'}
         }
+        console.log(options)
         let files = await c._func(options, originalLine)
         commands = files
       } else {
@@ -49,6 +48,9 @@ class _Completion {
               return !normalizedParams.includes(o)
             }
         )
+        if (commands.length === 1 && commands[0] === '_self') {
+          commands = []
+        }
       }
       if (commands.length) {
         let lasts = [

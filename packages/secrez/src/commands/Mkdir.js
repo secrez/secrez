@@ -1,4 +1,4 @@
-const {config} = require('@secrez/core')
+const {config, Entry} = require('@secrez/core')
 
 class Mkdir extends require('../Command') {
 
@@ -35,8 +35,10 @@ class Mkdir extends require('../Command') {
       this.Logger.red('Directory path not specified.')
     } else {
       try {
+        options.path = Entry.sanitizePath(options.path)
         options.type = config.types.DIR
         await this.internalFs.make(options)
+        this.Logger.grey(`New folder "${options.path}" created.`)
       } catch (e) {
         this.Logger.red(e.message)
       }

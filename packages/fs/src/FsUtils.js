@@ -19,7 +19,7 @@ class FsUtils {
         sep = c
       } else if (sep && c === sep) {
         sep = null
-      } else if (!sep && c === '\\' && commandLine[i + 1]) {
+      } else if (!sep && c === '\\' && commandLine[i + 1] && commandLine[i + 1] !== '\\') {
         Utils.addTo(argv, k, commandLine[i + 1])
         i++
       } else if (!sep && c === ' ') {
@@ -56,7 +56,10 @@ class FsUtils {
     if (bn && list.includes(bn)) {
       return [bn]
     } else if (bn) {
-      bn = bn.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.{1}}')
+      bn = bn
+          .replace(/\./g, '\\.')
+          .replace(/\*/g, '.*')
+          .replace(/\?/g, '.{1}}')
       let re = RegExp(bn)
       list = _.filter(list, e => re.test(e))
     }

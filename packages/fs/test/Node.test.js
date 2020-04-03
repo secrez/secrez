@@ -1,9 +1,11 @@
 const assert = require('chai').assert
 const fs = require('fs-extra')
+const util = require('util')
 const path = require('path')
 const {config, Secrez, Crypto, Entry} = require('@secrez/core')
 const Node = require('../src/Node')
 const {jsonEqual, initRandomNode, setNewNodeVersion, initARootNode} = require('./helpers')
+const {ENTRY_EXISTS} = require('../src/Messages')
 
 const {
   password,
@@ -591,11 +593,10 @@ describe('#Node', function () {
         dir2.getChildFromPath(p, true)
         assert.isTrue(false)
       } catch (e) {
-        assert.equal(e.message, 'Ancestor not found')
+        assert.equal(e.message, util.format(ENTRY_EXISTS,dir4.getName()))
       }
 
     })
-
 
   })
 
@@ -679,7 +680,7 @@ describe('#Node', function () {
   describe('#findDirectChildByName && #findChildById', async function () {
 
     beforeEach(async function () {
-      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      await fs.emptyDir(rootDir)
       secrez = new Secrez()
       await secrez.init(rootDir)
       await secrez.signup(password, iterations)
@@ -748,11 +749,6 @@ describe('#Node', function () {
 
     })
 
-
-
-
   })
-
-
 
 })

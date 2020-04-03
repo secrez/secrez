@@ -143,7 +143,7 @@ class InternalFs {
         throw new Error('File names cannot be longer that 255 characters')
       }
     }
-    return p
+    return Entry.sanitizePath(p)
   }
 
   async change(options) {

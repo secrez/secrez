@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -38,18 +38,18 @@ describe('#Mkdir', function () {
 
   it('should create a folder', async function () {
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
+    }))
 
     assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder').getName(), 'folder')
   })
 
   it('should create a nested folder', async function () {
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder1/folder2'
-    })
+    }))
 
     assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder1/folder2').getName(), 'folder2')
 
@@ -57,9 +57,9 @@ describe('#Mkdir', function () {
 
   it('should throw if trying to create a child of a file', async function () {
 
-    await C.touch.exec({
+    await noPrint(C.touch.exec({
       path: '/folder/file1'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.mkdir.exec({
@@ -82,17 +82,18 @@ describe('#Mkdir', function () {
       path: {}
     })
     inspect.restore()
-    assertConsole(inspect, 'The "path" option must exist and be of type string')
+    assertConsole(inspect, 'Path must be a string')
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
+    }))
+
     inspect = stdout.inspect()
     await C.mkdir.exec({
       path: '/folder'
     })
     inspect.restore()
-    assertConsole(inspect, 'Ancestor not found')
+    assertConsole(inspect, 'An entry with this name already exists')
 
   })
 

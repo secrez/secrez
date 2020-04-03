@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -37,8 +37,8 @@ describe('#Cd', function () {
 
   it('change to a folder', async function () {
 
-    await C.mkdir.exec({path: '/dir1/dirA1/dirA2'})
-    await C.cd.exec({path: 'dir1/dirA1'})
+    await noPrint(C.mkdir.exec({path: '/dir1/dirA1/dirA2'}))
+    await noPrint(C.cd.exec({path: 'dir1/dirA1'}))
 
     assert.equal(prompt.internalFs.tree.workingNode.getPath(), ['/dir1/dirA1'])
 
@@ -46,13 +46,14 @@ describe('#Cd', function () {
 
   it('return en error if changing to a file', async function () {
 
+    await noPrint(C.touch.exec({
+      path: '/dir1/dir2/file2'
+    }))
+
     inspect = stdout.inspect()
-    await C.touch.exec({
-      path: {path: '/dir1/dir2/file2'}
-    })
     await C.cd.exec({path: '/dir1/dir2/file2'})
     inspect.restore()
-    assertConsole(inspect, 'The "path" option must exist and be of type string')
+    assertConsole(inspect, 'You cannot cd to a file')
 
   })
 

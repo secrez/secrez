@@ -4,10 +4,10 @@ class Bash extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.bash = {
-      // _func: new Function(),
       _self: this
     }
     this.cliConfig.completion.help.bash = true
+    this.noAutoComplete = true
     this.optionDefinitions = [
       {
         name: 'command',

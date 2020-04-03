@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -38,9 +38,9 @@ describe('#Touch', function () {
 
   it('should create a file', async function () {
 
-    await C.touch.exec({
+    await noPrint(C.touch.exec({
       path: '/folder2/file1'
-    })
+    }))
 
     assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder2/file1').type, prompt.secrez.config.types.TEXT)
 
@@ -51,10 +51,10 @@ describe('#Touch', function () {
 
     let p = '/folder2/file1'
     let content = 'Password: eh3h447d743yh4r'
-    await C.touch.exec({
+    await noPrint(C.touch.exec({
       path: p,
       content
-    })
+    }))
 
     assert.equal(prompt.internalFs.tree.root.getChildFromPath(p).getContent(), content)
 
@@ -62,9 +62,9 @@ describe('#Touch', function () {
 
   it('should throw if trying to create a child of a file', async function () {
 
-    await C.touch.exec({
+    await noPrint(C.touch.exec({
       path: '/folder/file1'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.touch.exec({
@@ -88,7 +88,7 @@ describe('#Touch', function () {
       path: {}
     })
     inspect.restore()
-    assertConsole(inspect, 'The "path" option must exist and be of type string')
+    assertConsole(inspect, 'Path must be a string')
 
     await C.touch.exec({
       path: '/file'
@@ -98,7 +98,7 @@ describe('#Touch', function () {
       path: '/file'
     })
     inspect.restore()
-    assertConsole(inspect, 'Ancestor not found')
+    assertConsole(inspect, 'An entry with this name already exists')
 
   })
 

@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -38,16 +38,16 @@ describe('#Ls', function () {
 
   it('should list folders and files', async function () {
 
-    await C.mkdir.exec({path: '/dir1/dirA1'})
-    await C.mkdir.exec({path: '/dir1/dirA2'})
-    await C.mkdir.exec({path: '/dir1/dirB1'})
-    await C.mkdir.exec({path: '/dir1/dirB2'})
-    await C.mkdir.exec({path: '/dir1/dir2A'})
-    await C.mkdir.exec({path: '/dir1/dir2B'})
-    await C.mkdir.exec({path: '/dir1/dir2A/dir6'})
-    await C.mkdir.exec({path: '/dir1/dir2A/dir7'})
-    await C.touch.exec({path: '/dir1/file1'})
-    await C.touch.exec({path: '/dir1/file2'})
+    await noPrint(C.mkdir.exec({path: '/dir1/dirA1'}))
+    await noPrint(C.mkdir.exec({path: '/dir1/dirA2'}))
+    await noPrint(C.mkdir.exec({path: '/dir1/dirB1'}))
+    await noPrint(C.mkdir.exec({path: '/dir1/dirB2'}))
+    await noPrint(C.mkdir.exec({path: '/dir1/dir2A'}))
+    await noPrint(C.mkdir.exec({path: '/dir1/dir2B'}))
+    await noPrint(C.mkdir.exec({path: '/dir1/dir2A/dir6'}))
+    await noPrint(C.mkdir.exec({path: '/dir1/dir2A/dir7'}))
+    await noPrint(C.touch.exec({path: '/dir1/file1'}))
+    await noPrint(C.touch.exec({path: '/dir1/file2'}))
 
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1', list: true})
@@ -73,6 +73,7 @@ describe('#Ls', function () {
 
   it('should list folders and files using wildcards', async function () {
 
+    inspect = stdout.inspect()
     await C.mkdir.exec({path: '/dir1/dirA1'})
     await C.mkdir.exec({path: '/dir1/dirA2'})
     await C.mkdir.exec({path: '/dir1/dirB1'})
@@ -85,6 +86,7 @@ describe('#Ls', function () {
     await C.mkdir.exec({path: '/dir1/dir2A/dir7'})
     await C.touch.exec({path: '/dir1/file1'})
     await C.touch.exec({path: '/dir1/file2'})
+    inspect.restore()
 
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/d?rB?', list: true})

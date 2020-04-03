@@ -1,11 +1,13 @@
 const chai = require('chai')
 const assert = chai.assert
+const util = require('util')
 const fs = require('fs-extra')
 const path = require('path')
 const {Secrez, config} = require('@secrez/core')
 const Node = require('../src/Node')
 const InternalFs = require('../src/InternalFs')
 const {jsonEqual} = require('./helpers')
+const {ENTRY_EXISTS} = require('../src/Messages')
 
 const {
   password,
@@ -172,7 +174,7 @@ describe('#InternalFs', function () {
         })
         assert.isTrue(false)
       } catch (e) {
-        assert.equal(e.message, 'Ancestor not found')
+        assert.equal(e.message, util.format(ENTRY_EXISTS, 'folder1'))
       }
     })
 

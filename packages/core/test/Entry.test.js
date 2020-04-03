@@ -88,4 +88,20 @@ describe('#Entry', function () {
   })
 
 
+  describe('#sanitizeName', async function () {
+
+    it('should sanitize names', async function () {
+
+      let name = 'a<}>b'
+      assert.equal(Entry.sanitizeName(name), 'a}b')
+
+      // eslint-disable-next-line no-useless-escape
+      name = 'XX\\\ ;|:C_'
+      assert.equal(Entry.sanitizeName(name), 'XX ;C_')
+
+    })
+
+  })
+
+
 })

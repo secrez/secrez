@@ -1,5 +1,6 @@
 const chai = require('chai')
 const assert = chai.assert
+const stdout = require('test-console').stdout
 
 // const {Crypto, config, Entry} = require('@secrez/core')
 // const {Node} = require('@secrez/fs')
@@ -63,6 +64,13 @@ const helpers = {
 
   sleep: millis => {
     return new Promise(resolve => setTimeout(resolve, millis))
+  },
+
+  async noPrint(func) {
+    let inspect = stdout.inspect()
+    let ret = await func
+    inspect.restore()
+    return ret
   }
 
 

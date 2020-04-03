@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -41,12 +41,12 @@ describe('#Import', function () {
       path: 'file3'
     })
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
-    await C.cd.exec({
+    }))
+    await noPrint(C.cd.exec({
       path: '/folder'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.import.exec({
@@ -82,12 +82,12 @@ describe('#Import', function () {
       path: 'folder1/file2'
     })
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
-    await C.cd.exec({
+    }))
+    await noPrint(C.cd.exec({
       path: '/folder'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.import.exec({
@@ -105,12 +105,12 @@ describe('#Import', function () {
 
   it('should read a folder and import text and binary files', async function () {
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
-    await C.cd.exec({
+    }))
+    await noPrint(C.cd.exec({
       path: '/folder'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.import.exec({
@@ -127,12 +127,12 @@ describe('#Import', function () {
 
   it('should simulate the import of two files', async function () {
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
-    await C.cd.exec({
+    }))
+    await noPrint(C.cd.exec({
       path: '/folder'
-    })
+    }))
 
     inspect = stdout.inspect()
     await C.import.exec({
@@ -159,12 +159,12 @@ describe('#Import', function () {
 
   it('should move the imported file', async function () {
 
-    await C.mkdir.exec({
+    await noPrint(C.mkdir.exec({
       path: '/folder'
-    })
-    await C.cd.exec({
+    }))
+    await noPrint(C.cd.exec({
       path: '/folder'
-    })
+    }))
 
     // we copy the file to be moved in order to not change the data
     let dest = path.resolve(__dirname, '../../tmp/test/file4')

@@ -3,7 +3,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -36,21 +36,23 @@ describe('#Pwd', function () {
 
   it('should show the working folder', async function () {
 
-    await C.mkdir.exec({path: '/dir1/dirA1/dirA2'})
+    await noPrint(C.mkdir.exec({path: '/dir1/dirA1/dirA2'}))
 
     inspect = stdout.inspect()
     await C.pwd.exec()
     inspect.restore()
     assertConsole(inspect, ['/'])
 
+    await noPrint(C.cd.exec({path: 'dir1/dirA1'}))
+
     inspect = stdout.inspect()
-    await C.cd.exec({path: 'dir1/dirA1'})
     await C.pwd.exec()
     inspect.restore()
     assertConsole(inspect, ['/dir1/dirA1'])
 
+    await noPrint(C.cd.exec())
+
     inspect = stdout.inspect()
-    await C.cd.exec()
     await C.pwd.exec()
     inspect.restore()
     assertConsole(inspect, ['/'])
