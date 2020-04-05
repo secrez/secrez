@@ -27,7 +27,7 @@ describe('#Node', function () {
     it('should instantiate the Node', async function () {
 
       let root = initARootNode()
-      assert.equal(root.id, config.rOOt)
+      assert.equal(root.id, config.specialId.ROOT)
 
     })
 
@@ -76,7 +76,7 @@ describe('#Node', function () {
 
       try {
         new Node(new Entry({
-          type: 4,
+          type: 99,
           name: 'Wrong type'
         }))
         assert.isFalse(true)
@@ -110,7 +110,7 @@ describe('#Node', function () {
       let root = initARootNode()
       let options = root.getOptions()
       assert.equal(options.name, undefined)
-      assert.equal(options.id, config.rOOt)
+      assert.equal(options.id, config.specialId.ROOT)
     })
 
     it('should throw if version not found', async function () {
@@ -389,6 +389,9 @@ describe('#Node', function () {
       file1.move(entry)
 
       let json = root.toCompressedJSON()
+
+      // jlog(json)
+
       let minSize = json.c[0].v[0].length
       let v = file1.versions
       assert.equal(
@@ -426,6 +429,9 @@ describe('#Node', function () {
       let child = json2.c[0]
       json2.c[0] = json2.c[1]
       json2.c[1] = child
+
+      // console.log(JSON.stringify(root.toCompressedJSON()))
+      // console.log(JSON.stringify(json2))
 
       assert.isTrue(jsonEqual(root.toCompressedJSON(), json2))
 
@@ -663,6 +669,8 @@ describe('#Node', function () {
 
       root.add(dir1)
       dir1.add(file1)
+      //
+      // console.log(root.findChildById('tra$'))
 
       try {
         root2.getPathToChild(file1)

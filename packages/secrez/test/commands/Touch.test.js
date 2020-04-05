@@ -90,9 +90,10 @@ describe('#Touch', function () {
     inspect.restore()
     assertConsole(inspect, 'Path must be a string')
 
-    await C.touch.exec({
+    await noPrint(C.touch.exec({
       path: '/file'
-    })
+    }))
+
     inspect = stdout.inspect()
     await C.touch.exec({
       path: '/file'

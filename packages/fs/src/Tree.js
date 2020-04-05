@@ -79,10 +79,6 @@ class Tree {
         allFiles.sort(Node.sortEntry)
         let json = allIndexes[0].content
         this.root = Node.fromJSON(json, this.secrez, allFiles.map(e => e.encryptedName))
-        if (this.root.deletedEntries) {
-          this.addToDeletedEntries(this.root.deletedEntries)
-          delete this.root.deletedEntries
-        }
       }
 
     } else {
@@ -91,33 +87,14 @@ class Tree {
             type: config.types.ROOT
           })
       )
+      this.root.add(new Node(
+          new Entry({
+            type: config.types.TRASH
+          }), true
+      ))
     }
     this.workingNode = this.root
     this.status = this.statutes.LOADED
-  }
-
-  addToDeletedEntries(deletedEntries = []) {
-    if (deletedEntries.length) {
-      if (!this.deletedEntries) {
-        this.deletedEntries = []
-      }
-      for (let d of deletedEntries) {
-        if (!this.deletedEntries.includes(d)) {
-          this.deletedEntries.push(d)
-        }
-      }
-    }
-  }
-
-  removeFromDeletedEntries(undeletedEntries = []) {
-    // reversing a deletion, in a future version
-    if (undeletedEntries.length && this.deletedEntries) {
-      for (let d of undeletedEntries) {
-        if (this.deletedEntries.includes(d)) {
-          this.deletedEntries = this.deletedEntries.filter(e => e !== d)
-        }
-      }
-    }
   }
 
 }

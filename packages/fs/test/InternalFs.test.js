@@ -141,6 +141,7 @@ describe('#InternalFs', function () {
       })
       assert.equal(file1.getName(), 'file1')
       assert.equal(file1.getContent(), 'Password: 373u363y35e')
+      // jlog(root.toCompressedJSON(null, 0))
       assert.equal(root.toCompressedJSON().c[0].c[0].v[0], '2')
 
       internalFs.tree.workingNode = folder1
@@ -211,6 +212,7 @@ describe('#InternalFs', function () {
       })
 
       internalFs.tree.workingNode = folder1
+
       let file2 = await internalFs.make({
         path: 'file2',
         type: config.types.TEXT,
@@ -228,6 +230,7 @@ describe('#InternalFs', function () {
       })
 
       assert.equal(file1.getName(), 'file3')
+      assert.equal(file1.getContent(), 'Some password')
       assert.equal(file1.parent.getName(), 'folder1')
 
       await internalFs.change({
@@ -238,13 +241,20 @@ describe('#InternalFs', function () {
       assert.equal(file1.getName(), 'file4')
       assert.equal(file1.parent.getName(), 'folder2')
 
-
       await internalFs.change({
         path: '/folder1/file2',
         content: 'PIN: 5678'
       })
 
       assert.equal(file2.getContent(), 'PIN: 5678')
+
+      await internalFs.change({
+        path: '/folder2/file4',
+        newPath: '/folder1'
+      })
+
+      assert.equal(root.getChildFromPath('/folder1/file4').id, file1.id)
+
     })
 
   })
@@ -288,7 +298,7 @@ describe('#InternalFs', function () {
 
   })
 
-  describe('load', async function () {
+  describe.only('load', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
@@ -322,6 +332,10 @@ describe('#InternalFs', function () {
 
       let file1b = root.findChildById(file1.id)
       assert.equal(file1b.getName(), file1.getName())
+
+      // jlog(root.toCompressedJSON(null, true))
+      // jlog(internalFs.tree.root.toCompressedJSON(null, true))
+
       assert.isTrue(jsonEqual(root.toCompressedJSON(), internalFs.tree.root.toCompressedJSON()))
 
     })
@@ -365,8 +379,33 @@ describe('#InternalFs', function () {
 
       assert.isTrue(jsonEqual(json1, json2))
 
-      assert.equal(internalFs.tree.deletedEntries.length, 1)
-      assert.equal(internalFs2.tree.deletedEntries.length, 1)
+    })
+
+    it.only('should create directories and files, delete everything and loading a tree from disk', async function () {
+
+      await internalFs.make({
+        path: '/folder1/file1',
+        type: config.types.DIR
+      })
+      await internalFs.make({
+        path: '/folder1/file2',
+        type: config.types.DIR
+      })
+      await internalFs.remove({
+        path: 'folder1'
+      })
+
+      jlog(internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles()))
+
+      let internalFs2 = new InternalFs(secrez)
+      await internalFs2.init()
+      root = internalFs2.tree.root
+
+
+      let json1 = root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
+      let json2 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
+
+      assert.isTrue(jsonEqual(json1, json2))
 
     })
 

@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const {Crypto, config, Entry} = require('@secrez/core')
 const Node = require('../../src/Node')
 
@@ -6,6 +7,8 @@ const helpers = {
 
   jsonEqual: (j, k) => {
 
+    j = _.clone(j)
+    k = _.clone(k)
 
     if (j.id !== k.id) return false
     if (j.v.length !== k.v.length) return false
@@ -19,8 +22,8 @@ const helpers = {
     if ((j.c || k.c) && j.c.length !== k.c.length) return false
     if (j.c) {
       const s = (a, b) => {
-        let A = a.v.sort()[0]
-        let B = b.v.sort()[0]
+        let A = a.v.sort()[0] || '_'
+        let B = b.v.sort()[0] || '_'
         return A > B ? 1 : A < B ? -1 : 0
       }
       j.c.sort(s)
@@ -74,9 +77,15 @@ const helpers = {
   },
 
   initARootNode: () => {
-    return new Node(new Entry({
+    let root = new Node(new Entry({
       type: config.types.ROOT
     }))
+    root.add(new Node(
+        new Entry({
+          type: config.types.TRASH
+        }), true
+    ))
+    return root
   }
 
 }

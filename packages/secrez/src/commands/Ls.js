@@ -17,6 +17,11 @@ class Ls extends require('../Command') {
         name: 'list',
         alias: 'l',
         type: Boolean
+      },
+      {
+        name: 'all',
+        alias: 'a',
+        type: Boolean
       }
     ]
   }
@@ -27,7 +32,8 @@ class Ls extends require('../Command') {
       examples: [
         'ls coin',
         'ls ../passwords',
-        'ls ~'
+        'ls ~',
+        ['ls -al', 'Includes hidden files']
       ]
     }
   }
@@ -40,6 +46,7 @@ class Ls extends require('../Command') {
     try {
       let list = await this.ls(options)
       if (list) {
+        list = list.filter(e => !/^\./.test(e) || options.all)
         if (list.length) {
           this.Logger.reset(options.list
               ? list.join('\n')

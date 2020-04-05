@@ -30,6 +30,10 @@ class Mkdir extends require('../Command') {
     }
   }
 
+  async mkdir(options) {
+    await this.internalFs.make(options)
+  }
+
   async exec(options) {
     if (!options.path) {
       this.Logger.red('Directory path not specified.')
@@ -40,7 +44,7 @@ class Mkdir extends require('../Command') {
           throw new Error('A filename cannot contain \\/><|:&?* chars.')
         }
         options.type = config.types.DIR
-        await this.internalFs.make(options)
+        await this.mkdir(options)
         this.Logger.grey(`New folder "${options.path}" created.`)
       } catch (e) {
         this.Logger.red(e.message)

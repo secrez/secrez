@@ -26,10 +26,16 @@ class Utils {
     return /^\b(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b$/.test('' + ip)
   }
 
-  static intToBase58(v) {
+  static intToBase58(v, size) {
     try {
       if (typeof v === 'number') {
-        return Base58.int_to_base58(v)
+        let ret = Base58.int_to_base58(v)
+        if (size) {
+          while (ret.length < size) {
+            ret = '0' + ret
+          }
+        }
+      return ret
       } else throw new Error()
     } catch (e) {
       throw new Error('Invalid format')
@@ -37,6 +43,7 @@ class Utils {
   }
 
   static base58ToInt(v) {
+    v = v.replace(/^0+/, '')
     try {
       return Base58.base58_to_int(v)
     } catch (e) {

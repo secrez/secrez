@@ -185,12 +185,13 @@ class Secrez {
         throw new Error('Unsupported type')
       }
 
-      let [scrambledTs, microseconds] = Crypto.scrambledTimestamp()
+      let [scrambledTs, microseconds, ts] = Crypto.scrambledTimestamp()
       let encryptedEntry = new Entry({
         id,
         type,
         scrambledTs,
-        microseconds
+        microseconds,
+        ts
       })
       if (name) {
         let encryptedName = type + Crypto.encrypt(
@@ -277,6 +278,7 @@ class Secrez {
         }
         tmp += c
       }
+      // console.log(ts, ms, Crypto.unscrambleTimestamp(ts, ms))
       return [id, Crypto.unscrambleTimestamp(ts, ms), data]
     }
 

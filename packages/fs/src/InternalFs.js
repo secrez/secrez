@@ -46,6 +46,7 @@ class InternalFs {
     entry.set({
       ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
     })
+    // console.log('>>>>    saved', entry.get().name)
     return entry
   }
 
@@ -77,17 +78,21 @@ class InternalFs {
 
   async update(node, entry) {
 
+    // console.log(entry.id, entry.name)
+
     if (!node || !entry) {
       throw new Error('A Node and an Entry are required')
     }
     entry.preserveContent = true
     entry = this.secrez.encryptEntry(entry)
+    // console.log('entry.ts', entry.ts)
     try {
       await this.save(entry)
       node.move(entry)
       await this.saveTree()
       return node
     } catch (e) {
+      // console.log('Unsaved')
       await this.unsave(entry)
       throw e
     }
@@ -157,12 +162,16 @@ class InternalFs {
       }
     }
     let node = this.tree.root.getChildFromPath(p)
+    // console.log('\nchange', node.lastTs)
+
     if (!node) {
       throw new Error('Path does not exist')
     }
     let entry = new Entry(Object.assign(options, node.getEntry()))
     let ancestor, remainingPath
+    // console.log('ancestor, remainingPath', ancestor?1:2, remainingPath)
     try {
+      // console.log('n', n)
       let result = n ? this.tree.root.getChildFromPath(n, true) : []
       ancestor = result[0]
       remainingPath = result[1]
@@ -185,21 +194,25 @@ class InternalFs {
         entry.parent = ancestor
       }
     }
+    if (Node.isFile(entry) && !entry.content) {
+      entry.content = node.getContent()
+    }
+    // console.log('entry.get()', entry.get().name, path.basename(n || ''))
     await this.update(node, entry)
+    // console.log('\n\n')
     return node
   }
 
   async remove(options) {
     let p = this.normalizePath(options.path)
+    // console.log(p)
     let node = this.tree.root.getChildFromPath(p)
     if (!node) {
       throw new Error('Path does not exist')
     }
-    let deletedEntries = await node.remove(options.versions || node.lastTs)
-    this.tree.addToDeletedEntries(deletedEntries)
+    let deleted = await node.remove(options.versions)
     await this.saveTree()
-
-    return true
+    return deleted
   }
 
   async getEntryDetails(node, ts) {

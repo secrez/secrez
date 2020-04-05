@@ -1,3 +1,5 @@
+const chalk = require('chalk')
+const path = require('path')
 const {Crypto, config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 
@@ -53,10 +55,14 @@ class Cat extends require('../Command') {
     }
   }
 
-  formatTs(ts) {
+  formatTs(ts, name) {
     ts = Crypto.fromTsToDate(ts)
     let date = ts[0].split('Z')[0].split('T')
-    return `${Crypto.b58Hash(ts).substring(0, 4)} ${date[0]} ${date[1].substring(0,12)}${ts[1]}` //  ${date[1].substring(9) + ':' + ts[1]}`
+    let ret = `${Node.hashVersion(ts)} ${date[0]} ${date[1].substring(0,12)}${ts[1]}`
+    if (name) {
+      ret += ' (' +chalk.grey(name) + ')'
+    }
+    return ret
   }
 
   async cat(options, justContent) {
@@ -81,18 +87,19 @@ class Cat extends require('../Command') {
 
   async exec(options) {
     try {
+      let fn = path.basename(options.path)
       let data = await this.cat(options)
       let extra = options.all || options.metadata
       if (data) {
         let header = false
         for (let d of data) {
           // eslint-disable-next-line no-unused-vars
-          let {content, ts, type} = d
+          let {content, ts, type, name} = d
           if (extra) {
             // if (!header) {
             //   this.Logger.cyan(chalk.bold('v.id  date        hour      μs '))
             // }
-            this.Logger.yellow(`${header ? '\n' : ''}${this.formatTs(ts)}`)
+            this.Logger.yellow(`${header ? '\n' : ''}${this.formatTs(ts, fn === name ? undefined : name)}`)
             header = true
           }
           if (type === config.types.TEXT) {

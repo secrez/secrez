@@ -30,6 +30,14 @@ class Mv extends require('../Command') {
     }
   }
 
+  async mv(options) {
+    await this.internalFs.change({
+      path: options.path,
+      newPath: options.newPath
+    })
+  }
+
+
   async exec(options) {
     try {
       if (!options.path) {
@@ -52,7 +60,7 @@ class Mv extends require('../Command') {
             }
           ])
           if (destination !== exitCode) {
-            await this.internalFs.change({
+            await this.mv({
               path: options.path,
               newPath: destination
             })

@@ -38,7 +38,7 @@ class Touch extends require('../Command') {
   }
 
   async touch(options) {
-    await this.internalFs.make(options)
+    return await this.internalFs.make(options)
   }
 
   async exec(options) {

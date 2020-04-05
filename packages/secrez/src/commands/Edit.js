@@ -46,7 +46,7 @@ class Edit extends require('../Command') {
 
   async edit(options) {
     let file = options.path
-    let data = await this.internalFs.cat({path: file})
+    let data = await this.prompt.commands.cat.cat({path: file})
     let node = this.internalFs.tree.root.getChildFromPath(file)
     let {content} = data[0]
     let extraMessage = chalk.dim('Press <enter> to launch ')
