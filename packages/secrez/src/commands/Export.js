@@ -31,6 +31,11 @@ class Export extends require('../Command') {
         name: 'object',
         alias: 'o',
         type: Boolean
+      },
+      {
+        name: 'version',
+        alias: 'v',
+        type: Boolean
       }
     ]
   }
@@ -45,7 +50,8 @@ class Export extends require('../Command') {
       examples: [
         ['export seed.json', 'decrypts and copies seed.json to the disk'],
         ['export ethKeys -c 20', 'copies to the clipboard for 20 seconds'],
-        ['export ethKeys -c 20 -o', 'copies to the clipboard the JSON of the object']
+        ['export ethKeys -c 20 -o', 'copies to the clipboard the JSON of the object'],
+        ['export ethKeys -v 8uW3', 'exports version 8uW3 of the file']
       ]
     }
   }
@@ -53,12 +59,15 @@ class Export extends require('../Command') {
   async export(options = {}) {
     let ifs = this.internalFs
     let efs = this.externalFs
-    let cat = new Cat(this.prompt)
-    let lpwd = new Lpwd(this.prompt)
+    let cat = this.prompt.commands.cat
+    let lpwd = this.prompt.commands.lpwd
     let p = ifs.getNormalizedPath(options.path)
     let file = ifs.tree.root.getChildFromPath(p)
     if (Node.isFile(file)) {
-      let entry = (await cat.cat({path: p}))[0]
+      let entry = (await cat.cat({
+        path: p,
+        version: options.version
+      }))[0]
       if (options.clipboard) {
         if (Node.isText(entry)) {
           let {name, content} = entry
@@ -92,7 +101,7 @@ class Export extends require('../Command') {
   async exec(options) {
     try {
       let name = await this.export(options)
-      this.Logger.yellow(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
+      this.Logger.agua(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

@@ -118,10 +118,11 @@ class Node {
     return root
   }
 
-  static preFormat(json, secrez, files) {
+  static preFormat(json, secrez, files, trash) {
     json.V = []
     for (let v of json.v) {
-      if (v === null) {
+      if (/_/.test(v)) {
+        trash = true
         json.V.push(new Entry({
           type: config.types.TRASH
         }))
@@ -130,6 +131,9 @@ class Node {
           encryptedName: files[v]
         }))
         let obj = entry.get(['id', 'ts', 'name'])
+        if (trash) {
+          obj.id = '_' + obj.id
+        }
         obj.encryptedName = files[v]
         json.V.push(obj)
         delete files[v]
@@ -138,7 +142,7 @@ class Node {
     json.V.sort(Node.sortEntry)
     if (json.c) {
       for (let c of json.c) {
-        Node.preFormat(c, secrez, files)
+        Node.preFormat(c, secrez, files, trash)
       }
     }
     return json
@@ -212,7 +216,7 @@ class Node {
     if (this.versions) {
       for (let ts in this.versions) {
         let version = this.versions[ts]
-        let str = version.file ? version.file.substring(0, minSize) : null
+        let str = version.file ? version.file.substring(0, minSize) : '_'.repeat(minSize)
         if (verbose) {
           result.v.push(str + ' ' + ts + ' ' + version.name)
         } else {
@@ -231,7 +235,6 @@ class Node {
         result.c.push(child.toCompressedJSON(minSize, verbose))
       }
     }
-
     return result
   }
 
@@ -574,7 +577,7 @@ class Node {
       lastTs = trashed.addVersion(Object.assign({
             ts: v
           },
-        deleted.versions[v]
+          deleted.versions[v]
       ))
     }
     trashed.lastTs = lastTs
@@ -583,11 +586,11 @@ class Node {
     }
   }
 
-  remove(versions = []) {
+  remove(version = []) {
     // console.log(this.parent)
     if (this.parent) {
-      if (!Array.isArray(versions)) {
-        versions = [versions]
+      if (!Array.isArray(version)) {
+        version = [version]
       }
       let deleted = {
         id: this.id,
@@ -599,9 +602,9 @@ class Node {
         deleted.children = this.children
       }
       let result = []
-      let deleteAll = versions.length === 0
+      let deleteAll = version.length === 0
       for (let v in this.versions) {
-        if (deleteAll || versions.includes(Node.hashVersion(v))) {
+        if (deleteAll || version.includes(Node.hashVersion(v))) {
           result.push({
             id: this.id,
             version: Node.hashVersion(v),
@@ -634,6 +637,5 @@ class Node {
   }
 
 }
-
 
 module.exports = Node

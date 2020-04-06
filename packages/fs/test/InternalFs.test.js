@@ -298,7 +298,7 @@ describe('#InternalFs', function () {
 
   })
 
-  describe.only('load', async function () {
+  describe('load', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
@@ -377,11 +377,14 @@ describe('#InternalFs', function () {
       let json1 = root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
       let json2 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
 
+      // jlog(json1)
+      // jlog(json2)
+
       assert.isTrue(jsonEqual(json1, json2))
 
     })
 
-    it.only('should create directories and files, delete everything and loading a tree from disk', async function () {
+    it('should create directories and files, delete everything and loading a tree from disk', async function () {
 
       await internalFs.make({
         path: '/folder1/file1',
@@ -395,7 +398,20 @@ describe('#InternalFs', function () {
         path: 'folder1'
       })
 
-      jlog(internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles()))
+      let internalFs2 = new InternalFs(secrez)
+      await internalFs2.init()
+      root = internalFs2.tree.root
+
+
+      let json1 = root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
+      let json2 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
+
+      assert.isTrue(jsonEqual(json1, json2))
+
+    })
+
+
+    it('should compress and reload an empty set of entries', async function () {
 
       let internalFs2 = new InternalFs(secrez)
       await internalFs2.init()

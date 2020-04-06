@@ -26,6 +26,10 @@ class Logger {
     Logger.log('green', str)
   }
 
+  static agua(str) {
+    console.info(chalk.rgb(40, 210, 160).dim(str))
+  }
+
   static blue(str) {
     Logger.log('blue', str)
   }
@@ -44,6 +48,10 @@ class Logger {
 
   static bold(str) {
     Logger.log('bold', str)
+  }
+
+  static blu(str) {
+    console.info(chalk.rgb(10, 100, 210).dim(str))
   }
 
   static format(data) {

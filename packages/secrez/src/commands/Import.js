@@ -120,7 +120,7 @@ class Import extends require('../Command') {
         } else if (options.move) {
           extra = ' (moved)'
         }
-        this.Logger.yellow(`Imported files${extra}:`)
+        this.Logger.agua(`Imported files${extra}:`)
         this.Logger.reset(files.join('\n'))
       } else {
         this.Logger.red('No file has been imported.')

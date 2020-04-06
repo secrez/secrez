@@ -3,32 +3,14 @@ const {removeNotPrintableChars} = require('./utils')
 class Entry {
 
   isValid(option) {
-    return this.validOptions.includes(option)
+    return Entry.validOptions.includes(option)
   }
 
   constructor(options) {
-
-    this.validOptions = [
-      'type',
-      'id',
-      'ts',
-      'scrambledTs',
-      'name',
-      'content',
-      'encryptedName',
-      'encryptedContent',
-      'microseconds',
-      'extraName',
-      'nameId',
-      'nameTs',
-      'preserveContent',
-      'parent'
-    ]
-
     this.set(options)
   }
 
-  get(options = this.validOptions) {
+  get(options = Entry.validOptions) {
     let obj = {}
     for (let o of options) {
       if (this.isValid(o) && typeof this[o] !== 'undefined') {
@@ -84,6 +66,23 @@ class Entry {
 
 
 }
+
+Entry.validOptions = [
+  'type',
+  'id',
+  'ts',
+  'scrambledTs',
+  'name',
+  'content',
+  'encryptedName',
+  'encryptedContent',
+  'microseconds',
+  'extraName',
+  'nameId',
+  'nameTs',
+  'preserveContent',
+  'parent'
+]
 
 
 module.exports = Entry

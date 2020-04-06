@@ -27,36 +27,6 @@ class InternalFs {
     return path.join(this.dataPath, entry.encryptedName)
   }
 
-  async save(entry) {
-    let fullPath = this.getFullPath(entry)
-    /* istanbul ignore if  */
-    if (await fs.pathExists(fullPath)) {
-      throw new Error('File already exists')
-    }
-    let encryptedContent =
-        entry.encryptedContent || entry.extraName
-            ? (entry.encryptedContent || '') +
-            (
-                entry.extraName
-                    ? 'I' + entry.extraName
-                    : ''
-            )
-            : ''
-    await fs.writeFile(fullPath, encryptedContent)
-    entry.set({
-      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
-    })
-    // console.log('>>>>    saved', entry.get().name)
-    return entry
-  }
-
-  async unsave(entry) {
-    let fullPath = this.getFullPath(entry)
-    if (await fs.pathExists(fullPath)) {
-      await fs.unlink(fullPath)
-    }
-  }
-
   async add(parent, entry) {
     if (entry.id) {
       throw new Error('A new entry cannot have a pre-existent id')
@@ -65,13 +35,13 @@ class InternalFs {
     entry.preserveContent = true
     entry = this.secrez.encryptEntry(entry)
     try {
-      await this.save(entry)
+      await this.tree.saveEntry(entry)
       let node = new Node(entry)
       parent.add(node)
-      await this.saveTree()
+      await this.tree.preSave()
       return node
     } catch (e) {
-      await this.unsave(entry)
+      await this.tree.unsaveEntry(entry)
       throw e
     }
   }
@@ -87,32 +57,15 @@ class InternalFs {
     entry = this.secrez.encryptEntry(entry)
     // console.log('entry.ts', entry.ts)
     try {
-      await this.save(entry)
+      await this.tree.saveEntry(entry)
       node.move(entry)
-      await this.saveTree()
+      await this.tree.preSave()
       return node
     } catch (e) {
       // console.log('Unsaved')
-      await this.unsave(entry)
+      await this.tree.unsaveEntry(entry)
       throw e
     }
-  }
-
-  async saveTree() {
-    let root = this.tree.root.getEntry()
-    if (this.previousRoot) {
-      // this creates a single index file per session.
-      // TODO When git is used to distribute the data, after committing this.previousRoot must be canceled to avoid conflicts
-      await this.unsave(this.previousRoot)
-    }
-    root.set({
-      name: Crypto.getRandomBase58String(4),
-      content: JSON.stringify(this.tree.root.toCompressedJSON(null, null, await this.tree.getAllFiles())),
-      preserveContent: true
-    })
-    root = this.secrez.encryptEntry(root)
-    await this.save(root)
-    this.previousRoot = root
   }
 
   async make(options) {
@@ -210,8 +163,8 @@ class InternalFs {
     if (!node) {
       throw new Error('Path does not exist')
     }
-    let deleted = await node.remove(options.versions)
-    await this.saveTree()
+    let deleted = await node.remove(options.version)
+    await this.tree.preSave()
     return deleted
   }
 

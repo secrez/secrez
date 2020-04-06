@@ -26,7 +26,8 @@ class Cat extends require('../Command') {
       {
         name: 'version',
         alias: 'v',
-        type: Number
+        multiple: true,
+        type: String
       },
       {
         name: 'all',
@@ -47,20 +48,21 @@ class Cat extends require('../Command') {
       examples: [
         'cat ../passwords/Facebook',
         ['cat wallet -m', 'shows metadata: version and creation date'],
-        ['cat etherWallet -v 2', 'shows the version 2 of the secret, if exists'],
+        ['cat etherWallet -v 2UYw', 'shows the version 2UYw of the secret, if exists'],
         ['cat etherWallet -a', 'lists all the versions'],
-        'cat etherWallet -mv 1',
+        'cat etherWallet -mv 17TR',
         // ['cat wallet -au', 'lists all the versions showing not-visible utf8 chars']
       ]
     }
   }
 
   formatTs(ts, name) {
+    let tsHash = Node.hashVersion(ts)
     ts = Crypto.fromTsToDate(ts)
     let date = ts[0].split('Z')[0].split('T')
-    let ret = `${Node.hashVersion(ts)} ${date[0]} ${date[1].substring(0,12)}${ts[1]}`
+    let ret = `${tsHash} ${date[0]} ${date[1].substring(0,12)}${ts[1]}`
     if (name) {
-      ret += ' (' +chalk.grey(name) + ')'
+      ret += chalk.yellow(' (' +name + ')')
     }
     return ret
   }
@@ -71,9 +73,12 @@ class Cat extends require('../Command') {
     let node = ifs.tree.root.getChildFromPath(p)
     if (node && Node.isFile(node)) {
       let result  = []
-      if (options.all) {
+      if (options.all || options.version) {
         let versions = node.getVersions()
         for (let ts of versions) {
+          if (options.version && !options.version.includes(Node.hashVersion(ts))) {
+            continue
+          }
           result.push(await ifs.getEntryDetails(node, ts))
         }
       } else {
@@ -93,19 +98,19 @@ class Cat extends require('../Command') {
       if (data) {
         let header = false
         for (let d of data) {
-          // eslint-disable-next-line no-unused-vars
           let {content, ts, type, name} = d
           if (extra) {
-            // if (!header) {
-            //   this.Logger.cyan(chalk.bold('v.id  date        hour      μs '))
-            // }
-            this.Logger.yellow(`${header ? '\n' : ''}${this.formatTs(ts, fn === name ? undefined : name)}`)
+            this.Logger.agua(`${header ? '\n' : ''}${this.formatTs(ts, fn === name ? undefined : name)}`)
             header = true
           }
           if (type === config.types.TEXT) {
-            this.Logger.reset(content)
+            if (content) {
+              this.Logger.reset(content)
+            } else {
+              this.Logger.blu('-- this version is empty --')
+            }
           } else {
-            this.Logger.grey('-- this is a binary file --')
+            this.Logger.blu('-- this is a binary file --')
           }
         }
       }
