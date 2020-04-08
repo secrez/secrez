@@ -28,8 +28,8 @@ class ConfigUtils {
     config.confPath = path.join(container, 'keys.json')
 
     config.tmpPath = path.join(container, 'tmp')
-    config.envPath = path.join(container, '.env')
-    config.historyPath = path.join(container, '.history')
+    config.envPath = path.join(container, 'env.json')
+    config.historyPath = path.join(container, 'history')
 
     await fs.emptyDir(config.tmpPath)
     await fs.ensureDir(config.dataPath)
@@ -44,8 +44,8 @@ Be very careful, and don't touch anything :o)
     fPath = path.join(container, '.gitignore')
     if (!await fs.pathExists(fPath)) {
       await fs.writeFile(fPath, `tmp
-.env
-.history
+env.json
+history
 `, 'utf-8')
     }
     return config

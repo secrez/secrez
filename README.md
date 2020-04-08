@@ -32,7 +32,7 @@ To obtain this goal, Secrez assembles a few strategies:
 
 You can create a private repo on, for example, GitHub, and generate a token to access it.
 
-For now, this is a manual approach. Still, in a future version, the token can be encrypted in Secrez, like any other data, and used directly to pull from GitHub before doing any change and push to before exiting. 
+For now, this is a manual approach. Still, in a future version, the token can be encrypted in Secrez, like any other data, and used directly to pull from GitHub before doing any change and push to before exiting.
 
 In any case, even if you make changes parallelly, the changes won't generate any conflict because the files are immutable.
 
@@ -65,11 +65,15 @@ A file name in Secrez looks like
 ```
 1VAnGLojzCDWhfZRK8PCYK203WBzJkAA28FhKHdS7DM5SkJaTgYdGfN1MAjTdfUYSzvtDVsMJvGodoHWzMuK6zr
 ```
-where `1` is the type (FILE), and `VAnGLojzCDWhfZRK8PCYK2` is a nonce generated during the encryption.
+where `1` is the type (FILE), `VAnGLojzCDWhfZRK8PCYK2` is a nonce generated during the encryption, and `03WBzJkAA28FhKHdS7DM5SkJaTgYdGfN1MAjTdfUYSzvtDVsMJvGodoHWzMuK6zr` is the actual name.
+
+Notice that everything is in Base58 format.
 
 The rest, after the `0`, is the combination of id, timestamp, and filename. This implies that, at bootstrap, Secrez must read all the files' names and build a tree of the entire file system. This is done using a particular file, which is an index of the directory tree. Only after reading all the data, Secrez is able to understand which is the tree and rebuild it correctly. In other words, there is no information deductible from the files on disk, except what you can deduct from the Git repo (mostly about versioning and timestamp). But the idea is to use a private repo, so this is a minor issue. The alternative would be to risk conflicts during pull and push of new changes, which could potentially damage the entire database.
 
 To mitigate this risk, you can create a new Git repo, save everything as the first commit, and delete the previously used repo. This way, you lose the repo's history, but you also lose info about timestamps and versions.
+
+In general, a problem with encrypted data is that if someone knows what you are encrypting, it is easier to run a cryptographic attack. For this reason, data in Secrez and scrambled and obfuscated using ASCII chars not part of the Base58 set, selected randomly at any save.
 
 #### The tree
 
@@ -79,18 +83,21 @@ The tree obfuscated after the initial compression to make it harder to attack it
 
 #### Security details
 
-When you initially create a secrez database (store, by default, in `~/.secrez`) you are asked for a password and a number of iterations. Since Secrez derives a master key from your password using `crypto.pbkdf2`, the number of iterations is a significant addition to the general security. Even if you use a not-very-hard-to-guess password, if the attacker does not know the number of iterations, he has to try all the possible ones. Considering that 2,000,000 iterations require a second or so, customizable iterations increases enormously the overall security.
+When you initially create a secrez database (store, by default, in `~/.secrez`) you should indicate the number of iterations.
+
+Since Secrez derives a master key from your password using `crypto.pbkdf2`, the number of iterations is a significant addition to the general security. Even if you use a not-very-hard-to-guess password, if the attacker does not know the number of iterations, he has to try all the possible ones. Considering that 2,000,000 iterations require a second or so, customizable iterations increases enormously the overall security.
+
 You can set up the number of iterations calling
 ```
 secrez -i 1023896
 ```
-or just calling 
+or
 ```
-secrez
+secrez -si 476352
 ```
-and wait for the prompt.
+where the `-s` option saves the number locally in a git-ignored `env.json` file. This way you don't have to retype it all the time to launch Secrez. Typing a wrong number of iterations, of course, will produce an error.
 
-If you don't want to type all the time the number, you can save it locally (and git-ignored), adding the option `-s`.
+If you don't explicitly set up the number of iterations, a value for that is asked during the set up, before your password. If you put a large number and you think that it's too slow for your computer, delete the Secrez folder (by default `rm -rf ~/.secrez`) and restart.
 
 Other options are:
 

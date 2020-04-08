@@ -92,10 +92,10 @@ Options:
                         does not exist, it will be created, included the parents.
   -i, --iterations      The number of iterations during password 
                         derivation (based on PBKDF2). Use a number like
-                        94543 or 725642 (the larger the safer, but also the slower).
+                        294543 or 1125642 (the larger the safer, but also the slower).
                         It increases exponentially the safety of your password.
-  -s, --saveIterations  Saves the number of iterations in .env.json (which 
-                        is .gitignored). Do it only if you computer is very safe.               
+  -s, --saveIterations  Saves the number of iterations in env.json (which 
+                        is git-ignored). Do it only if you computer is very safe.               
   -x, --fix             Fix the tree in case files are missing or corrupted.  
   -l, --localDir        The local (out of the enctrypted fs) working dir
                       
