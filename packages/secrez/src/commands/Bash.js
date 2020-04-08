@@ -33,7 +33,7 @@ class Bash extends require('../Command') {
     return execSync(`cd ${pwd} && ${options.command}`).toString()
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
       this.Logger.reset(await this.bash(options))
     } catch (e) {

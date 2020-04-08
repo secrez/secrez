@@ -48,7 +48,7 @@ class Rm extends require('../Command') {
     return [chalk.yellow(item.version), item.name].join(' ')
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     if (!options.path) {
       this.Logger.red('File path not specified.')
     } else if (/\?\*/.test(path.basename(options.path))) {

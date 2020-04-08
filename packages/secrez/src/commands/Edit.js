@@ -95,7 +95,7 @@ class Edit extends require('../Command') {
     return this.editorBinPath
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     let currentEditor = process.env.EDITOR
     if (!options.editor) {
       process.env.EDITOR = this.getTinyCliEditorBinPath()

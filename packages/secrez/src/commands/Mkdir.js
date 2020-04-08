@@ -34,7 +34,7 @@ class Mkdir extends require('../Command') {
     await this.internalFs.make(options)
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     if (!options.path) {
       this.Logger.red('Directory path not specified.')
     } else {

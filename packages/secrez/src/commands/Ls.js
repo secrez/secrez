@@ -42,7 +42,7 @@ class Ls extends require('../Command') {
     return await this.internalFs.pseudoFileCompletion(options.path || '.', true)
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
       let list = await this.ls(options)
       if (list) {

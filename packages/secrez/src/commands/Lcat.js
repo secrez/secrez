@@ -44,7 +44,7 @@ class Lcat extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
       let data = await this.lcat(options)
       this.Logger.reset(data)

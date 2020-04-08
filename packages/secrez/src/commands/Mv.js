@@ -38,7 +38,7 @@ class Mv extends require('../Command') {
   }
 
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
       if (!options.path) {
         throw new Error('An origin path is required.')

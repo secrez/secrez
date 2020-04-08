@@ -90,7 +90,7 @@ class Cat extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
       let fn = path.basename(options.path)
       let data = await this.cat(options)

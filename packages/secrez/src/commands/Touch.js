@@ -41,7 +41,7 @@ class Touch extends require('../Command') {
     return await this.internalFs.make(options)
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     if (!options.path) {
       this.Logger.red('File path not specified.')
     } else {

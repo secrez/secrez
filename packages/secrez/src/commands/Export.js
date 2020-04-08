@@ -95,7 +95,7 @@ class Export extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
       let name = await this.export(options)
       this.Logger.agua(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')

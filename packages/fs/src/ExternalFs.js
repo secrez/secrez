@@ -19,8 +19,8 @@ class ExternalFs {
     if (typeof options === 'string') {
       options = {path: options}
     }
-    let files = (await this.getDir(this.getNormalizedPath(options.path), options.forAutoComplete))[1]
-    return files.filter(f => {
+    let [isDir, list] = (await this.getDir(this.getNormalizedPath(options.path), options.forAutoComplete))
+    list =  list.filter(f => {
       let pre = true
       if (options.dironly) {
         pre = /\/$/.test(f)
@@ -32,6 +32,11 @@ class ExternalFs {
       }
       return pre
     })
+    if (options.returnIsDir) {
+      return [isDir, list]
+    } else {
+      return list
+    }
   }
 
   async mapDir(dir) {
@@ -44,7 +49,8 @@ class ExternalFs {
 
   async getDir(dir, forAutoComplete) {
     let list = []
-    if (await this.isDir(dir)) {
+    let isDir = await this.isDir(dir)
+    if (isDir) {
       list = await this.mapDir(dir)
     } else {
       let fn = path.basename(dir)
@@ -65,7 +71,7 @@ class ExternalFs {
         }
       }
     }
-    return [dir, list]
+    return [isDir, list]
   }
 
   async isDir(dir) {

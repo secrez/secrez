@@ -32,7 +32,7 @@ class Create extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     let prompt = this.prompt
     let exitCode = Crypto.getRandomBase58String(2)
     try {

@@ -110,7 +110,7 @@ class Import extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
       let files = await this.import(options)
       if (files.length) {

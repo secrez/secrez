@@ -49,7 +49,7 @@ class Lcd extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     try {
       options.all = true
       options.dironly = true
