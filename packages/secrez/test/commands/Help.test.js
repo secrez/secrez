@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint, decolorize} = require('../helpers')
 
 const {
   password,
@@ -15,7 +15,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Lcd', function () {
+describe('#Help', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
@@ -36,26 +36,42 @@ describe('#Lcd', function () {
     await prompt.internalFs.init()
   })
 
-  it('change to a folder', async function () {
-
+  it('#exec and format', async function () {
 
     inspect = stdout.inspect()
-    await C.lcd.exec({path: 'folder1'})
+    await C.help.exec({command: 'pwd' })
     inspect.restore()
-    assertConsole(inspect, [])
+    let str = decolorize(inspect.output.join('\n'))
+    assert.isTrue(/Examples:[^p]+pwd/.test(str))
 
-    assert.equal(await C.lpwd.lpwd(), path.join(options.localDir, 'folder1'))
+    inspect = stdout.inspect()
+    await C.help.exec({command: 'cat' })
+    inspect.restore()
+    str = decolorize(inspect.output.join('\n'))
+    assert.isTrue(/Available options/.test(str))
+
 
   })
 
-  it('return en error if changing to a file', async function () {
+  it('should throw if wrong command', async function () {
 
     inspect = stdout.inspect()
-    await C.lcd.exec({path: 'file1' })
+    await C.help.exec({command: 'wrong' })
     inspect.restore()
-    assertConsole(inspect, 'No such directory')
+    assertConsole(inspect, 'Invalid command.')
 
   })
+
+
+  it('-- to complete coverage', async function () {
+
+    for (let cmd in C) {
+      await C[cmd].help()
+    }
+
+  })
+
+
 
 })
 

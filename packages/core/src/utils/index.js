@@ -43,8 +43,8 @@ class Utils {
   }
 
   static base58ToInt(v) {
-    v = v.replace(/^0+/, '')
     try {
+      v = v.replace(/^0+/, '')
       return Base58.base58_to_int(v)
     } catch (e) {
       throw new Error('Invalid format')

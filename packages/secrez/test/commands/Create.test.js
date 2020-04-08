@@ -1,11 +1,10 @@
-const chai = require('chai')
-const assert = chai.assert
+const assert = require('chai').assert
 const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -15,16 +14,15 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Lcd', function () {
+describe('#Create', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
   let inspect, C
 
-
   let options = {
     container: rootDir,
-    localDir: path.resolve(__dirname, '../fixtures/files')
+    localDir: __dirname
   }
 
   beforeEach(async function () {
@@ -36,25 +34,11 @@ describe('#Lcd', function () {
     await prompt.internalFs.init()
   })
 
-  it('change to a folder', async function () {
+  it('should create a file', async function () {
 
-
-    inspect = stdout.inspect()
-    await C.lcd.exec({path: 'folder1'})
-    inspect.restore()
-    assertConsole(inspect, [])
-
-    assert.equal(await C.lpwd.lpwd(), path.join(options.localDir, 'folder1'))
-
-  })
-
-  it('return en error if changing to a file', async function () {
-
-    inspect = stdout.inspect()
-    await C.lcd.exec({path: 'file1' })
-    inspect.restore()
-    assertConsole(inspect, 'No such directory')
-
+    await noPrint(C.create.exec({path: '/file1', content: 'Some content'}))
+    let file1 = prompt.internalFs.tree.root.getChildFromPath('/file1')
+    assert.equal(file1.getContent(), 'Some content')
   })
 
 })

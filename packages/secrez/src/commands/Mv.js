@@ -1,5 +1,5 @@
 const chalk = require('chalk')
-const {config, Crypto, Entry} = require('@secrez/core')
+const {Crypto} = require('@secrez/core')
 
 class Mv extends require('../Command') {
 
@@ -46,19 +46,23 @@ class Mv extends require('../Command') {
         if (this.internalFs.tree.root.getChildFromPath(options.path)) {
           let prompt = this.prompt
           let exitCode = Crypto.getRandomBase58String(2)
-          let {destination} = await prompt.inquirer.prompt([
-            {
-              type: 'input',
-              name: 'destination',
-              message: 'Type the destination',
-              validate: val => {
-                if (val) {
-                  return true
+          let destination = options.destination
+          /* istanbul ignore if  */
+          if (!destination) {
+            destination = (await prompt.inquirer.prompt([
+              {
+                type: 'input',
+                name: 'destination',
+                message: 'Type the destination',
+                validate: val => {
+                  if (val) {
+                    return true
+                  }
+                  return chalk.grey(`Please, type the destination. Cancel typing ${exitCode}`)
                 }
-                return chalk.grey(`Please, type the destination. Cancel typing ${exitCode}`)
               }
-            }
-          ])
+            ])).destination
+          }
           if (destination !== exitCode) {
             await this.mv({
               path: options.path,

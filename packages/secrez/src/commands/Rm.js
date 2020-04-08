@@ -1,6 +1,6 @@
 const path = require('path')
 const chalk = require('chalk')
-const {config, Entry} = require('@secrez/core')
+// const {config, Entry} = require('@secrez/core')
 
 class Rm extends require('../Command') {
 

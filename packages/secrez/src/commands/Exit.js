@@ -19,11 +19,15 @@ class Exit extends require('../Command') {
     }
   }
 
-  async exec() {
-    await this.prompt.saveHistory()
+  async exec(options = {}) {
     this.Logger.reset('Bye bye :o)')
-    /*eslint-disable-next-line*/
-    process.exit(0)
+    /* istanbul ignore if  */
+    // eslint-disable-next-line no-constant-condition
+    if (!options.testing) {
+      await this.prompt.saveHistory()
+      /*eslint-disable-next-line*/
+      process.exit(0)
+    }
   }
 }
 

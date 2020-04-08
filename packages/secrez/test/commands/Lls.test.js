@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, decolorize} = require('../helpers')
 
 const {
   password,
@@ -15,7 +15,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Lcd', function () {
+describe('#Lls', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
@@ -36,24 +36,31 @@ describe('#Lcd', function () {
     await prompt.internalFs.init()
   })
 
-  it('change to a folder', async function () {
-
+  it('should list a folder', async function () {
 
     inspect = stdout.inspect()
-    await C.lcd.exec({path: 'folder1'})
+    await C.lls.exec({path: '*'})
     inspect.restore()
-    assertConsole(inspect, [])
-
-    assert.equal(await C.lpwd.lpwd(), path.join(options.localDir, 'folder1'))
+    let str = decolorize(inspect.output.join('\n'))
+    assert.isTrue(/file3 +folder1/.test(str))
 
   })
 
-  it('return en error if changing to a file', async function () {
+  it('return en error if lls-ing a not existing path', async function () {
 
     inspect = stdout.inspect()
-    await C.lcd.exec({path: 'file1' })
+    await C.lls.exec({path: 'none' })
     inspect.restore()
-    assertConsole(inspect, 'No such directory')
+    assertConsole(inspect, '-- no files found --')
+
+  })
+
+  it('return a message if no files are found', async function () {
+
+    inspect = stdout.inspect()
+    await C.lls.exec({path: './folder1/folder2' })
+    inspect.restore()
+    assertConsole(inspect, '-- no files found --')
 
   })
 

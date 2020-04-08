@@ -1,5 +1,3 @@
-const chai = require('chai')
-const assert = chai.assert
 const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
@@ -15,7 +13,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Lcd', function () {
+describe('#Lpwd', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
@@ -38,22 +36,10 @@ describe('#Lcd', function () {
 
   it('change to a folder', async function () {
 
-
     inspect = stdout.inspect()
-    await C.lcd.exec({path: 'folder1'})
+    await C.lpwd.exec()
     inspect.restore()
-    assertConsole(inspect, [])
-
-    assert.equal(await C.lpwd.lpwd(), path.join(options.localDir, 'folder1'))
-
-  })
-
-  it('return en error if changing to a file', async function () {
-
-    inspect = stdout.inspect()
-    await C.lcd.exec({path: 'file1' })
-    inspect.restore()
-    assertConsole(inspect, 'No such directory')
+    assertConsole(inspect, options.localDir)
 
   })
 

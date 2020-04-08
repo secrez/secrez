@@ -1,5 +1,3 @@
-const chai = require('chai')
-const assert = chai.assert
 const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
@@ -7,7 +5,7 @@ const path = require('path')
 const {config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint} = require('../helpers')
+const {assertConsole} = require('../helpers')
 
 const {
   password,
@@ -22,7 +20,6 @@ describe('#Rm', function () {
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
   let inspect, C
-  let root
 
   let options = {
     container: rootDir,
@@ -36,7 +33,6 @@ describe('#Rm', function () {
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
-    root = prompt.internalFs.tree.root
   })
 
   it('should delete a file with one version', async function () {
@@ -144,7 +140,7 @@ describe('#Rm', function () {
       'Deleted entries:'
       ].concat(expected))
 
-    jlog(root.toCompressedJSON(null, 1))
+    // jlog(root.toCompressedJSON(null, 1))
 
   })
 

@@ -1,11 +1,9 @@
-const chai = require('chai')
-const assert = chai.assert
 const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -15,7 +13,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Lcd', function () {
+describe('#Lcat', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
@@ -34,26 +32,24 @@ describe('#Lcd', function () {
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
+    await noPrint(C.lcd.exec({path: 'folder1'}))
   })
 
-  it('change to a folder', async function () {
-
+  it('cat a file', async function () {
 
     inspect = stdout.inspect()
-    await C.lcd.exec({path: 'folder1'})
+    await C.lcat.exec({path: 'file1'})
     inspect.restore()
-    assertConsole(inspect, [])
-
-    assert.equal(await C.lpwd.lpwd(), path.join(options.localDir, 'folder1'))
+    assertConsole(inspect, 'Some secret')
 
   })
 
-  it('return en error if changing to a file', async function () {
+  it('return en error if trying to cat a binary file', async function () {
 
     inspect = stdout.inspect()
-    await C.lcd.exec({path: 'file1' })
+    await C.lcat.exec({path: 'file1.tar.gz' })
     inspect.restore()
-    assertConsole(inspect, 'No such directory')
+    assertConsole(inspect, 'The file looks as a binary file')
 
   })
 

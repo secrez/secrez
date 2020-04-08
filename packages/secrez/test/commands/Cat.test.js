@@ -21,7 +21,7 @@ describe('#Cat', function () {
 
   let options = {
     container: rootDir,
-    localDir: __dirname
+    localDir: path.resolve(__dirname, '../fixtures/files')
   }
 
   beforeEach(async function () {
@@ -52,6 +52,7 @@ describe('#Cat', function () {
     await C.cat.exec({path: 'file1'})
     inspect.restore()
     assertConsole(inspect, ['Some password'])
+
   })
 
 
@@ -62,8 +63,7 @@ describe('#Cat', function () {
 
     let file1 = await noPrint(internalFs.make({
       path: 'folder1/file1',
-      type: config.types.TEXT,
-      content: 'Password 1'
+      type: config.types.TEXT
     }))
 
     await noPrint(internalFs.change({
@@ -73,21 +73,22 @@ describe('#Cat', function () {
 
     await noPrint(internalFs.change({
       path: '/folder1/file1',
+      newPath: '/folder1/file2',
       content: 'Password 3'
     }))
 
     let versions = file1.getVersions()
 
     inspect = stdout.inspect()
-    await C.cat.exec({path: '/folder1/file1', all: true})
+    await C.cat.exec({path: '/folder1/file2', all: true})
     inspect.restore()
     assertConsole(inspect, [
       C.cat.formatTs(versions[0]),
       'Password 3',
-      C.cat.formatTs(versions[1]),
+      C.cat.formatTs(versions[1]) + ' (file1)',
       'Password 2',
-      C.cat.formatTs(versions[2]),
-      'Password 1'
+      C.cat.formatTs(versions[2]) + ' (file1)',
+      '-- this version is empty --'
     ])
   })
 
@@ -103,6 +104,30 @@ describe('#Cat', function () {
     await C.cat.exec({path: '/dir1/file1'})
     inspect.restore()
     assertConsole(inspect, 'Path does not exist')
+
+    await noPrint(C.touch.exec({
+      path: 'folder1'
+    }))
+
+    inspect = stdout.inspect()
+    await C.cat.exec({path: '/folder1', version: ['aass']})
+    inspect.restore()
+    assertConsole(inspect, [])
+
+
+  })
+
+  it('should throw if trying to cat a binary file', async function () {
+
+    await noPrint(C.import.exec({
+      path: 'folder1',
+      binarytoo: true
+    }))
+
+    inspect = stdout.inspect()
+    await C.cat.exec({path: '/file1.tar.gz'})
+    inspect.restore()
+    assertConsole(inspect, ['-- this is a binary file --'])
 
   })
 

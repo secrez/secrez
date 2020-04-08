@@ -61,9 +61,9 @@ class Lls extends require('../Command') {
               ? list.join('\n')
               : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
           )
+        } else {
+          this.Logger.blu('-- no files found --')
         }
-      } else {
-        this.Logger.reset(`lls: ${options.path}: No such file or directory`)
       }
     } catch (e) {
       this.Logger.red(e.message)

@@ -4,9 +4,6 @@ const clipboardy = require('clipboardy')
 
 const {Node} = require('@secrez/fs')
 
-const Cat = require('./Cat')
-const Lpwd = require('./Lpwd')
-
 class Export extends require('../Command') {
 
   setHelpAndCompletion() {

@@ -1,13 +1,11 @@
-const chai = require('chai')
-const assert = chai.assert
+const assert = require('chai').assert
 const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')
-const {Node} = require('@secrez/fs')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint} = require('../helpers')
+const {assertConsole} = require('../helpers')
 
 const {
   password,
@@ -74,10 +72,13 @@ describe('#Mv', function () {
       type: config.types.DIR
     })
 
-    await C.mv.mv({
+    inspect = stdout.inspect()
+    await C.mv.exec({
       path: '/folder1/file1',
-      newPath: '/folder2/file1'
+      destination: '/folder2/file1'
     })
+    inspect.restore()
+    assertConsole(inspect, '/folder1/file1 has been moved to /folder2/file1')
 
     assert.equal(file1.getPath(), '/folder2/file1')
 
@@ -103,6 +104,27 @@ describe('#Mv', function () {
     assert.equal(file1.getPath(), '/folder2/file2')
 
   })
+
+  it('should throw if parameters are missed', async function () {
+
+    inspect = stdout.inspect()
+    await C.mv.exec({
+      destination: '/bollu'
+    })
+    inspect.restore()
+    assertConsole(inspect, 'An origin path is required.')
+
+    inspect = stdout.inspect()
+    await C.mv.exec({
+      path: '/bullo',
+      destination: '/bollu'
+    })
+    inspect.restore()
+    assertConsole(inspect, 'Path does not exist')
+
+
+  })
+
 
 })
 

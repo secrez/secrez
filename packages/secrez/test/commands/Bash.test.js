@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, noPrint} = require('../helpers')
 
 const {
   password,
@@ -15,12 +15,11 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Lcd', function () {
+describe('#Bash', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
   let inspect, C
-
 
   let options = {
     container: rootDir,
@@ -36,24 +35,18 @@ describe('#Lcd', function () {
     await prompt.internalFs.init()
   })
 
-  it('change to a folder', async function () {
+  it('should show the content of an external file via bash', async function () {
 
+    await noPrint(C.lcd.exec({path: 'folder1'}))
 
-    inspect = stdout.inspect()
-    await C.lcd.exec({path: 'folder1'})
-    inspect.restore()
-    assertConsole(inspect, [])
-
-    assert.equal(await C.lpwd.lpwd(), path.join(options.localDir, 'folder1'))
-
-  })
-
-  it('return en error if changing to a file', async function () {
+    // inspect = stdout.inspect()
+    let result = await C.bash.bash({command: 'cat file1'})
+    assert.equal(result, 'Some secret\n')
 
     inspect = stdout.inspect()
-    await C.lcd.exec({path: 'file1' })
+    await C.bash.exec({command: 'cat file1'})
     inspect.restore()
-    assertConsole(inspect, 'No such directory')
+    assertConsole(inspect, 'Some secret')
 
   })
 

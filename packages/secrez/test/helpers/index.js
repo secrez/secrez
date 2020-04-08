@@ -56,6 +56,7 @@ const helpers = {
     if (!Array.isArray(message)) {
       message = [message]
     }
+    message = message.map(e => helpers.decolorize(e))
     for (let i = 0; i < message.length; i++) {
       assert.equal(result[i], message[i])
     }

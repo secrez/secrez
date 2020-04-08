@@ -36,22 +36,25 @@ class Create extends require('../Command') {
     let prompt = this.prompt
     let exitCode = Crypto.getRandomBase58String(2)
     try {
-      let {p} = await prompt.inquirer.prompt([
-        {
-          type: 'input',
-          name: 'p',
-          message: 'Type your path',
-          validate: val => {
-            if (val) {
-              return true
+      /* istanbul ignore if  */
+      if (!options.path) {
+        let {p} = await prompt.inquirer.prompt([
+          {
+            type: 'input',
+            name: 'p',
+            message: 'Type your path',
+            validate: val => {
+              if (val) {
+                return true
+              }
+              return chalk.grey(`Please, type the path of your secret. Cancel typing ${exitCode}`)
             }
-            return chalk.grey(`Please, type the path of your secret. Cancel typing ${exitCode}`)
           }
-        }
-      ])
-      options.path = p
+        ])
+        options.path = p
+      }
       if (options.path !== exitCode) {
-        // this.Logger.grey(`Fullpath: ${path.resolve(this.cliConfig.workingDir, `./${options.path}`)}`)
+        /* istanbul ignore if  */
         if (!options.content) {
           let {content} = await prompt.inquirer.prompt([
             {
