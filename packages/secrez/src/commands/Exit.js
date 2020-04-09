@@ -3,10 +3,10 @@ const {Utils} = require('@secrez/core')
 class Exit extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.exit = Utils.sortKeys({
+    this.cliConfig.completion.exit = Utils.sortKeys({
       // dontSaveHistory: TRUE // not supported, yet
     })
-    this.config.completion.help.exit = true
+    this.cliConfig.completion.help.exit = true
   }
 
   help() {
@@ -19,10 +19,15 @@ class Exit extends require('../Command') {
     }
   }
 
-  async exec() {
+  async exec(options = {}) {
     this.Logger.reset('Bye bye :o)')
-    /*eslint-disable-next-line*/
-    process.exit(0)
+    /* istanbul ignore if  */
+    // eslint-disable-next-line no-constant-condition
+    if (!options.testing) {
+      await this.prompt.saveHistory()
+      /*eslint-disable-next-line*/
+      process.exit(0)
+    }
   }
 }
 

@@ -1,11 +1,13 @@
+const {config, Entry} = require('@secrez/core')
+
 class Mkdir extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.mkdir = {
+    this.cliConfig.completion.mkdir = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.mkdir = true
+    this.cliConfig.completion.help.mkdir = true
     this.optionDefinitions = [
       {
         name: 'path',
@@ -28,12 +30,22 @@ class Mkdir extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async mkdir(options) {
+    await this.internalFs.make(options)
+  }
+
+  async exec(options = {}) {
     if (!options.path) {
-      this.Logger.red('Directory name not specified.')
+      this.Logger.red('Directory path not specified.')
     } else {
       try {
-        await this.prompt.internalFs.mkdir(options.path)
+        let sanitizedPath = Entry.sanitizePath(options.path)
+        if (sanitizedPath !== options.path) {
+          throw new Error('A filename cannot contain \\/><|:&?* chars.')
+        }
+        options.type = config.types.DIR
+        await this.mkdir(options)
+        this.Logger.grey(`New folder "${options.path}" created.`)
       } catch (e) {
         this.Logger.red(e.message)
       }

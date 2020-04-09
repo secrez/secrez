@@ -3,8 +3,8 @@ const pkg = require('../../package')
 class Ver extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.ver = {}
-    this.config.completion.help.ver = true
+    this.cliConfig.completion.ver = {}
+    this.cliConfig.completion.help.ver = true
   }
 
   help() {
@@ -17,11 +17,9 @@ class Ver extends require('../Command') {
   }
 
   async exec() {
-    this.Logger.reset(`v${pkg.ver}`)
+    this.Logger.reset(`v${pkg.version}`)
     this.prompt.run()
   }
 }
 
 module.exports = Ver
-
-

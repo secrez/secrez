@@ -1,8 +1,8 @@
-class Epwd extends require('../Command') {
+class Lpwd extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.epwd = {}
-    this.config.completion.help.epwd = true
+    this.cliConfig.completion.lpwd = {}
+    this.cliConfig.completion.help.lpwd = true
   }
 
   help() {
@@ -11,14 +11,18 @@ class Epwd extends require('../Command') {
         'Secrez refers to external when refers to unencrypted standard files in the OS.'
       ],
       examples: [
-        'epwd'
+        'lpwd'
       ]
     }
   }
 
+  async lpwd() {
+    return this.cliConfig.localWorkingDir
+  }
+
   async exec() {
     try {
-      this.Logger.log(`${this.config.secrez.localWorkingDir}`)
+      this.Logger.reset(await this.lpwd())
     } catch (e) {
       this.Logger.red(e.message)
     }
@@ -26,6 +30,6 @@ class Epwd extends require('../Command') {
   }
 }
 
-module.exports = Epwd
+module.exports = Lpwd
 
 

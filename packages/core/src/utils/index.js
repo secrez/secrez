@@ -1,6 +1,6 @@
-const path = require('path')
-const homedir = require('homedir')
 const _ = require('lodash')
+const isBinaryFile = require('isbinaryfile').isBinaryFile
+const fs = require('fs-extra')
 
 const Base58 = require('base58')
 
@@ -26,10 +26,16 @@ class Utils {
     return /^\b(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b$/.test('' + ip)
   }
 
-  static intToBase58(v) {
+  static intToBase58(v, size) {
     try {
       if (typeof v === 'number') {
-        return Base58.int_to_base58(v)
+        let ret = Base58.int_to_base58(v)
+        if (size) {
+          while (ret.length < size) {
+            ret = '0' + ret
+          }
+        }
+      return ret
       } else throw new Error()
     } catch (e) {
       throw new Error('Invalid format')
@@ -38,6 +44,7 @@ class Utils {
 
   static base58ToInt(v) {
     try {
+      v = v.replace(/^0+/, '')
       return Base58.base58_to_int(v)
     } catch (e) {
       throw new Error('Invalid format')
@@ -82,6 +89,13 @@ class Utils {
     }
   }
 
+  static getKeyValue(obj, key) {
+    return {
+      key: key,
+      value: obj[key]
+    }
+  }
+
   static secureCompare(a, b) {
     if (!a || !b || a.length !== b.length) {
       return false
@@ -92,6 +106,22 @@ class Utils {
     }
     return match
   }
+
+  static async isBinary(fileFullPath) {
+    try {
+      const data = await fs.readFile(fileFullPath)
+      const stat = await fs.lstat(fileFullPath)
+      return await isBinaryFile(data, stat.size)
+    } catch(e) {
+      throw new Error('A valid file is required')
+    }
+  }
+
+  static removeNotPrintableChars(str) {
+    // eslint-disable-next-line no-control-regex
+    return str.replace(/[\x00\x08\x0B\x0C\x0E-\x1F]+/g, '')
+  }
+
 
 }
 

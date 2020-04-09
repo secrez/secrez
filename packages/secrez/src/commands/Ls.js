@@ -1,11 +1,11 @@
 class Ls extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.ls = {
+    this.cliConfig.completion.ls = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.ls = true
+    this.cliConfig.completion.help.ls = true
     this.optionDefinitions = [
       {
         name: 'path',
@@ -17,6 +17,11 @@ class Ls extends require('../Command') {
         name: 'list',
         alias: 'l',
         type: Boolean
+      },
+      {
+        name: 'all',
+        alias: 'a',
+        type: Boolean
       }
     ]
   }
@@ -27,22 +32,31 @@ class Ls extends require('../Command') {
       examples: [
         'ls coin',
         'ls ../passwords',
-        'ls ~'
+        'ls ~',
+        ['ls -al', 'Includes hidden files']
       ]
     }
   }
 
-  async exec(options) {
+  async ls(options) {
+    return await this.internalFs.pseudoFileCompletion(options.path || '.', true)
+  }
+
+  async exec(options = {}) {
     try {
-      let list = await this.prompt.internalFs.ls(options.path)
+      let list = await this.ls(options)
       if (list) {
+        list = list.filter(e => !/^\./.test(e) || options.all)
         if (list.length) {
           this.Logger.reset(options.list
               ? list.join('\n')
               : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
           )
         }
+      } else {
+        this.Logger.grey('No files found.')
       }
+
     } catch (e) {
       this.Logger.red(e.message)
     }

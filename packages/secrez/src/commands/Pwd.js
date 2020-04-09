@@ -1,8 +1,8 @@
 class Pwd extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.pwd = {}
-    this.config.completion.help.pwd = true
+    this.cliConfig.completion.pwd = {}
+    this.cliConfig.completion.help.pwd = true
   }
 
   help() {
@@ -14,9 +14,13 @@ class Pwd extends require('../Command') {
     }
   }
 
-  async exec(options) {
+  async pwd() {
+    return this.internalFs.tree.workingNode.getPath()
+  }
+
+  async exec() {
     try {
-      this.Logger.log(`${this.config.secrez.workingDir}`)
+      this.Logger.reset(await this.pwd())
     } catch (e) {
       this.Logger.red(e.message)
     }

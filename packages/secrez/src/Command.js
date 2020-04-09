@@ -1,22 +1,17 @@
-const _ = require('lodash')
 const chalk = require('chalk')
-const path = require('path')
-const fs = require('fs-extra')
 
 const Logger = require('./utils/Logger')
-const config = require('./config')
+const cliConfig = require('./cliConfig')
 
 class Command {
 
   constructor(prompt) {
     this.prompt = prompt
     this.optionDefinitions = []
-    this.config = config
+    this.cliConfig = cliConfig
     this.Logger = Logger
-    this.chalk = chalk
-    this.fs = fs
-    this.path = path
-    this._ = _
+    this.internalFs = prompt.internalFs
+    this.externalFs = prompt.externalFs
   }
 
   help() {
@@ -25,20 +20,24 @@ class Command {
   setHelpAndCompletion() {
   }
 
-  pseudoFileCompletion(self, only) {
-    return async files => {
+  pseudoFileCompletion(self, extraOptions = {}) {
+    return async options => {
+      options = Object.assign(extraOptions, options)
+      options.forAutoComplete = true
       try {
-        return self.prompt.internalFs.pseudoFileCompletion(files, only)
+        return await self.prompt.internalFs.pseudoFileCompletion(options)
       } catch (e) {
         Logger.red(['error', e])
       }
     }
   }
 
-  fileCompletion(self, only) {
-    return async files => {
+  fileCompletion(self, extraOptions = {}) {
+    return async options => {
+      options = Object.assign(extraOptions, options)
+      options.forAutoComplete = true
       try {
-        return self.prompt.externalFs.fileCompletion(files, only)
+        return await self.prompt.externalFs.fileCompletion(options)
       } catch (e) {
         Logger.red(['error', e])
       }
@@ -46,7 +45,7 @@ class Command {
   }
 
   threeRedDots(large) {
-    return this.chalk.red(large ? '•••' : '···')
+    return chalk.yellow(large ? '•••' : '···')
   }
 
 }

@@ -2,99 +2,105 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')
-const FileSystemsUtils = require('./FileSystemsUtils')
-
 
 class ExternalFs {
 
-  getNormalizedPath(dir = '') {
-    if (dir === '~') {
-      dir = ''
-    } else if (/^~\//.test(dir)) {
-      dir = dir.replace(/^~\//, '')
+  getNormalizedPath(file = '') {
+    if (file === '~') {
+      file = ''
+    } else if (/^~\//.test(file)) {
+      file = file.replace(/^~\//, '')
     }
-    let resolvedDir = path.resolve(config.secrez.localWorkingDir, dir)
-    let normalized = path.normalize(resolvedDir)
-    return normalized
+    let resolvedFile = path.resolve(config.localWorkingDir, file)
+    return path.normalize(resolvedFile)
   }
 
-  async fileCompletion(files = '', only) {
-    let list = this.getDir(this.getNormalizedPath(files))[1]
-    if (only) {
-      list = _.filter(list, f => {
-        if (only === config.onlyDir) {
-          return /\/$/.test(f)
-        } else {
-          return !/\/$/.test(f)
-        }
-      })
+  async fileCompletion(options = {}) {
+    if (typeof options === 'string') {
+      options = {path: options}
+    }
+    let [isDir, list] = (await this.getDir(this.getNormalizedPath(options.path), options.forAutoComplete))
+    list =  list.filter(f => {
+      let pre = true
+      if (options.dironly) {
+        pre = /\/$/.test(f)
+      } else if (options.fileonly) {
+        pre = !/\/$/.test(f)
+      }
+      if (pre && !options.all) {
+        pre = !/^\./.test(f)
+      }
+      return pre
+    })
+    if (options.returnIsDir) {
+      return [isDir, list]
+    } else {
+      return list
+    }
+  }
+
+  async mapDir(dir) {
+    let list = await fs.readdir(dir)
+    for (let i = 0; i < list.length; i++) {
+      list[i] = list[i] + ((await this.isDir(path.join(dir, list[i]))) ? '/' : '')
     }
     return list
   }
 
-  mapDir(dir) {
-    return fs.readdirSync(dir).map(e => e + (this.isDir(path.join(dir, e)) ? '/' : ''))
-  }
-
-  getDir(dir) {
+  async getDir(dir, forAutoComplete) {
     let list = []
-    if (this.isDir(dir)) {
-      list = this.mapDir(dir)
+    let isDir = await this.isDir(dir)
+    if (isDir) {
+      list = await this.mapDir(dir)
     } else {
       let fn = path.basename(dir)
       if (fn) {
-        dir = dir.replace(/\/[^/]+$/, '/')
-        if (this.isDir(dir)) {
-          list = this.mapDir(dir)
-        }
-        let ok = false
-        for (let e of list) {
-          if (e.indexOf(fn) === 0) {
-            ok = true
-            break
+        if (await this.isFile(dir)) {
+          list = [fn]
+        } else {
+          dir = dir.replace(/\/[^/]+$/, '/')
+          if (await this.isDir(dir)) {
+            list = await this.mapDir(dir)
           }
+          fn = '^' + fn.replace(/\?/g, '.{1}').replace(/\*/g, '.*')
+              + (forAutoComplete ? '' : '(|\\/)$')
+          let re = RegExp(fn)
+          list = list.filter(e => {
+            return re.test(e)
+          })
         }
-        if (!ok) list = []
       }
     }
-    return [dir, list]
+    return [isDir, list]
   }
 
-  isDir(dir) {
-    if (fs.existsSync(dir)) {
-      return fs.lstatSync(dir).isDirectory()
+  async isDir(dir) {
+    if (await fs.pathExists(dir)) {
+      return (await fs.lstat(dir)).isDirectory()
     }
     return false
   }
 
-  isFile(fn) {
-    if (fs.existsSync(fn)) {
-      return fs.lstatSync(fn).isFile()
+  async isFile(fn) {
+    if (await fs.pathExists(fn)) {
+      return (await fs.lstat(fn)).isFile()
     }
     return false
   }
 
-  async cd(dir) {
-    if (!this.initialLocalWorkingDir) {
-      this.initialLocalWorkingDir = config.secrez.localWorkingDir
+  async getVersionedBasename(p) {
+    let dir = path.dirname(p)
+    let fn = path.basename(p)
+    let name = fn
+    let v = 1
+    for (; ;) {
+      let filePath = path.join(dir, name)
+      if (!(await fs.pathExists(filePath))) {
+        return name
+      } else {
+        name = fn + '.' + (++v)
+      }
     }
-    if (/^~\//.test(dir) || dir === '~') {
-      dir = dir.replace(/^~/, this.initialLocalWorkingDir)
-    }
-    dir = this.getNormalizedPath(dir)
-    if (this.isDir(dir)) {
-      config.secrez.localWorkingDir = dir
-    } else {
-      throw new Error('No such directory')
-    }
-  }
-
-  async ls(files) {
-    return FileSystemsUtils.filterLs(files, await this.fileCompletion(files))
-  }
-
-  async pwd() {
-    return config.secrez.localWorkingDir
   }
 
 }

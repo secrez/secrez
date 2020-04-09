@@ -3,10 +3,9 @@ const path = require('path')
 const homedir = require('homedir')
 const Logger = require('./utils/Logger')
 const chalk = require('chalk')
-const {FileSystemsUtils} = require('@secrez/fs')
 const {version} = require('@secrez/core')
-const config = require('./config')
 const Prompt = require('./Prompt')
+const commandLineArgs = require('command-line-args')
 
 const optionDefinitions = [
   {
@@ -28,7 +27,17 @@ const optionDefinitions = [
     name: 'saveIterations',
     alias: 's',
     type: Boolean
-  }
+  },
+  {
+    name: 'fix',
+    alias: 'x',
+    type: Boolean
+  },
+  {
+    name: 'localDir',
+    alias: 'l',
+    type: String
+  },
 ]
 
 function error(message) {
@@ -45,7 +54,7 @@ function error(message) {
 
 let options = {}
 try {
-  options = FileSystemsUtils.parseCommandLine(optionDefinitions)
+  options = commandLineArgs(optionDefinitions)
 } catch (e) {
   error(e.message)
 }
@@ -64,6 +73,10 @@ if (options.container) {
   }
 }
 
+if (!options.localDir) {
+  options.localDir = homedir()
+}
+
 Logger.log('bold', chalk.grey(`
 Secrez v${pkg.version}`), 'grey',`(@secrez/core v${version})`)
 
@@ -79,20 +92,24 @@ Options:
                         does not exist, it will be created, included the parents.
   -i, --iterations      The number of iterations during password 
                         derivation (based on PBKDF2). Use a number like
-                        94543 or 725642 (the larger the safer, but also the slower).
+                        294543 or 1125642 (the larger the safer, but also the slower).
                         It increases exponentially the safety of your password.
-  -s, --saveIterations  Saves the number of iterations in .env.json (which 
-                        is .gitignored). Do it only if you computer is very safe.                      
+  -s, --saveIterations  Saves the number of iterations in env.json (which 
+                        is git-ignored). Do it only if you computer is very safe.               
+  -x, --fix             Fix the tree in case files are missing or corrupted.  
+  -l, --localDir        The local (out of the enctrypted fs) working dir
+                      
 Examples:
   $ secrez
-  $ secrez -p /var/my-secrets -i 787099
-  $ secrez -si 1213672                    (sets the iterations and saves them)
+  $ secrez -p /var/my-secrets -i 787099 -l ~/Desktop
+  $ secrez -si 1213672
+  $ secrez --fix
 `)
 }
 
-config.setSecrez(options.container, homedir())
-
-const prompt = new Prompt()
-prompt.run(options)
-
+(async () => {
+  const prompt = new Prompt
+  await prompt.init(options)
+  prompt.run(options)
+})()
 

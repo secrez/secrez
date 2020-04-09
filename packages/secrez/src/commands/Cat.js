@@ -1,13 +1,16 @@
-const {Crypto} = require('@secrez/core')
+const chalk = require('chalk')
+const path = require('path')
+const {Crypto, config} = require('@secrez/core')
+const {Node} = require('@secrez/fs')
 
 class Cat extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.cat = {
+    this.cliConfig.completion.cat = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.cat = true
+    this.cliConfig.completion.help.cat = true
     this.optionDefinitions = [
       {
         name: 'path',
@@ -23,18 +26,19 @@ class Cat extends require('../Command') {
       {
         name: 'version',
         alias: 'v',
-        type: Number
+        multiple: true,
+        type: String
       },
       {
         name: 'all',
         alias: 'a',
         type: Boolean
       },
-      {
-        name: 'utf8',
-        alias: 'u',
-        type: Boolean
-      }
+      // {
+      //   name: 'utf8',
+      //   alias: 'u',
+      //   type: Boolean
+      // }
     ]
   }
 
@@ -44,39 +48,70 @@ class Cat extends require('../Command') {
       examples: [
         'cat ../passwords/Facebook',
         ['cat wallet -m', 'shows metadata: version and creation date'],
-        ['cat etherWallet -v 2', 'shows the version 2 of the secret, if exists'],
+        ['cat etherWallet -v 2UYw', 'shows the version 2UYw of the secret, if exists'],
         ['cat etherWallet -a', 'lists all the versions'],
-        'cat etherWallet -mv 1',
-        ['cat wallet -au', 'lists all the versions showing not-visible utf8 chars']
+        'cat etherWallet -mv 17TR',
+        // ['cat wallet -au', 'lists all the versions showing not-visible utf8 chars']
       ]
     }
   }
 
-  getContent(content, options) {
-    if (options.utf8) {
-      content = JSON.stringify(content).replace(/(^"|"$)/g, '')
+  formatTs(ts, name) {
+    let tsHash = Node.hashVersion(ts)
+    ts = Crypto.fromTsToDate(ts)
+    let date = ts[0].split('Z')[0].split('T')
+    let ret = `${tsHash} ${date[0]} ${date[1].substring(0,12)}${ts[1]}`
+    if (name) {
+      ret += chalk.yellow(' (' +name + ')')
     }
-    return content
+    return ret
   }
 
-  async exec(options) {
+  async cat(options, justContent) {
+    let ifs = this.internalFs
+    let p = ifs.getNormalizedPath(options.path)
+    let node = ifs.tree.root.getChildFromPath(p)
+    if (node && Node.isFile(node)) {
+      let result  = []
+      if (options.all || options.version) {
+        let versions = node.getVersions()
+        for (let ts of versions) {
+          if (options.version && !options.version.includes(Node.hashVersion(ts))) {
+            continue
+          }
+          result.push(await ifs.getEntryDetails(node, ts))
+        }
+      } else {
+        result.push(await ifs.getEntryDetails(node, options.ts))
+      }
+      return result
+    } else {
+      throw new Error('Cat requires a valid file')
+    }
+  }
+
+  async exec(options = {}) {
     try {
-      let data = await this.prompt.internalFs.cat(options)
+      let fn = path.basename(options.path)
+      let data = await this.cat(options)
+      let extra = options.all || options.metadata
       if (data) {
-        if (Array.isArray(data[0])) {
-          for (let d of data) {
-            // eslint-disable-next-line no-unused-vars
-            let [content, a, ver, ts] = d
-            this.Logger.yellow(`Version: ${ver} - Date: ${Crypto.dateFromB58(ts)}`)
-            this.Logger.reset(this.getContent(content, options))
+        let header = false
+        for (let d of data) {
+          let {content, ts, type, name} = d
+          if (extra) {
+            this.Logger.agua(`${header ? '\n' : ''}${this.formatTs(ts, fn === name ? undefined : name)}`)
+            header = true
           }
-        } else {
-          // eslint-disable-next-line no-unused-vars
-          let [content, a, ver, ts] = data
-          if (options.metadata) {
-            this.Logger.yellow(`Version: ${ver} - Date: ${Crypto.dateFromB58(ts)}`)
+          if (type === config.types.TEXT) {
+            if (content) {
+              this.Logger.reset(content)
+            } else {
+              this.Logger.blu('-- this version is empty --')
+            }
+          } else {
+            this.Logger.blu('-- this is a binary file --')
           }
-          this.Logger.reset(this.getContent(content, options))
         }
       }
     } catch (e) {

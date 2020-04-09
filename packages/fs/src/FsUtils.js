@@ -3,10 +3,10 @@ const path = require('path')
 const {Utils} = require('@secrez/core')
 
 // eslint-disable-next-line node/no-unpublished-require
-const commandLineArgs = require('../../../../../../Repos/command-line-args/dist')
-// const commandLineArgs = require('command-line-args')
+// const commandLineArgs = require('../../../../../../Repos/command-line-args/dist')
+const commandLineArgs = require('command-line-args')
 
-class FileSystemsUtils {
+class FsUtils {
 
   static preParseCommandLine(commandLine) {
     let argv = []
@@ -19,7 +19,7 @@ class FileSystemsUtils {
         sep = c
       } else if (sep && c === sep) {
         sep = null
-      } else if (!sep && c === '\\' && commandLine[i + 1]) {
+      } else if (!sep && c === '\\' && commandLine[i + 1] && commandLine[i + 1] !== '\\') {
         Utils.addTo(argv, k, commandLine[i + 1])
         i++
       } else if (!sep && c === ' ') {
@@ -33,25 +33,33 @@ class FileSystemsUtils {
 
   static parseCommandLine(definitions, commandLine) {
     if (definitions && definitions.length) {
-      if (commandLine) {
-        const argv = this.preParseCommandLine(commandLine)
-        return commandLineArgs(definitions, {argv})
-      } else {
-        return commandLineArgs(definitions)
+      let argv = {
+        partial: true
       }
+      if (commandLine) {
+        argv.argv = this.preParseCommandLine(commandLine)
+      }
+      return commandLineArgs(definitions, argv)
     }
     return {}
   }
 
-  static async filterLs(files, list = []) {
-    let bn = files ? path.basename(files) : ''
+  static async filterLs(options = {}, list = []) {
+    if (typeof options === 'string') {
+      options = {path: options}
+    }
+    let file = options.path || ''
+    let bn = file ? path.basename(file) : ''
     if (bn === '.' || bn === '..') {
       bn = ''
     }
     if (bn && list.includes(bn)) {
       return [bn]
     } else if (bn) {
-      bn = bn.replace(/\./g,'\\.').replace(/\*/g, '.*')
+      bn = bn
+          .replace(/\./g, '\\.')
+          .replace(/\*/g, '.*')
+          .replace(/\?/g, '.{1}}')
       let re = RegExp(bn)
       list = _.filter(list, e => re.test(e))
     }
@@ -68,4 +76,4 @@ class FileSystemsUtils {
 
 }
 
-module.exports = FileSystemsUtils
+module.exports = FsUtils

@@ -1,13 +1,15 @@
-const {Crypto} = require('@secrez/core')
+const chalk = require('chalk')
+const path = require('path')
+const fs = require('fs-extra')
 
 class Edit extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.config.completion.edit = {
+    this.cliConfig.completion.edit = {
       _func: this.pseudoFileCompletion(this),
       _self: this
     }
-    this.config.completion.help.edit = true
+    this.cliConfig.completion.help.edit = true
     this.optionDefinitions = [
       {
         name: 'path',
@@ -42,17 +44,19 @@ class Edit extends require('../Command') {
     }
   }
 
-  async edit(internalFs, options) {
+  async edit(options) {
     let file = options.path
-    let [content, filePath, ver] = await internalFs.cat({path: file})
-    let extraMessage = this.chalk.dim('Press <enter> to launch ')
+    let data = await this.prompt.commands.cat.cat({path: file})
+    let node = this.internalFs.tree.root.getChildFromPath(file)
+    let {content} = data[0]
+    let extraMessage = chalk.dim('Press <enter> to launch ')
         + (
             !options.editor ? 'the editor.'
                 : options.editor !== '*' ? `${options.editor}.`
                 : 'your OS default editor.'
         )
-        + this.chalk.reset(
-            options.editor ? '' : this.chalk.grey('\n  Ctrl-d to save the changes. Ctrl-c to abort.')
+        + chalk.reset(
+            options.editor ? '' : chalk.grey('\n  Ctrl-d to save the changes. Ctrl-c to abort.')
         )
 
     let {newContent} = await this.prompt.inquirer.prompt([{
@@ -60,18 +64,18 @@ class Edit extends require('../Command') {
       name: 'newContent',
       message: 'Editing...',
       default: content,
-      tempDir: this.config.secrez.tmpPath,
+      tempDir: this.cliConfig.tmpPath,
       validate: function (text) {
         return true
       },
       extraMessage
     }])
 
-    if (newContent !== content) {
-      let encContent = await internalFs.secrez.encryptItem(newContent)
-      ver++
-      await this.fs.appendFile(filePath, `\n${ver};${Crypto.timestamp(true)};${encContent}`)
-      this.Logger.reset(`File saved. Version: ${ver}`)
+    if (newContent && newContent !== content) {
+      let entry = node.getEntry()
+      entry.content = newContent
+      await this.internalFs.update(node, entry)
+      this.Logger.reset('File saved.')
     } else {
       this.Logger.reset('Changes aborted or file not changed')
     }
@@ -79,11 +83,11 @@ class Edit extends require('../Command') {
 
   getTinyCliEditorBinPath() {
     if (!this.editorBinPath) {
-      let bin = this.path.resolve(__dirname, '../../node_modules/tiny-cli-editor/bin.js')
-      if (!this.fs.existsSync(bin)) {
-        bin = this.path.resolve(__dirname, '../../../../node_modules/tiny-cli-editor/bin.js')
+      let bin = path.resolve(__dirname, '../../node_modules/tiny-cli-editor/bin.js')
+      if (!fs.existsSync(bin)) {
+        bin = path.resolve(__dirname, '../../../../node_modules/tiny-cli-editor/bin.js')
       }
-      if (!this.fs.existsSync(bin)) {
+      if (!fs.existsSync(bin)) {
         throw new Error('Default editor not found')
       }
       this.editorBinPath = bin
@@ -91,7 +95,7 @@ class Edit extends require('../Command') {
     return this.editorBinPath
   }
 
-  async exec(options) {
+  async exec(options = {}) {
     let currentEditor = process.env.EDITOR
     if (!options.editor) {
       process.env.EDITOR = this.getTinyCliEditorBinPath()
@@ -100,7 +104,7 @@ class Edit extends require('../Command') {
       process.env.EDITOR = options.editor
     }
     try {
-      await this.edit(this.prompt.internalFs, options)
+      await this.edit(options)
     } catch (e) {
       this.Logger.red(e.message)
     }

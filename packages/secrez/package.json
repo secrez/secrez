@@ -1,40 +1,50 @@
 {
   "name": "secrez",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint -c .eslintrc 'src/**/*.js'",
     "clean": "rm -rf build",
-    "update": "npm version patch && npm publish",
-    "test": "rm -rf tmp && mkdir tmp && mocha test/src/*.js",
-    "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3"
+    "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
+    "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
+    "test-only": "./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
+    "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
+    "posttest": "nyc check-coverage --statements 95 --branches 80 --functions 95 --lines 95"
   },
-  "disabledScripts": {
-    "coverage": "rm -rf tmp && mkdir tmp && cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/src/*.js",
-    "posttest": "istanbul check-coverage --statements 85 --branches 70 --functions 85 --lines 85"
+  "nyc": {
+    "include": "src",
+    "exclude": [
+      "src/utils/Logger.js",
+      "src/commands/Edit.js"
+    ]
   },
   "dependencies": {
-    "@secrez/core": "^0.3.0",
-    "@secrez/fs": "^0.3.0",
-    "chalk": "^2.4.2",
+    "@secrez/core": "^0.4.0",
+    "@secrez/fs": "^0.4.0",
+    "chalk": "^3.0.0",
+    "clipboardy": "^2.3.0",
     "command-line-args": "^5.1.1",
     "external-editor": "^3.1.0",
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
-    "inquirer": "^7.0.0",
-    "inquirer-command-prompt": "0.0.23",
+    "inquirer": "^7.1.0",
+    "inquirer-command-prompt": "^0.0.27",
     "lodash": "^4.17.15",
+    "nodegit": "^0.26.5",
     "tiny-cli-editor": "^0.1.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "cross-env": "^5.2.1",
-    "eslint": "^6.2.2",
-    "eslint-plugin-node": "^9.2.0",
+    "chalk": "^3.0.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-node": "^11.0.0",
     "istanbul": "^0.4.5",
     "log": "^6.0.0",
-    "mocha": "^6.2.0",
-    "nyc": "^14.1.1"
+    "mocha": "^7.1.1",
+    "nyc": "^15.0.0",
+    "sinon": "^7.5.0",
+    "test-console": "^1.1.0"
   },
   "bin": {
     "secrez": "cli/secrez"

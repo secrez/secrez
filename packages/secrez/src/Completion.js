@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {FileSystemsUtils} = require('@secrez/fs')
+const {FsUtils} = require('@secrez/fs')
 
 class _Completion {
 
@@ -19,9 +19,7 @@ class _Completion {
   }
 
   async subCommands(line = '', forceCommand) {
-    console.log()
-
-    // line = _.trim(line).replace(/ +/g, ' ')
+    const originalLine = line
     const params = line.split(' ')
     const normalizedParams = params.map(e => e.split('=')[0])
     const command = params[0]
@@ -31,16 +29,17 @@ class _Completion {
       line = forceCommand + ' ' + line
     }
     if (typeof c === 'object') {
-      let commands
-      let isFolder = false
+      let commands = []
       let options = {}
       if (c._func) {
         let commandLine = _.trim(line).split(' ').slice(1).join(' ')
         const definitions = c._self.optionDefinitions
-        options = FileSystemsUtils.parseCommandLine(definitions, commandLine, true)
-        let files = await c._func(options.path)
-        isFolder = files[0]
-        commands = files[1]
+        options = FsUtils.parseCommandLine(definitions, commandLine)
+        if (options._unknown) {
+          options = {path: '.'}
+        }
+        let files = await c._func(options, originalLine)
+        commands = files
       } else {
         commands = _.filter(
             Object.keys(c),
@@ -48,15 +47,37 @@ class _Completion {
               return !normalizedParams.includes(o)
             }
         )
+        if (commands.length === 1 && commands[0] === '_self') {
+          commands = []
+        }
       }
       if (commands.length) {
-        let prefix = [command]
-        for (let param of params) {
-          if (c[param.split('=')[0]] || /-[a-zA-Z0-9]+/.test(param)) {
-            prefix.push(param)
+        let l = line
+        let lastSpace = l.lastIndexOf(' ')
+        for (;;) {
+          if (l[lastSpace - 1] !== '\\') {
+            break
           }
+          l = l.substring(0, lastSpace)
+          lastSpace = l.lastIndexOf(' ')
         }
-        commands = commands.map(e => `${prefix.join` `} ${e.replace(/ /g, '\\ ')}`)
+        let lasts = [
+          {n: '/', l: line.lastIndexOf('/')},
+          {n: '=', l: line.lastIndexOf('=')},
+          {n: ' ', l: lastSpace}
+        ]
+        lasts.sort((a, b) => {
+          let A = a.l
+          let B = b.l
+          return A > B ? -1 : A < B ? 1 : 0
+        })
+        let v = lasts[0].l
+        let prefix = v !== -1 ? line.substring(0, v) + lasts[0].n : line
+        commands = commands.map(e => `${prefix}${
+            e
+                ? e.replace(/ /g, '\\ ')
+                : ' '
+        }`)
         return commands
       }
     }

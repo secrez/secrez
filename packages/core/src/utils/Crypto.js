@@ -1,7 +1,9 @@
 const crypto = require('crypto')
 const {Keccak} = require('sha3')
 const bs58 = require('bs58')
-const utils = require('.')
+const Utils = require('.')
+const microtime = require('microtime')
+
 const {
   box,
   secretbox,
@@ -35,13 +37,16 @@ class Crypto {
     return bs58.decode(data)
   }
 
-  static getRandomId(allIds, size = 8) {
+  static getRandomBase58String(size) {
+    return bs58.encode(Buffer.from(randomBytes(size))).substring(0, size)
+  }
+
+  static getRandomId(allIds) {
     let id
-    // eslint-disable-next-line no-constant-condition
-    while(true) {
-      id = bs58.encode(Buffer.from(randomBytes(size)))
+    for (; ;) {
+      id = Crypto.getRandomBase58String(4)
       if (allIds) {
-        // to avoid collisions, which are anyway very unlikely
+        /* istanbul ignore if  */
         if (allIds[id]) {
           continue
         }
@@ -57,7 +62,7 @@ class Crypto {
     return hash.digest()
   }
 
-  static getRandomString(length, encode) {
+  static getRandomString(length = 12, encode = 'hex') {
     return crypto.randomBytes(length).toString(encode)
   }
 
@@ -65,18 +70,67 @@ class Crypto {
     return crypto.pbkdf2Sync(key, salt, iterations, size, digest)
   }
 
-  static timestamp(b58) {
-    let ts = Math.round(Date.now() / 1000)
-    if (b58) {
-      ts = utils.intToBase58(ts)
-    }
-    return ts
+  static randomCharNotInBase58() {
+    let alphabet = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþ'
+    return alphabet[Math.floor(Math.random() * alphabet.length)]
   }
 
-  static dateFromB58(b58, full) {
-    let ts = utils.base58ToInt(b58)
-    let d = (new Date(ts * 1000)).toISOString()
-    return full ? d : d.split('.000Z')[0]
+  static isCharNotInBase58(char) {
+    let z = 122
+    return (char.charCodeAt(0) > z)
+  }
+
+  static getTimestampWithMicroseconds() {
+    let tmp = microtime.nowDouble().toString().split('.')
+    for (;;) {
+      if (tmp[1].length === 6) {
+        break
+      }
+      tmp[1] += '0'
+    }
+    tmp = tmp.map(e => parseInt(e))
+    return tmp
+  }
+
+  static scrambledTimestamp(lastTs) {
+    let alphabet = Crypto.base58Alphabet
+    let blen = 58
+    let [ts0, microseconds] = Crypto.getTimestampWithMicroseconds()
+    let ts = Utils.intToBase58(ts0)
+    let rnd = Crypto.getRandomBase58String(ts.length)
+    for (let i = 0; i < ts.length; i++) {
+      let p = alphabet.indexOf(rnd[i])
+      let v = alphabet.indexOf(ts[i])
+      rnd += alphabet[(p + v) % blen]
+    }
+    return [rnd, Utils.intToBase58(microseconds, 4), [ts0, microseconds].join('.')]
+  }
+
+  static unscrambleTimestamp(ts, microseconds) {
+    let alphabet = Crypto.base58Alphabet
+    let blen = 58
+    let ret = ''
+    let len = ts.length / 2
+    for (let i = 0; i < len; i++) {
+      let p = alphabet.indexOf(ts[i])
+      let v = alphabet.indexOf(ts[i + len])
+      ret += alphabet[(v - p + blen) % blen]
+    }
+    let seconds = Utils.base58ToInt(ret).toString()
+    microseconds = Utils.base58ToInt(microseconds).toString()
+    while(microseconds.length < 6) {
+      microseconds += '0'
+    }
+
+    // console.log(seconds, microseconds)
+    return [seconds, microseconds].join('.')
+  }
+
+  static fromTsToDate(ts) {
+    let [seconds, microseconds] = ts.split('.')
+    let milliseconds = microseconds.substring(0, 3)
+    let timestamp = parseInt(seconds) * 1000 + parseInt(milliseconds)
+    return [(new Date(timestamp)).toISOString(), parseInt(microseconds.substring(3))]
   }
 
   static b58Hash(data) {
@@ -87,7 +141,7 @@ class Crypto {
   }
 
   static hexToUint8Array(hexStr) {
-    if (hexStr.length %2) {
+    if (hexStr.length % 2) {
       hexStr = '0' + hexStr
     }
     return new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
@@ -108,7 +162,7 @@ class Crypto {
   }
 
   static getTimestampFromNonce(nonce) {
-    nonce = nonce.slice(0,6)
+    nonce = nonce.slice(0, 6)
     let ts = Crypto.uint8ArrayToHex(nonce)
     return parseInt(ts, 16)
   }
@@ -118,7 +172,7 @@ class Crypto {
     return noEncode ? key : bs58.encode(Buffer.from(key))
   }
 
-  static encrypt(message, key, nonce = Crypto.newTimeBasedNonce(secretbox.nonceLength), getNonce) {
+  static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce) {
     const keyUint8Array = bs58.decode(key)
 
     const messageUint8 = decodeUTF8(message)
@@ -237,5 +291,8 @@ class Crypto {
   }
 
 }
+
+Crypto.base58Alphabet = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
+Crypto.randomBytes = randomBytes
 
 module.exports = Crypto
