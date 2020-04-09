@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const {config, Secrez} = require('@secrez/core')
+const {Secrez} = require('@secrez/core')
 
 const ExternalFs = require('../src/ExternalFs')
 
