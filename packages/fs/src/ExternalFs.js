@@ -1,4 +1,3 @@
-const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')

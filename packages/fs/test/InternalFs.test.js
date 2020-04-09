@@ -163,7 +163,7 @@ describe('#InternalFs', function () {
 
     it('should throw trying to re-add the same entry', async function () {
 
-      let folder1 = await internalFs.make({
+      await internalFs.make({
         path: '/folder1',
         type: config.types.DIR
       })
