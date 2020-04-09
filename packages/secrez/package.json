@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf build",
@@ -30,7 +30,6 @@
     "inquirer": "^7.1.0",
     "inquirer-command-prompt": "^0.0.27",
     "lodash": "^4.17.15",
-    "nodegit": "^0.26.5",
     "tiny-cli-editor": "^0.1.1"
   },
   "devDependencies": {
