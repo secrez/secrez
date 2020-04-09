@@ -105,7 +105,7 @@ class Prompt {
 
   async saveHistory() {
     let histories = JSON.stringify(inquirerCommandPrompt.getHistories(true))
-    let encryptedHistory = this.secrez.encryptHistory(histories)
+    let encryptedHistory = this.secrez.encryptData(histories)
     await fs.writeFile(this.secrez.config.historyPath, encryptedHistory)
   }
 
@@ -113,7 +113,7 @@ class Prompt {
     let previousHistories
     if (await fs.pathExists(this.secrez.config.historyPath)) {
       let encryptedHistory = await fs.readFile(this.secrez.config.historyPath, 'utf8')
-      previousHistories = JSON.parse(this.secrez.decryptHistory(encryptedHistory))
+      previousHistories = JSON.parse(this.secrez.decryptData(encryptedHistory))
       inquirerCommandPrompt.setHistoryFromPreviousSavedHistories(previousHistories)
     }
   }

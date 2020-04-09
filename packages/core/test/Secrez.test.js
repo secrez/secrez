@@ -73,7 +73,7 @@ describe('#Secrez', function () {
       it('should signup the user and signin without saving the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
-        assert.isTrue(await fs.pathExists(secrez.config.confPath))
+        assert.isTrue(await fs.pathExists(secrez.config.keysPath))
         masterKeyHash = secrez.masterKeyHash
         secrez.signout()
         assert.isUndefined(secrez.masterKeyHash)
@@ -84,7 +84,7 @@ describe('#Secrez', function () {
       it('should signup the user and signin saved the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations, true)
-        assert.isTrue(await fs.pathExists(secrez.config.confPath))
+        assert.isTrue(await fs.pathExists(secrez.config.keysPath))
         assert.isTrue(await fs.pathExists(secrez.config.envPath))
         masterKeyHash = secrez.masterKeyHash
         secrez.signout()
@@ -171,9 +171,9 @@ describe('#Secrez', function () {
         it('trying to signin with the right password but using a wrong hash on file', async function () {
           await secrez.init(rootDir)
           await secrez.signup(password, iterations)
-          let conf = JSON.parse(await fs.readFile(secrez.config.confPath, 'utf8'))
+          let conf = JSON.parse(await fs.readFile(secrez.config.keysPath, 'utf8'))
           conf.data.hash = hash23456iterationsNoSalt
-          await fs.writeFile(secrez.config.confPath, JSON.stringify(conf))
+          await fs.writeFile(secrez.config.keysPath, JSON.stringify(conf))
           try {
             await secrez.signin(password, iterations)
             assert.isFalse(true)

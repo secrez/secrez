@@ -36,14 +36,14 @@ class Lcd extends require('../Command') {
   async lcd(options) {
     let dir = options.path
     if (!this.externalFs.initialLocalWorkingDir) {
-      this.externalFs.initialLocalWorkingDir = this.prompt.secrez.config.localWorkingDir
+      this.externalFs.initialLocalWorkingDir = this.cliConfig.localWorkingDir
     }
     if (/^~\//.test(dir) || dir === '~') {
       dir = dir.replace(/^~/, this.externalFs.initialLocalWorkingDir)
     }
     dir = this.externalFs.getNormalizedPath(dir)
     if (await this.externalFs.isDir(dir)) {
-      this.prompt.secrez.config.localWorkingDir = dir
+      this.cliConfig.localWorkingDir = dir
     } else {
       throw new Error('No such directory')
     }

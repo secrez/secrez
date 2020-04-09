@@ -23,7 +23,7 @@ describe('#config', function () {
     assert.equal(s.workingDir, '/')
     assert.equal(s.localWorkingDir, path.dirname(rootDir))
     assert.equal(s.envPath, path.join(rootDir, 'env.json'))
-    assert.equal(s.confPath, path.join(rootDir, 'keys.json'))
+    assert.equal(s.keysPath, path.join(rootDir, 'keys.json'))
 
   })
 

@@ -8,7 +8,7 @@ class Welcome {
   async start(secrez, options) {
     this.options = options
     this.iterations = options.iterations || await this.getIterations()
-    if (await fs.pathExists(cliConfig.confPath)) {
+    if (await fs.pathExists(cliConfig.keysPath)) {
       await this.login(secrez)
     } else {
       Logger.grey('Please signup to create your local account')

@@ -17,7 +17,7 @@ class Lpwd extends require('../Command') {
   }
 
   async lpwd() {
-    return this.prompt.secrez.config.localWorkingDir
+    return this.cliConfig.localWorkingDir
   }
 
   async exec() {

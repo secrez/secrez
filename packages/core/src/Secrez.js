@@ -48,10 +48,10 @@ class Secrez {
   }
 
   async signup(password, iterations, saveIterations) {
-    if (!this.config || !this.config.confPath) {
+    if (!this.config || !this.config.keysPath) {
       throw new Error('Secrez not initiated')
     }
-    if (!await fs.pathExists(this.config.confPath)) {
+    if (!await fs.pathExists(this.config.keysPath)) {
 
       let id = Crypto.b58Hash(Crypto.generateKey())
 
@@ -96,9 +96,11 @@ class Secrez {
         data,
         signature
       }
-      await fs.writeFile(this.config.confPath, JSON.stringify(conf))
+      await fs.writeFile(this.config.keysPath, JSON.stringify(conf))
       if (saveIterations) {
-        await fs.writeFile(this.config.envPath, JSON.stringify({iterations}))
+        const env = await ConfigUtils.getEnv()
+        env.iterations = iterations
+        await ConfigUtils.putEnv(env)
       }
     } else {
       throw new Error('An account already exists. Please, sign in or chose a different container directory')
@@ -106,21 +108,19 @@ class Secrez {
   }
 
   async signin(password, iterations) {
-    if (!this.config || !this.config.confPath) {
+    if (!this.config || !this.config.keysPath) {
       throw new Error('Secrez not initiated')
     }
     if (!iterations) {
-      if (await fs.pathExists(this.config.envPath)) {
-        let env = JSON.parse(await fs.readFile(this.config.envPath, 'utf8'))
-        iterations = env.iterations
-      }
+      const env = await ConfigUtils.getEnv()
+      iterations = env.iterations
     }
     if (!iterations || iterations !== parseInt(iterations.toString())) {
       throw new Error('Iterations is missed')
     }
     iterations = parseInt(iterations)
-    if (await fs.pathExists(this.config.confPath)) {
-      let {key, hash} = JSON.parse(await fs.readFile(this.config.confPath, 'utf8')).data
+    if (await fs.pathExists(this.config.keysPath)) {
+      let {key, hash} = JSON.parse(await fs.readFile(this.config.keysPath, 'utf8')).data
       let derivedPassword = await this.derivePassword(password, iterations)
       let masterKey
       try {
@@ -149,7 +149,7 @@ class Secrez {
     return next
   }
 
-  encryptHistory(history) {
+  encryptData(history) {
     let encryptedHistory = Crypto.encrypt(
         history,
         _secrez.masterKey
@@ -157,7 +157,7 @@ class Secrez {
     return encryptedHistory
   }
 
-  decryptHistory(encryptedHistory) {
+  decryptData(encryptedHistory) {
     let history = Crypto.decrypt(
         encryptedHistory,
         _secrez.masterKey

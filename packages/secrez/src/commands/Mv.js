@@ -58,12 +58,14 @@ class Mv extends require('../Command') {
                   if (val) {
                     return true
                   }
-                  return chalk.grey(`Please, type the destination. Cancel typing ${exitCode}`)
+                  return chalk.grey(`Please, type the destination, or cancel typing ${exitCode}`)
                 }
               }
             ])).destination
           }
-          if (destination !== exitCode) {
+          if (destination === exitCode) {
+            throw new Error('Command canceled.')
+          } else {
             await this.mv({
               path: options.path,
               newPath: destination
