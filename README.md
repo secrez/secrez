@@ -37,6 +37,15 @@ For now, this is a manual approach. Still, in a future version, the token can be
 In any case, even if you make changes parallelly, the changes won't generate any conflict because the files are immutable.
 
 
+#### Install
+
+```
+npm install -g secrez
+```
+
+At first run, secrez will ask you for the number of iterations (suggested between 500000 and 1000000, but the more the better) and a master password —— ideally a phrase hard to guess, but easy to remember and type, something like, for example "heavy March with eggs" or "Grace was a blue President".
+
+
 #### Some example
 
 ```
