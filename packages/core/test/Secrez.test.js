@@ -401,6 +401,23 @@ describe('#Secrez', function () {
         }
       })
     })
+
+    describe('encryptData and decryptData', async function () {
+
+      beforeEach(async function () {
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+      })
+
+      it('should encrypt some data and decrypt it', async function () {
+        await secrez.signup(password, iterations)
+        let name = 'some random data'
+        let encryptedData = secrez.encryptData(name)
+        let decryptedData = secrez.decryptData(encryptedData)
+        assert.equal(name, decryptedData)
+      })
+    })
   })
 
 })

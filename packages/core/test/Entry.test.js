@@ -103,5 +103,23 @@ describe('#Entry', function () {
 
   })
 
+  describe('#sanitizePath', async function () {
+
+    it('should sanitize path', async function () {
+
+      let p = 'sas|sa/a<}>b'
+      assert.equal(Entry.sanitizePath(p), 'sassa/a}b')
+
+      try {
+        Entry.sanitizePath(23)
+        assert.isTrue(false)
+      } catch(e) {
+        assert.equal(e.message, 'Path must be a string')
+      }
+
+    })
+
+  })
+
 
 })

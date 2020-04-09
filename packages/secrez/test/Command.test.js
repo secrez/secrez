@@ -4,7 +4,7 @@ const Command = require('../src/Command')
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('./mocks/PromptMock')
-const {assertConsole, noPrint} = require('./helpers')
+const {noPrint} = require('./helpers')
 
 const {
   password,

@@ -7,7 +7,7 @@
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
     "test-only": "./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
-    "posttest": "nyc check-coverage --statements 95 --branches 95 --functions 95 --lines 95"
+    "posttest": "nyc check-coverage --statements 99 --branches 96 --functions 99 --lines 99"
   },
   "dependencies": {
     "base58": "^2.0.1",
@@ -32,7 +32,6 @@
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-plugin-node": "^11.0.0",
-    "istanbul": "^0.4.5",
     "log": "^6.0.0",
     "mocha": "^7.1.1",
     "nyc": "^15.0.0"

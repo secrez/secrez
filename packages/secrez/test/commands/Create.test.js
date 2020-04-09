@@ -1,10 +1,9 @@
 const assert = require('chai').assert
-const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint} = require('../helpers')
+const {noPrint} = require('../helpers')
 
 const {
   password,
@@ -18,7 +17,7 @@ describe('#Create', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
-  let inspect, C
+  let C
 
   let options = {
     container: rootDir,

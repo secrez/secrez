@@ -1,6 +1,7 @@
 const chai = require('chai')
 const assert = chai.assert
 const utils = require('../../src/utils')
+const path = require('path')
 
 describe('#utils', function () {
 
@@ -304,6 +305,34 @@ describe('#utils', function () {
       assert.isTrue(utils.secureCompare(a, b))
       assert.isFalse(utils.secureCompare(a, c))
       assert.isFalse(utils.secureCompare(c, d))
+
+    })
+
+  })
+
+  describe('#getKeyValue', async function () {
+
+    it('should get key and value of an obj', async function () {
+      let obj = { a: 'b'}
+      let kv = utils.getKeyValue(obj, 'a')
+      assert.equal(kv.key, 'a')
+      assert.equal(kv.value, 'b')
+    })
+
+  })
+
+  describe('#isBinary', async function () {
+
+    it('should check if a file is binary', async function () {
+      let fp = path.resolve(__dirname, '../fixtures/files/file1.tar.gz')
+      assert.equal(await utils.isBinary(fp), true)
+
+      try {
+        await utils.isBinary(23)
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'A valid file is required')
+      }
 
     })
 

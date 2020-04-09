@@ -33,19 +33,19 @@ class Create extends require('../Command') {
   }
 
   async exec(options = {}) {
-    let prompt = this.prompt.inquirer.prompt
+
     let exitCode = Crypto.getRandomBase58String(2)
     try {
       /* istanbul ignore if  */
       if (!options.path) {
-        let {p} = await prompt([
+        let {p} = await this.prompt.inquirer.prompt([
           {
             type: 'input',
             name: 'p',
             message: 'Type your path',
             validate: val => {
-              if (val) {
-                return true
+              if (val === exitCode) {
+                throw new Error('Command canceled.')
               }
               return chalk.grey(`Please, type the path of your secret, or cancel typing ${exitCode}`)
             }
@@ -53,37 +53,30 @@ class Create extends require('../Command') {
         ])
         options.path = p
       }
-      if (options.path === exitCode) {
-        throw new Error('Command canceled.')
-      } else {
-        /* istanbul ignore if  */
-        if (!options.content) {
-          let {content} = await prompt([
-            {
-              type: options.cleartext ? 'input' : 'password',
-              name: 'content',
-              message: 'Type your secret',
-              validate: val => {
-                if (val) {
-                  if (val !== exitCode) {
-                    exitCode = undefined
-                  }
-                  return true
+      /* istanbul ignore if  */
+      if (!options.content) {
+        let {content} = await this.prompt.inquirer.prompt([
+          {
+            type: options.cleartext ? 'input' : 'password',
+            name: 'content',
+            message: 'Type your secret',
+            validate: val => {
+              if (val) {
+                if (val === exitCode) {
+                  throw new Error('Command canceled.')
                 }
-                return chalk.grey(`Please, type your secret, or cancel typing ${exitCode}`)
+                return true
               }
+              return chalk.grey(`Please, type your secret, or cancel typing ${exitCode}`)
             }
-          ])
-          // eslint-disable-next-line require-atomic-updates
-          options.content = content
-        }
-        if (options.content === exitCode) {
-          throw new Error('Command canceled.')
-        } else {
-          options.type = this.cliConfig.types.TEXT
-          await this.prompt.internalFs.make(options)
-        }
+          }
+        ])
+        // eslint-disable-next-line require-atomic-updates
+        options.content = content
       }
+      options.type = this.cliConfig.types.TEXT
+      await this.prompt.internalFs.make(options)
+
     } catch (e) {
       this.Logger.red(e.message)
     }
