@@ -149,20 +149,20 @@ class Secrez {
     return next
   }
 
-  encryptData(history) {
-    let encryptedHistory = Crypto.encrypt(
-        history,
+  encryptData(data) {
+    let encryptedData = Crypto.encrypt(
+        data,
         _secrez.masterKey
     )
-    return encryptedHistory
+    return encryptedData
   }
 
-  decryptData(encryptedHistory) {
-    let history = Crypto.decrypt(
-        encryptedHistory,
+  decryptData(encryptedData) {
+    let data = Crypto.decrypt(
+        encryptedData,
         _secrez.masterKey
     )
-    return history
+    return data
   }
 
   encryptEntry(entry) {

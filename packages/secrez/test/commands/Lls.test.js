@@ -55,7 +55,7 @@ describe('#Lls', function () {
 
   })
 
-  it.only('return a message if no files are found', async function () {
+  it('return a message if no files are found', async function () {
 
     // inspect = stdout.inspect()
     // await C.lls.exec({path: './folder1/folder2' })
