@@ -1,7 +1,7 @@
-# @secrez/core
+# @secrez/fs
 
 Secrez is the secrets manager for the cryptocurrencies era.
 
-This is the basic library.
+This is the filesystem component.
 
 
