@@ -71,7 +71,7 @@ describe('#Touch', function () {
       path: '/folder/file1/file2'
     })
     inspect.restore()
-    assertConsole(inspect, 'This entry does not represent a folder')
+    assertConsole(inspect, 'The entry does not represent a folder')
 
   })
 

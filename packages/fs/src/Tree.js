@@ -63,7 +63,7 @@ class Tree {
     return [entry, this.secrez.decryptEntry(entry)]
   }
 
-  async load(indexIndex = 0) {
+  async load() {
 
     if (this.status === this.statutes.LOADED) {
       return
@@ -96,21 +96,46 @@ class Tree {
 
         allIndexes.sort(Node.sortEntry)
         allSecrets.sort(Node.sortEntry)
-        allSecrets = allSecrets.map(e => e.encryptedName)
-        let json = Tree.deobfuscate(allIndexes[indexIndex].content)
-        this.root = Node.fromJSON(json, this.secrez, allSecrets)
+        let allSecretsFiles = allSecrets.map(e => e.encryptedName)
+        let json = Tree.deobfuscate(allIndexes[0].content)
+        this.root = Node.fromJSON(json, this.secrez, allSecretsFiles)
 
         // verify the tree
         let allFilesOnTree = Tree.getAllFilesOnTree(this.root).sort()
         const filesNotOnTree = []
-        for (let file of allSecrets) {
+        for (let i = 0; i < allSecretsFiles.length; i++) {
+          let file = allSecretsFiles[i]
           if (!allFilesOnTree.includes(file)) {
-            this.filesNotOnTree.push(file)
+            filesNotOnTree.push(allSecrets[i])
           }
         }
         if (filesNotOnTree.length) {
-          this.alerts.push('Some files are missing in the tree. Run "fix" to recover them.')
-          this.filesNotOnTree = filesNotOnTree
+          // must recover missing secrets
+          let recoveredEntries = []
+          FOR: for (let i = 1; i < allIndexes.length; i++) {
+            json = Tree.deobfuscate(allIndexes[i].content)
+            let root = Node.fromJSON(json, this.secrez, allSecretsFiles)
+            allFilesOnTree = Tree.getAllFilesOnTree(root).sort()
+            for (let j = 0; j < filesNotOnTree.length; j++) {
+              let f = filesNotOnTree[j]
+              if (allFilesOnTree.includes(f.encryptedName)) {
+                // console.log(f)
+                let node = root.findChildById(f.id)
+                console.log(f.id, )//node.getEntry())
+                if (node) {
+                  console.log(node.getPath())
+                  filesNotOnTree.splice(j, 1)
+                  j--
+                }
+              }
+              if (!files.length) {
+                break FOR
+              }
+            }
+
+            this.alerts.push('Some files are missing in the tree. Run "fix" to recover them.')
+            // this.filesNotOnTree = filesNotOnTree
+          }
         }
       }
     } else {

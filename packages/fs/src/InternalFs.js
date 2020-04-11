@@ -27,13 +27,28 @@ class InternalFs {
     return path.join(this.dataPath, entry.encryptedName)
   }
 
-  async add(parent, entry) {
+  async add(parent, entry, force) {
+
     /* istanbul ignore if  */
     if (entry.id) {
       throw new Error('A new entry cannot have a pre-existent id')
     }
+    if (!force) {
+      try {
+        console.log(path.join(parent.getPath(), entry.name))
+        // console.log(Node.getRoot(parent))
+        let existentChild = Node.getRoot(parent).getChildFromPath(path.join(parent.getPath(), entry.name))
+        if (existentChild) {
+          console.log('exists', entry.name)
+          return existentChild
+        }
+      } catch (e) {
+        // console.log(e.message)
+      }
+    }
     entry.set({id: Crypto.getRandomId()})
     entry.preserveContent = true
+    // console.log(entry)
     entry = this.secrez.encryptEntry(entry)
     try {
       await this.tree.saveEntry(entry)
@@ -49,29 +64,6 @@ class InternalFs {
         throw e
       }
     }
-  }
-
-  fixTree() {
-    let result = []
-    if (this.tree.alerts.length) {
-      let files = this.tree.filesNotOnTree
-      // let missingFiles = this.filesNotOnTree
-      let allIndexes = this.tree.getAllIndexes()
-      for (let i = 0; i < allIndexes.length; i++) {
-        let tree = new Tree(this.secrez)
-        tree.init(i)
-        let allFilesOnTree = Tree.getAllFilesOnTree(this.root).sort()
-        for (let j=0;j<files.length; j++) {
-          if (allFilesOnTree.includes(files[j])) {
-            let p = tree.root.findChildPathByFile(files[j])
-            if (p) {
-              //
-            }
-          }
-        }
-      }
-    }
-    return result
   }
 
   async update(node, entry) {
@@ -99,8 +91,11 @@ class InternalFs {
   }
 
   async make(options) {
+    console.log(options)
     let p = this.normalizePath(options.path)
-    let [ancestor, remainingPath] = this.tree.root.getChildFromPath(p, true)
+    let [ancestor, remainingPath] = this.tree.root.getAncestorFromNormalizedPath(p)
+    console.log(!!ancestor, remainingPath)
+
     p = remainingPath.split('/')
     let len = p.length
     let child

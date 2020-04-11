@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const util = require('util')
 const {config, Crypto, Entry} = require('@secrez/core')
 const {ANCESTOR_NOT_FOUND, ENTRY_EXISTS} = require('./Messages')
@@ -245,6 +246,30 @@ class Node {
     return result
   }
 
+
+  toJSON() {
+    // builds a not circular tree removing parents
+    let node = {}
+    for (let key in this) {
+      if (key === 'parent') {
+        continue
+      }
+      if (key === 'children') {
+        node.children = {}
+      } else {
+        node[key] = this[key]
+      }
+    }
+    delete node.parent
+    if (this.children) {
+      for (let id in this.children) {
+        let child = this.children[id]
+        node.children[id] = child.toJSON()
+      }
+    }
+    return node
+  }
+
   static initGenericRoot() {
     let root = new Node(
         new Entry({
@@ -380,33 +405,6 @@ class Node {
     }
   }
 
-  findChildPathByFile(file) {
-    if (Node.isFile(this)) {
-      throw new Error('A file does not have children')
-    }
-    if (!file) {
-      throw new Error('File is missing')
-    }
-    let versions = this.getVersions()
-    for (let v of versions) {
-      let version = versions[v]
-      if (version.file === file) {
-        return this.getPath()
-      }
-    }
-    for (let c in this.children) {
-      let child = this.children[c]
-      if (Node.isDir(child)) {
-        let found = child.findChildPathByFile(file)
-        if (found) {
-          return found
-        }
-      }
-    }
-  }
-
-
-
   getChildFromPath(p, returnCloserAncestor) {
     p = p.split('/').map(e => Entry.sanitizeName(e))
     let node
@@ -415,6 +413,8 @@ class Node {
     let name
     try {
       FOR: for (index = 0; index < p.length; index++) {
+        console.log(name)
+
         name = p[index]
         if (index === 0) {
           switch (name) {
@@ -484,6 +484,40 @@ class Node {
     }
   }
 
+  getAncestorFromNormalizedPath(p) {
+    let node
+    let index
+    let name
+    let ancestor = Node.getRoot(this)
+    FOR: for (index = 1; index < p.length; index++) {
+      name = p[index]
+      if (index === 0) {
+        node = ancestor.findDirectChildByName(name)
+
+      } else {
+        switch (name) {
+          case '~':
+            throw new Error()
+          case '':
+          case '.':
+            continue FOR
+          case '..':
+            if (!Node.isRoot(node)) {
+              node = node.parent
+            }
+            break
+          default:
+            node = node.findDirectChildByName(name)
+        }
+      }
+      if (!node) {
+        throw new Error()
+      }
+
+    }
+  }
+
+
   getPathToChild(child) {
 
     if (!child || child.constructor.name !== 'Node') {
@@ -540,7 +574,7 @@ class Node {
         this.children[c.id] = c
       }
     } else {
-      throw new Error('This entry does not represent a folder')
+      throw new Error('The entry does not represent a folder')
     }
   }
 

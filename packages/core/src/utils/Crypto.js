@@ -47,6 +47,9 @@ class Crypto {
     let id
     for (; ;) {
       id = Crypto.getRandomBase58String(4)
+      if (!/^[a-zA-Z]+/.test(id)) {
+        continue
+      }
       if (allIds) {
         /* istanbul ignore if  */
         if (allIds[id]) {
