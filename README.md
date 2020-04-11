@@ -1,6 +1,9 @@
 # Secrez
 A secrets manager in times of crypto coins.
 
+## This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
+
+
 ### Intro
 
 Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `cp`, `ls`, `mv`, etc.
