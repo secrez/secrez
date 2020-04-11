@@ -176,6 +176,9 @@ class Prompt {
       await this.internalFs.init()
       await this.loadSavedHistory()
       this.loggedIn = true
+      if (this.internalFs.tree.alerts.length) {
+        console.info(chalk.red(this.internalFs.tree.alerts.join('\n')))
+      }
     }
     // eslint-disable-next-line no-console
     // console.log()

@@ -62,6 +62,50 @@ describe('#InternalFs', function () {
 
   })
 
+
+  describe('getFullPath', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+    })
+
+    it('should return the fullPath of an entry', async function () {
+      let p = {encryptedName: 'casa/sasa'}
+      assert.equal(internalFs.getFullPath(p), path.join(secrez.config.dataPath, 'casa/sasa'))
+
+    })
+
+  })
+
+  describe('getEntryDetails', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+    })
+
+    it('should return the entry details of a node', async function () {
+      let content = 'PIN: 1234'
+      let file2 = await internalFs.make({
+        path: 'file2',
+        type: config.types.TEXT,
+        content
+      })
+      let file2Entry = await internalFs.getEntryDetails(file2)
+      assert.equal(file2Entry.content, content)
+    })
+
+  })
+
   describe('normalizePath', async function () {
 
     beforeEach(async function () {
@@ -77,11 +121,17 @@ describe('#InternalFs', function () {
       let p = 'casa/sasa/sasa/./cas/../../ra'
       assert.equal(internalFs.normalizePath(p), '/casa/sasa/ra')
 
+      p = '~/ra'
+      assert.equal(internalFs.normalizePath(p), '/ra')
+
       p = '~~~///casa/sasa//../../ra'
       assert.equal(internalFs.normalizePath(p), '/ra')
 
       p = '~~~///~/casa/~~/sasa//../ra'
       assert.equal(internalFs.normalizePath(p), '/casa/ra')
+      assert.equal(internalFs.getNormalizedPath(p), '/casa/ra')
+
+      assert.equal(internalFs.getNormalizedPath('~~'), '/')
 
     })
 
@@ -111,6 +161,25 @@ describe('#InternalFs', function () {
       }
 
     })
+  })
+
+  describe('getNormalizedPath', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+    })
+
+    it('should normalize a path', async function () {
+      let p = '~~~///~/casa/~~/sasa//../ra'
+      assert.equal(internalFs.getNormalizedPath(p), '/casa/ra')
+      assert.equal(internalFs.getNormalizedPath('~~'), '/')
+    })
+
   })
 
   describe('make', async function () {
@@ -254,6 +323,21 @@ describe('#InternalFs', function () {
       })
 
       assert.equal(root.getChildFromPath('/folder1/file4').id, file1.id)
+
+    })
+
+    it('should return an error', async function () {
+
+      try {
+        await internalFs.change({
+          path: '/folder1/file1',
+          newPath: '/folder1/file3',
+          content: 'Some password'
+        })
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
 
     })
 

@@ -44,18 +44,31 @@ describe('#Crypto', function () {
       assert.equal(Crypto.fromBase58('5Q').toString('utf8'), Buffer.from([255]))
     })
 
+    it('should verify that the random id is random enough', async function () {
 
-
-    // it.only('should generate a random id skipping existing one', async function () {
-    //   let allIds = {}
-    //   for (let i=0; i <= 250;i++) {
-    //     allIds[bs58.encode(Buffer.from([i]))] = true
-    //   }
-    //   console.log(allIds)
-    //   let remainder = ['5L','5M','5N','5P','5Q']
-    //   assert.isTrue(remainder.includes(Crypto.getRandomId(allIds, 1)))
-    //
-    // })
+      let allIds = {}
+      for (let i=0; i <= 1e5;i++) {
+        allIds[Crypto.getRandomId(allIds)] = true
+      }
+      for (let i =0; i< 4;i++) {
+        let chars = {}
+        for (let j in allIds) {
+          let c = j.substring(i, i+1)
+          if (!chars[c]) {
+            chars[c] = 0
+          }
+          chars[c]++
+        }
+        assert.isTrue(Object.keys(chars).length === 58)
+        let min = 1e5
+        let max = 0
+        for (let k in chars) {
+          min = Math.min(chars[k], min)
+          max = Math.max(chars[k], max)
+        }
+        assert.isTrue(max/min < 1.2)
+      }
+    })
 
     it('should generate key', async function () {
       const newKey = Crypto.generateKey()
@@ -130,11 +143,11 @@ describe('#Crypto', function () {
 
   describe('#fromTsToDate', async function () {
 
-    it('should encrypt and decrypt a string', async function () {
+    it('should recover a date from a timestamp with microseconds', async function () {
 
       for (let i=0;i<20;i++) {
         let ts = Crypto.getTimestampWithMicroseconds().join('.')
-        let d = (new Date).toISOString()
+        let d = (new Date).toISOString().substring(0, 18)
         assert.isTrue(RegExp('^' + d).test(Crypto.fromTsToDate(ts)[0]))
         sleep(1)
       }

@@ -27,10 +27,15 @@ class Node {
       }
     }
 
+    let allIds = {}
+    if (Node.isNode(entry.parent)) {
+      allIds = Node.getRoot(entry.parent).allIds
+    }
+
     this.type = entry.type
     this.id = isRoot ? config.specialId.ROOT
         : isTrash ? config.specialId.TRASH
-            : entry.id || Crypto.getRandomId()
+            : entry.id || Crypto.getRandomId(allIds)
 
     if (Node.isDir(entry)) {
       this.children = {}
@@ -38,6 +43,7 @@ class Node {
 
     if (isRoot) {
       this.rnd = Crypto.getRandomId()
+      this.allIds = allIds
     } else if (isTrash) {
       this.lastTs = Crypto.getTimestampWithMicroseconds().join('.')
       this.versions = {}
@@ -45,6 +51,7 @@ class Node {
         name: config.specialName.TRASH,
         file: null
       }
+      this.parent = entry.parent
     } else {
       if (!entry.ts || typeof entry.ts !== 'string'
           || !entry.name || typeof entry.name !== 'string'
@@ -56,7 +63,7 @@ class Node {
       if (Node.isNode(entry.parent)) {
         // a Node can be independent of a tree.
         // But if it is part of a tree, any child must have a parent
-
+        allIds[entry.id.replace(/^_/, '')] = true
         this.parent = entry.parent
       }
       this.versions = {}
@@ -238,6 +245,21 @@ class Node {
     return result
   }
 
+  static initGenericRoot() {
+    let root = new Node(
+        new Entry({
+          type: config.types.ROOT
+        })
+    )
+    root.add(new Node(
+        new Entry({
+          type: config.types.TRASH,
+          parent: root
+        }), true
+    ))
+    return root
+  }
+
   getAllFiles(child) {
     if (!child) {
       child = this
@@ -333,21 +355,6 @@ class Node {
     return Node.getRoot(node).findChildById(config.specialId.TRASH)
   }
 
-  findDirectChildByName(name) {
-    if (Node.isFile(this)) {
-      throw new Error('A file does not have children')
-    }
-    if (!name) {
-      throw new Error('Name parameter is missing')
-    }
-    for (let c in this.children) {
-      let child = this.children[c]
-      if (child.getName() === name) {
-        return child
-      }
-    }
-  }
-
   static isNode(obj) {
     return typeof obj === 'object' && obj.constructor.name === 'Node'
   }
@@ -372,6 +379,33 @@ class Node {
       }
     }
   }
+
+  findChildPathByFile(file) {
+    if (Node.isFile(this)) {
+      throw new Error('A file does not have children')
+    }
+    if (!file) {
+      throw new Error('File is missing')
+    }
+    let versions = this.getVersions()
+    for (let v of versions) {
+      let version = versions[v]
+      if (version.file === file) {
+        return this.getPath()
+      }
+    }
+    for (let c in this.children) {
+      let child = this.children[c]
+      if (Node.isDir(child)) {
+        let found = child.findChildPathByFile(file)
+        if (found) {
+          return found
+        }
+      }
+    }
+  }
+
+
 
   getChildFromPath(p, returnCloserAncestor) {
     p = p.split('/').map(e => Entry.sanitizeName(e))

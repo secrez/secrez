@@ -28,6 +28,7 @@ class InternalFs {
   }
 
   async add(parent, entry) {
+    /* istanbul ignore if  */
     if (entry.id) {
       throw new Error('A new entry cannot have a pre-existent id')
     }
@@ -41,15 +42,41 @@ class InternalFs {
       await this.tree.preSave()
       return node
     } catch (e) {
-      await this.tree.unsaveEntry(entry)
-      throw e
+      /* istanbul ignore if  */
+      // eslint-disable-next-line no-constant-condition
+      if (true) {
+        await this.tree.unsaveEntry(entry)
+        throw e
+      }
     }
+  }
+
+  fixTree() {
+    let result = []
+    if (this.tree.alerts.length) {
+      let files = this.tree.filesNotOnTree
+      // let missingFiles = this.filesNotOnTree
+      let allIndexes = this.tree.getAllIndexes()
+      for (let i = 0; i < allIndexes.length; i++) {
+        let tree = new Tree(this.secrez)
+        tree.init(i)
+        let allFilesOnTree = Tree.getAllFilesOnTree(this.root).sort()
+        for (let j=0;j<files.length; j++) {
+          if (allFilesOnTree.includes(files[j])) {
+            let p = tree.root.findChildPathByFile(files[j])
+            if (p) {
+              //
+            }
+          }
+        }
+      }
+    }
+    return result
   }
 
   async update(node, entry) {
 
-    // console.log(entry.id, entry.name)
-
+    /* istanbul ignore if  */
     if (!node || !entry) {
       throw new Error('A Node and an Entry are required')
     }
@@ -62,9 +89,12 @@ class InternalFs {
       await this.tree.preSave()
       return node
     } catch (e) {
-      // console.log('Unsaved')
-      await this.tree.unsaveEntry(entry)
-      throw e
+      /* istanbul ignore if  */
+      // eslint-disable-next-line no-constant-condition
+      if (true) {
+        await this.tree.unsaveEntry(entry)
+        throw e
+      }
     }
   }
 
@@ -128,7 +158,7 @@ class InternalFs {
       let result = n ? this.tree.root.getChildFromPath(n, true) : []
       ancestor = result[0]
       remainingPath = result[1]
-    } catch(e) {
+    } catch (e) {
       if (e.message === util.format(ENTRY_EXISTS, path.basename(n))) {
         let dir = this.tree.root.getChildFromPath(n)
         if (dir && Node.isDir(dir)) {
@@ -193,7 +223,7 @@ class InternalFs {
   }
 
   getNormalizedPath(p = '/') {
-    p = p.replace(/^~\/+/, '/').replace(/~+/g, '')
+    p = p.replace(/^~+/, '~').replace(/^~\/+/, '/').replace(/~+/g, '')
     if (!p) {
       p = '/'
     }
@@ -254,7 +284,7 @@ class InternalFs {
       try {
         this.tree.root.getChildFromPath(path.join(dir, name))
         name = fn + '.' + (++v)
-      } catch(e) {
+      } catch (e) {
         return name
       }
     }

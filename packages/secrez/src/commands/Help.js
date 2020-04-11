@@ -72,27 +72,29 @@ class Help extends require('../Command') {
         }
       }
     }
-    console.info()
-    this.Logger.reset('Examples:')
-    let max = 0
-    let c = ''
-    for (let e of data.examples) {
-      if (Array.isArray(e)) {
-        c = `(${e[1]})`
-        e = e[0]
+    if (data.examples.length) {
+      console.info()
+      this.Logger.reset('Examples:')
+      let max = 0
+      let c = ''
+      for (let e of data.examples) {
+        if (Array.isArray(e)) {
+          c = `(${e[1]})`
+          e = e[0]
+        }
+        max = Math.max(max, e.length)
       }
-      max = Math.max(max, e.length)
-    }
-    for (let e of data.examples) {
-      c = ''
-      if (Array.isArray(e)) {
-        c = `(${e[1]})`
-        e = e[0]
-      }
-      if (c) {
-        this.Logger.log('black', spacer + e + ' '.repeat(max - e.length + 1), 'grey', c)
-      } else {
-        this.Logger.log('black', spacer + e)
+      for (let e of data.examples) {
+        c = ''
+        if (Array.isArray(e)) {
+          c = `(${e[1]})`
+          e = e[0]
+        }
+        if (c) {
+          this.Logger.log('black', spacer + e + ' '.repeat(max - e.length + 1), 'grey', c)
+        } else {
+          this.Logger.log('black', spacer + e)
+        }
       }
     }
     console.info()
