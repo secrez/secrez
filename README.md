@@ -39,6 +39,34 @@ For now, this is a manual approach. Still, in a future version, the token can be
 
 In any case, even if you make changes parallelly, the changes won't generate any conflict because the files are immutable.
 
+#### Apparently lost secrets
+
+One of the primary goal of a secrets manager is that you will never lose any data.
+
+However, since only the most recent index is read, some secrets could be in the folder and not been loaded.
+ 
+Let do an example. Alice uses Secrez on computer A and computer B. The two data sets are aligned. Suddenly, GitHub is down and she has to make some change on both computers. 
+
+When GitHub is up again, she pushes master on A and everything goes fine. 
+
+She pulls on B and pushes.
+Now, the data online are not consistent because some secrets are in one index, some are in the other one.
+
+No problem. When Alice restart Secrez, the system finds the extra secrets, reads their positions from the previous indexes and puts them back in the tree.
+
+Since files are immutable, the strategy is not obvious. This is what happens in different cases:
+
+1. The recovered secret is in a folder that does not exists in the "official" index. In this case, the entire path is added using the encrypted data of the recovered secret
+2. The secret is a file in a folder that actually exists. The file is added as is.
+3. The secret is a file but a file with the same name exists in the same position. The system checks the content of the file. If it is the same, the secret is ignored, if not it is added as a version.
+
+Either any unused secret or secret that is rewritten (as a version) is trashed (you can check them in the `.trash` folder).
+
+In any case, all the content are kept.
+
+At this point, Alice, to avoid to repeat the same process on the other computer (which will generate files with different IDs), Alice should push on B and on A pulling before doing anything.
+
+To avoid problems, in general, it is good to run Git after exiting from Secrez. 
 
 #### Install
 
