@@ -2,3 +2,5 @@ test
 .nyc_output
 coverage
 tmp
+.idea
+.scratch
