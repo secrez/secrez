@@ -103,6 +103,17 @@ class Node {
     return node.type === config.types.TEXT
   }
 
+  static isTrashed(node) {
+    if (node.parent) {
+      if (Node.isTrash(node.parent)) {
+        return true
+      } else if (node.parent.parent) {
+        return Node.isTrashed(node.parent)
+      }
+    }
+    return false
+  }
+
   static fromJSON(json, secrez, allFiles) {
     // It takes an already parsed object to make it an instance of the class.
     // It needs the list of files on disk to correctly recover timestamps and names
@@ -420,7 +431,7 @@ class Node {
     }
   }
 
-  getChildFromPath(p, returnCloserAncestor, includeHomonyms) {
+  getChildFromPath(p, returnCloserAncestor) {
     p = p.split('/').map(e => Entry.sanitizeName(e))
     let node
     let ancestorNode
@@ -578,6 +589,10 @@ class Node {
       throw new Error('Trash cannot be moved')
     }
 
+    if (Node.isTrashed(this)) {
+      throw new Error('A deleted file cannot be moved')
+    }
+
     if (entry.id !== this.id) {
       throw new Error('Id does not match')
     }
@@ -637,6 +652,10 @@ class Node {
 
     if (Node.isTrash(this)) {
       throw new Error('Trash cannot be removed')
+    }
+
+    if (Node.isTrashed(this)) {
+      throw new Error('A deleted file cannot be deleted again')
     }
 
     if (this.parent) {
