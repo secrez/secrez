@@ -571,7 +571,11 @@ class Node {
 
   move(entry) {
     if (Node.isRoot(this)) {
-      throw new Error('You cannot modify a root node')
+      throw new Error('Root cannot be moved')
+    }
+
+    if (Node.isTrash(this)) {
+      throw new Error('Trash cannot be moved')
     }
 
     if (entry.id !== this.id) {
@@ -626,6 +630,15 @@ class Node {
   }
 
   remove(version = []) {
+
+    if (Node.isRoot(this)) {
+      throw new Error('Root cannot be removed')
+    }
+
+    if (Node.isTrash(this)) {
+      throw new Error('Trash cannot be removed')
+    }
+
     if (this.parent) {
       if (!Array.isArray(version)) {
         version = [version]
@@ -660,12 +673,14 @@ class Node {
         this.parent.removeChild(this)
       }
       return result
-    } else {
-      throw new Error('Root cannot be removed')
     }
   }
 
   removeChild(child) {
+    if (Node.isTrash(child)) {
+      throw new Error('You cannot remove the trash node')
+    }
+
     delete this.children[child.id]
   }
 
