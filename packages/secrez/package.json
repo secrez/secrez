@@ -19,7 +19,7 @@
     ]
   },
   "dependencies": {
-    "@secrez/core": "^0.4.0",
+    "@secrez/core": "^0.4.1",
     "@secrez/fs": "^0.4.1",
     "chalk": "^3.0.0",
     "clipboardy": "^2.3.0",
