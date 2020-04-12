@@ -290,11 +290,17 @@ describe('#Node', function () {
 
     })
 
-    it('should throw trying to move trash', async function () {
+    it('should throw trying to move trash or to move a deleted file', async function () {
 
       let root = initARootNode()
       let dir = initRandomNode(D, secrez)
+      let name = dir.getName()
+      let dir2 = initRandomNode(D, secrez)
+
+      root.add([dir, dir2])
+
       let trash = Node.getTrash(root)
+
       try {
         trash.move({
           parent: dir
@@ -304,6 +310,17 @@ describe('#Node', function () {
         assert.equal(e.message, 'Trash cannot be moved')
       }
 
+      dir.remove()
+
+      dir = root.getChildFromPath(`/.trash/${name}`)
+      try {
+        dir.move({
+          parent: dir2
+        })
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'A deleted file cannot be moved')
+      }
     })
 
     it('should throw trying to modify a node with different id', async function () {
@@ -340,6 +357,7 @@ describe('#Node', function () {
       let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
+      let name = file1.getName()
 
       root.add(dir1)
       dir1.add(file1)
@@ -347,6 +365,15 @@ describe('#Node', function () {
       assert.isTrue(!!dir1.children[file1.id])
       file1.remove()
       assert.isTrue(!dir1.children[file1.id])
+
+      let trashed = root.getChildFromPath(`/.trash/${name}`)
+
+      try {
+        trashed.remove()
+        assert.isTrue(false)
+      } catch(e) {
+        assert.equal(e.message, 'A deleted file cannot be deleted again')
+      }
     })
 
     it('should remove itself', async function () {
