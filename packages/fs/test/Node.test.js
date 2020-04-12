@@ -285,7 +285,23 @@ describe('#Node', function () {
         })
         assert.isFalse(true)
       } catch (e) {
-        assert.equal(e.message, 'You cannot modify a root node')
+        assert.equal(e.message, 'You cannot modify the root node')
+      }
+
+    })
+
+    it('should throw trying to move trash', async function () {
+
+      let root = initARootNode()
+      let dir = initRandomNode(D, secrez)
+      let trash = Node.getTrash(root)
+      try {
+        trash.move({
+          parent: dir
+        })
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'You cannot modify the trash node')
       }
 
     })
@@ -356,6 +372,19 @@ describe('#Node', function () {
         assert.isFalse(true)
       } catch (e) {
         assert.equal(e.message, 'Root cannot be removed')
+      }
+
+    })
+
+    it('should throw trying to remove trash', async function () {
+
+      let root = initARootNode()
+
+      try {
+        Node.getTrash(root).remove()
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Trash cannot be removed')
       }
 
     })
