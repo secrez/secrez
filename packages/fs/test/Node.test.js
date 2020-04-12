@@ -219,7 +219,7 @@ describe('#Node', function () {
         file1.add(dir1)
         assert.isFalse(true)
       } catch (e) {
-        assert.equal(e.message, 'This entry does not represent a folder')
+        assert.equal(e.message, 'The entry does not represent a folder')
       }
 
     })
@@ -678,10 +678,7 @@ describe('#Node', function () {
       } catch (e) {
         assert.equal(e.message, 'The child does not below to this tree')
       }
-
-
     })
-
 
   })
 

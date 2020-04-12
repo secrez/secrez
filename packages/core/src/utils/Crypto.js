@@ -38,13 +38,18 @@ class Crypto {
   }
 
   static getRandomBase58String(size) {
-    return bs58.encode(Buffer.from(randomBytes(size))).substring(0, size)
+    let i = Math.round(size/2)
+    let j = i + size
+    return bs58.encode(Buffer.from(randomBytes(2 * size))).substring(i, j)
   }
 
   static getRandomId(allIds) {
     let id
     for (; ;) {
       id = Crypto.getRandomBase58String(4)
+      if (!/^[a-zA-Z]+/.test(id)) {
+        continue
+      }
       if (allIds) {
         /* istanbul ignore if  */
         if (allIds[id]) {

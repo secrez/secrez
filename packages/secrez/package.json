@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf build",
@@ -19,8 +19,8 @@
     ]
   },
   "dependencies": {
-    "@secrez/core": "^0.4.0",
-    "@secrez/fs": "^0.4.0",
+    "@secrez/core": "^0.4.1",
+    "@secrez/fs": "^0.4.1",
     "chalk": "^3.0.0",
     "clipboardy": "^2.3.0",
     "command-line-args": "^5.1.1",

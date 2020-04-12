@@ -14,6 +14,8 @@ class Tree {
       BROKEN: 2
     }
 
+    this.alerts = []
+
     if (secrez && secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
       this.dataPath = secrez.config.dataPath
@@ -28,74 +30,220 @@ class Tree {
     return (await fs.readdir(this.dataPath)).filter(file => !/\./.test(file))
   }
 
+  async getAllIndexes(allFiles) {
+    if (!allFiles) {
+      allFiles = await this.getAllFiles()
+    }
+    return allFiles.filter(f => /^0/.test(f))
+  }
+
+  async getAllSecrets(allFiles) {
+    if (!allFiles) {
+      allFiles = await this.getAllFiles()
+    }
+    return allFiles.filter(f => /^[1-3]{1}/.test(f))
+  }
+
+  async decryptSecret(file) {
+    let entry = new Entry({
+      encryptedName: file,
+      preserveContent: true
+    })
+    if (file[file.length - 1] === 'O') {
+      // there is an extraName
+      let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
+      content = content.split('I')
+      if (!content[1]) {
+        throw new Error()
+      }
+      entry.set({
+        encryptedName: file.substring(0, 254) + content[1]
+      })
+    }
+    return [entry, this.secrez.decryptEntry(entry)]
+  }
+
   async load() {
 
     if (this.status === this.statutes.LOADED) {
       return
     }
 
-    let allIndexes = []
-    let allFiles = []
     let files = await this.getAllFiles()
+    let allIndexes = []
+    let allSecrets = []
 
     for (let file of files) {
-      let filePath = path.join(this.dataPath, file)
-      this.notEmpty = true
-      let entry = new Entry({
-        encryptedName: file,
-        preserveContent: true
-      })
-      if (file[file.length - 1] === 'O') {
-        // there is an extraName
-        let content = await fs.readFile(filePath, 'utf8')
-        content = content.split('I')
-        if (!content[1]) {
-          throw new Error()
-        }
-        entry.set({
-          encryptedName: file.substring(0, 254) + content[1]
-        })
-      }
-      let decryptedEntry = this.secrez.decryptEntry(entry)
+
+      let [entry, decryptedEntry] = await this.decryptSecret(file)
       if (decryptedEntry.type === config.types.ROOT) {
-        let content = await fs.readFile(filePath, 'utf8')
+        let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
         entry.set({
           encryptedContent: content.split('I')[0]
         })
         decryptedEntry = this.secrez.decryptEntry(entry)
         allIndexes.push(decryptedEntry)
       } else {
-        allFiles.push(decryptedEntry)
+        allSecrets.push(decryptedEntry)
       }
     }
 
-    if (this.notEmpty) {
+    if (allSecrets.length) {
+      allSecrets.sort(Node.sortEntry)
 
       if (!allIndexes.length) {
-        throw new Error('A valid tree is missing. Run secrez with the options --fix to build a new flat tree')
+        this.alerts.push('A valid tree is missing.\nThe following entries have been recovered and put in the root:')
+        this.root = Node.initGenericRoot()
+        for (let entry of allSecrets) {
+          // console.log(entry)
+          entry.parent = this.root
+          this.root.add(new Node(entry))
+          this.alerts.push(entry.name)
+        }
+        await this.preSave()
       } else {
 
         allIndexes.sort(Node.sortEntry)
-        allFiles.sort(Node.sortEntry)
+        let allSecretsFiles = allSecrets.map(e => e.encryptedName)
         let json = Tree.deobfuscate(allIndexes[0].content)
-        this.root = Node.fromJSON(json, this.secrez, allFiles.map(e => e.encryptedName))
-      }
+        this.root = Node.fromJSON(json, this.secrez, allSecretsFiles)
 
+        // verify the tree
+        let allFilesOnTree = Tree.getAllFilesOnTree(this.root).sort()
+        const filesNotOnTree = []
+        for (let i = 0; i < allSecretsFiles.length; i++) {
+          let file = allSecretsFiles[i]
+          if (!allFilesOnTree.includes(file)) {
+            filesNotOnTree.push(allSecrets[i])
+          }
+        }
+        if (filesNotOnTree.length) {
+          let toBeRecovered = {}
+          let recoveredEntries = []
+          FOR: for (let i = 1; i < allIndexes.length; i++) {
+            json = Tree.deobfuscate(allIndexes[i].content)
+            let root = Node.fromJSON(json, this.secrez, allSecretsFiles)
+            allFilesOnTree = Tree.getAllFilesOnTree(root).sort()
+            for (let j = 0; j < filesNotOnTree.length; j++) {
+              let f = filesNotOnTree[j]
+              if (allFilesOnTree.includes(f.encryptedName)) {
+                let node = root.findChildById(f.id)
+                if (node) {
+                  let k = allSecretsFiles.indexOf(f.encryptedName)
+                  toBeRecovered[node.getPath()] = allSecrets[k]
+                  filesNotOnTree.splice(j, 1)
+                  j--
+                }
+              }
+              if (!files.length) {
+                break FOR
+              }
+            }
+          }
+          let paths = Object.keys(toBeRecovered).sort()
+          for (let p of paths) {
+            let entry = toBeRecovered[p]
+            // it can generate duplicate names
+            let parentPath = p.replace(/\/[^\\/]+$/, '')
+            if (parentPath) {
+              // check if exists on with the same name
+              // if so, the recovered one is trashed
+              try {
+                let parent = this.root.getChildFromPath(parentPath)
+                if (parent) {
+                  entry.parent = parent
+                  if (await this.addAsChildOrVersion(parent, entry)) {
+                    recoveredEntries.push(p)
+                  }
+                  continue
+                }
+              } catch (e) {
+              }
+            }
+            entry.parent = this.root
+            if (await this.addAsChildOrVersion(this.root, entry)) {
+              recoveredEntries.push(p)
+            }
+          }
+          this.alerts.push('Some files/versions have been recovered:')
+          this.alerts = this.alerts.concat(recoveredEntries)
+        }
+      }
     } else {
-      this.root = new Node(
-          new Entry({
-            type: config.types.ROOT
-          })
-      )
-      this.root.add(new Node(
-          new Entry({
-            type: config.types.TRASH
-          }), true
-      ))
+      this.root = Node.initGenericRoot()
     }
     this.workingNode = this.root
     this.status = this.statutes.LOADED
   }
+
+  async addAsChildOrVersion(parent, entry) {
+    // console.log(parent.getPath(), entry.name)
+    let done = false
+    let name = entry.name
+    let existentChild = parent.findDirectChildByName(name)
+    if (existentChild) {
+      let temporaryNode = new Node(entry)
+      // if it is a dir, it has the same name, we don't need it. But
+      if (Node.isFile(entry)) {
+        let details = await this.getEntryDetails(existentChild)
+        let tempDetails = await this.getEntryDetails(temporaryNode)
+        if (details.content !== tempDetails.content) {
+          entry.content = tempDetails.content
+          existentChild.update(entry)
+          done = true
+        }
+      }
+      parent.trash(temporaryNode)
+    } else {
+      parent.add(new Node(entry))
+      done = true
+    }
+    return done
+  }
+
+  async getEntryDetails(node, ts) {
+    let content
+    if (Node.isFile(node)) {
+      content = node.getContent(ts)
+      if (!content) {
+        // must be read from disk
+        let entry = node.getEntry(ts)
+        let fullPath = this.getFullPath(entry)
+        let [encryptedContent, extraName] = (await fs.readFile(fullPath, 'utf8')).split('I')
+        entry.encryptedContent = encryptedContent
+        entry.extraName = extraName
+        let decryptedEntry = this.secrez.decryptEntry(entry)
+        content = decryptedEntry.content
+      }
+    }
+    return {
+      type: node.type,
+      id: node.id,
+      name: node.getName(ts),
+      content,
+      ts: ts || node.lastTs
+    }
+  }
+
+  static getAllFilesOnTree(node) {
+    // get all the version currently in the tree to check for anomalies
+    let results = []
+    if (node.versions) {
+      for (let ts in node.versions) {
+        let version = node.versions[ts]
+        if (version.file) {
+          results.push(version.file)
+        }
+      }
+    }
+    if (node.children) {
+      for (let id in node.children) {
+        results = results.concat(Tree.getAllFilesOnTree(node.children[id]))
+      }
+    }
+    return results
+  }
+
 
   getFullPath(entry) {
     return path.join(this.dataPath, entry.encryptedName)
@@ -105,6 +253,54 @@ class Tree {
     let fullPath = this.getFullPath(entry)
     if (await fs.pathExists(fullPath)) {
       await fs.unlink(fullPath)
+    }
+  }
+
+  async add(parent, entry, force) {
+
+    /* istanbul ignore if  */
+    if (entry.id) {
+      throw new Error('A new entry cannot have a pre-existent id')
+    }
+    entry.set({id: Crypto.getRandomId()})
+    entry.preserveContent = true
+    entry = this.secrez.encryptEntry(entry)
+    try {
+      await this.saveEntry(entry)
+      let node = new Node(entry)
+      parent.add(node)
+      await this.preSave()
+      return node
+    } catch (e) {
+      /* istanbul ignore if  */
+      // eslint-disable-next-line no-constant-condition
+      if (true) {
+        await this.unsaveEntry(entry)
+        throw e
+      }
+    }
+  }
+
+  async update(node, entry) {
+
+    /* istanbul ignore if  */
+    if (!node || !entry) {
+      throw new Error('A Node and an Entry are required')
+    }
+    entry.preserveContent = true
+    entry = this.secrez.encryptEntry(entry)
+    try {
+      await this.saveEntry(entry)
+      node.move(entry)
+      await this.preSave()
+      return node
+    } catch (e) {
+      /* istanbul ignore if  */
+      // eslint-disable-next-line no-constant-condition
+      if (true) {
+        await this.unsaveEntry(entry)
+        throw e
+      }
     }
   }
 

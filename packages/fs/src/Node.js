@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const util = require('util')
 const {config, Crypto, Entry} = require('@secrez/core')
 const {ANCESTOR_NOT_FOUND, ENTRY_EXISTS} = require('./Messages')
@@ -27,10 +28,15 @@ class Node {
       }
     }
 
+    let allIds = {}
+    if (Node.isNode(entry.parent)) {
+      allIds = Node.getRoot(entry.parent).allIds
+    }
+
     this.type = entry.type
     this.id = isRoot ? config.specialId.ROOT
         : isTrash ? config.specialId.TRASH
-            : entry.id || Crypto.getRandomId()
+            : entry.id || Crypto.getRandomId(allIds)
 
     if (Node.isDir(entry)) {
       this.children = {}
@@ -38,6 +44,7 @@ class Node {
 
     if (isRoot) {
       this.rnd = Crypto.getRandomId()
+      this.allIds = allIds
     } else if (isTrash) {
       this.lastTs = Crypto.getTimestampWithMicroseconds().join('.')
       this.versions = {}
@@ -45,6 +52,7 @@ class Node {
         name: config.specialName.TRASH,
         file: null
       }
+      this.parent = entry.parent
     } else {
       if (!entry.ts || typeof entry.ts !== 'string'
           || !entry.name || typeof entry.name !== 'string'
@@ -56,7 +64,7 @@ class Node {
       if (Node.isNode(entry.parent)) {
         // a Node can be independent of a tree.
         // But if it is part of a tree, any child must have a parent
-
+        allIds[entry.id.replace(/^_/, '')] = true
         this.parent = entry.parent
       }
       this.versions = {}
@@ -238,6 +246,45 @@ class Node {
     return result
   }
 
+
+  toJSON() {
+    // builds a not circular tree removing parents
+    let node = {}
+    for (let key in this) {
+      if (key === 'parent') {
+        continue
+      }
+      if (key === 'children') {
+        node.children = {}
+      } else {
+        node[key] = this[key]
+      }
+    }
+    delete node.parent
+    if (this.children) {
+      for (let id in this.children) {
+        let child = this.children[id]
+        node.children[id] = child.toJSON()
+      }
+    }
+    return node
+  }
+
+  static initGenericRoot() {
+    let root = new Node(
+        new Entry({
+          type: config.types.ROOT
+        })
+    )
+    root.add(new Node(
+        new Entry({
+          type: config.types.TRASH,
+          parent: root
+        }), true
+    ))
+    return root
+  }
+
   getAllFiles(child) {
     if (!child) {
       child = this
@@ -333,6 +380,10 @@ class Node {
     return Node.getRoot(node).findChildById(config.specialId.TRASH)
   }
 
+  static isNode(obj) {
+    return typeof obj === 'object' && obj.constructor.name === 'Node'
+  }
+
   findDirectChildByName(name) {
     if (Node.isFile(this)) {
       throw new Error('A file does not have children')
@@ -346,10 +397,6 @@ class Node {
         return child
       }
     }
-  }
-
-  static isNode(obj) {
-    return typeof obj === 'object' && obj.constructor.name === 'Node'
   }
 
   findChildById(id) {
@@ -373,7 +420,7 @@ class Node {
     }
   }
 
-  getChildFromPath(p, returnCloserAncestor) {
+  getChildFromPath(p, returnCloserAncestor, includeHomonyms) {
     p = p.split('/').map(e => Entry.sanitizeName(e))
     let node
     let ancestorNode
@@ -506,12 +553,11 @@ class Node {
         this.children[c.id] = c
       }
     } else {
-      throw new Error('This entry does not represent a folder')
+      throw new Error('The entry does not represent a folder')
     }
   }
 
   addVersion(entry) {
-    // console.log('entry.ts', entry.ts)
     this.versions[entry.ts] = {
       name: entry.name,
       file: entry.encryptedName || entry.file
@@ -519,9 +565,7 @@ class Node {
     if (entry.content) {
       this.versions[entry.ts].content = entry.content
     }
-    // console.log(this.versions)
     this.lastTs = Object.keys(this.versions).sort(Node.sortEntry)[0]
-    // console.log('lastTs', this.lastTs)
     return this.lastTs
   }
 
@@ -544,7 +588,6 @@ class Node {
         entry.parent.add(this)
       }
     }
-    // console.log('Node.move', entry.name, this.getName())
   }
 
   getFromTrash(id) {
@@ -553,12 +596,10 @@ class Node {
   }
 
   trash(deleted) {
-    // console.log('deleted', deleted)
     let trash = Node.getTrash(this)
     let trashed = this.getFromTrash(deleted.id)
     let lastTs
 
-    // console.log(trash)
     if (!trashed) {
       lastTs = Object.keys(deleted.versions).sort(Node.sortEntry)[0]
       trashed = new Node(new Entry({
@@ -569,11 +610,9 @@ class Node {
         encryptedName: deleted.versions[lastTs].file
       }))
       trash.add(trashed)
-      // console.log(trashed.getEntry().get())
       delete deleted.versions[lastTs]
     }
     for (let v in deleted.versions) {
-      // console.log('more', v)
       lastTs = trashed.addVersion(Object.assign({
             ts: v
           },
@@ -587,7 +626,6 @@ class Node {
   }
 
   remove(version = []) {
-    // console.log(this.parent)
     if (this.parent) {
       if (!Array.isArray(version)) {
         version = [version]
@@ -597,7 +635,6 @@ class Node {
         type: this.type,
         versions: {}
       }
-      // console.log(deleted)
       if (Node.isDir(this)) {
         deleted.children = this.children
       }
