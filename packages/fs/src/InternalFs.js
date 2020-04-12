@@ -27,75 +27,9 @@ class InternalFs {
     return path.join(this.dataPath, entry.encryptedName)
   }
 
-  async add(parent, entry, force) {
-
-    /* istanbul ignore if  */
-    if (entry.id) {
-      throw new Error('A new entry cannot have a pre-existent id')
-    }
-    if (!force) {
-      try {
-        console.log(path.join(parent.getPath(), entry.name))
-        // console.log(Node.getRoot(parent))
-        let existentChild = Node.getRoot(parent).getChildFromPath(path.join(parent.getPath(), entry.name))
-        if (existentChild) {
-          console.log('exists', entry.name)
-          return existentChild
-        }
-      } catch (e) {
-        // console.log(e.message)
-      }
-    }
-    entry.set({id: Crypto.getRandomId()})
-    entry.preserveContent = true
-    // console.log(entry)
-    entry = this.secrez.encryptEntry(entry)
-    try {
-      await this.tree.saveEntry(entry)
-      let node = new Node(entry)
-      parent.add(node)
-      await this.tree.preSave()
-      return node
-    } catch (e) {
-      /* istanbul ignore if  */
-      // eslint-disable-next-line no-constant-condition
-      if (true) {
-        await this.tree.unsaveEntry(entry)
-        throw e
-      }
-    }
-  }
-
-  async update(node, entry) {
-
-    /* istanbul ignore if  */
-    if (!node || !entry) {
-      throw new Error('A Node and an Entry are required')
-    }
-    entry.preserveContent = true
-    entry = this.secrez.encryptEntry(entry)
-    // console.log('entry.ts', entry.ts)
-    try {
-      await this.tree.saveEntry(entry)
-      node.move(entry)
-      await this.tree.preSave()
-      return node
-    } catch (e) {
-      /* istanbul ignore if  */
-      // eslint-disable-next-line no-constant-condition
-      if (true) {
-        await this.tree.unsaveEntry(entry)
-        throw e
-      }
-    }
-  }
-
   async make(options) {
-    console.log(options)
     let p = this.normalizePath(options.path)
-    let [ancestor, remainingPath] = this.tree.root.getAncestorFromNormalizedPath(p)
-    console.log(!!ancestor, remainingPath)
-
+    let [ancestor, remainingPath] = this.tree.root.getChildFromPath(p, true)
     p = remainingPath.split('/')
     let len = p.length
     let child
@@ -108,7 +42,7 @@ class InternalFs {
       if (Node.isFile(options) && options.content) {
         entry.set({content: options.content})
       }
-      child = await this.add(ancestor, entry)
+      child = await this.tree.add(ancestor, entry)
       if (notLast) {
         ancestor = child
       }
@@ -140,16 +74,13 @@ class InternalFs {
       }
     }
     let node = this.tree.root.getChildFromPath(p)
-    // console.log('\nchange', node.lastTs)
 
     if (!node) {
       throw new Error('Path does not exist')
     }
     let entry = new Entry(Object.assign(options, node.getEntry()))
     let ancestor, remainingPath
-    // console.log('ancestor, remainingPath', ancestor?1:2, remainingPath)
     try {
-      // console.log('n', n)
       let result = n ? this.tree.root.getChildFromPath(n, true) : []
       ancestor = result[0]
       remainingPath = result[1]
@@ -175,15 +106,12 @@ class InternalFs {
     if (Node.isFile(entry) && !entry.content) {
       entry.content = node.getContent()
     }
-    // console.log('entry.get()', entry.get().name, path.basename(n || ''))
-    await this.update(node, entry)
-    // console.log('\n\n')
+    await this.tree.update(node, entry)
     return node
   }
 
   async remove(options) {
     let p = this.normalizePath(options.path)
-    // console.log(p)
     let node = this.tree.root.getChildFromPath(p)
     if (!node) {
       throw new Error('Path does not exist')

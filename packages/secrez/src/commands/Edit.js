@@ -74,7 +74,7 @@ class Edit extends require('../Command') {
     if (newContent && newContent !== content) {
       let entry = node.getEntry()
       entry.content = newContent
-      await this.internalFs.update(node, entry)
+      await this.internalFs.tree.update(node, entry)
       this.Logger.reset('File saved.')
     } else {
       this.Logger.reset('Changes aborted or file not changed')

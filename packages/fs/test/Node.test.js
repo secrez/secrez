@@ -678,10 +678,7 @@ describe('#Node', function () {
       } catch (e) {
         assert.equal(e.message, 'The child does not below to this tree')
       }
-
-
     })
-
 
   })
 

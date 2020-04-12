@@ -89,13 +89,21 @@ class Tree {
     }
 
     if (allSecrets.length) {
+      allSecrets.sort(Node.sortEntry)
+
       if (!allIndexes.length) {
-        this.alerts.push('Despite existing files, a valid tree is missing. Run "fix" to recover them.')
+        this.alerts.push('A valid tree is missing.\nThe following entries have been recovered and put in the root:')
         this.root = Node.initGenericRoot()
+        for (let entry of allSecrets) {
+          // console.log(entry)
+          entry.parent = this.root
+          this.root.add(new Node(entry))
+          this.alerts.push(entry.name)
+        }
+        await this.preSave()
       } else {
 
         allIndexes.sort(Node.sortEntry)
-        allSecrets.sort(Node.sortEntry)
         let allSecretsFiles = allSecrets.map(e => e.encryptedName)
         let json = Tree.deobfuscate(allIndexes[0].content)
         this.root = Node.fromJSON(json, this.secrez, allSecretsFiles)
@@ -110,7 +118,7 @@ class Tree {
           }
         }
         if (filesNotOnTree.length) {
-          // must recover missing secrets
+          let toBeRecovered = {}
           let recoveredEntries = []
           FOR: for (let i = 1; i < allIndexes.length; i++) {
             json = Tree.deobfuscate(allIndexes[i].content)
@@ -119,11 +127,10 @@ class Tree {
             for (let j = 0; j < filesNotOnTree.length; j++) {
               let f = filesNotOnTree[j]
               if (allFilesOnTree.includes(f.encryptedName)) {
-                // console.log(f)
                 let node = root.findChildById(f.id)
-                console.log(f.id, )//node.getEntry())
                 if (node) {
-                  console.log(node.getPath())
+                  let k = allSecretsFiles.indexOf(f.encryptedName)
+                  toBeRecovered[node.getPath()] = allSecrets[k]
                   filesNotOnTree.splice(j, 1)
                   j--
                 }
@@ -132,10 +139,34 @@ class Tree {
                 break FOR
               }
             }
-
-            this.alerts.push('Some files are missing in the tree. Run "fix" to recover them.')
-            // this.filesNotOnTree = filesNotOnTree
           }
+          let paths = Object.keys(toBeRecovered).sort()
+          for (let p of paths) {
+            let entry = toBeRecovered[p]
+            // it can generate duplicate names
+            let parentPath = p.replace(/\/[^\\/]+$/, '')
+            if (parentPath) {
+              // check if exists on with the same name
+              // if so, the recovered one is trashed
+              try {
+                let parent = this.root.getChildFromPath(parentPath)
+                if (parent) {
+                  entry.parent = parent
+                  if (await this.addAsChildOrVersion(parent, entry)) {
+                    recoveredEntries.push(p)
+                  }
+                  continue
+                }
+              } catch (e) {
+              }
+            }
+            entry.parent = this.root
+            if (await this.addAsChildOrVersion(this.root, entry)) {
+              recoveredEntries.push(p)
+            }
+          }
+          this.alerts.push('Some files/versions have been recovered:')
+          this.alerts = this.alerts.concat(recoveredEntries)
         }
       }
     } else {
@@ -143,6 +174,55 @@ class Tree {
     }
     this.workingNode = this.root
     this.status = this.statutes.LOADED
+  }
+
+  async addAsChildOrVersion(parent, entry) {
+    // console.log(parent.getPath(), entry.name)
+    let done = false
+    let name = entry.name
+    let existentChild = parent.findDirectChildByName(name)
+    if (existentChild) {
+      let temporaryNode = new Node(entry)
+      // if it is a dir, it has the same name, we don't need it. But
+      if (Node.isFile(entry)) {
+        let details = await this.getEntryDetails(existentChild)
+        let tempDetails = await this.getEntryDetails(temporaryNode)
+        if (details.content !== tempDetails.content) {
+          entry.content = tempDetails.content
+          existentChild.update(entry)
+          done = true
+        }
+      }
+      parent.trash(temporaryNode)
+    } else {
+      parent.add(new Node(entry))
+      done = true
+    }
+    return done
+  }
+
+  async getEntryDetails(node, ts) {
+    let content
+    if (Node.isFile(node)) {
+      content = node.getContent(ts)
+      if (!content) {
+        // must be read from disk
+        let entry = node.getEntry(ts)
+        let fullPath = this.getFullPath(entry)
+        let [encryptedContent, extraName] = (await fs.readFile(fullPath, 'utf8')).split('I')
+        entry.encryptedContent = encryptedContent
+        entry.extraName = extraName
+        let decryptedEntry = this.secrez.decryptEntry(entry)
+        content = decryptedEntry.content
+      }
+    }
+    return {
+      type: node.type,
+      id: node.id,
+      name: node.getName(ts),
+      content,
+      ts: ts || node.lastTs
+    }
   }
 
   static getAllFilesOnTree(node) {
@@ -173,6 +253,54 @@ class Tree {
     let fullPath = this.getFullPath(entry)
     if (await fs.pathExists(fullPath)) {
       await fs.unlink(fullPath)
+    }
+  }
+
+  async add(parent, entry, force) {
+
+    /* istanbul ignore if  */
+    if (entry.id) {
+      throw new Error('A new entry cannot have a pre-existent id')
+    }
+    entry.set({id: Crypto.getRandomId()})
+    entry.preserveContent = true
+    entry = this.secrez.encryptEntry(entry)
+    try {
+      await this.saveEntry(entry)
+      let node = new Node(entry)
+      parent.add(node)
+      await this.preSave()
+      return node
+    } catch (e) {
+      /* istanbul ignore if  */
+      // eslint-disable-next-line no-constant-condition
+      if (true) {
+        await this.unsaveEntry(entry)
+        throw e
+      }
+    }
+  }
+
+  async update(node, entry) {
+
+    /* istanbul ignore if  */
+    if (!node || !entry) {
+      throw new Error('A Node and an Entry are required')
+    }
+    entry.preserveContent = true
+    entry = this.secrez.encryptEntry(entry)
+    try {
+      await this.saveEntry(entry)
+      node.move(entry)
+      await this.preSave()
+      return node
+    } catch (e) {
+      /* istanbul ignore if  */
+      // eslint-disable-next-line no-constant-condition
+      if (true) {
+        await this.unsaveEntry(entry)
+        throw e
+      }
     }
   }
 

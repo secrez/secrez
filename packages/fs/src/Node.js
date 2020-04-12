@@ -384,6 +384,21 @@ class Node {
     return typeof obj === 'object' && obj.constructor.name === 'Node'
   }
 
+  findDirectChildByName(name) {
+    if (Node.isFile(this)) {
+      throw new Error('A file does not have children')
+    }
+    if (!name) {
+      throw new Error('Name parameter is missing')
+    }
+    for (let c in this.children) {
+      let child = this.children[c]
+      if (child.getName() === name) {
+        return child
+      }
+    }
+  }
+
   findChildById(id) {
     if (Node.isFile(this)) {
       throw new Error('A file does not have children')
@@ -405,7 +420,7 @@ class Node {
     }
   }
 
-  getChildFromPath(p, returnCloserAncestor) {
+  getChildFromPath(p, returnCloserAncestor, includeHomonyms) {
     p = p.split('/').map(e => Entry.sanitizeName(e))
     let node
     let ancestorNode
@@ -413,8 +428,6 @@ class Node {
     let name
     try {
       FOR: for (index = 0; index < p.length; index++) {
-        console.log(name)
-
         name = p[index]
         if (index === 0) {
           switch (name) {
@@ -484,40 +497,6 @@ class Node {
     }
   }
 
-  getAncestorFromNormalizedPath(p) {
-    let node
-    let index
-    let name
-    let ancestor = Node.getRoot(this)
-    FOR: for (index = 1; index < p.length; index++) {
-      name = p[index]
-      if (index === 0) {
-        node = ancestor.findDirectChildByName(name)
-
-      } else {
-        switch (name) {
-          case '~':
-            throw new Error()
-          case '':
-          case '.':
-            continue FOR
-          case '..':
-            if (!Node.isRoot(node)) {
-              node = node.parent
-            }
-            break
-          default:
-            node = node.findDirectChildByName(name)
-        }
-      }
-      if (!node) {
-        throw new Error()
-      }
-
-    }
-  }
-
-
   getPathToChild(child) {
 
     if (!child || child.constructor.name !== 'Node') {
@@ -579,7 +558,6 @@ class Node {
   }
 
   addVersion(entry) {
-    // console.log('entry.ts', entry.ts)
     this.versions[entry.ts] = {
       name: entry.name,
       file: entry.encryptedName || entry.file
@@ -587,9 +565,7 @@ class Node {
     if (entry.content) {
       this.versions[entry.ts].content = entry.content
     }
-    // console.log(this.versions)
     this.lastTs = Object.keys(this.versions).sort(Node.sortEntry)[0]
-    // console.log('lastTs', this.lastTs)
     return this.lastTs
   }
 
@@ -612,7 +588,6 @@ class Node {
         entry.parent.add(this)
       }
     }
-    // console.log('Node.move', entry.name, this.getName())
   }
 
   getFromTrash(id) {
@@ -621,12 +596,10 @@ class Node {
   }
 
   trash(deleted) {
-    // console.log('deleted', deleted)
     let trash = Node.getTrash(this)
     let trashed = this.getFromTrash(deleted.id)
     let lastTs
 
-    // console.log(trash)
     if (!trashed) {
       lastTs = Object.keys(deleted.versions).sort(Node.sortEntry)[0]
       trashed = new Node(new Entry({
@@ -637,11 +610,9 @@ class Node {
         encryptedName: deleted.versions[lastTs].file
       }))
       trash.add(trashed)
-      // console.log(trashed.getEntry().get())
       delete deleted.versions[lastTs]
     }
     for (let v in deleted.versions) {
-      // console.log('more', v)
       lastTs = trashed.addVersion(Object.assign({
             ts: v
           },
@@ -655,7 +626,6 @@ class Node {
   }
 
   remove(version = []) {
-    // console.log(this.parent)
     if (this.parent) {
       if (!Array.isArray(version)) {
         version = [version]
@@ -665,7 +635,6 @@ class Node {
         type: this.type,
         versions: {}
       }
-      // console.log(deleted)
       if (Node.isDir(this)) {
         deleted.children = this.children
       }

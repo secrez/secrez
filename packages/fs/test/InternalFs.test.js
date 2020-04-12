@@ -82,29 +82,6 @@ describe('#InternalFs', function () {
 
   })
 
-  describe('getEntryDetails', async function () {
-
-    beforeEach(async function () {
-      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
-      secrez = new Secrez()
-      await secrez.init(rootDir)
-      await secrez.signup(password, iterations)
-      internalFs = new InternalFs(secrez)
-      await internalFs.init()
-    })
-
-    it('should return the entry details of a node', async function () {
-      let content = 'PIN: 1234'
-      let file2 = await internalFs.make({
-        path: 'file2',
-        type: config.types.TEXT,
-        content
-      })
-      let file2Entry = await internalFs.getEntryDetails(file2)
-      assert.equal(file2Entry.content, content)
-    })
-
-  })
 
   describe('normalizePath', async function () {
 

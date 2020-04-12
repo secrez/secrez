@@ -79,10 +79,10 @@ class Cat extends require('../Command') {
           if (options.version && !options.version.includes(Node.hashVersion(ts))) {
             continue
           }
-          result.push(await ifs.getEntryDetails(node, ts))
+          result.push(await ifs.tree.getEntryDetails(node, ts))
         }
       } else {
-        result.push(await ifs.getEntryDetails(node, options.ts))
+        result.push(await ifs.tree.getEntryDetails(node, options.ts))
       }
       return result
     } else {

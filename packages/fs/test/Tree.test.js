@@ -20,6 +20,7 @@ describe('#Tree', function () {
   let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
   let tree
+  let internalFs
 
   describe('#constructor', async function () {
 
@@ -77,12 +78,37 @@ describe('#Tree', function () {
 
   })
 
-  describe.only('#Fix', function () {
+  describe('getEntryDetails', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+    })
+
+    it('should return the entry details of a node', async function () {
+      let content = 'PIN: 1234'
+      let file2 = await internalFs.make({
+        path: 'file2',
+        type: secrez.config.types.TEXT,
+        content
+      })
+      let file2Entry = await internalFs.tree.getEntryDetails(file2)
+      assert.equal(file2Entry.content, content)
+    })
+
+  })
+
+
+  describe('#Fix', function () {
 
     let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
     let internalFs
 
-    before(async function () {
+    beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
     })
 
@@ -113,7 +139,7 @@ describe('#Tree', function () {
       await fs.emptyDir(backup)
 
       await internalFs.make({
-        path: '/A/B',
+        path: '/A/M',
         type: secrez.config.types.DIR
       })
       await internalFs.make({
@@ -123,42 +149,40 @@ describe('#Tree', function () {
 
       await internalFs.make({
         path: '/A/a',
-        type: secrez.config.types.TEXT
+        type: secrez.config.types.TEXT,
+        content: 'some a'
       })
 
       await internalFs.make({
         path: '/B/b',
-        type: secrez.config.types.TEXT
+        type: secrez.config.types.TEXT,
+        content: 'some b'
       })
 
-      // jlog(tree.root)
-
       let files1 = await fs.readdir(`${rootDir}/data`)
-
-      // console.log(files1)
-
-      assert.equal(files1.length, 9)
-
-      // inspect = stdout.inspect()
-      // await C.fix.exec()
-      // inspect.restore()
-      // assertConsole(inspect, 'Nothing to fix here.')
+      assert.equal(files1.length, 7)
 
       await startTree()
 
       await internalFs.make({
-        path: '/B/D',
-        type: secrez.config.types.DIR
+        path: '/B/D/g',
+        type: secrez.config.types.TEXT,
+        content: 'some g'
       })
 
       await internalFs.make({
         path: '/E/c',
-        type: secrez.config.types.TEXT
+        type: secrez.config.types.TEXT,
+        content: 'some c'
+      })
+
+      await internalFs.make({
+        path: '/E/L',
+        type: secrez.config.types.DIR
       })
 
       let files2 = await fs.readdir(`${rootDir}/data`)
-
-      assert.equal(files2.length, 28)
+      assert.equal(files2.length, 13)
 
       let files3 = []
 
@@ -172,31 +196,88 @@ describe('#Tree', function () {
       await startTree()
 
       await internalFs.make({
-        path: '/B/D',
-        type: secrez.config.types.DIR
+        path: '/B/D/g',
+        type: secrez.config.types.TEXT,
+        content: 'some g2'
       })
 
       await internalFs.make({
         path: '/E/F/d',
-        type: secrez.config.types.TEXT
+        type: secrez.config.types.TEXT,
+        content: 'some d'
+      })
+
+      await internalFs.make({
+        path: '/E/c',
+        type: secrez.config.types.TEXT,
+        content: 'some c'
       })
 
       for (let f of files3) {
         await fs.move(`${backup}/${f}`, `${rootDir}/data/${f}`)
       }
 
-      // console.log(99)
+      await startTree()
+      // jlog(tree.alerts)
+
+      assert.equal(tree.alerts.length, 3)
+      assert.equal(tree.alerts[1], '/B/D/g')
+      assert.equal(tree.alerts[2], '/E/L')
+
+      const deleteds = Node.getTrash(tree.root).children
+      assert.equal(Object.keys(deleteds).length, 3)
+
+      // jlog(tree.root)
+
+
+    })
+
+    it('should simulate a lost index in the repo and recover the entries', async function () {
+
+      signedUp = false
 
       await startTree()
 
-      // assert.equal(tree.alerts[0], 'Some files are missing in the tree. Run "fix" to recover them.')
+      await internalFs.make({
+        path: '/A/M',
+        type: secrez.config.types.DIR
+      })
+      await internalFs.make({
+        path: '/A/C',
+        type: secrez.config.types.DIR
+      })
 
-      // inspect = stdout.inspect()
-      // await C.fix.exec()
-      // inspect.restore()
-      // assertConsole(inspect, 'Nothing to fix here.')
+      await internalFs.make({
+        path: '/A/a',
+        type: secrez.config.types.TEXT,
+        content: 'some a'
+      })
 
+      await internalFs.make({
+        path: '/B/b',
+        type: secrez.config.types.TEXT,
+        content: 'some b'
+      })
 
+      let files1 = await fs.readdir(`${rootDir}/data`)
+      for (let file of files1) {
+        if (/^0/.test(file)) {
+          await fs.unlink(path.join(tree.dataPath, file))
+        }
+      }
+
+      await startTree()
+
+      assert.equal(tree.alerts.length, 7)
+      assert.equal(tree.alerts[1], 'b')
+      assert.equal(tree.alerts[2], 'B')
+      assert.equal(tree.alerts[3], 'a')
+      assert.equal(tree.alerts[4], 'C')
+      assert.equal(tree.alerts[5], 'M')
+      assert.equal(tree.alerts[6], 'A')
+
+      let json = tree.root.toJSON()
+      assert.equal(Object.keys(json.children).length, 7)
     })
 
   })
