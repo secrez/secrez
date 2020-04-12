@@ -285,7 +285,7 @@ describe('#Node', function () {
         })
         assert.isFalse(true)
       } catch (e) {
-        assert.equal(e.message, 'You cannot modify the root node')
+        assert.equal(e.message, 'Root cannot be moved')
       }
 
     })
@@ -301,7 +301,7 @@ describe('#Node', function () {
         })
         assert.isFalse(true)
       } catch (e) {
-        assert.equal(e.message, 'You cannot modify the trash node')
+        assert.equal(e.message, 'Trash cannot be moved')
       }
 
     })

@@ -571,11 +571,11 @@ class Node {
 
   move(entry) {
     if (Node.isRoot(this)) {
-      throw new Error('You cannot modify the root node')
+      throw new Error('Root cannot be moved')
     }
 
     if (Node.isTrash(this)) {
-      throw new Error('You cannot modify the trash node')
+      throw new Error('Trash cannot be moved')
     }
 
     if (entry.id !== this.id) {
