@@ -177,12 +177,12 @@ describe('#Tree', function () {
       })
 
       await internalFs.make({
-        path: '/E/L',
+        path: '/E/L/N',
         type: secrez.config.types.DIR
       })
 
       let files2 = await fs.readdir(`${rootDir}/data`)
-      assert.equal(files2.length, 13)
+      assert.equal(files2.length, 14)
 
       let files3 = []
 
@@ -220,15 +220,13 @@ describe('#Tree', function () {
       await startTree()
       // jlog(tree.alerts)
 
-      assert.equal(tree.alerts.length, 3)
+      assert.equal(tree.alerts.length, 4)
       assert.equal(tree.alerts[1], '/B/D/g')
       assert.equal(tree.alerts[2], '/E/L')
+      assert.equal(tree.alerts[3], '/E/L/N')
 
       const deleteds = Node.getTrash(tree.root).children
       assert.equal(Object.keys(deleteds).length, 3)
-
-      // jlog(tree.root)
-
 
     })
 
