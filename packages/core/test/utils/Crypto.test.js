@@ -59,7 +59,8 @@ describe('#Crypto', function () {
           }
           chars[c]++
         }
-        assert.isTrue(Object.keys(chars).length === 58)
+        let len = i ? 58 : 49
+        assert.isTrue(Object.keys(chars).length === len)
         let min = 1e5
         let max = 0
         for (let k in chars) {
