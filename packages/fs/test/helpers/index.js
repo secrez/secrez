@@ -45,9 +45,9 @@ const helpers = {
       preserveContent: true
     })
     entry = secrez.encryptEntry(entry)
-    entry.set({
-      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
-    })
+    // entry.set({
+    //   ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
+    // })
     if (getEntry) {
       return [entry, new Node(entry)]
     }
@@ -70,9 +70,9 @@ const helpers = {
       preserveContent: true
     })
     entry = secrez.encryptEntry(entry)
-    entry.set({
-      ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
-    })
+    // entry.set({
+    //   ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
+    // })
     return entry
   },
 
