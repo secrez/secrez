@@ -115,7 +115,7 @@ describe('#Import', function () {
     inspect = stdout.inspect()
     await C.import.exec({
       path: 'folder1',
-      binarytoo: true
+      'binary-too': true
     })
     inspect.restore()
     assertConsole(inspect, ['Imported files:', 'file1', 'file1.tar.gz', 'file2'])

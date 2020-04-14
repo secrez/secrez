@@ -239,7 +239,7 @@ describe('#InternalFs', function () {
       root = internalFs.tree.root
     })
 
-    it('should create directories and files and update them', async function () {
+    it.only('should create directories and files and update them', async function () {
 
       let folder1 = await internalFs.make({
         path: '/folder1',
@@ -300,6 +300,8 @@ describe('#InternalFs', function () {
       })
 
       assert.equal(root.getChildFromPath('/folder1/file4').id, file1.id)
+
+      assert.equal(Object.keys(root.flat()).length, 6)
 
     })
 

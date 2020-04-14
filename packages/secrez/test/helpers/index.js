@@ -42,7 +42,7 @@ const helpers = {
     return str.replace(/\x1b\[[0-9;]*m/g, '')
   },
 
-  assertConsole: (inspect, message) => {
+  assertConsole: (inspect, message, includes) => {
     let output = inspect.output.map(e => helpers.decolorize(e))
     let result = []
     for (let o of output) {
@@ -58,7 +58,11 @@ const helpers = {
     }
     message = message.map(e => helpers.decolorize(e))
     for (let i = 0; i < message.length; i++) {
-      assert.equal(result[i], message[i])
+      if (includes) {
+        assert.isTrue(RegExp(message[i]).test(result[i]))
+      } else {
+        assert.equal(result[i], message[i])
+      }
     }
     return output
   },

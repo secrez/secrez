@@ -24,7 +24,7 @@ class Import extends require('../Command') {
         type: Boolean
       },
       {
-        name: 'binarytoo',
+        name: 'binary-too',
         alias: 'b',
         type: Boolean
       },
@@ -77,7 +77,7 @@ class Import extends require('../Command') {
         }
 
         let isBinary = await Utils.isBinary(fn)
-        if (isBinary && !options.binarytoo) {
+        if (isBinary && !options['binary-too']) {
           continue
         }
         content.push([fn, isBinary, await fs.readFile(fn, isBinary ? 'base64' : 'utf8')])
