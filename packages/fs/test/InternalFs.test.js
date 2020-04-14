@@ -239,7 +239,7 @@ describe('#InternalFs', function () {
       root = internalFs.tree.root
     })
 
-    it.only('should create directories and files and update them', async function () {
+    it('should create directories and files and update them', async function () {
 
       let folder1 = await internalFs.make({
         path: '/folder1',

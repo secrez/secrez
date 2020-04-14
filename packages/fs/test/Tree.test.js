@@ -33,7 +33,7 @@ describe('#Tree', function () {
     it('should instantiate the Tree', async function () {
 
       tree = new Tree(secrez)
-      assert.equal(tree.status, tree.statutes.UNLOADED)
+      assert.equal(tree.status, Tree.statutes.UNLOADED)
 
     })
 
@@ -62,7 +62,7 @@ describe('#Tree', function () {
 
       tree = new Tree(secrez)
       await tree.load()
-      assert.equal(tree.status, tree.statutes.LOADED)
+      assert.equal(tree.status, Tree.statutes.LOADED)
       assert.equal(Node.isRoot(tree.root), true)
 
     })
@@ -72,7 +72,7 @@ describe('#Tree', function () {
       tree = new Tree(secrez)
       await tree.load(rootDir)
       await tree.load(rootDir)
-      assert.equal(tree.status, tree.statutes.LOADED)
+      assert.equal(tree.status, Tree.statutes.LOADED)
 
     })
 
@@ -96,7 +96,16 @@ describe('#Tree', function () {
         type: secrez.config.types.TEXT,
         content
       })
+
+      let id = file2.id
       let file2Entry = await internalFs.tree.getEntryDetails(file2)
+      assert.equal(file2Entry.content, content)
+
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+
+      file2 = internalFs.tree.root.findChildById(id)
+      file2Entry = await internalFs.tree.getEntryDetails(file2)
       assert.equal(file2Entry.content, content)
     })
 
