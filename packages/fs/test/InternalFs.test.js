@@ -106,9 +106,9 @@ describe('#InternalFs', function () {
 
       p = '~~~///~/casa/~~/sasa//../ra'
       assert.equal(internalFs.normalizePath(p), '/casa/ra')
-      assert.equal(internalFs.getNormalizedPath(p), '/casa/ra')
+      assert.equal(internalFs.tree.getNormalizedPath(p), '/casa/ra')
 
-      assert.equal(internalFs.getNormalizedPath('~~'), '/')
+      assert.equal(internalFs.tree.getNormalizedPath('~~'), '/')
 
     })
 
@@ -153,8 +153,8 @@ describe('#InternalFs', function () {
 
     it('should normalize a path', async function () {
       let p = '~~~///~/casa/~~/sasa//../ra'
-      assert.equal(internalFs.getNormalizedPath(p), '/casa/ra')
-      assert.equal(internalFs.getNormalizedPath('~~'), '/')
+      assert.equal(internalFs.tree.getNormalizedPath(p), '/casa/ra')
+      assert.equal(internalFs.tree.getNormalizedPath('~~'), '/')
     })
 
   })

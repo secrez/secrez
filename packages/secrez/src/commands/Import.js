@@ -86,7 +86,7 @@ class Import extends require('../Command') {
       let result = []
       let moved = []
       for (let fn of content) {
-        let name = await ifs.getVersionedBasename(path.basename(fn[0]))
+        let name = await this.tree.getVersionedBasename(path.basename(fn[0]))
         result.push(name)
         if (!options.simulate) {
           if (options.move) {

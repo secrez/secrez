@@ -58,7 +58,7 @@ class Export extends require('../Command') {
     let efs = this.externalFs
     let cat = this.prompt.commands.cat
     let lpwd = this.prompt.commands.lpwd
-    let p = ifs.getNormalizedPath(options.path)
+    let p = this.tree.getNormalizedPath(options.path)
     let file = ifs.tree.root.getChildFromPath(p)
     if (Node.isFile(file)) {
       let entry = (await cat.cat({
