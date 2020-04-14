@@ -281,6 +281,62 @@ class Node {
     return node
   }
 
+  flat(list = {}) {
+    // flats the tree starting from a dir
+    let p = this.getPath()
+    list[p] = this.versions
+    if (this.children) {
+      for (let id in this.children) {
+        let child = this.children[id]
+        child.flat(list)
+      }
+    }
+    return list
+  }
+
+  static getFindRe(options) {
+    return RegExp(Entry.sanitizeName(options.name), options.sensitive ? '' : 'i')
+  }
+
+  async find(options, list = []) {
+    if (!options.name) {
+      return list
+    }
+    let re = Node.getFindRe(options)
+    let p = this.getPath()
+    if (this.versions && options.name) {
+      for (let ts in this.versions) {
+        if (options.all || ts === this.lastTs) {
+          let name = this.versions[ts].name
+          if (re.test(name)) {
+            list.push([
+              Node.hashVersion(ts),
+              p,
+              name
+            ])
+          } else if (options.content && options.tree) {
+            let {content} = await options.tree.getEntryDetails(this, ts)
+            if (re.test(content || '')) {
+              list.push([
+                Node.hashVersion(ts),
+                p,
+                undefined,
+                true
+              ])
+            }
+          }
+        }
+      }
+    }
+    if (this.children) {
+      for (let id in this.children) {
+        let child = this.children[id]
+        await child.find(options, list)
+      }
+    }
+    return list
+  }
+
   static initGenericRoot() {
     let root = new Node(
         new Entry({

@@ -15,7 +15,7 @@ class Pwd extends require('../Command') {
   }
 
   async pwd() {
-    return this.internalFs.tree.workingNode.getPath()
+    return this.tree.workingNode.getPath()
   }
 
   async exec() {

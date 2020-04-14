@@ -8,18 +8,12 @@ class Tree {
 
   constructor(secrez) {
 
-    this.statutes = {
-      UNLOADED: 0,
-      LOADED: 1,
-      BROKEN: 2
-    }
-
     this.alerts = []
 
     if (secrez && secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
       this.dataPath = secrez.config.dataPath
-      this.status = this.statutes.UNLOADED
+      this.status = Tree.statutes.UNLOADED
       this.errors = []
     } else {
       throw new Error('Tree requires a Secrez instance during construction')
@@ -65,7 +59,7 @@ class Tree {
 
   async load() {
 
-    if (this.status === this.statutes.LOADED) {
+    if (this.status === Tree.statutes.LOADED) {
       return
     }
 
@@ -173,7 +167,7 @@ class Tree {
       this.root = Node.initGenericRoot()
     }
     this.workingNode = this.root
-    this.status = this.statutes.LOADED
+    this.status = Tree.statutes.LOADED
   }
 
   async addAsChildOrVersion(parent, entry) {
@@ -419,6 +413,12 @@ Tree.fragments = [
   '"',
   ','
 ]
+
+Tree.statutes = {
+  UNLOADED: 0,
+  LOADED: 1,
+  BROKEN: 2
+}
 
 
 module.exports = Tree

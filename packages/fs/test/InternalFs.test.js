@@ -301,6 +301,8 @@ describe('#InternalFs', function () {
 
       assert.equal(root.getChildFromPath('/folder1/file4').id, file1.id)
 
+      assert.equal(Object.keys(root.flat()).length, 6)
+
     })
 
     it('should return an error', async function () {

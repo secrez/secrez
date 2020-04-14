@@ -65,10 +65,15 @@ class Help extends require('../Command') {
           this.Logger.log(
               'black',
               spacer + '-' + c.alias + ', --' + c.name + ' '.repeat(max - c.name.length + 3),
-              'grey', type + (c.defaultOption
-                  ? (type !== 'Boolean' ? '    ' : '  ') + '(default)'
-                  : ''
-          ))
+              'grey',
+              type + (type !== 'Boolean' ? '   ' : '  ') + (
+                  c.defaultOption
+                      ? '(default)'
+                      : '         '
+              ),
+              'grey',
+              c.hint ? ' (' + c.hint +')' : ''
+          )
         }
       }
     }

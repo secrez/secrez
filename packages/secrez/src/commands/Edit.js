@@ -47,7 +47,7 @@ class Edit extends require('../Command') {
   async edit(options) {
     let file = options.path
     let data = await this.prompt.commands.cat.cat({path: file})
-    let node = this.internalFs.tree.root.getChildFromPath(file)
+    let node = this.tree.root.getChildFromPath(file)
     let {content} = data[0]
     let extraMessage = chalk.dim('Press <enter> to launch ')
         + (
@@ -74,7 +74,7 @@ class Edit extends require('../Command') {
     if (newContent && newContent !== content) {
       let entry = node.getEntry()
       entry.content = newContent
-      await this.internalFs.tree.update(node, entry)
+      await this.tree.update(node, entry)
       this.Logger.reset('File saved.')
     } else {
       this.Logger.reset('Changes aborted or file not changed')

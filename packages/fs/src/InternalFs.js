@@ -121,30 +121,6 @@ class InternalFs {
     return deleted
   }
 
-  async getEntryDetails(node, ts) {
-    let content
-    if (Node.isFile(node)) {
-      content = node.getContent(ts)
-      if (!content) {
-        // must be read from disk
-        let entry = node.getEntry(ts)
-        let fullPath = this.getFullPath(entry)
-        let [encryptedContent, extraName] = (await fs.readFile(fullPath, 'utf8')).split('I')
-        entry.encryptedContent = encryptedContent
-        entry.extraName = extraName
-        let decryptedEntry = this.secrez.decryptEntry(entry)
-        content = decryptedEntry.content
-      }
-    }
-    return {
-      type: node.type,
-      id: node.id,
-      name: node.getName(ts),
-      content,
-      ts: ts || node.lastTs
-    }
-  }
-
   getNormalizedPath(p = '/') {
     p = p.replace(/^~+/, '~').replace(/^~\/+/, '/').replace(/~+/g, '')
     if (!p) {

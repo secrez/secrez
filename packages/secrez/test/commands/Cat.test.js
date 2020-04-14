@@ -121,7 +121,7 @@ describe('#Cat', function () {
 
     await noPrint(C.import.exec({
       path: 'folder1',
-      binarytoo: true
+      'binary-too': true
     }))
 
     inspect = stdout.inspect()
