@@ -24,20 +24,6 @@ class Tree {
     return (await fs.readdir(this.dataPath)).filter(file => !/\./.test(file))
   }
 
-  async getAllIndexes(allFiles) {
-    if (!allFiles) {
-      allFiles = await this.getAllFiles()
-    }
-    return allFiles.filter(f => /^0/.test(f))
-  }
-
-  async getAllSecrets(allFiles) {
-    if (!allFiles) {
-      allFiles = await this.getAllFiles()
-    }
-    return allFiles.filter(f => /^[1-3]{1}/.test(f))
-  }
-
   async decryptSecret(file) {
     let entry = new Entry({
       encryptedName: file,
@@ -100,7 +86,7 @@ class Tree {
 
         allIndexes.sort(Node.sortEntry)
         let allSecretsFiles = allSecrets.map(e => e.encryptedName)
-        let json = Tree.deobfuscate(allIndexes[0].content)
+        let json = JSON.parse(allIndexes[0].content)
         this.root = Node.fromJSON(json, this.secrez, allSecretsFiles)
         this.workingNode = this.root
 
@@ -117,7 +103,7 @@ class Tree {
           let toBeRecovered = {}
           let recoveredEntries = []
           FOR: for (let i = 1; i < allIndexes.length; i++) {
-            json = Tree.deobfuscate(allIndexes[i].content)
+            json = JSON.parse(allIndexes[i].content)
             let root = Node.fromJSON(json, this.secrez, allSecretsFiles)
             allFilesOnTree = Tree.getAllFilesOnTree(root).sort()
             for (let j = 0; j < filesNotOnTree.length; j++) {
@@ -365,7 +351,7 @@ class Tree {
     }
     rootEntry.set({
       name: Crypto.getRandomBase58String(4),
-      content: Tree.obfuscate(this.root.toCompressedJSON(null, null, await this.getAllFiles())),
+      content: JSON.stringify(this.root.toCompressedJSON(null, null, await this.getAllFiles())),
       preserveContent: true
     })
     rootEntry = this.secrez.encryptEntry(rootEntry)
@@ -373,82 +359,8 @@ class Tree {
     this.previousRootEntry = rootEntry
   }
 
-  static obfuscate(json) {
-    let chars = []
-    let substs = {}
-    for (let f of Tree.fragments) {
-      let c
-      for (; ;) {
-        c = Crypto.randomCharNotInBase58()
-        if (!chars.includes(c)) {
-          chars.push(c)
-          substs[f] = c
-          break
-        }
-      }
-    }
-    let str = chars.join('')
-    for (let i = 0; i < 5 + Math.round(Math.random() * 5); i++) {
-      let c
-      for (; ;) {
-        c = Crypto.randomCharNotInBase58()
-        if (!chars.includes(c)) {
-          str += c
-          break
-        }
-      }
-    }
-    if (typeof json === 'object') {
-      json = JSON.stringify(json)
-    }
-    json = json.replace(/\{/g, substs['{'])
-    json = json.replace(/\}/g, substs['}'])
-    json = json.replace(/\[/g, substs['['])
-    json = json.replace(/\]/g, substs[']'])
-    json = json.replace(/:/g, substs[':'])
-    json = json.replace(/"v"/g, substs['"v"'])
-    json = json.replace(/"c"/g, substs['"c"'])
-    json = json.replace(/"/g, substs['"'])
-    json = json.replace(/,/g, substs[','])
-    json = str + json
-    return json
-  }
-
-  static deobfuscate(json) {
-    let frs = Tree.fragments
-    let substs = {}
-    let first
-    for (let i = 0; i < frs.length; i++) {
-      if (!i) {
-        first = json[0]
-      }
-      substs[frs[i]] = json[i]
-    }
-    for (let i = frs.length; i < 20; i++) {
-      if (json[i] === first) {
-        json = json.substring(i)
-        break
-      }
-    }
-    for (let i = frs.length - 1; i >= 0; i--) {
-      json = json.replace(RegExp(substs[frs[i]], 'g'), frs[i])
-    }
-    return JSON.parse(json)
-  }
-
 }
 
-Tree.fragments = [
-  '{',
-  '}',
-  '[',
-  ']',
-  ':',
-  '"v"',
-  '"c"',
-  '"',
-  ','
-]
 
 Tree.statutes = {
   UNLOADED: 0,

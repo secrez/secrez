@@ -101,6 +101,9 @@ describe('#Tree', function () {
       let file2Entry = await internalFs.tree.getEntryDetails(file2)
       assert.equal(file2Entry.content, content)
 
+      let versionedName = await internalFs.tree.getVersionedBasename(file2.getPath())
+      assert.equal(versionedName, file2.getName() + '.2')
+
       internalFs = new InternalFs(secrez)
       await internalFs.init()
 
