@@ -18,7 +18,7 @@ There are two primary approaches to secrets and password management:
 1. Online systems that save the primary data online (like LastPass)
 2. Desktop tools who keep data in the computer (like KeyPass)
 
-As you know or can imagine, an Online Password Manager requires that you trust the remote server.  
+As you know or can imagine, an Online Password Manager requires that you trust the remote server.
 I founded Passpack in 2006, and I know very well how, at any moment, you can add a backdoor, and probably nobody will notice it. A malicious service could also inject a backdoor only for a specific user.
 
 The second case, a desktop tool is intrinsically more secure, but it is hard to use on more than one computer.
@@ -28,7 +28,7 @@ Secrez goal is to be as safe as KeyPass but available everywhere, like Lastpass.
 
 To obtain this goal, Secrez assembles a few strategies:
 
-- Any secret is a local file 
+- Any secret is a local file
 - Any file — besides if it is a tree version, a directory, a text file, or a binary file — is immutable
 - Any change can be pulled/pushed to a remote private repo
 
@@ -43,10 +43,10 @@ In any case, even if you make changes parallelly, the changes won't generate any
 One of the primary goal of a secrets manager is that you will never lose any data.
 
 However, since only the most recent index is read, some secrets could be in the folder and not been loaded.
- 
-Let do an example. Alice uses Secrez on computer A and computer B. The two data sets are aligned. Suddenly, GitHub is down and she has to make some change on both computers. 
 
-When GitHub is up again, she pushes master on A and everything goes fine. 
+Let do an example. Alice uses Secrez on computer A and computer B. The two data sets are aligned. Suddenly, GitHub is down and she has to make some change on both computers.
+
+When GitHub is up again, she pushes master on A and everything goes fine.
 
 She pulls on B and pushes.
 Now, the data online are not consistent because some secrets are in one index, some are in the other one.
@@ -75,8 +75,8 @@ where `1` is the type (DIR, other types are TEXT and BINARY), `VAnGLojzCDWhfZRK8
 
 Notice that everything is in Base58 format, except the separators.
 
-The last part of the filename is the combination of id, timestamp, and actual filename.  
-This implies that, at bootstrap, Secrez must read all the files' names and build a tree of the entire file system. This is done using particular files: trees. Only after reading all the data, Secrez is able to understand which is the tree and, if something is missed, add the missing secrets. Since everything is encrypted, there is no information deductible from the files on disk, except what you can deduct from the Git repo (mostly about versioning and timestamp). But the idea is to use a private repo, so this is a minor issue.  
+The last part of the filename is the combination of id, timestamp, and actual filename.
+This implies that, at bootstrap, Secrez must read all the files' names and build a tree of the entire file system. This is done using particular files: trees. Only after reading all the data, Secrez is able to understand which is the tree and, if something is missed, add the missing secrets. Since everything is encrypted, there is no information deductible from the files on disk, except what you can deduct from the Git repo (mostly about versioning and timestamp). But the idea is to use a private repo, so this is a minor issue.
 
 To mitigate this risk, you can create a new Git repo, save everything as the first commit, and delete the previously used repo. This way, you lose the repo's history, but you also lose info about timestamps and versions in case someone gains access to the repo.
 
@@ -140,6 +140,7 @@ Available options:
   edit    Edits a file containing a secret.
   exit    Exits TGT.
   export  Export encrypted data to the OS in the current local folder
+  find    Find a secret.
   help    This help.
   import  Import files from the OS into the current folder
   lcat    Similar to a standard cat in the external fs.
@@ -153,7 +154,8 @@ Available options:
   rm      Removes a file or a single version of a file.
   touch   Creates a file.
   ver     Shows the version of Secrez.
-  
+
+
 To get help about single commands, specify the command.
 
 Examples:
