@@ -119,7 +119,8 @@ describe('#Cat', function () {
 
   it('should throw if trying to cat a binary file', async function () {
 
-    await noPrint(C.import.exec({
+    await noPrint(
+        C.import.exec({
       path: 'folder1',
       'binary-too': true
     }))

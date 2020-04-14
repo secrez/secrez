@@ -71,22 +71,18 @@ A file name in Secrez looks like
 ```
 1VAnGLojzCDWhfZRK8PCYK203WBzJkAA28FhKHdS7DM5SkJaTgYdGfN1MAjTdfUYSzvtDVsMJvGodoHWzMuK6zr
 ```
-where `1` is the type (DIR, other types are TEXT and BINARY), `VAnGLojzCDWhfZRK8PCYK2` is a nonce generated during the encryption, `0` is a separator, and `3WBzJkAA28FhKHdS7DM5SkJaTgYdGfN1MAjTdfUYSzvtDVsMJvGodoHWzMuK6zr` is the actual encrypted name with metadata.
+where `1` is the type (DIR, other types are TEXT and BINARY), and the rest is a encrypted message with nonce, in Base58 format.
 
-Notice that everything is in Base58 format, except the separators.
-
-The last part of the filename is the combination of id, timestamp, and actual filename.
+The encrypted part is the combination of id, timestamp, and actual filename.
 This implies that, at bootstrap, Secrez must read all the files' names and build a tree of the entire file system. This is done using particular files: trees. Only after reading all the data, Secrez is able to understand which is the tree and, if something is missed, add the missing secrets. Since everything is encrypted, there is no information deductible from the files on disk, except what you can deduct from the Git repo (mostly about versioning and timestamp). But the idea is to use a private repo, so this is a minor issue.
 
 To mitigate this risk, you can create a new Git repo, save everything as the first commit, and delete the previously used repo. This way, you lose the repo's history, but you also lose info about timestamps and versions in case someone gains access to the repo.
 
-A problem with encrypted data is that if someone knows what you are encrypting, it is generally easier to run a cryptographic attack. For this reason, metadata in Secrez are scrambled and obfuscated using ASCII chars not part of the Base58 set, selected randomly at any save.
+_Secrez versions < 0.5.0 where scrambling the metadata. Talking with Nacl experts, it came out that that was an overkill, and it has been removed in version 0.5.0. If in the database there are previously encrypted data, they won't be "converted" because it would break the rule of file immutability. Be careful._
 
 #### The tree
 
 Secrez manages trees as single immutable files. During a session, temporary files are deleted to keep their number low, but at the exit, the last file remains in the repo.
-
-The saved tree is a special compressed JSON, obfuscated to make it harder to attack it.
 
 #### Security details
 

@@ -44,6 +44,14 @@ describe('#Crypto', function () {
       assert.equal(Crypto.fromBase58('5Q').toString('utf8'), Buffer.from([255]))
     })
 
+    it('should get random not base58 chars', async function () {
+      assert.isTrue(Crypto.notBase58Alphabet.includes(Crypto.randomCharNotInBase58()))
+    })
+
+    it('should verify a char is over base58 chars', async function () {
+      assert.isTrue(Crypto.isCharNotInBase58('Ü'))
+    })
+
     it('should verify that the random id is random enough', async function () {
 
       let allIds = {}

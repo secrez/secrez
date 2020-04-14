@@ -69,7 +69,7 @@ class Cat extends require('../Command') {
 
   async cat(options, justContent) {
     let ifs = this.internalFs
-    let p = ifs.getNormalizedPath(options.path)
+    let p = this.tree.getNormalizedPath(options.path)
     let node = ifs.tree.root.getChildFromPath(p)
     if (node && Node.isFile(node)) {
       let result  = []

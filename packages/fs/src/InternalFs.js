@@ -121,22 +121,12 @@ class InternalFs {
     return deleted
   }
 
-  getNormalizedPath(p = '/') {
-    p = p.replace(/^~+/, '~').replace(/^~\/+/, '/').replace(/~+/g, '')
-    if (!p) {
-      p = '/'
-    }
-    let resolvedDir = path.resolve(this.tree.workingNode.getPath(), p)
-    let normalized = path.normalize(resolvedDir)
-    return normalized
-  }
-
   async pseudoFileCompletion(options = {}, addSlashIfDir) {
     if (typeof options === 'string') {
       options = {path: options}
     }
     let files = options.path || './'
-    let p = this.getNormalizedPath(files)
+    let p = this.tree.getNormalizedPath(files)
     let end
     let node
     try {
@@ -171,22 +161,6 @@ class InternalFs {
       }
     }
     return []
-  }
-
-  async getVersionedBasename(p) {
-    p = this.getNormalizedPath(p)
-    let dir = path.dirname(p)
-    let fn = path.basename(p)
-    let name = fn
-    let v = 1
-    for (; ;) {
-      try {
-        this.tree.root.getChildFromPath(path.join(dir, name))
-        name = fn + '.' + (++v)
-      } catch (e) {
-        return name
-      }
-    }
   }
 
 }

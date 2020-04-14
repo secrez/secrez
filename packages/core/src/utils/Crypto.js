@@ -76,13 +76,13 @@ class Crypto {
   }
 
   static randomCharNotInBase58() {
-    let alphabet = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþ'
-    return alphabet[Math.floor(Math.random() * alphabet.length)]
+    return Crypto.notBase58Alphabet[Math.floor(Math.random() * Crypto.notBase58Alphabet.length)]
   }
 
   static isCharNotInBase58(char) {
-    let z = 122
-    return (char.charCodeAt(0) > z)
+    return !Crypto.base58Alphabet.includes(char)
+    // let z = 122
+    // return (char.charCodeAt(0) > z)
   }
 
   static getTimestampWithMicroseconds() {
@@ -299,5 +299,6 @@ class Crypto {
 
 Crypto.base58Alphabet = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
 Crypto.randomBytes = randomBytes
+Crypto.notBase58Alphabet = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþ'
 
 module.exports = Crypto

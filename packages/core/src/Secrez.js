@@ -185,22 +185,18 @@ class Secrez {
         throw new Error('Unsupported type')
       }
 
-      let [scrambledTs, microseconds, ts] = Crypto.scrambledTimestamp()
+      let ts = Crypto.getTimestampWithMicroseconds().join('.')
       let encryptedEntry = new Entry({
         id,
         type,
-        scrambledTs,
-        microseconds,
         ts
       })
       if (name) {
-        let encryptedName = type + Crypto.encrypt(
-            id
-            + scrambledTs
-            + Crypto.randomCharNotInBase58()
-            + microseconds
-            + Crypto.randomCharNotInBase58()
-            + name,
+        let encryptedName = type + Crypto.encrypt(JSON.stringify({
+              i: id,
+              t: ts,
+              n: name
+            }),
             _secrez.masterKey
         )
         let extraName
@@ -221,13 +217,11 @@ class Secrez {
       }
       if (content) {
         encryptedEntry.set({
-          encryptedContent: Crypto.encrypt(
-              id
-              + scrambledTs
-              + Crypto.randomCharNotInBase58()
-              + microseconds
-              + Crypto.randomCharNotInBase58()
-              + content,
+          encryptedContent: Crypto.encrypt(JSON.stringify({
+                i: id,
+                t: ts,
+                c: content
+              }),
               _secrez.masterKey
           )
         })
@@ -235,7 +229,6 @@ class Secrez {
           encryptedEntry = this.preserveEntry(entry, encryptedEntry)
         }
       }
-
       return encryptedEntry
 
     } else {
@@ -258,30 +251,6 @@ class Secrez {
       nameTs
     } = encryptedEntry.get()
 
-    function decrypt(data, key) {
-      let dec = Crypto.decrypt(data, key)
-      let id = dec.substring(0, 4)
-      let tmp = ''
-      let ts = undefined
-      let ms = undefined
-      for (let i = 4; i < dec.length; i++) {
-        let c = dec[i]
-        if (Crypto.isCharNotInBase58(c)) {
-          if (ts) {
-            ms = tmp
-            data = dec.substring(i + 1)
-            break
-          } else {
-            ts = tmp
-            tmp = c = ''
-          }
-        }
-        tmp += c
-      }
-      // console.log(ts, ms, Crypto.unscrambleTimestamp(ts, ms))
-      return [id, Crypto.unscrambleTimestamp(ts, ms), data]
-    }
-
     if (this.masterKeyHash) {
 
       try {
@@ -292,16 +261,19 @@ class Secrez {
             data = encryptedName.substring(0, 254) + extraName
           }
           let type = parseInt(data.substring(0, 1))
-          let [id, ts, name] = decrypt(data.substring(1), _secrez.masterKey)
+          let e = JSON.parse(Crypto.decrypt(data.substring(1), _secrez.masterKey))
+          let id = e.i
+          let ts = e.t
+          let name = e.n
           let content = ''
 
           // during the indexing internalFS reads only the names of the files
           if (encryptedContent) {
-            let [id2, ts2, c] = decrypt(encryptedContent, _secrez.masterKey)
-            if (id !== id2 || ts !== ts2) {
+            let e = JSON.parse(Crypto.decrypt(encryptedContent, _secrez.masterKey))
+            if (id !== e.i || ts !== e.t) {
               throw new Error('Data is corrupted')
             }
-            content = c
+            content = e.c
           }
 
           let decryptedEntry = new Entry({
@@ -321,16 +293,17 @@ class Secrez {
 
         // when the encryptedName has been already decrypted and we need only the content
         if (encryptedContent) {
-          let [id, ts, content] = decrypt(encryptedContent, _secrez.masterKey)
+          // let [id, ts, content] = decrypt(encryptedContent, _secrez.masterKey)
+          let e = JSON.parse(Crypto.decrypt(encryptedContent, _secrez.masterKey))
 
-          if ((nameId && id !== nameId) || (nameTs && ts !== nameTs)) {
+          if ((nameId && e.i !== nameId) || (nameTs && e.t !== nameTs)) {
             throw new Error('Content is corrupted')
           }
 
           let decryptedEntry = new Entry({
-            id,
-            ts,
-            content
+            id: e.i,
+            ts: e.i,
+            content: e.c
           })
 
           if (preserveContent) {
