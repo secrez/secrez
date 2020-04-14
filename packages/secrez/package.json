@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf build",
@@ -52,16 +52,16 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sullof/secrez.git"
+    "url": "git+https://github.com/secrez/secrez.git"
   },
   "author": {
     "name": "Francesco Sullo",
     "email": "francesco@sullo.co"
   },
   "bugs": {
-    "url": "https://github.com/sullof/secrez/issues"
+    "url": "https://github.com/secrez/secrez/issues"
   },
-  "homepage": "https://github.com/sullof/secrez#readme",
+  "homepage": "https://github.com/secrez/secrez#readme",
   "engines": {
     "node": ">=10.0.0"
   },
