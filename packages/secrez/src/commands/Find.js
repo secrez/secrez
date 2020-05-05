@@ -11,6 +11,11 @@ class Find extends require('../Command') {
     this.cliConfig.completion.help.find = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'name',
         alias: 'n',
         defaultOption: true,
@@ -99,6 +104,9 @@ class Find extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       let list = this.formatList(await this.find(options), options)
       if (list && list.length) {

@@ -1,9 +1,9 @@
 const assert = require('chai').assert
-
+const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {noPrint} = require('../helpers')
+const {noPrint, decolorize} = require('../helpers')
 
 const {
   password,
@@ -17,7 +17,7 @@ describe('#Create', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
-  let C
+  let inspect, C
 
   let options = {
     container: rootDir,
@@ -31,6 +31,16 @@ describe('#Create', function () {
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
+  })
+
+  it('should return the help', async function () {
+
+    inspect = stdout.inspect()
+    await C.create.exec({help: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/-h, --help/.test(output[5]))
+
   })
 
   it('should create a file', async function () {

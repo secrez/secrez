@@ -1,9 +1,9 @@
 const stdout = require('test-console').stdout
-
+const assert = require('chai').assert
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, decolorize} = require('../helpers')
 const pkg = require('../../package')
 
 const {

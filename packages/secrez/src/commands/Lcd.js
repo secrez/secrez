@@ -11,6 +11,11 @@ class Lcd extends require('../Command') {
     this.cliConfig.completion.help.lcd = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -50,6 +55,9 @@ class Lcd extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       options.all = true
       options.dironly = true

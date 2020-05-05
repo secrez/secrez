@@ -18,6 +18,11 @@ class Command {
   help() {
   }
 
+  showHelp() {
+    let command = this.constructor.name.toLowerCase()
+    this.prompt.commands.help.exec({command})
+  }
+
   setHelpAndCompletion() {
   }
 

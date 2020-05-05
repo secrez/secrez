@@ -12,6 +12,11 @@ class Rm extends require('../Command') {
     this.cliConfig.completion.help.rm = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -49,6 +54,9 @@ class Rm extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     if (!options.path) {
       this.Logger.red('File path not specified.')
     } else if (/\?\*/.test(path.basename(options.path))) {

@@ -10,6 +10,11 @@ class Lls extends require('../Command') {
     this.cliConfig.completion.help.lls = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -53,6 +58,9 @@ class Lls extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       options.returnIsDir = true
       let [isDir, list] = await this.externalFs.fileCompletion(options)

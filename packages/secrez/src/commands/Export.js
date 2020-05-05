@@ -14,6 +14,11 @@ class Export extends require('../Command') {
     this.cliConfig.completion.help.export = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -96,6 +101,9 @@ class Export extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       let name = await this.export(options)
       this.Logger.agua(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')

@@ -12,6 +12,11 @@ class Create extends require('../Command') {
     this.cliConfig.completion.help.create = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'cleartext',
         alias: 'c',
         type: Boolean
@@ -33,7 +38,9 @@ class Create extends require('../Command') {
   }
 
   async exec(options = {}) {
-
+    if (options.help) {
+      return this.showHelp()
+    }
     let exitCode = Crypto.getRandomBase58String(2)
     try {
       /* istanbul ignore if  */

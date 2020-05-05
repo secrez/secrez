@@ -1,7 +1,8 @@
-const chalk = require('chalk')
+const {chalk} = require('../utils/Logger')
 const path = require('path')
 const {Crypto, config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
+const {isYaml, yamlParse} = require('../utils')
 
 class Cat extends require('../Command') {
 
@@ -12,6 +13,11 @@ class Cat extends require('../Command') {
     }
     this.cliConfig.completion.help.cat = true
     this.optionDefinitions = [
+      {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
       {
         name: 'path',
         alias: 'p',
@@ -34,11 +40,18 @@ class Cat extends require('../Command') {
         alias: 'a',
         type: Boolean
       },
-      // {
-      //   name: 'utf8',
-      //   alias: 'u',
-      //   type: Boolean
-      // }
+      {
+        name: 'field',
+        alias: 'f',
+        type: String,
+        hint: 'Shows only the specified field if a Yaml file'
+      },
+      {
+        name: 'unformatted',
+        alias: 'u',
+        type: Boolean,
+        hint: 'If a Yaml file, it does not format the output'
+      }
     ]
   }
 
@@ -51,7 +64,8 @@ class Cat extends require('../Command') {
         ['cat etherWallet -v 2UYw', 'shows the version 2UYw of the secret, if exists'],
         ['cat etherWallet -a', 'lists all the versions'],
         'cat etherWallet -mv 17TR',
-        // ['cat wallet -au', 'lists all the versions showing not-visible utf8 chars']
+        ['cat wallet.yml -f private_key', 'shows only the field private_key of a yaml file'],
+        ['cat some.yml -u', 'shows a Yaml file as is']
       ]
     }
   }
@@ -73,16 +87,53 @@ class Cat extends require('../Command') {
     let node = ifs.tree.root.getChildFromPath(p)
     if (node && Node.isFile(node)) {
       let result  = []
+      if (!isYaml(p)) {
+        delete options.field
+      }
+
+      const pushDetails = async (node, ts, field) => {
+        let details = await ifs.tree.getEntryDetails(node, ts)
+        if (!justContent && !options.unformatted && isYaml(p)) {
+          let fields
+          try {
+              fields = yamlParse(details.content || '{}')
+          } catch (e) {
+            // wrong format
+          }
+
+          const format = field => {
+            let val = fields[field]
+            if (/\n/.test(val)) {
+              val = '\n' + val
+            }
+            return [chalk.blu(field +':'), val].join(' ')
+          }
+          if (typeof fields === 'object') {
+            if (field) {
+              if (fields[field]) {
+                details.content = format(field)
+              } else {
+                details.content = chalk.yellow('-- empty field --')
+              }
+            } else {
+              let content = []
+              for (let f in fields) {
+                content.push(format(f))
+              }
+              details.content = content.join('\n')
+            }
+          }
+        }
+        result.push(details)
+      }
+
       if (options.all || options.version) {
         let versions = node.getVersions()
         for (let ts of versions) {
-          if (options.version && !options.version.includes(Node.hashVersion(ts))) {
-            continue
-          }
-          result.push(await ifs.tree.getEntryDetails(node, ts))
+          await pushDetails(node, ts, options.field)
         }
       } else {
-        result.push(await ifs.tree.getEntryDetails(node, options.ts))
+        await pushDetails(node, options.ts, options.field)
       }
       return result
     } else {
@@ -91,6 +142,9 @@ class Cat extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       let fn = path.basename(options.path)
       let data = await this.cat(options)
