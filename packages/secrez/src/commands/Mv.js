@@ -11,6 +11,11 @@ class Mv extends require('../Command') {
     this.cliConfig.completion.help.mv = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -39,6 +44,9 @@ class Mv extends require('../Command') {
 
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       if (!options.path) {
         throw new Error('An origin path is required.')

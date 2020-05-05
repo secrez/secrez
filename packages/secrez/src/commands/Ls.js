@@ -8,6 +8,11 @@ class Ls extends require('../Command') {
     this.cliConfig.completion.help.ls = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -43,6 +48,9 @@ class Ls extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       let list = await this.ls(options)
       if (list) {

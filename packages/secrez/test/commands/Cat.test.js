@@ -1,13 +1,17 @@
 const stdout = require('test-console').stdout
-
+const chai = require('chai')
+const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint} = require('../helpers')
+const {assertConsole, noPrint, decolorize} = require('../helpers')
 
 const {
   password,
-  iterations
+  iterations,
+  someYaml,
+  someModifiedYaml,
+  someMoreModifiedYaml
 } = require('../fixtures')
 
 // eslint-disable-next-line no-unused-vars
@@ -33,6 +37,16 @@ describe('#Cat', function () {
     await prompt.internalFs.init()
   })
 
+  it('should return the help', async function () {
+
+    inspect = stdout.inspect()
+    await C.cat.exec({help: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/-h, --help/.test(output[4]))
+
+  })
+
   it('should show the content of a file', async function () {
 
     await noPrint(C.touch.exec({path: '/dir1/file1', content: 'Some password'}))
@@ -54,7 +68,6 @@ describe('#Cat', function () {
     assertConsole(inspect, ['Some password'])
 
   })
-
 
   it('should show either one or all the versions of a file', async function () {
 
@@ -121,14 +134,66 @@ describe('#Cat', function () {
 
     await noPrint(
         C.import.exec({
-      path: 'folder1',
-      'binary-too': true
-    }))
+          path: 'folder1',
+          'binary-too': true
+        }))
 
     inspect = stdout.inspect()
     await C.cat.exec({path: '/file1.tar.gz'})
     inspect.restore()
     assertConsole(inspect, ['-- this is a binary file --'])
+
+  })
+
+  it('should show the content of a Yaml file', async function () {
+
+    let {internalFs} = prompt
+    let {config} = prompt.secrez
+
+    let yml = await noPrint(internalFs.make({
+      path: 'file.yml',
+      type: config.types.TEXT,
+      content: someYaml
+    }))
+
+    await noPrint(internalFs.change({
+      path: 'file.yml',
+      content: someModifiedYaml
+    }))
+
+    await noPrint(internalFs.change({
+      path: 'file.yml',
+      content: someMoreModifiedYaml
+    }))
+
+    inspect = stdout.inspect()
+    await C.cat.exec({path: 'file.yml', field: 'password'})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.equal(output[0], 'password: 93939393848484\n')
+
+    inspect = stdout.inspect()
+    await C.cat.exec({path: 'file.yml'})
+    inspect.restore()
+    output = inspect.output.map(e => decolorize(e))
+    assert.equal(output[0].split('\n')[2], 'private_key: asdjahejkhkasdhaskjdhsakjdhewkhfwekfhfhasdjas')
+
+    inspect = stdout.inspect()
+    await C.cat.exec({path: 'file.yml', all: true, field: 'expose'})
+    inspect.restore()
+    output = inspect.output.map(e => decolorize(e))
+
+    assert.equal(output[1],  'expose: 6379\n')
+    assert.equal(output[3],  '-- empty field --\n')
+    assert.equal(output[5],  'expose: 6378\n')
+
+    inspect = stdout.inspect()
+    await C.cat.exec({path: 'file.yml', all: true})
+    inspect.restore()
+    output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/urls/.test(output[1]))
+    assert.isFalse(/urls/.test(output[3]))
+    assert.isFalse(/urls/.test(output[5]))
 
   })
 

@@ -3,6 +3,13 @@ class Pwd extends require('../Command') {
   setHelpAndCompletion() {
     this.cliConfig.completion.pwd = {}
     this.cliConfig.completion.help.pwd = true
+    this.optionDefinitions = [
+      {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      }
+    ]
   }
 
   help() {
@@ -18,7 +25,10 @@ class Pwd extends require('../Command') {
     return this.tree.workingNode.getPath()
   }
 
-  async exec() {
+  async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       this.Logger.reset(await this.pwd())
     } catch (e) {

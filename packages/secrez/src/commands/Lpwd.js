@@ -3,6 +3,13 @@ class Lpwd extends require('../Command') {
   setHelpAndCompletion() {
     this.cliConfig.completion.lpwd = {}
     this.cliConfig.completion.help.lpwd = true
+    this.optionDefinitions = [
+      {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      }
+    ]
   }
 
   help() {
@@ -20,7 +27,10 @@ class Lpwd extends require('../Command') {
     return this.cliConfig.localWorkingDir
   }
 
-  async exec() {
+  async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       this.Logger.reset(await this.lpwd())
     } catch (e) {

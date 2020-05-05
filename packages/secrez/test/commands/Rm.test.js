@@ -1,11 +1,11 @@
 const stdout = require('test-console').stdout
-
+const assert = require('chai').assert
 const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole, decolorize} = require('../helpers')
 
 const {
   password,
@@ -33,6 +33,16 @@ describe('#Rm', function () {
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
+  })
+
+  it('should return the help', async function () {
+
+    inspect = stdout.inspect()
+    await C.rm.exec({help: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/-h, --help/.test(output[7]))
+
   })
 
   it('should delete a file with one version', async function () {

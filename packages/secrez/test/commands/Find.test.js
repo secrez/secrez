@@ -1,9 +1,10 @@
 const stdout = require('test-console').stdout
-
+const chai = require('chai')
+const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint} = require('../helpers')
+const {assertConsole, noPrint, decolorize} = require('../helpers')
 
 const {
   password,
@@ -31,6 +32,16 @@ describe('#Find', function () {
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
+  })
+
+  it('should return the help', async function () {
+
+    inspect = stdout.inspect()
+    await C.find.exec({help: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/-h, --help/.test(output[5]))
+
   })
 
   it('should show find a string in the tree', async function () {

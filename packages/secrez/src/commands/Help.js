@@ -98,7 +98,7 @@ class Help extends require('../Command') {
         if (c) {
           this.Logger.log('black', spacer + e + ' '.repeat(max - e.length + 1), 'grey', c)
         } else {
-          this.Logger.log('black', spacer + e)
+          this.Logger.reset(spacer + e)
         }
       }
     }

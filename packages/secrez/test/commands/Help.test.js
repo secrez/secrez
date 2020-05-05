@@ -36,6 +36,16 @@ describe('#Help', function () {
     await prompt.internalFs.init()
   })
 
+  it('should return the help', async function () {
+
+    inspect = stdout.inspect()
+    await C.help.exec({help: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/Available options/.test(output[1]))
+
+  })
+
   it('#exec and format', async function () {
 
     inspect = stdout.inspect()

@@ -11,6 +11,11 @@ class Lcat extends require('../Command') {
     this.cliConfig.completion.help.lcat = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -45,6 +50,9 @@ class Lcat extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       let data = await this.lcat(options)
       this.Logger.reset(data)

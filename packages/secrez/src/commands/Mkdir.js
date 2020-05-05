@@ -10,6 +10,11 @@ class Mkdir extends require('../Command') {
     this.cliConfig.completion.help.mkdir = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -35,6 +40,9 @@ class Mkdir extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     if (!options.path) {
       this.Logger.red('Directory path not specified.')
     } else {

@@ -36,6 +36,16 @@ describe('#Lls', function () {
     await prompt.internalFs.init()
   })
 
+  it('should return the help', async function () {
+
+    inspect = stdout.inspect()
+    await C.lls.exec({help: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/-h, --help/.test(output[5]))
+
+  })
+
   it('should list a folder', async function () {
 
     inspect = stdout.inspect()

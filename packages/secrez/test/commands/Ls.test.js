@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint} = require('../helpers')
+const {assertConsole, noPrint, decolorize} = require('../helpers')
 
 const {
   password,
@@ -33,6 +33,16 @@ describe('#Ls', function () {
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
+
+  })
+
+  it('should return the help', async function () {
+
+    inspect = stdout.inspect()
+    await C.ls.exec({help: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/-h, --help/.test(output[4]))
 
   })
 
@@ -68,6 +78,12 @@ describe('#Ls', function () {
     await C.ls.exec({path: '/dir1/dir2A/dir6', list: true})
     inspect.restore()
     assert.isTrue(inspect.output.length === 0)
+
+
+    inspect = stdout.inspect()
+    await C.ls.exec({path: '/dir1/dir2A'})
+    inspect.restore()
+    assertConsole(inspect, ['dir6/    dir7/    '])
 
   })
 

@@ -6,7 +6,7 @@ const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, sleep, noPrint} = require('../helpers')
+const {assertConsole, sleep, noPrint, decolorize} = require('../helpers')
 
 const {
   password,
@@ -34,6 +34,16 @@ describe('#Export', function () {
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
+  })
+
+  it('should return the help', async function () {
+
+    inspect = stdout.inspect()
+    await C.export.exec({help: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/-h, --help/.test(output[6]))
+
   })
 
   it('should export a file to the current local folder', async function () {

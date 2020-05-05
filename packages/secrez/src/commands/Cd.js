@@ -10,6 +10,11 @@ class Cd extends require('../Command') {
     this.cliConfig.completion.help.cd = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -49,6 +54,9 @@ class Cd extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       await this.cd(options)
     } catch (e) {

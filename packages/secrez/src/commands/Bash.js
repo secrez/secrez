@@ -10,6 +10,11 @@ class Bash extends require('../Command') {
     this.noAutoComplete = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'command',
         alias: 'c',
         type: String,
@@ -34,6 +39,9 @@ class Bash extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       this.Logger.reset(await this.bash(options))
     } catch (e) {

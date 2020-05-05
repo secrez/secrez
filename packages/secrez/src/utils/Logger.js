@@ -4,6 +4,15 @@ const path = require('path')
 
 let jsonIndent = 0
 
+
+chalk.blu = str => {
+  return chalk.rgb(40, 160, 210).dim(str)
+}
+
+chalk.agua = str => {
+  return chalk.rgb(40, 210, 160).dim(str)
+}
+
 class Logger {
 
   static red(str) {
@@ -27,7 +36,7 @@ class Logger {
   }
 
   static agua(str) {
-    console.info(chalk.rgb(40, 210, 160).dim(str))
+    Logger.log('agua', str)
   }
 
   static blue(str) {
@@ -51,7 +60,7 @@ class Logger {
   }
 
   static blu(str) {
-    console.info(chalk.rgb(10, 100, 210).dim(str))
+    Logger.log('blu', str)
   }
 
   static format(data) {
@@ -90,6 +99,8 @@ module.exports = Logger
 module.exports.debug = (...data) => {
   fs.appendFileSync(path.resolve(__dirname, '../../tmp/tmp.log'), '\n' + data.join(' '))
 }
+
+module.exports.chalk = chalk
 
 
 

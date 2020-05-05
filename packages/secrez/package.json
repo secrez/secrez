@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf build",
@@ -9,7 +9,7 @@
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
     "test-only": "./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
-    "posttest": "nyc check-coverage --statements 95 --branches 75 --functions 95 --lines 95"
+    "posttest": "nyc check-coverage --statements 95 --branches 80 --functions 95 --lines 95"
   },
   "nyc": {
     "include": "src",
@@ -21,16 +21,19 @@
   "dependencies": {
     "@secrez/core": "^0.5.0",
     "@secrez/fs": "^0.5.0",
+    "case": "^1.6.3",
     "chalk": "^3.0.0",
     "clipboardy": "^2.3.0",
     "command-line-args": "^5.1.1",
+    "csv-parse": "^4.9.0",
     "external-editor": "^3.1.0",
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
     "inquirer": "^7.1.0",
     "inquirer-command-prompt": "^0.0.27",
     "lodash": "^4.17.15",
-    "tiny-cli-editor": "^0.1.1"
+    "tiny-cli-editor": "^0.1.1",
+    "yaml": "^1.9.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",

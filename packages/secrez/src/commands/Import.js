@@ -13,6 +13,11 @@ class Import extends require('../Command') {
     this.cliConfig.completion.help.import = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -111,6 +116,9 @@ class Import extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     try {
       let files = await this.import(options)
       if (files.length) {

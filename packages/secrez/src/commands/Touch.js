@@ -10,6 +10,11 @@ class Touch extends require('../Command') {
     this.cliConfig.completion.help.touch = true
     this.optionDefinitions = [
       {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      },
+      {
         name: 'path',
         alias: 'p',
         defaultOption: true,
@@ -38,19 +43,22 @@ class Touch extends require('../Command') {
   }
 
   async touch(options) {
+    let sanitizedPath = Entry.sanitizePath(options.path)
+    if (sanitizedPath !== options.path) {
+      throw new Error('A filename cannot contain \\/><|:&?* chars.')
+    }
+    options.type = config.types.TEXT
     return await this.internalFs.make(options)
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     if (!options.path) {
       this.Logger.red('File path not specified.')
     } else {
       try {
-        let sanitizedPath = Entry.sanitizePath(options.path)
-        if (sanitizedPath !== options.path) {
-          throw new Error('A filename cannot contain \\/><|:&?* chars.')
-        }
-        options.type = config.types.TEXT
         await this.touch(options)
         this.Logger.grey(`New file "${options.path}" created.`)
       } catch (e) {
