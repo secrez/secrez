@@ -108,7 +108,7 @@ class Edit extends require('../Command') {
     } else {
       delete options.field
     }
-    let node = this.tree.root.getChildFromPath(file)
+    let node = this.tree.workingNode.getChildFromPath(file)
     let content = options.field ? fields[options.field] || '' : data[0].content
     let message = 'your OS default editor.'
     if (options.internal) {

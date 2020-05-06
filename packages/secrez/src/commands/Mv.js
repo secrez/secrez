@@ -51,7 +51,7 @@ class Mv extends require('../Command') {
       if (!options.path) {
         throw new Error('An origin path is required.')
       } else {
-        if (this.tree.root.getChildFromPath(options.path)) {
+        if (this.tree.workingNode.getChildFromPath(options.path)) {
           let prompt = this.prompt
           let exitCode = Crypto.getRandomBase58String(2)
           let destination = options.destination

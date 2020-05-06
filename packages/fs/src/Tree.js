@@ -244,16 +244,20 @@ class Tree {
     return normalized
   }
 
-  async getVersionedBasename(p) {
+  async getVersionedBasename(p, node = this.root) {
     p = this.getNormalizedPath(p)
     let dir = path.dirname(p)
     let fn = path.basename(p)
-    let name = fn
+    let ext = path.extname(p)
+    if (ext) {
+      fn = fn.replace(RegExp(ext.replace(/\./, '\\.') + '$'), '')
+    }
+    let name = fn + ext
     let v = 1
     for (; ;) {
       try {
-        this.root.getChildFromPath(path.join(dir, name))
-        name = fn + '.' + (++v)
+        node.getChildFromPath(path.join(dir, name))
+        name = fn + '.' + (++v) + ext
       } catch (e) {
         return name
       }
@@ -336,9 +340,6 @@ class Tree {
             )
             : ''
     await fs.writeFile(fullPath, encryptedContent)
-    // entry.set({
-    //   ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
-    // })
     return entry
   }
 
