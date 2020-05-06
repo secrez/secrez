@@ -223,7 +223,7 @@ describe('#Import', function () {
 
     inspect = stdout.inspect()
     await C.import.exec({
-      path: '../some.json',
+      path: '../some.csv',
       expand: './imported'
     })
     inspect.restore()
@@ -232,11 +232,50 @@ describe('#Import', function () {
       '/folder/imported/webs/SampleEntryTitle.yml',
       '/folder/imported/passwords/twitter/Multi-Line Test Entry.yml',
       '/folder/imported/tests/Entry To Test/Special Characters.yml',
-      '/folder/imported/tests/Entry To Test/JSON data/1.yml'])
+      '/folder/imported/tests/Entry To Test/JSON data/1.yml',
+      '/folder/imported/webs/SampleEntryTitle.2.yml'
+    ])
 
     let newSecret = await C.cat.cat({path: '/folder/imported/webs/SampleEntryTitle.yml', unformatted: true})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     assert.equal(newSecret[0].content.split('\n')[1], 'password: ycXfARD2G1AOBzLlhtbn')
+
+  })
+
+  it('should throw importing a malformed backup', async function () {
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../bad0.csv',
+      expand: './imported'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['The file does not exist'])
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../bad1.csv',
+      expand: './imported'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['A "path" column in mandatory'])
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../bad2.csv',
+      expand: './imported'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['The data is empty'])
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../bad3.csv',
+      expand: './imported'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['The header of the CSV looks wrong'])
+
 
   })
 

@@ -150,7 +150,7 @@ describe('#Cat', function () {
     let {internalFs} = prompt
     let {config} = prompt.secrez
 
-    let yml = await noPrint(internalFs.make({
+    await noPrint(internalFs.make({
       path: 'file.yml',
       type: config.types.TEXT,
       content: someYaml

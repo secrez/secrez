@@ -101,7 +101,7 @@ describe('#Mv', function () {
       type: config.types.TEXT
     })
 
-    let dir = await C.mkdir.mkdir({
+    await C.mkdir.mkdir({
       path: '/f1/f5/f6',
       type: config.types.DIR
     })

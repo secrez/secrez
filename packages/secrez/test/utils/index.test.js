@@ -2,7 +2,6 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const jlog = require('../helpers/jlog')
 const {isYaml, yamlParse, yamlStringify, fromCsvToJson} = require('../../src/utils')
 
 const {yml, yml2} = require('../fixtures')
@@ -23,7 +22,7 @@ describe  ('#utils', function () {
     it('should convert a CSV file to an importable JSON file', async function () {
 
       const result = fromCsvToJson(csvSample)
-      assert.equal(result.length, 4)
+      assert.equal(result.length, 5)
       assert.equal(Object.keys(result[0]).length, 6)
       assert.equal(result[0].login_name, 'Greg')
       assert.equal(result[1].comments.split('\n').length, 7)

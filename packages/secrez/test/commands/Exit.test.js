@@ -1,10 +1,8 @@
 const stdout = require('test-console').stdout
-const chai = require('chai')
-const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize} = require('../helpers')
+const {assertConsole} = require('../helpers')
 
 const {
   password,
