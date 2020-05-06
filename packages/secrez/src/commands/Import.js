@@ -77,9 +77,6 @@ class Import extends require('../Command') {
   }
 
   async import(options = {}) {
-    if (options.expand) {
-      return await this.expand(options)
-    }
     let ifs = this.internalFs
     let efs = this.externalFs
     let p = efs.getNormalizedPath(options.path)
@@ -151,10 +148,20 @@ class Import extends require('../Command') {
         throw new Error('The file has a wrong format')
       }
     }
-    let result = []
-    if (data.length === 0 || !data[0].path) {
+    if (data.length === 0) {
+      throw new Error('The data is empty')
+    }
+    if (!data[0].path) {
       throw new Error('The data does not show a path field')
     }
+    let extra = ''
+    if (options.simulate) {
+      extra = ' (simulation)'
+    } else if (options.move) {
+      extra = ' (moved)'
+    }
+    this.Logger.agua(`Imported files${extra}:`)
+
     let parentFolderPath = this.internalFs.tree.getNormalizedPath(options.expand)
     let parentFolder
     try {
@@ -185,7 +192,7 @@ class Import extends require('../Command') {
         name += '.yml'
       }
       name = await this.tree.getVersionedBasename(name, dir)
-      result.push(path.join(dirname, name))
+      this.Logger.reset(path.join(dirname, name))
       if (!options.simulate) {
         delete item.path
         await ifs.make({
@@ -198,7 +205,6 @@ class Import extends require('../Command') {
     if (!options.simulate && options.move) {
       await fs.unlink(fn)
     }
-    return result
   }
 
   async exec(options = {}) {
@@ -206,18 +212,22 @@ class Import extends require('../Command') {
       return this.showHelp()
     }
     try {
-      let files = await this.import(options)
-      if (files.length) {
-        let extra = ''
-        if (options.simulate) {
-          extra = ' (simulation)'
-        } else if (options.move) {
-          extra = ' (moved)'
-        }
-        this.Logger.agua(`Imported files${extra}:`)
-        this.Logger.reset(files.join('\n'))
+      if (options.expand) {
+        await this.expand(options)
       } else {
-        this.Logger.red('No file has been imported.')
+        let files = await this.import(options)
+        if (files.length) {
+          let extra = ''
+          if (options.simulate) {
+            extra = ' (simulation)'
+          } else if (options.move) {
+            extra = ' (moved)'
+          }
+          this.Logger.agua(`Imported files${extra}:`)
+          this.Logger.reset(files.join('\n'))
+        } else {
+          this.Logger.red('No file has been imported.')
+        }
       }
     } catch (e) {
       console.error(e)

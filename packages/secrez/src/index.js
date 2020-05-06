@@ -29,11 +29,6 @@ const optionDefinitions = [
     type: Boolean
   },
   {
-    name: 'fix',
-    alias: 'x',
-    type: Boolean
-  },
-  {
     name: 'localDir',
     alias: 'l',
     type: String
@@ -96,15 +91,16 @@ Options:
                         It increases exponentially the safety of your password.
   -s, --saveIterations  Saves the number of iterations in env.json (which 
                         is git-ignored). Do it only if you computer is very safe.               
-  -x, --fix             Fix the tree in case files are missing or corrupted.  
   -l, --localDir        The local (out of the enctrypted fs) working dir
                       
 Examples:
   $ secrez
   $ secrez -p /var/my-secrets -i 787099 -l ~/Desktop
   $ secrez -si 1213672
-  $ secrez --fix
+  $ secrez -c ~/.secrez-archive
 `)
+  // eslint-disable-next-line no-process-exit
+  process.exit(0)
 }
 
 (async () => {

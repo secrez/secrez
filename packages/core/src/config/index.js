@@ -9,7 +9,8 @@ const config = {
     DIR: 1,
     TEXT: 2,
     BINARY: 3,
-    TRASH: 4
+    TRASH: 4,
+    TAGS: 5
   },
 
   specialId: {
@@ -18,7 +19,6 @@ const config = {
   },
 
   specialName: {
-    ROOT: '.root',
     TRASH: '.trash'
   },
 
