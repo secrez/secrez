@@ -94,6 +94,34 @@ describe('#Mv', function () {
 
   })
 
+  it('should move a file to another subfolder', async function () {
+
+    let file = await C.touch.touch({
+      path: '/f1/f2/f3/f4.txt',
+      type: config.types.TEXT
+    })
+
+    let dir = await C.mkdir.mkdir({
+      path: '/f1/f5/f6',
+      type: config.types.DIR
+    })
+
+    await C.cd.cd({
+      path: '/f1/f2'
+    })
+
+    inspect = stdout.inspect()
+    await C.mv.exec({
+      path: 'f3/f4.txt',
+      destination: '../f5/f6/f4.txt'
+    })
+    inspect.restore()
+    assertConsole(inspect, 'f3/f4.txt has been moved to ../f5/f6/f4.txt')
+
+    assert.equal(file.getPath(), '/f1/f5/f6/f4.txt')
+
+  })
+
   it('should move and rename file to another folder', async function () {
 
     let file1 = await C.touch.touch({

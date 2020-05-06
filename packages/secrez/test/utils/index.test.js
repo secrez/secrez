@@ -1,19 +1,41 @@
 const chai = require('chai')
 const assert = chai.assert
-const {isYaml, yamlParse, yamlStringify} = require('../../src/utils')
+const fs = require('fs-extra')
+const path = require('path')
+const jlog = require('../helpers/jlog')
+const {isYaml, yamlParse, yamlStringify, fromCsvToJson} = require('../../src/utils')
 
-const yml = `key: |-
-  -----BEGIN OPENSSH PRIVATE KEY-----
-  jasjhdkajsdhasdhaskdhaskjdhdsjkfhkdsfhksfhdskjfhkdhaskdhaskdhaskdhasdj
-  sdjdfdsfdjgdhjsdbcsdcnskdnafkjdsnfksandkasdnaknaskdnaskdnsadkasndasddk
-  askjfsdhfksfhkjesdhakdaj=
-  -----END OPENSSH PRIVATE KEY-----
-password: sada8893qne238n9e23e3qec93`
-
-const yml2 = 'pass: PASS\nkey: KEY'
+const {yml, yml2} = require('../fixtures')
 
 
-describe('#utils', function () {
+describe  ('#utils', function () {
+
+  let csvSample
+  let jsonSample
+
+  before(async function () {
+    csvSample = await fs.readFile(path.resolve(__dirname, '../fixtures/some.csv'), 'utf8')
+    jsonSample = require('../fixtures/some.json')
+  })
+
+  describe('fromCsvToJson', async function () {
+
+    it('should convert a CSV file to an importable JSON file', async function () {
+
+      const result = await fromCsvToJson(csvSample)
+      assert.equal(result.length, 4)
+      assert.equal(Object.keys(result[0]).length, 6)
+      assert.equal(result[0].login_name, 'Greg')
+      assert.equal(result[1].comments.split('\n').length, 7)
+      assert.equal(result[2].password, 'öäüÖÄÜß€@<>µ©®')
+
+      for (let key in result[1]) {
+        assert.equal(result[1][key], jsonSample[1][key])
+      }
+
+    })
+
+  })
 
   describe('isYaml', async function () {
 

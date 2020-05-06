@@ -19,11 +19,12 @@ describe('#Import', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let fixtures = path.resolve(__dirname, '../fixtures')
   let inspect, C
 
   let options = {
     container: rootDir,
-    localDir: path.resolve(__dirname, '../fixtures/files')
+    localDir: path.resolve(fixtures, 'files')
   }
 
   beforeEach(async function () {
@@ -48,7 +49,7 @@ describe('#Import', function () {
   it('should import a file in the current folder', async function () {
 
     let content = await C.lcat.lcat({
-      path: 'file3'
+      path: 'file0.txt'
     })
 
     await noPrint(C.mkdir.exec({
@@ -60,26 +61,32 @@ describe('#Import', function () {
 
     inspect = stdout.inspect()
     await C.import.exec({
-      path: 'file3'
+      path: 'file0.txt'
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files:', 'file3'])
+    assertConsole(inspect, ['Imported files:', '/folder/file0.txt'])
 
-    let newSecret = await C.cat.cat({path: '/folder/file3'})
+    let newSecret = await C.cat.cat({path: '/folder/file0.txt'})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     assert.equal(newSecret[0].content, content)
-
 
     inspect = stdout.inspect()
     await C.import.exec({
-      path: 'file3'
+      path: 'file0.txt'
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files:', 'file3.2'])
+    assertConsole(inspect, ['Imported files:', '/folder/file0.2.txt'])
 
-    newSecret = await C.cat.cat({path: '/folder/file3.2'})
+    newSecret = await C.cat.cat({path: '/folder/file0.2.txt'})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     assert.equal(newSecret[0].content, content)
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: 'file0.txt'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Imported files:', '/folder/file0.3.txt'])
 
   })
 
@@ -104,7 +111,7 @@ describe('#Import', function () {
       path: 'folder1'
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files:', 'file1', 'file2'])
+    assertConsole(inspect, ['Imported files:', '/folder/file1', '/folder/file2'])
 
     let newSecret = await C.cat.cat({path: '/folder/file1'})
     assert.equal(content1, newSecret[0].content)
@@ -128,7 +135,7 @@ describe('#Import', function () {
       'binary-too': true
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files:', 'file1', 'file1.tar.gz', 'file2'])
+    assertConsole(inspect, ['Imported files:', '/folder/file1', '/folder/file1.tar.gz', '/folder/file2'])
 
     let newSecret = await C.cat.cat({path: '/folder/file1.tar.gz'})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.BINARY)
@@ -150,18 +157,18 @@ describe('#Import', function () {
       simulate: true
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files (simulation):', 'file1', 'file2'])
+    assertConsole(inspect, ['Imported files (simulation):', '/folder/file1', '/folder/file2'])
 
     try {
       await C.cat.cat({path: '/folder/file1'})
       assert.isTrue(false)
-    } catch(e) {
+    } catch (e) {
       assert.equal(e.message, 'Path does not exist')
     }
     try {
       await C.cat.cat({path: '/folder/file2'})
       assert.isTrue(false)
-    } catch(e) {
+    } catch (e) {
       assert.equal(e.message, 'Path does not exist')
     }
 
@@ -195,13 +202,41 @@ describe('#Import', function () {
       move: true
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files (moved):', 'file4'])
+    assertConsole(inspect, ['Imported files (moved):', '/folder/file4'])
 
     let newSecret = await C.cat.cat({path: '/folder/file4'})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     assert.equal(newSecret[0].content, content)
 
     assert.isFalse(await fs.pathExists(dest))
+
+  })
+
+  it('should import a backup from another software spanning the data among folders and files', async function () {
+
+    await noPrint(C.mkdir.exec({
+      path: '/folder'
+    }))
+    await noPrint(C.cd.exec({
+      path: '/folder'
+    }))
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../some.json',
+      expand: './imported'
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/folder/imported/webs/SampleEntryTitle.yml',
+      '/folder/imported/passwords/twitter/Multi-Line Test Entry.yml',
+      '/folder/imported/tests/Entry To Test/Special Characters.yml',
+      '/folder/imported/tests/Entry To Test/JSON data/1.yml'])
+
+    let newSecret = await C.cat.cat({path: '/folder/imported/webs/SampleEntryTitle.yml', unformatted: true})
+    assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
+    assert.equal(newSecret[0].content.split('\n')[1], 'password: ycXfARD2G1AOBzLlhtbn')
 
   })
 

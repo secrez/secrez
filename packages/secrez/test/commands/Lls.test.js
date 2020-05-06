@@ -52,8 +52,9 @@ describe('#Lls', function () {
     await C.lls.exec({path: '*'})
     inspect.restore()
     let str = decolorize(inspect.output.join('\n'))
-    assert.isTrue(/file3 +folder1/.test(str))
-
+    assert.isTrue(/file0\.txt/.test(str))
+    assert.isTrue(/file3/.test(str))
+    assert.isTrue(/folder1/.test(str))
   })
 
   it('return en error if lls-ing a not existing path', async function () {

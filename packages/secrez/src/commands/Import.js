@@ -2,6 +2,8 @@ const fs = require('fs-extra')
 const path = require('path')
 
 const {Utils, config} = require('@secrez/core')
+const {Node} = require('@secrez/fs')
+const {fromCsvToJson, yamlStringify, isYaml} = require('../utils')
 
 class Import extends require('../Command') {
 
@@ -33,16 +35,21 @@ class Import extends require('../Command') {
         alias: 'b',
         type: Boolean
       },
-      // {
-      //   name: 'recursive',
-      //   alias: 'r',
-      //   type: Boolean
-      // },
       {
         name: 'simulate',
         alias: 's',
         type: Boolean
-      }
+      },
+      {
+        name: 'expand',
+        alias: 'e',
+        type: String
+      },
+      // {
+      //   name: 'recursive',
+      //   alias: 'r',
+      //   type: Boolean
+      // }
     ]
   }
 
@@ -54,19 +61,25 @@ class Import extends require('../Command') {
         'To include them, use the -b option.',
         'During a move, only the imported files are moved. To avoid problems',
         'you can simulate the process using -s and see which ones will be imported.',
-        'Import is not recursive, but supports wildcards.'
+        'Import can import data from password managers and other software. If in CSV format, the first line must list the field names and one field must be "path". Similarly, if in JSON format, a "path" key is mandatory in any item. Path should be relative. If not, it will be converted.'
       ],
       examples: [
         ['import seed.json', 'copies seed.json from the disk into the current directory'],
         ['import -m ethKeys', 'copies ethKeys and remove it from the disk'],
         ['import -p ~/passwords', 'imports all the files in the folder passwords'],
         // ['import -r ~/data -t', 'imports only text files in the folder, recursively'],
-        ['import ~/data -s', 'simulates the process listing all involved files']
+        ['import ~/data -s', 'simulates the process listing all involved files'],
+        ['import backup.json -e /fromPasspack', 'imports a backup expanding it to many folders and file in the folder /fromPasspack'],
+        ['import backup.json -e .', 'imports a backup in the current folder'],
+        ['import backup.csv -e /', 'imports a backup in the root']
       ]
     }
   }
 
   async import(options = {}) {
+    if (options.expand) {
+      return await this.expand(options)
+    }
     let ifs = this.internalFs
     let efs = this.externalFs
     let p = efs.getNormalizedPath(options.path)
@@ -92,7 +105,7 @@ class Import extends require('../Command') {
       let moved = []
       for (let fn of content) {
         let name = await this.tree.getVersionedBasename(path.basename(fn[0]))
-        result.push(name)
+        result.push(ifs.tree.getNormalizedPath(name))
         if (!options.simulate) {
           if (options.move) {
             moved.push(fn[0])
@@ -115,6 +128,69 @@ class Import extends require('../Command') {
     }
   }
 
+  async expand(options) {
+    let ifs = this.internalFs
+    let efs = this.externalFs
+    let p = efs.getNormalizedPath(options.path)
+    if (await fs.pathExists(p)) {
+      let str = await fs.readFile(p, 'utf-8')
+      let ext = path.extname(p)
+      let data
+      if (ext === '.json') {
+        data = JSON.parse(str)
+      } else if (ext === '.csv') {
+        data = await fromCsvToJson(str)
+      }
+      let result  = []
+      if (data.length > 0 && data[0].path) {
+        let parentFolderPath = this.internalFs.tree.getNormalizedPath(options.expand)
+        let parentFolder
+        try {
+          parentFolder = ifs.tree.root.getChildFromPath(parentFolderPath)
+        } catch (e) {
+          await this.prompt.commands.mkdir.mkdir({path: parentFolderPath, type: config.types.DIR})
+          parentFolder = ifs.tree.root.getChildFromPath(parentFolderPath)
+        }
+        if (!Node.isDir(parentFolder)) {
+          throw new Error('The destination folder is not a folder.')
+        }
+        for (let item of data) {
+          let p = item.path
+          if (!p) {
+            continue
+          }
+          p = path.resolve(parentFolderPath, p.replace(/^\//, ''))
+          let dirname = path.dirname(p)
+          let dir
+          try {
+            dir = ifs.tree.root.getChildFromPath(dirname)
+          } catch (e) {
+            await this.prompt.commands.mkdir.mkdir({path: dirname, type: config.types.DIR})
+            dir = ifs.tree.root.getChildFromPath(dirname)
+          }
+          let name = path.basename(p)
+          if (!isYaml(name)) {
+            name += '.yml'
+          }
+          name = await this.tree.getVersionedBasename(name, dir)
+          result.push(path.join(dirname, name))
+          if (!options.simulate) {
+            // if (options.move) {
+            //   moved.push(fn[0])
+            // }
+            delete item.path
+            await ifs.make({
+              path: path.join(dirname, name),
+              type: config.types.TEXT,
+              content: yamlStringify(item)
+            })
+          }
+        }
+      }
+      return result
+    }
+  }
+
   async exec(options = {}) {
     if (options.help) {
       return this.showHelp()
@@ -134,6 +210,7 @@ class Import extends require('../Command') {
         this.Logger.red('No file has been imported.')
       }
     } catch (e) {
+      console.error(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()
