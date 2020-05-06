@@ -32,11 +32,9 @@ To obtain this goal, Secrez assembles a few strategies:
 - Any file — besides if it is a tree version, a directory, a text file, or a binary file — is immutable
 - Any change can be pulled/pushed to a remote private repo
 
-You can create a private repo on, for example, GitHub.
+You can either create a private repo on GitHub, BitBucket, etc. or — much better — setting your own, self-hosted git server.
 
-For now, this is a manual approach. Still, in a future version, GitHub credentials will be encrypted in Secrez, like any other data, and used directly to pull from the repo before doing any change and push to before exiting.
-
-In any case, even if you make changes parallelly, the changes won't generate any conflict because the files are immutable.
+For now, this is a manual approach. In a future version, the git repo will be manageable from inside Secrez.
 
 #### Apparently lost secrets
 
