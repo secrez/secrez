@@ -18,22 +18,24 @@ class Welcome {
 
   async getIterations() {
     if (await fs.pathExists(cliConfig.envPath)) {
-      return require(cliConfig.envPath).iterations
-    } else {
-      let {iterations} = await inquirer.prompt([{
-        name: 'iterations',
-        type: 'input',
-        message: 'Type the number of iterations for password derivation:',
-        validate: value => {
-          if (value.length && parseInt(value) > 0) {
-            return true
-          } else {
-            return 'Please enter a valid number of iterations.'
-          }
-        }
-      }])
-      return parseInt(iterations)
+      let env = require(cliConfig.envPath)
+      if (env.iterations) {
+        return env.iterations
+      }
     }
+    let {iterations} = await inquirer.prompt([{
+      name: 'iterations',
+      type: 'input',
+      message: 'Type the number of iterations for password derivation:',
+      validate: value => {
+        if (value.length && parseInt(value) > 0) {
+          return true
+        } else {
+          return 'Please enter a valid number of iterations.'
+        }
+      }
+    }])
+    return parseInt(iterations)
   }
 
   async saveIterations() {
