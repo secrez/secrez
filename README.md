@@ -184,6 +184,69 @@ This command takes the standard file myWallet.json, contained in the Desktop fol
 This is one of my favorite commands. In fact, let's say that you have just downloaded the private key to access your crypto wallet, you want to encrypt it as soon as possible. With Secrez, you can import the file and delete the cleartext version in one command.
 
 
+#### Importing from other password/secret managers
+
+From version 0.5.2, Secrez supports import of backups from other softwares.
+
+Suppose you have exported your password in a CSV file name export.csv like this:
+```
+Path,Username,Password,Web Site,Notes
+twitter/nick1,nick1@example.com,938eyehddu373,"http://cssasasa.com",
+facebook/account,fb@example.com,926734YYY,,
+somePath,,s83832jedjdj,"http://262626626.com","Multi
+line
+notes"
+```
+It is necessary a field named `path` because if not Secrez does not know where to put the new data. The path is supposed to be relative, allowing you to import it in your favorite folder.
+
+For example, to import it in the `1PasswordData` you could call
+```
+import export.csv -e 1PasswordData
+```
+The parameter `-e, --expand` is necessary. If missed, Secrez will import the file as a single file.
+
+Internally, Secrez converts the CSV in a JSON file like this:
+```
+ [
+    {
+      path: 'twitter/nick1',
+      username: 'nick1@example.com',
+      password: '938eyehddu373',
+      web_site: 'http://cssasasa.com'
+    },
+    {
+      path: 'facebook/account',
+      username: 'fb@example.com',
+      password: '926734YYY'
+    },
+    {
+      path: 'somePath',
+      password: 's83832jedjdj',
+      web_site: 'http://262626626.com',
+      notes: 'Multi\nline\nnotes'
+    }
+  ]
+```
+which means that you can also format your data as a JSON like that and import that directly with
+```
+import export.json -e 1PasswordData
+```
+
+Any item will generate a single Yaml file, like, for example, the last element in the JSON, will generate the file `/1PasswordDate/somePath.yml` with the following content:
+```
+password: s83832jedjdj
+web_site: http://262626626.com
+notes: |-
+  Multi
+  line
+  notes
+```
+
+When you edit the new file, Secrez recognize it as a card and asks you which field you want to edit (if you don't explicit it with, for example, `-f password`) and edit just that field.
+
+At the end of the process, you can remove the original backup, adding the option `-m`.
+You can also simulate the process to see which files will be created with the option `-s`.
+
 #### Some thoughts
 
 Secrez does not want to compete with password managers. So, don't expect in the future to have "form filling" and staff like that. The idea behind Secrez was born in 2017, when I was participating in many ICO and I had so many files to save and any password manager I used was very bad for that. Still, Secrez, for its nature, is file oriented and I guess will remain this way. However, it is open source, and someone is welcome to built a GUI or a mobile app built on it.

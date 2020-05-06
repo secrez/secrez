@@ -27,7 +27,7 @@ const utils = {
     }
   },
 
-  fromCsvToJson: async (csv, delimiter = ',') => {
+  fromCsvToJson: async (csv, delimiter = ',', skipEmpty = true) => {
     csv = csv.split('\n')
     let firstLine = csv[0]
     firstLine = parse(firstLine)[0].map(e => Case.snake(_.trim(e)))
@@ -45,14 +45,25 @@ const utils = {
     }
     csv[0] = firstLine.join(',')
     csv = csv.join('\n')
-    csv = parse(csv, {
+    let json = parse(csv, {
       columns: true,
       skip_empty_lines: true,
       delimiter,
       skip_lines_with_error: true,
       trim: true
     })
-    return csv
+    if (skipEmpty) {
+      json = json.map(e => {
+        let elem = {}
+        for (let key in e) {
+          if (e[key]) {
+            elem[key] = e[key]
+          }
+        }
+        return elem
+      })
+    }
+    return json
   }
 
 }

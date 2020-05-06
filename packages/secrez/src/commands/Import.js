@@ -131,64 +131,74 @@ class Import extends require('../Command') {
   async expand(options) {
     let ifs = this.internalFs
     let efs = this.externalFs
-    let p = efs.getNormalizedPath(options.path)
-    if (await fs.pathExists(p)) {
-      let str = await fs.readFile(p, 'utf-8')
-      let ext = path.extname(p)
-      let data
+    let fn = efs.getNormalizedPath(options.path)
+    if (!(await fs.pathExists(fn))) {
+      throw new Error('The file does not exist')
+    }
+    let str = await fs.readFile(fn, 'utf-8')
+    let ext = path.extname(fn)
+    let data
+    try {
       if (ext === '.json') {
         data = JSON.parse(str)
       } else if (ext === '.csv') {
         data = await fromCsvToJson(str)
       }
-      let result  = []
-      if (data.length > 0 && data[0].path) {
-        let parentFolderPath = this.internalFs.tree.getNormalizedPath(options.expand)
-        let parentFolder
-        try {
-          parentFolder = ifs.tree.root.getChildFromPath(parentFolderPath)
-        } catch (e) {
-          await this.prompt.commands.mkdir.mkdir({path: parentFolderPath, type: config.types.DIR})
-          parentFolder = ifs.tree.root.getChildFromPath(parentFolderPath)
-        }
-        if (!Node.isDir(parentFolder)) {
-          throw new Error('The destination folder is not a folder.')
-        }
-        for (let item of data) {
-          let p = item.path
-          if (!p) {
-            continue
-          }
-          p = path.resolve(parentFolderPath, p.replace(/^\//, ''))
-          let dirname = path.dirname(p)
-          let dir
-          try {
-            dir = ifs.tree.root.getChildFromPath(dirname)
-          } catch (e) {
-            await this.prompt.commands.mkdir.mkdir({path: dirname, type: config.types.DIR})
-            dir = ifs.tree.root.getChildFromPath(dirname)
-          }
-          let name = path.basename(p)
-          if (!isYaml(name)) {
-            name += '.yml'
-          }
-          name = await this.tree.getVersionedBasename(name, dir)
-          result.push(path.join(dirname, name))
-          if (!options.simulate) {
-            // if (options.move) {
-            //   moved.push(fn[0])
-            // }
-            delete item.path
-            await ifs.make({
-              path: path.join(dirname, name),
-              type: config.types.TEXT,
-              content: yamlStringify(item)
-            })
-          }
-        }
+    } catch (e) {
+      if (e.message === 'The header of the CSV looks wrong') {
+        throw e
+      } else {
+        throw new Error('The file has a wrong format')
       }
-      return result
     }
+    let result = []
+    if (data.length === 0 || !data[0].path) {
+      throw new Error('The data does not show a path field')
+    }
+    let parentFolderPath = this.internalFs.tree.getNormalizedPath(options.expand)
+    let parentFolder
+    try {
+      parentFolder = ifs.tree.root.getChildFromPath(parentFolderPath)
+    } catch (e) {
+      await this.prompt.commands.mkdir.mkdir({path: parentFolderPath, type: config.types.DIR})
+      parentFolder = ifs.tree.root.getChildFromPath(parentFolderPath)
+    }
+    if (!Node.isDir(parentFolder)) {
+      throw new Error('The destination folder is not a folder.')
+    }
+    for (let item of data) {
+      let p = item.path
+      if (!p) {
+        continue
+      }
+      p = path.resolve(parentFolderPath, p.replace(/^\//, ''))
+      let dirname = path.dirname(p)
+      let dir
+      try {
+        dir = ifs.tree.root.getChildFromPath(dirname)
+      } catch (e) {
+        await this.prompt.commands.mkdir.mkdir({path: dirname, type: config.types.DIR})
+        dir = ifs.tree.root.getChildFromPath(dirname)
+      }
+      let name = path.basename(p)
+      if (!isYaml(name)) {
+        name += '.yml'
+      }
+      name = await this.tree.getVersionedBasename(name, dir)
+      result.push(path.join(dirname, name))
+      if (!options.simulate) {
+        delete item.path
+        await ifs.make({
+          path: path.join(dirname, name),
+          type: config.types.TEXT,
+          content: yamlStringify(item)
+        })
+      }
+    }
+    if (!options.simulate && options.move) {
+      await fs.unlink(fn)
+    }
+    return result
   }
 
   async exec(options = {}) {
