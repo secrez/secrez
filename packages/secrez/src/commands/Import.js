@@ -142,7 +142,7 @@ class Import extends require('../Command') {
       if (ext === '.json') {
         data = JSON.parse(str)
       } else if (ext === '.csv') {
-        data = await fromCsvToJson(str)
+        data = fromCsvToJson(str)
       }
     } catch (e) {
       if (e.message === 'The header of the CSV looks wrong') {

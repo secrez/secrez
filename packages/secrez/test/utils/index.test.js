@@ -22,7 +22,7 @@ describe  ('#utils', function () {
 
     it('should convert a CSV file to an importable JSON file', async function () {
 
-      const result = await fromCsvToJson(csvSample)
+      const result = fromCsvToJson(csvSample)
       assert.equal(result.length, 4)
       assert.equal(Object.keys(result[0]).length, 6)
       assert.equal(result[0].login_name, 'Greg')
@@ -33,6 +33,30 @@ describe  ('#utils', function () {
         assert.equal(result[1][key], jsonSample[1][key])
       }
 
+    })
+
+    it('should throw if the CSV is bad or misses a path', async function () {
+      try {
+        fromCsvToJson('web,url,password\nssas,sasas,sasasa')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'A "path" column in mandatory')
+      }
+
+      try {
+        fromCsvToJson('path,"öäü",password\nssas,sasas,sasasa')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'The header of the CSV looks wrong')
+      }
+
+
+      try {
+        fromCsvToJson('path,"url{"sasa":3}",password\nssas,sasas,sasasa')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'The CSV is malformed')
+      }
     })
 
   })

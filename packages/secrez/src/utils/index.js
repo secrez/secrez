@@ -27,10 +27,14 @@ const utils = {
     }
   },
 
-  fromCsvToJson: async (csv, delimiter = ',', skipEmpty = true) => {
+  fromCsvToJson: (csv, delimiter = ',', skipEmpty = true) => {
     csv = csv.split('\n')
     let firstLine = csv[0]
-    firstLine = parse(firstLine)[0].map(e => Case.snake(_.trim(e)))
+    try {
+      firstLine = parse(firstLine)[0].map(e => Case.snake(_.trim(e)))
+    } catch (e) {
+      throw new Error('The CSV is malformed')
+    }
     let havePath = false
     for (let e of firstLine) {
       if (!/^[a-z]{1}[a-z0-9_]*$/.test(e)) {
