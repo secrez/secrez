@@ -38,9 +38,9 @@ class Welcome {
     return parseInt(iterations)
   }
 
-  async saveIterations() {
-    if (this.options.saveIterations && !await fs.pathExists(cliConfig.envPath)) {
-      fs.writeFile(cliConfig.envPath, JSON.stringify({iterations: this.iterations}))
+  async saveIterations(secrez) {
+    if (this.options.saveIterations) {
+      await secrez.saveIterations(this.iterations)
     }
   }
 
@@ -62,9 +62,9 @@ class Welcome {
         try {
           await secrez.signin(p.password, this.iterations)
           if (secrez.masterKeyHash) {
-            this.saveIterations()
-            return
+            await this.saveIterations(secrez)
           }
+          return
         } catch (e) {
           Logger.red('The password you typed is wrong. Try again or Ctrl-C to exit.')
         }
@@ -103,7 +103,7 @@ class Welcome {
         if (p.password === p.retype) {
           try {
             await secrez.signup(p.password, this.iterations)
-            this.saveIterations()
+            await this.saveIterations(secrez)
             return
           } catch (e) {
             Logger.red(e.message)
