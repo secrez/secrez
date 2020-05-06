@@ -82,7 +82,8 @@ describe('#Secrez', function () {
 
       it('should signup the user and signin saved the iterations', async function () {
         await secrez.init(rootDir)
-        await secrez.signup(password, iterations, true)
+        await secrez.signup(password, iterations)
+        await secrez.saveIterations(iterations)
         assert.isTrue(await fs.pathExists(secrez.config.keysPath))
         assert.isTrue(await fs.pathExists(secrez.config.envPath))
         masterKeyHash = secrez.masterKeyHash

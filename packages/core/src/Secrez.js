@@ -46,7 +46,7 @@ class Secrez {
     return sortedData
   }
 
-  async signup(password, iterations, saveIterations) {
+  async signup(password, iterations) {
     if (!this.config || !this.config.keysPath) {
       throw new Error('Secrez not initiated')
     }
@@ -89,14 +89,15 @@ class Secrez {
         signature
       }
       await fs.writeFile(this.config.keysPath, JSON.stringify(conf))
-      if (saveIterations) {
-        const env = await ConfigUtils.getEnv()
-        env.iterations = iterations
-        await ConfigUtils.putEnv(env)
-      }
     } else {
       throw new Error('An account already exists. Please, sign in or chose a different container directory')
     }
+  }
+
+  async saveIterations(iterations) {
+    const env = await ConfigUtils.getEnv()
+    env.iterations = iterations
+    await ConfigUtils.putEnv(env)
   }
 
   async signin(password, iterations) {
