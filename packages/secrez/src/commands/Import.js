@@ -100,6 +100,7 @@ class Import extends require('../Command') {
 
       let result = []
       let moved = []
+      ifs.tree.disableSave()
       for (let fn of content) {
         let name = await this.tree.getVersionedBasename(path.basename(fn[0]))
         result.push(ifs.tree.getNormalizedPath(name))
@@ -114,9 +115,13 @@ class Import extends require('../Command') {
           })
         }
       }
-      if (options.move) {
-        for (let fn of moved) {
-          await fs.unlink(fn)
+      if (!options.simulate) {
+        ifs.tree.enableSave()
+        await ifs.tree.preSave()
+        if (options.move) {
+          for (let fn of moved) {
+            await fs.unlink(fn)
+          }
         }
       }
       return result.sort()
@@ -177,6 +182,7 @@ class Import extends require('../Command') {
     if (!Node.isDir(parentFolder)) {
       return this.Logger.red('The destination folder is not a folder.')
     }
+    ifs.tree.disableSave()
     for (let item of data) {
       let p = item.path
       if (!p) {
@@ -206,8 +212,12 @@ class Import extends require('../Command') {
         })
       }
     }
-    if (!options.simulate && options.move) {
-      await fs.unlink(fn)
+    if (!options.simulate) {
+      ifs.tree.enableSave()
+      await ifs.tree.preSave()
+      if (options.move) {
+        await fs.unlink(fn)
+      }
     }
   }
 

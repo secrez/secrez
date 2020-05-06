@@ -149,7 +149,7 @@ class Tree {
           }
           this.alerts.push('Some files/versions have been recovered:')
           this.alerts = this.alerts.concat(recoveredEntries)
-          this.preSave()
+          await this.preSave()
         }
       }
     } else {
@@ -343,7 +343,19 @@ class Tree {
     return entry
   }
 
+  disableSave() {
+    this.skipPreSave = true
+  }
+
+  enableSave() {
+    delete this.skipPreSave
+  }
+
   async preSave() {
+    if (this.skipPreSave) {
+      // option used during imports with many entries, to optimize the performances
+      return
+    }
     let rootEntry = this.root.getEntry()
     if (this.previousRootEntry) {
       // this creates a single index file per session.
