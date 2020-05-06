@@ -1,7 +1,6 @@
 const util = require('util')
-const fs = require('fs-extra')
 const path = require('path')
-const {config, Crypto, Entry} = require('@secrez/core')
+const {config, Entry} = require('@secrez/core')
 const Node = require('./Node')
 const Tree = require('./Tree')
 const {ENTRY_EXISTS} = require('./Messages')

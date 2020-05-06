@@ -1,4 +1,3 @@
-const _ = require('lodash')
 const util = require('util')
 const {config, Crypto, Entry} = require('@secrez/core')
 const {ANCESTOR_NOT_FOUND, ENTRY_EXISTS} = require('./Messages')
