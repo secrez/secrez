@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "license": "MIT",
   "scripts": {
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -17,8 +17,8 @@
     ]
   },
   "dependencies": {
-    "@secrez/core": "^0.5.1",
-    "@secrez/fs": "^0.5.2",
+    "@secrez/core": "^0.5.2",
+    "@secrez/fs": "^0.5.3",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
     "clipboardy": "^2.3.0",

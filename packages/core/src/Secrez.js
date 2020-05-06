@@ -6,7 +6,6 @@ const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
 const utils = require('./utils')
 const bs58 = require('bs58')
-const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
 
 class _Secrez {
 
@@ -47,7 +46,7 @@ class Secrez {
     return sortedData
   }
 
-  async signup(password, iterations, saveIterations) {
+  async signup(password, iterations) {
     if (!this.config || !this.config.keysPath) {
       throw new Error('Secrez not initiated')
     }
@@ -74,12 +73,6 @@ class Secrez {
         publicKey: Crypto.toBase58(ed25519Pair.publicKey)
       }
 
-      // secp256k1
-      const account = await PrivateKeyGenerator.generate({accounts: 1})
-      account.mnemonic = Crypto.encrypt(account.mnemonic, _secrez.masterKey)
-      account.privateKey = Crypto.encrypt(account.privateKeys[0], _secrez.masterKey)
-      account.hdPath = Crypto.toBase58(account.hdPath)
-      delete account.privateKeys
       const when = utils.intToBase58(Date.now())
       const data = this.sortObj({
         id,
@@ -87,7 +80,6 @@ class Secrez {
         box,
         when,
         key,
-        account,
         hash
       })
 
@@ -97,14 +89,15 @@ class Secrez {
         signature
       }
       await fs.writeFile(this.config.keysPath, JSON.stringify(conf))
-      if (saveIterations) {
-        const env = await ConfigUtils.getEnv()
-        env.iterations = iterations
-        await ConfigUtils.putEnv(env)
-      }
     } else {
       throw new Error('An account already exists. Please, sign in or chose a different container directory')
     }
+  }
+
+  async saveIterations(iterations) {
+    const env = await ConfigUtils.getEnv()
+    env.iterations = iterations
+    await ConfigUtils.putEnv(env)
   }
 
   async signin(password, iterations) {
