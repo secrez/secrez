@@ -17,7 +17,7 @@
     ]
   },
   "dependencies": {
-    "@secrez/core": "^0.5.1",
+    "@secrez/core": "^0.5.2",
     "@secrez/fs": "^0.5.2",
     "case": "^1.6.3",
     "chalk": "^3.0.0",

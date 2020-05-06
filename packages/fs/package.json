@@ -10,7 +10,7 @@
     "posttest": "nyc check-coverage --statements 85 --branches 80 --functions 85 --lines 85"
   },
   "dependencies": {
-    "@secrez/core": "^0.5.1",
+    "@secrez/core": "^0.5.2",
     "base58": "^2.0.1",
     "bs58": "^4.0.1",
     "command-line-args": "^5.1.1",

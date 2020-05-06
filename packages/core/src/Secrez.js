@@ -6,7 +6,6 @@ const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
 const utils = require('./utils')
 const bs58 = require('bs58')
-const PrivateKeyGenerator = require('./utils/PrivateKeyGenerator')
 
 class _Secrez {
 
@@ -74,12 +73,6 @@ class Secrez {
         publicKey: Crypto.toBase58(ed25519Pair.publicKey)
       }
 
-      // secp256k1
-      const account = await PrivateKeyGenerator.generate({accounts: 1})
-      account.mnemonic = Crypto.encrypt(account.mnemonic, _secrez.masterKey)
-      account.privateKey = Crypto.encrypt(account.privateKeys[0], _secrez.masterKey)
-      account.hdPath = Crypto.toBase58(account.hdPath)
-      delete account.privateKeys
       const when = utils.intToBase58(Date.now())
       const data = this.sortObj({
         id,
@@ -87,7 +80,6 @@ class Secrez {
         box,
         when,
         key,
-        account,
         hash
       })
 
