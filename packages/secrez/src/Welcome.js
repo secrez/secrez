@@ -38,9 +38,9 @@ class Welcome {
     return parseInt(iterations)
   }
 
-  async saveIterations(secrez, iterations) {
+  async saveIterations(secrez) {
     if (this.options.saveIterations) {
-      await secrez.saveIterations(iterations)
+      await secrez.saveIterations(this.iterations)
     }
   }
 
@@ -62,7 +62,7 @@ class Welcome {
         try {
           await secrez.signin(p.password, this.iterations)
           if (secrez.masterKeyHash) {
-            await this.saveIterations(secrez, this.iterations)
+            await this.saveIterations(secrez)
           }
           return
         } catch (e) {
@@ -103,7 +103,7 @@ class Welcome {
         if (p.password === p.retype) {
           try {
             await secrez.signup(p.password, this.iterations)
-            this.saveIterations(secrez, this.iterations)
+            await this.saveIterations(secrez)
             return
           } catch (e) {
             Logger.red(e.message)
