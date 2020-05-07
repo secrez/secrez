@@ -91,12 +91,15 @@ class Tag extends require('../Command') {
 
   formatResult(result) {
     const cols = process.stdout.columns
+        || 80 // workaround for lerna testing
+
     let max = 0
     let mak = 0
     for (let r of result) {
       max = Math.max(max, r[0].length)
       mak = Math.max(mak, r[1].length)
     }
+
     if (max + mak + 2 > cols) {
       return result.map(e => e[0] + '\n' + chalk.blu(e[1]))
     } else {

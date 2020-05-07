@@ -32,9 +32,6 @@ class Tree {
       // there is an extraName
       let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
       content = content.split('I')
-      if (!content[1]) {
-        throw new Error()
-      }
       entry.set({
         encryptedName: file.substring(0, 254) + content[1]
       })

@@ -88,6 +88,7 @@ class ExternalFs {
   }
 
   async getVersionedBasename(p) {
+    p = this.getNormalizedPath(p)
     let dir = path.dirname(p)
     let fn = path.basename(p)
     let name = fn

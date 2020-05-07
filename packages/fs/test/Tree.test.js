@@ -7,6 +7,8 @@ const Node = require('../src/Node')
 const Tree = require('../src/Tree')
 const InternalFs = require('../src/InternalFs')
 
+const {sleep} = require('./helpers')
+
 // eslint-disable-next-line no-unused-vars
 const jlog = require('./helpers/jlog')
 
@@ -140,7 +142,73 @@ describe('#Tree', function () {
       tree = internalFs.tree
     }
 
+    it('should load a tree with tags', async function () {
+
+      signedUp = false
+
+      await startTree()
+
+      let a = await internalFs.make({
+        path: '/a',
+        type: secrez.config.types.DIR
+      })
+
+      let b = await internalFs.make({
+        path: '/b',
+        type: secrez.config.types.DIR
+      })
+
+      let c = await internalFs.make({
+        path: '/c',
+        type: secrez.config.types.TEXT,
+        content: 'some a'
+      })
+
+      await tree.addTag(a, ['web'])
+
+      tree.disableSave()
+
+      await tree.addTag(b, ['web', 'wob'])
+      await tree.addTag(c, ['wib', 'wob'])
+
+      tree.enableSave()
+      tree.saveTags()
+
+      let list = await tree.listTags()
+      assert.equal(list[0], 'web (2)')
+      assert.equal(list[1], 'wib (1)')
+      assert.equal(list[2], 'wob (2)')
+
+      await tree.removeTag(b, ['web'])
+      list = await tree.listTags()
+      assert.equal(list[0], 'web (1)')
+
+      let tagged = await tree.getNodesByTag(['wob'])
+      assert.equal(tagged[0][0], '/b')
+      assert.equal(tagged[0][1], 'wob')
+      assert.equal(tagged[1][0], '/c')
+      assert.equal(tagged[1][1], 'wib wob')
+
+      tagged = await tree.getNodesByTag(['wob', 'wib'])
+      assert.equal(tagged[0][0], '/c')
+      assert.equal(tagged[0][1], 'wib wob')
+
+      let aid = a.id
+      let bid = b.id
+      let cid = c.id
+
+      await startTree()
+
+      assert.isTrue(tree.tags.content['web'].includes(aid))
+      assert.isTrue(tree.tags.content['wob'].includes(bid))
+      assert.isTrue(tree.tags.content['wob'].includes(cid))
+      assert.isTrue(tree.tags.content['wib'].includes(cid))
+
+    })
+
     it('should simulate a conflict in the repo and recover lost entries', async function () {
+
+      signedUp = false
 
       await startTree()
 
@@ -173,6 +241,8 @@ describe('#Tree', function () {
 
       let files1 = await fs.readdir(`${rootDir}/data`)
       assert.equal(files1.length, 7)
+
+      await sleep(100)
 
       await startTree()
 

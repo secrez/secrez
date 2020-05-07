@@ -109,6 +109,16 @@ describe('#ExternalFs', function () {
 
   })
 
+  describe('getVersionedBasename', async function () {
+
+    it('should version a file', async function () {
+      let versioned = await externalFs.getVersionedBasename('./fixtures/tree/a')
+      assert.equal(versioned, 'a.2')
+    })
+
+
+  })
+
   describe('isDir', async function () {
 
     let dir

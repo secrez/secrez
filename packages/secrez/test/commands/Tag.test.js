@@ -79,6 +79,10 @@ describe('#Tag', function () {
     inspect.restore()
     assertConsole(inspect, ['Tags added'])
 
+    await noPrint(C.mkdir.exec({
+      path: '/dir'
+    }))
+
   })
 
 
