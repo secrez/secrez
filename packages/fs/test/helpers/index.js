@@ -86,7 +86,12 @@ const helpers = {
         }), true
     ))
     return root
+  },
+
+  sleep: millis => {
+    return new Promise(resolve => setTimeout(resolve, millis))
   }
+
 
 }
 

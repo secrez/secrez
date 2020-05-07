@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const {chalk} = require('../utils/Logger')
 const path = require('path')
 const {Crypto, config} = require('@secrez/core')
@@ -63,7 +64,7 @@ class Cat extends require('../Command') {
         ['cat wallet -m', 'shows metadata: version and creation date'],
         ['cat etherWallet -v 2UYw', 'shows the version 2UYw of the secret, if exists'],
         ['cat etherWallet -a', 'lists all the versions'],
-        'cat etherWallet -mv 17TR',
+        ['cat etherWallet -v 17TR hUUv', 'shows two versions (-m is forced)'],
         ['cat wallet.yml -f private_key', 'shows only the field private_key of a yaml file'],
         ['cat some.yml -u', 'shows a Yaml file as is']
       ]
@@ -74,29 +75,29 @@ class Cat extends require('../Command') {
     let tsHash = Node.hashVersion(ts)
     ts = Crypto.fromTsToDate(ts)
     let date = ts[0].split('Z')[0].split('T')
-    let ret = `${tsHash} ${date[0]} ${date[1].substring(0,12)}${ts[1]}`
+    let ret = `${tsHash}  ${date[0]}  ${date[1].substring(0, 12)}${ts[1]}`
     if (name) {
-      ret += chalk.yellow(' (' +name + ')')
+      ret += chalk.yellow(' (' + name + ')')
     }
+
     return ret
   }
 
   async cat(options, justContent) {
-    let ifs = this.internalFs
     let p = this.tree.getNormalizedPath(options.path)
-    let node = ifs.tree.root.getChildFromPath(p)
+    let node = this.tree.root.getChildFromPath(p)
     if (node && Node.isFile(node)) {
-      let result  = []
+      let result = []
       if (!isYaml(p)) {
         delete options.field
       }
 
       const pushDetails = async (node, ts, field) => {
-        let details = await ifs.tree.getEntryDetails(node, ts)
+        let details = await this.tree.getEntryDetails(node, ts)
         if (!justContent && !options.unformatted && isYaml(p)) {
           let fields
           try {
-              fields = yamlParse(details.content || '{}')
+            fields = yamlParse(details.content || '{}')
           } catch (e) {
             // wrong format
           }
@@ -106,7 +107,7 @@ class Cat extends require('../Command') {
             if (/\n/.test(val)) {
               val = '\n' + val
             }
-            return [chalk.blu(field +':'), val].join(' ')
+            return [chalk.blu(field + ':'), val].join(' ')
           }
           if (typeof fields === 'object') {
             if (field) {
@@ -129,8 +130,27 @@ class Cat extends require('../Command') {
 
       if (options.all || options.version) {
         let versions = node.getVersions()
+        if (options.version && options.version.length > 1) {
+          options.metadata = true
+        }
+        let found = []
         for (let ts of versions) {
+          let v = Node.hashVersion(ts)
+          if (options.version) {
+            if (!options.version.includes(v)) {
+              continue
+            }
+          }
           await pushDetails(node, ts, options.field)
+          found.push(v)
+        }
+        if (options.version && options.version.length > found.length) {
+          options.notFound = []
+          for (let v of options.version) {
+            if (!found.includes(v)) {
+              options.notFound.push(v)
+            }
+          }
         }
       } else {
         await pushDetails(node, options.ts, options.field)
@@ -148,24 +168,25 @@ class Cat extends require('../Command') {
     try {
       let fn = path.basename(options.path)
       let data = await this.cat(options)
-      let extra = options.all || options.metadata
+      let extra = options.all || options.metadata || options.versions
       if (data) {
-        let header = false
         for (let d of data) {
           let {content, ts, type, name} = d
           if (extra) {
-            this.Logger.agua(`${header ? '\n' : ''}${this.formatTs(ts, fn === name ? undefined : name)}`)
-            header = true
+            this.Logger.agua(`${this.formatTs(ts, fn === name ? undefined : name)}`)
           }
           if (type === config.types.TEXT) {
-            if (content) {
-              this.Logger.reset(content)
+            if (_.trim(content)) {
+              this.Logger.reset(_.trim(content))
             } else {
               this.Logger.blu('-- this version is empty --')
             }
           } else {
             this.Logger.blu('-- this is a binary file --')
           }
+        }
+        if (options.notFound && options.notFound.length) {
+          this.Logger.yellow('Versions not found: ' + options.notFound.join(' '))
         }
       }
     } catch (e) {

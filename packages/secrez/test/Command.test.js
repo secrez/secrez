@@ -82,5 +82,15 @@ describe('#Command', function () {
 
   })
 
+  describe('#help & #setHelpAndCompletion', async function () {
+
+    it('should do nothing', async function () {
+
+      assert.isUndefined(command.help())
+      assert.isUndefined(command.setHelpAndCompletion())
+    })
+
+  })
+
 })
 

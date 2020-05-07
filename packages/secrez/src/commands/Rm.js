@@ -1,6 +1,4 @@
-const path = require('path')
 const chalk = require('chalk')
-// const {config, Entry} = require('@secrez/core')
 
 class Rm extends require('../Command') {
 
@@ -59,7 +57,7 @@ class Rm extends require('../Command') {
     }
     if (!options.path) {
       this.Logger.red('File path not specified.')
-    } else if (/\?\*/.test(path.basename(options.path))) {
+    } else if (/\?|\*/.test(options.path)) {
       this.Logger.red('Wildcards not supported with rm.')
     } else {
       try {

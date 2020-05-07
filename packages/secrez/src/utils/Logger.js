@@ -13,6 +13,10 @@ chalk.agua = str => {
   return chalk.rgb(40, 210, 160).dim(str)
 }
 
+chalk.pink = str => {
+  return chalk.rgb(210, 40, 40).dim(str)
+}
+
 class Logger {
 
   static red(str) {
@@ -37,6 +41,10 @@ class Logger {
 
   static agua(str) {
     Logger.log('agua', str)
+  }
+
+  static pink(str) {
+    Logger.log('pink', str)
   }
 
   static blue(str) {

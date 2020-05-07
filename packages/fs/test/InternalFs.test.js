@@ -354,9 +354,17 @@ describe('#InternalFs', function () {
         path: '/folder1/file1'
       })
 
-      // jlog(root.toCompressedJSON(undefined, true))
-
       assert.equal(Object.keys(folder1.children).length, 0)
+
+      try {
+        await internalFs.remove({
+          path: '/nodir'
+        })
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
+
     })
 
   })
@@ -490,5 +498,49 @@ describe('#InternalFs', function () {
 
   })
 
+  describe('#pseudoFileCompletion', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+    })
+
+    it('should get the current folder dir', async function () {
+
+      let dir = await internalFs.make({
+        path: '/dir',
+        type: config.types.DIR
+      })
+
+      await internalFs.make({
+        path: '/dir/file1',
+        type: config.types.TEXT
+      })
+      await internalFs.make({
+        path: '/dir/file2',
+        type: config.types.TEXT
+      })
+
+      let res = await internalFs.pseudoFileCompletion({}, true)
+      assert.equal(res.join(' '), 'dir/ .trash/')
+
+      res = await internalFs.pseudoFileCompletion('/dir')
+      assert.equal(res.join(' '), 'file1 file2')
+
+      res = await internalFs.pseudoFileCompletion('/dir/file1')
+      assert.equal(res.join(' '), 'file1')
+
+      internalFs.tree.workingNode = dir
+
+      res = await internalFs.pseudoFileCompletion('fi*')
+      assert.equal(res.join(' '), 'file1 file2')
+
+    })
+
+  })
 
 })

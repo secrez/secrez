@@ -65,6 +65,27 @@ describe('#Rm', function () {
       expected
     ])
 
+  })
+
+  it('should return errors if wrong parameters', async function () {
+
+    inspect = stdout.inspect()
+    await C.rm.exec({path: '/folder2/fil*'})
+    inspect.restore()
+    assertConsole(inspect, ['Wildcards not supported with rm.'])
+
+    inspect = stdout.inspect()
+    await C.rm.exec()
+    inspect.restore()
+    assertConsole(inspect, ['File path not specified.'])
+
+    inspect = stdout.inspect()
+    await C.rm.exec({
+      path: 'file2'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Path does not exist'])
+
     // jlog(root.toCompressedJSON())
   })
 
