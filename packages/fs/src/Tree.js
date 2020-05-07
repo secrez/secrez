@@ -1,4 +1,3 @@
-// const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const Node = require('./Node')
@@ -52,6 +51,7 @@ class Tree {
     let files = await this.getAllFiles()
     let allIndexes = []
     let allSecrets = []
+    let allTags = []
 
     for (let file of files) {
 
@@ -63,6 +63,8 @@ class Tree {
         })
         decryptedEntry = this.secrez.decryptEntry(entry)
         allIndexes.push(decryptedEntry)
+      } else if (decryptedEntry.type === config.types.TAGS) {
+        allTags.push(decryptedEntry)
       } else {
         allSecrets.push(decryptedEntry)
       }
@@ -81,7 +83,7 @@ class Tree {
           this.root.add(new Node(entry))
           this.alerts.push(entry.name)
         }
-        await this.preSave()
+        await this.save()
       } else {
 
         allIndexes.sort(Node.sortEntry)
@@ -149,12 +151,15 @@ class Tree {
           }
           this.alerts.push('Some files/versions have been recovered:')
           this.alerts = this.alerts.concat(recoveredEntries)
-          await this.preSave()
+          await this.save()
         }
       }
+      await this.loadTags(allTags)
+
     } else {
       this.root = Node.initGenericRoot()
       this.workingNode = this.root
+      await this.loadTags()
     }
     this.status = Tree.statutes.LOADED
   }
@@ -289,7 +294,7 @@ class Tree {
       await this.saveEntry(entry)
       let node = new Node(entry)
       parent.add(node)
-      await this.preSave()
+      await this.save()
       return node
     } catch (e) {
       /* istanbul ignore if  */
@@ -312,7 +317,7 @@ class Tree {
     try {
       await this.saveEntry(entry)
       node.move(entry)
-      await this.preSave()
+      await this.save()
       return node
     } catch (e) {
       /* istanbul ignore if  */
@@ -344,16 +349,16 @@ class Tree {
   }
 
   disableSave() {
-    this.skipPreSave = true
+    this.doNotSave = true
   }
 
   enableSave() {
-    delete this.skipPreSave
+    delete this.doNotSave
   }
 
-  async preSave() {
-    if (this.skipPreSave) {
-      // option used during imports with many entries, to optimize the performances
+  async save() {
+    if (this.doNotSave) {
+      // used during imports with many entries, to optimize the performances
       return
     }
     let rootEntry = this.root.getEntry()
@@ -370,6 +375,125 @@ class Tree {
     rootEntry = this.secrez.encryptEntry(rootEntry)
     await this.saveEntry(rootEntry)
     this.previousRootEntry = rootEntry
+  }
+
+  async loadTags(allTags = []) {
+    if (allTags.length) {
+      allTags = allTags.sort(Node.sortEntry)[0]
+      let content = await fs.readFile(path.join(this.dataPath, allTags.encryptedName), 'utf8')
+      allTags.set({
+        encryptedContent: content.split('I')[0]
+      })
+      allTags = this.secrez.decryptEntry(allTags)
+      allTags.content = JSON.parse(allTags.content)
+      this.tags = allTags
+    } else {
+      this.tags = new Entry({
+        type: config.types.TAGS,
+        content: {}
+      })
+    }
+  }
+
+  async addTag(node, tags) {
+    let content = this.tags.content
+    for (let tag of tags) {
+      if (!content[tag]) {
+        content[tag] = []
+      }
+      if (!content[tag].includes(node.id)) {
+        content[tag].push(node.id)
+      }
+      this.tagsChanged = true
+    }
+    this.saveTags()
+  }
+
+  async removeTag(node, tags) {
+    let content = this.tags.content
+    for (let tag of tags) {
+      if (content[tag].includes(node.id)) {
+        content[tag] = content[tag].filter(e => e !== node.id)
+        this.tagsChanged = true
+      }
+    }
+    this.saveTags()
+  }
+
+  async listTags() {
+    let result = []
+    let tags = this.tags.content
+    for (let t of Object.keys(tags).sort()) {
+      result.push(`${t} (${tags[t].length})`)
+    }
+    return result.sort()
+  }
+
+  async getNodesByTag(list) {
+    let result = []
+    let tags = this.tags.content
+    let tag = []
+    if (list.length === 1) {
+      tag = tags[list[0]] || []
+    } else {
+      let ttag = {}
+      for (let l of list) {
+        let tmp = this.tags.content[l] || []
+        for (let id of tmp) {
+          ttag[id] = true
+        }
+      }
+      ttag = Object.keys(ttag)
+      FOR: for (let id of ttag) {
+        for (let s of list) {
+          if (!tags[s].includes(id)) {
+            continue FOR
+          }
+        }
+        tag.push(id)
+      }
+    }
+    let rev
+    for (let id of tag) {
+      if (!rev) {
+        rev = this.reverseTags()
+      }
+      let node = this.root.findChildById(id)
+      result.push([node.getPath(), rev[id].sort().join(' ')])
+    }
+    return result
+  }
+
+  reverseTags() {
+    let reverse = {}
+    for (let t in this.tags.content) {
+      for (let id of this.tags.content[t]) {
+        if (!reverse[id]) {
+          reverse[id] = []
+        }
+        reverse[id].push(t)
+      }
+    }
+    return reverse
+  }
+
+  async saveTags() {
+    if (this.doNotSave || !this.tagsChanged) {
+      return
+    }
+    delete this.tagsChanged
+    let tags = new Entry(this.tags)
+    if (this.previousTags) {
+      await this.unsaveEntry(this.previousTags)
+    }
+    tags.set({
+      name: Crypto.getRandomBase58String(4),
+      content: JSON.stringify(tags.content),
+      preserveContent: true
+    })
+    tags = this.secrez.encryptEntry(tags)
+    await this.saveEntry(tags)
+    this.previousTags = tags
   }
 
 }

@@ -116,7 +116,7 @@ class InternalFs {
       throw new Error('Path does not exist')
     }
     let deleted = await node.remove(options.version)
-    await this.tree.preSave()
+    await this.tree.save()
     return deleted
   }
 

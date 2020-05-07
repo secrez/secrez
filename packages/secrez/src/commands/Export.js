@@ -1,6 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 const clipboardy = require('clipboardy')
+const {isYaml, yamlParse} = require('../utils')
 
 const {Node} = require('@secrez/fs')
 
@@ -30,14 +31,19 @@ class Export extends require('../Command') {
         type: Number
       },
       {
-        name: 'object',
-        alias: 'o',
+        name: 'json',
+        alias: 'j',
         type: Boolean
       },
       {
         name: 'version',
         alias: 'v',
         type: Boolean
+      },
+      {
+        name: 'field',
+        alias: 'f',
+        type: String
       }
     ]
   }
@@ -51,9 +57,10 @@ class Export extends require('../Command') {
       ],
       examples: [
         ['export seed.json', 'decrypts and copies seed.json to the disk'],
+        ['export ethKeys -v 8uW3', 'exports version 8uW3 of the file'],
         ['export ethKeys -c 20', 'copies to the clipboard for 20 seconds'],
-        ['export ethKeys -c 20 -o', 'copies to the clipboard the JSON of the object'],
-        ['export ethKeys -v 8uW3', 'exports version 8uW3 of the file']
+        ['export google.yml -c 20 -f password', 'exports the password in the google card'],
+        ['export google.yml -oc 20', 'exports the google card as an JSON']
       ]
     }
   }
@@ -68,20 +75,38 @@ class Export extends require('../Command') {
     if (Node.isFile(file)) {
       let entry = (await cat.cat({
         path: p,
-        version: options.version
+        version: options.version,
+        unformatted: true
       }))[0]
       if (options.clipboard) {
         if (Node.isText(entry)) {
           let {name, content} = entry
-          content = options.all
-              ? JSON.stringify({name, content}, null, 2)
-              : content
+          if (isYaml(p)) {
+            let err = 'Field not found.'
+            try {
+              let parsed = yamlParse(content)
+              if (options.json) {
+                content = JSON.stringify(parsed, null, 2)
+              } else if (options.field) {
+                if (parsed[options.field]) {
+                  content = parsed[options.field]
+                } else {
+                  throw new Error(err)
+                }
+              }
+            } catch(e) {
+              if (e.message === err) {
+                throw new Error(`Field "${options.field}" not found in "${path.basename(p)}"`)
+              } else if (options.json || options.field) {
+                throw new Error('The yml is malformed. To copy the entire content, do not use th options -j or -f')
+              }
+            }
+          }
           await clipboardy.write(content)
           setTimeout(async () => {
             if (content === (await clipboardy.read())) {
               await clipboardy.write('')
             }
-
           }, 1000 * options.clipboard)
           return name
         } else {

@@ -2,9 +2,10 @@ const chai = require('chai')
 const assert = chai.assert
 const stdout = require('test-console').stdout
 const clipboardy = require('clipboardy')
-
 const fs = require('fs-extra')
 const path = require('path')
+
+const {yamlParse} = require('../../src/utils')
 const Prompt = require('../mocks/PromptMock')
 const {assertConsole, sleep, noPrint, decolorize} = require('../helpers')
 
@@ -108,6 +109,68 @@ describe('#Export', function () {
 
     await sleep(1000)
     assert.isFalse(!!await clipboardy.read())
+
+  })
+
+  it('should export a card to the clipboard', async function () {
+
+    let content = 'password: s7s7s7s7s\npin: 3625\nnickname: geoge'
+    let p = 'card.yml'
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    inspect = stdout.inspect()
+    await C.export.exec({
+      path: p,
+      clipboard: 1,
+      json: true
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Copied to clipboard:', 'card.yml'])
+
+    await sleep(100)
+    assert.equal(await clipboardy.read(), JSON.stringify(yamlParse(content), null, 2))
+
+    await sleep(1000)
+    assert.isFalse(!!await clipboardy.read())
+
+    inspect = stdout.inspect()
+    await C.export.exec({
+      path: p,
+      clipboard: 1,
+      field: 'password'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Copied to clipboard:', 'card.yml'])
+
+    await sleep(100)
+    assert.equal(await clipboardy.read(), 's7s7s7s7s')
+
+    inspect = stdout.inspect()
+    await C.export.exec({
+      path: p,
+      clipboard: 1,
+      field: 'none'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Field "none" not found in "card.yml"'])
+
+    await noPrint(prompt.internalFs.change({
+      path: p,
+      content: content += '\ncasas:\nasakdjakddkadkasd'
+    }))
+
+    inspect = stdout.inspect()
+    await C.export.exec({
+      path: p,
+      clipboard: 1,
+      field: 'password'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['The yml is malformed. To copy the entire content, do not use th options -j or -f'])
+
 
   })
 

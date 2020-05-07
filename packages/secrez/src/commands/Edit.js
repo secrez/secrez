@@ -93,19 +93,23 @@ class Edit extends require('../Command') {
     let fields = {}
     if (exists && !options.unformatted && isYaml(file)) {
       fields = data[0].content ? yamlParse(data[0].content) : {}
-      let choices = Object.keys(fields)
-      if (choices.length && !options.field) {
-        let {field} = await this.prompt.inquirer.prompt([
-          {
-            type: 'list',
-            name: 'field',
-            message: 'Select the field to edit',
-            choices
-          }
-        ])
-        options.field = field
+      if (typeof fields === 'object') {
+        let choices = Object.keys(fields)
+        if (choices.length && !options.field) {
+          let {field} = await this.prompt.inquirer.prompt([
+            {
+              type: 'list',
+              name: 'field',
+              message: 'Select the field to edit',
+              choices
+            }
+          ])
+          options.field = field
+        }
+      } else {
+        delete options.field
       }
-    } else {
+    } else if (!isYaml(file)) {
       delete options.field
     }
     let node = this.tree.workingNode.getChildFromPath(file)

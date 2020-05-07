@@ -117,7 +117,7 @@ class Import extends require('../Command') {
       }
       if (!options.simulate) {
         ifs.tree.enableSave()
-        await ifs.tree.preSave()
+        await ifs.tree.save()
         if (options.move) {
           for (let fn of moved) {
             await fs.unlink(fn)
@@ -214,7 +214,7 @@ class Import extends require('../Command') {
     }
     if (!options.simulate) {
       ifs.tree.enableSave()
-      await ifs.tree.preSave()
+      await ifs.tree.save()
       if (options.move) {
         await fs.unlink(fn)
       }
@@ -244,7 +244,6 @@ class Import extends require('../Command') {
         }
       }
     } catch (e) {
-      console.error(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

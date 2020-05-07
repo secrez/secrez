@@ -1,4 +1,4 @@
-const chalk = require('chalk')
+const {chalk} = require('./utils/Logger')
 
 const Logger = require('./utils/Logger')
 const cliConfig = require('./cliConfig')
@@ -30,11 +30,7 @@ class Command {
     return async options => {
       options = Object.assign(extraOptions, options)
       options.forAutoComplete = true
-      try {
-        return await self.prompt.internalFs.pseudoFileCompletion(options)
-      } catch (e) {
-        Logger.red(['error', e])
-      }
+      return await self.prompt.internalFs.pseudoFileCompletion(options)
     }
   }
 
@@ -42,16 +38,12 @@ class Command {
     return async options => {
       options = Object.assign(extraOptions, options)
       options.forAutoComplete = true
-      try {
-        return await self.prompt.externalFs.fileCompletion(options)
-      } catch (e) {
-        Logger.red(['error', e])
-      }
+      return await self.prompt.externalFs.fileCompletion(options)
     }
   }
 
   threeRedDots(large) {
-    return chalk.yellow(large ? '•••' : '···')
+    return chalk.blu(large ? '•••' : '···')
   }
 
 }
