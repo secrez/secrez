@@ -63,7 +63,6 @@ class Mv extends require('../Command') {
     return !(dir && Node.isDir(dir))
   }
 
-
   async exec(options = {}) {
     if (options.help) {
       return this.showHelp()
@@ -81,7 +80,6 @@ class Mv extends require('../Command') {
           /* istanbul ignore if  */
           if (destination) {
             if (useWildcard) {
-              console.log(destination)
               if (this.isNotDir(destination)) {
                 throw new Error('When using wildcards, the target has to be a folder')
               }
