@@ -109,18 +109,17 @@ class InternalFs {
     return node
   }
 
-  async remove(options) {
-    let p = this.normalizePath(options.path)
-    let node = this.tree.root.getChildFromPath(p)
+  async remove(options, node) {
     if (!node) {
-      throw new Error('Path does not exist')
+      let p = this.normalizePath(options.path)
+      node = this.tree.root.getChildFromPath(p)
     }
     let deleted = await node.remove(options.version)
     await this.tree.save()
     return deleted
   }
 
-  async pseudoFileCompletion(options = {}, addSlashIfDir) {
+  async pseudoFileCompletion(options = {}, addSlashIfDir, returnNodes) {
     if (typeof options === 'string') {
       options = {path: options}
     }
@@ -142,18 +141,28 @@ class InternalFs {
     }
     if (node) {
       if (Node.isFile(node)) {
-        return [getType(node) + node.getName()]
+        return returnNodes
+            ? [node]
+            : [getType(node) + node.getName()]
       } else {
         let children = []
         for (let id in node.children) {
-          children.push(node.children[id].getName() + getType(node.children[id]))
+          children.push(
+              returnNodes
+                  ? node.children[id]
+                  : node.children[id].getName() + getType(node.children[id])
+          )
         }
         if (end) {
           end = '^' + end.replace(/\?/g, '.{1}').replace(/\*/g, '.*').replace(/\\ /g, ' ')
               + (options.forAutoComplete ? '' : '(|\\/)$')
           let re = RegExp(end)
           children = children.filter(e => {
-            return re.test(e)
+            return re.test(
+                returnNodes
+                    ? e.getName()
+                    : e
+            )
           })
         }
         return children

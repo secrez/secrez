@@ -90,6 +90,29 @@ describe('#Import', function () {
 
   })
 
+  it('should import files recursively', async function () {
+
+    await C.lcd.lcd({
+      path: '..'
+    })
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: 'files',
+      recursive: true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/file0.txt',
+      '/file3',
+      '/folder1/file1',
+      '/folder1/file2',
+      '/folder1/folder3/file4'
+    ])
+
+  })
+
   it('should read a folder and import the only text file', async function () {
 
     let content1 = await C.lcat.lcat({

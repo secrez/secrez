@@ -1,13 +1,13 @@
 {
   "name": "@secrez/core",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
     "test-only": "./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
-    "posttest": "nyc check-coverage --statements 99 --branches 96 --functions 99 --lines 99"
+    "posttest": "nyc check-coverage --statements 99 --branches 96 --functions 100 --lines 98"
   },
   "dependencies": {
     "base58": "^2.0.1",

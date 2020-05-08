@@ -67,12 +67,32 @@ describe('#Rm', function () {
 
   })
 
-  it('should return errors if wrong parameters', async function () {
+
+  it('should delete many files usign wildcards', async function () {
+
+    let expected = []
+    for (let i = 0; i < 3; i++) {
+
+      let file = await C.touch.touch({
+        path: '/folder2/file' + i,
+        type: config.types.TEXT
+      })
+      expected.push(C.rm.formatResult({
+        id: file.id,
+        version: Node.hashVersion(Object.keys(file.versions)[0]),
+        name: 'file' + i
+      }))
+
+    }
 
     inspect = stdout.inspect()
-    await C.rm.exec({path: '/folder2/fil*'})
+    await C.rm.exec({path: '/folder2/file*'})
     inspect.restore()
-    assertConsole(inspect, ['Wildcards not supported with rm.'])
+    assertConsole(inspect, ['Deleted entries:'].concat(expected))
+
+  })
+
+  it('should return errors if wrong parameters', async function () {
 
     inspect = stdout.inspect()
     await C.rm.exec()
@@ -84,9 +104,29 @@ describe('#Rm', function () {
       path: 'file2'
     })
     inspect.restore()
-    assertConsole(inspect, ['Path does not exist'])
+    assertConsole(inspect, ['Target files not found.'])
 
-    // jlog(root.toCompressedJSON())
+    let expected = []
+    let version
+    for (let i = 0; i < 3; i++) {
+      let file = await C.touch.touch({
+        path: '/folder2/file' + i,
+        type: config.types.TEXT
+      })
+      version = Node.hashVersion(Object.keys(file.versions)[0])
+      expected.push(C.rm.formatResult({
+        id: file.id,
+        version,
+        name: 'file' + i
+      }))
+
+    }
+
+    inspect = stdout.inspect()
+    await C.rm.exec({path: '/folder2/file*', version})
+    inspect.restore()
+    assertConsole(inspect, ['Wildcards not supported when version is specified.'])
+
   })
 
 
@@ -169,7 +209,7 @@ describe('#Rm', function () {
     inspect.restore()
     assertConsole(inspect, [
       'Deleted entries:'
-      ].concat(expected))
+    ].concat(expected))
 
     // jlog(root.toCompressedJSON(null, 1))
 
