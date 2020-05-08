@@ -73,17 +73,21 @@ class Tag extends require('../Command') {
       }
       return result
     } else if (options.path) {
-      let p = this.tree.getNormalizedPath(options.path)
-      let node = this.tree.root.getChildFromPath(p)
-      if (options.add) {
-        await this.tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
-        let s = options.add.length > 1 ? 's' : ''
-        result = [`Tag${s} added`]
-      } else if (options.remove) {
-        await this.tree.removeTag(node, options.remove.map(e => Case.snake(_.trim(e))))
-        let s = options.remove.length > 1 ? 's' : ''
-        result = [`Tag${s} removed`]
+      let nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+      this.tree.disableSave()
+      for (let node of nodes) {
+        if (options.add) {
+          await this.tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
+          let s = options.add.length > 1 ? 's' : ''
+          result = [`Tag${s} added`]
+        } else if (options.remove) {
+          await this.tree.removeTag(node, options.remove.map(e => Case.snake(_.trim(e))))
+          let s = options.remove.length > 1 ? 's' : ''
+          result = [`Tag${s} removed`]
+        }
       }
+      this.tree.enableSave()
+      this.tree.saveTags()
       return result
     }
     throw new Error('Insufficient parameters')

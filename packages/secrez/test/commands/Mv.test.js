@@ -94,6 +94,43 @@ describe('#Mv', function () {
 
   })
 
+
+  it('should move many files to another folder', async function () {
+
+    let file1 = await C.touch.touch({
+      path: '/folder1/ff1',
+      type: config.types.TEXT
+    })
+
+    let file2 = await C.touch.touch({
+      path: '/folder1/ff2',
+      type: config.types.TEXT
+    })
+
+    let file3 = await C.touch.touch({
+      path: '/folder1/gg',
+      type: config.types.TEXT
+    })
+
+    await C.mkdir.mkdir({
+      path: '/folder2',
+      type: config.types.DIR
+    })
+
+    inspect = stdout.inspect()
+    await C.mv.exec({
+      path: '/folder1/ff*',
+      destination: '/folder2'
+    })
+    inspect.restore()
+    assertConsole(inspect, '/folder1/ff* has been moved to /folder2')
+
+    assert.equal(file1.getPath(), '/folder2/ff1')
+    assert.equal(file2.getPath(), '/folder2/ff2')
+    assert.equal(file3.getPath(), '/folder1/gg')
+
+  })
+
   it('should move a file to another subfolder', async function () {
 
     let file = await C.touch.touch({
@@ -143,7 +180,7 @@ describe('#Mv', function () {
 
   })
 
-  it('should throw if parameters are missed', async function () {
+  it('should throw if parameters are missed or wrong', async function () {
 
     inspect = stdout.inspect()
     await C.mv.exec({
@@ -159,6 +196,28 @@ describe('#Mv', function () {
     })
     inspect.restore()
     assertConsole(inspect, 'Path does not exist')
+
+
+    await C.touch.touch({
+      path: '/bit',
+      type: config.types.TEXT
+    })
+
+    inspect = stdout.inspect()
+    await C.mv.exec({
+      path: '/b*',
+      destination: 'none'
+    })
+    inspect.restore()
+    assertConsole(inspect, 'When using wildcards, the target has to be a folder')
+
+    inspect = stdout.inspect()
+    await C.mv.exec({
+      path: '/b*',
+      destination: 'file'
+    })
+    inspect.restore()
+    assertConsole(inspect, 'When using wildcards, the target has to be a folder')
 
 
   })

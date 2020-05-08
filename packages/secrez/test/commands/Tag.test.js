@@ -79,9 +79,14 @@ describe('#Tag', function () {
     inspect.restore()
     assertConsole(inspect, ['Tags added'])
 
-    await noPrint(C.mkdir.exec({
-      path: '/dir'
-    }))
+    inspect = stdout.inspect()
+    await C.tag.exec({
+      path: '/f*',
+      add: ['wildcard']
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Tag added'])
+    assert.equal(prompt.internalFs.tree.tags.content['wildcard'].length, 2)
 
   })
 

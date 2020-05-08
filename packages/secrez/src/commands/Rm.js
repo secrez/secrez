@@ -44,7 +44,20 @@ class Rm extends require('../Command') {
   }
 
   async rm(options) {
-    return await this.internalFs.remove(options)
+    let nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+    let deleted = []
+    this.tree.disableSave()
+    for (let node of nodes) {
+      let result = await this.internalFs.remove(options, node)
+      if (result.length) {
+        deleted = deleted.concat(result)
+      }
+    }
+    this.tree.enableSave()
+    if (deleted.length) {
+      this.tree.save()
+    }
+    return deleted
   }
 
   formatResult(item) {
@@ -57,13 +70,17 @@ class Rm extends require('../Command') {
     }
     if (!options.path) {
       this.Logger.red('File path not specified.')
-    } else if (/\?|\*/.test(options.path)) {
-      this.Logger.red('Wildcards not supported with rm.')
+    } else if (options.version && /\?|\*/.test(options.path)) {
+      this.Logger.red('Wildcards not supported when version is specified.')
     } else {
       try {
         let deleted = await this.rm(options)
-        this.Logger.agua('Deleted entries:')
-        this.Logger.grey(deleted.map(e => this.formatResult(e)).join('\n'))
+        if (deleted.length) {
+          this.Logger.agua('Deleted entries:')
+          this.Logger.grey(deleted.map(e => this.formatResult(e)).join('\n'))
+        } else {
+          this.Logger.red('Target files not found.')
+        }
       } catch (e) {
         this.Logger.red(e.message)
       }

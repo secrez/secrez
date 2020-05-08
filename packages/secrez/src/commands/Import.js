@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 
@@ -45,11 +46,11 @@ class Import extends require('../Command') {
         alias: 'e',
         type: String
       },
-      // {
-      //   name: 'recursive',
-      //   alias: 'r',
-      //   type: Boolean
-      // }
+      {
+        name: 'recursive',
+        alias: 'r',
+        type: Boolean
+      }
     ]
   }
 
@@ -66,8 +67,9 @@ class Import extends require('../Command') {
       examples: [
         ['import seed.json', 'copies seed.json from the disk into the current directory'],
         ['import -m ethKeys', 'copies ethKeys and remove it from the disk'],
-        ['import -p ~/passwords', 'imports all the files in the folder passwords'],
-        // ['import -r ~/data -t', 'imports only text files in the folder, recursively'],
+        ['import -p ~/passwords', 'imports all the text files in the folder passwords'],
+        ['import -b -p ~/passwords', 'imports all the files, included binaries'],
+        ['import -r ~/data -t', 'imports text files in the folder, recursively'],
         ['import ~/data -s', 'simulates the process listing all involved files'],
         ['import backup.json -e /fromPasspack', 'imports a backup expanding it to many folders and file in the folder /fromPasspack'],
         ['import backup.json -e .', 'imports a backup in the current folder'],
@@ -77,6 +79,16 @@ class Import extends require('../Command') {
   }
 
   async import(options = {}) {
+    this.tree.disableSave()
+    let result = await this._import(options)
+    this.tree.enableSave()
+    if (result.length && !options.simulate) {
+      await this.tree.save()
+    }
+    return result.sort()
+  }
+
+  async _import(options = {}, container = '') {
     let ifs = this.internalFs
     let efs = this.externalFs
     let p = efs.getNormalizedPath(options.path)
@@ -84,47 +96,55 @@ class Import extends require('../Command') {
       let isDir = await efs.isDir(p)
       let list = isDir ? (await efs.getDir(p))[1].map(f => path.join(p, f)) : [p]
       let content = []
+      let result = []
+      let moved = []
       for (let fn of list) {
-
-        // recursion will be supported later :o)
         if (await efs.isDir(fn)) {
+          if (options.recursive) {
+            result = await this._import(
+                Object.assign(options, {path: fn}),
+                (container ? `${container}/` : '') + path.basename(fn)
+            )
+          } else {
+            continue
+          }
+        }
+        if (/\/$/.test(fn)) {
           continue
         }
-
         let isBinary = await Utils.isBinary(fn)
         if (isBinary && !options['binary-too']) {
           continue
         }
         content.push([fn, isBinary, await fs.readFile(fn, isBinary ? 'base64' : 'utf8')])
       }
-
-      let result = []
-      let moved = []
-      ifs.tree.disableSave()
       for (let fn of content) {
         let name = await this.tree.getVersionedBasename(path.basename(fn[0]))
-        result.push(ifs.tree.getNormalizedPath(name))
+        if (container) {
+          name = container + '/' + name
+        }
+        result.push(this.tree.getNormalizedPath(name))
         if (!options.simulate) {
           if (options.move) {
             moved.push(fn[0])
           }
-          await ifs.make({
+          let node = await ifs.make({
             path: name,
             type: fn[1] ? config.types.BINARY : config.types.TEXT,
             content: fn[2]
           })
+          result.pop()
+          result.push(node.getPath())
         }
       }
       if (!options.simulate) {
-        ifs.tree.enableSave()
-        await ifs.tree.save()
         if (options.move) {
           for (let fn of moved) {
             await fs.unlink(fn)
           }
         }
       }
-      return result.sort()
+      return result
     } else {
       return []
     }
@@ -146,7 +166,7 @@ class Import extends require('../Command') {
       } else if (ext === '.csv') {
         try {
           data = fromCsvToJson(str)
-        } catch(e) {
+        } catch (e) {
           return this.Logger.red(e.message)
         }
       }
@@ -174,15 +194,15 @@ class Import extends require('../Command') {
     let parentFolderPath = this.internalFs.tree.getNormalizedPath(options.expand)
     let parentFolder
     try {
-      parentFolder = ifs.tree.root.getChildFromPath(parentFolderPath)
+      parentFolder = this.tree.root.getChildFromPath(parentFolderPath)
     } catch (e) {
       await this.prompt.commands.mkdir.mkdir({path: parentFolderPath, type: config.types.DIR})
-      parentFolder = ifs.tree.root.getChildFromPath(parentFolderPath)
+      parentFolder = this.tree.root.getChildFromPath(parentFolderPath)
     }
     if (!Node.isDir(parentFolder)) {
       return this.Logger.red('The destination folder is not a folder.')
     }
-    ifs.tree.disableSave()
+    this.tree.disableSave()
     for (let item of data) {
       let p = item.path
       if (!p) {
@@ -192,10 +212,10 @@ class Import extends require('../Command') {
       let dirname = path.dirname(p)
       let dir
       try {
-        dir = ifs.tree.root.getChildFromPath(dirname)
+        dir = this.tree.root.getChildFromPath(dirname)
       } catch (e) {
         await this.prompt.commands.mkdir.mkdir({path: dirname, type: config.types.DIR})
-        dir = ifs.tree.root.getChildFromPath(dirname)
+        dir = this.tree.root.getChildFromPath(dirname)
       }
       let name = path.basename(p)
       if (!isYaml(name)) {
@@ -213,8 +233,8 @@ class Import extends require('../Command') {
       }
     }
     if (!options.simulate) {
-      ifs.tree.enableSave()
-      await ifs.tree.save()
+      this.tree.enableSave()
+      await this.tree.save()
       if (options.move) {
         await fs.unlink(fn)
       }
