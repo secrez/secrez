@@ -1,10 +1,10 @@
 # Secrez
 A secrets manager in times of crypto coins.
 
-## This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
+### This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
 
 
-### Intro
+#### Intro
 
 Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `cp`, `ls`, `mv`, etc.
 
@@ -130,6 +130,7 @@ Available options:
   bash    Execute a bash command in the current disk folder.
   cat     Shows the content of a file.
   cd      Changes the working directory.
+  copy    Copy a text file to the clipboard.
   create  Creates interactively a file containing a secret.
   edit    Edits a file containing a secret.
   exit    Exits TGT.
@@ -146,9 +147,9 @@ Available options:
   mv      Moves and renames files or folders.
   pwd     Shows the path of the working directory.
   rm      Removes a file or a single version of a file.
+  tag     Tags a file and shows existent tags.
   touch   Creates a file.
   ver     Shows the version of Secrez.
-
 
 To get help about single commands, specify the command.
 
@@ -254,6 +255,39 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Documentation
 - More commands, included a Git command to manage the repo
 - Plugin architecture to allow others to add their own commands
+
+### History
+
+__0.5.8__
+* Allow Import, with the options `-t`, to recognize tags during the import from CSV
+* Split Export in Export and Copy. The first only exports to the FS, the second copies to the clipboard
+
+__0.5.7__
+* Add wildcard support for Import, Mv, Rm and Tag
+
+__0.5.6__
+* Add Tag command to tag files and folders
+
+__0.5.5__
+* Optimize Import avoiding intermediate saves of the tree
+* Fix an issue with iterations at launch
+
+__0.5.4__
+* Add Import of many entries from CSV and JSON files
+
+__0.5.3__
+* Use Yaml files as cards, being able to read and edit single fields
+
+__0.5.2__
+* Remove obfuscation of the tree before saving (it was an overkill)
+
+__0.5.1__
+* Add Find to search in files and folders
+
+__0.5.0__
+* First stable version
+
+Versions < 0.5.0 are deprecated because the format was sligtly different and they are incompatible.
 
 #### Copyright
 

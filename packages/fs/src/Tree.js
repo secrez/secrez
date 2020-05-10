@@ -349,6 +349,10 @@ class Tree {
     this.doNotSave = true
   }
 
+  isSaveEnabled() {
+    return this.doNotSave ? false : true
+  }
+
   enableSave() {
     delete this.doNotSave
   }
@@ -403,7 +407,11 @@ class Tree {
       }
       this.tagsChanged = true
     }
-    this.saveTags()
+    await this.saveTags()
+  }
+
+  getTags(node) {
+    return this.reverseTags()[node.id] || []
   }
 
   async removeTag(node, tags) {
@@ -414,10 +422,10 @@ class Tree {
         this.tagsChanged = true
       }
     }
-    this.saveTags()
+    await this.saveTags()
   }
 
-  async listTags() {
+  listTags() {
     let result = []
     let tags = this.tags.content
     for (let t of Object.keys(tags).sort()) {
@@ -426,7 +434,7 @@ class Tree {
     return result.sort()
   }
 
-  async getNodesByTag(list) {
+  getNodesByTag(list) {
     let result = []
     let tags = this.tags.content
     let tag = []

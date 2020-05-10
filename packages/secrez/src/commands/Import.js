@@ -49,6 +49,11 @@ class Import extends require('../Command') {
         name: 'recursive',
         alias: 'r',
         type: Boolean
+      },
+      {
+        name: 'tags',
+        alias: 't',
+        type: Boolean
       }
     ]
   }
@@ -72,7 +77,8 @@ class Import extends require('../Command') {
         ['import ~/data -s', 'simulates the process listing all involved files'],
         ['import backup.json -e /fromPasspack', 'imports a backup expanding it to many folders and file in the folder /fromPasspack'],
         ['import backup.json -e .', 'imports a backup in the current folder'],
-        ['import backup.csv -e /', 'imports a backup in the root']
+        ['import backup.csv -e /', 'imports a backup in the root'],
+        ['import backup.csv -t /', 'imports a backup saving the tags field as actual tags']
       ]
     }
   }
@@ -224,16 +230,28 @@ class Import extends require('../Command') {
       this.Logger.reset(path.join(dirname, name))
       if (!options.simulate) {
         delete item.path
-        await ifs.make({
+        let tags
+        if (options.tags) {
+          tags = item.tags
+          delete item.tags
+        }
+        let node = await ifs.make({
           path: path.join(dirname, name),
           type: config.types.TEXT,
           content: yamlStringify(item)
         })
+        if (tags) {
+          tags = tags.split(' ').filter(e => e)
+          await this.prompt.commands.tag.tag({add: tags}, [node])
+        }
       }
     }
     if (!options.simulate) {
       this.tree.enableSave()
       await this.tree.save()
+      if (options.tags) {
+        await this.tree.saveTags()
+      }
       if (options.move) {
         await fs.unlink(fn)
       }
