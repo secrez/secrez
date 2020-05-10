@@ -264,6 +264,7 @@ __0.5.8__
 
 __0.5.7__
 * Add wildcard support for Import, Mv, Rm and Tag
+* Add support for recursion during import
 
 __0.5.6__
 * Add Tag command to tag files and folders
