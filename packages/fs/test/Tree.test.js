@@ -174,22 +174,22 @@ describe('#Tree', function () {
       tree.enableSave()
       tree.saveTags()
 
-      let list = await tree.listTags()
+      let list = tree.listTags()
       assert.equal(list[0], 'web (2)')
       assert.equal(list[1], 'wib (1)')
       assert.equal(list[2], 'wob (2)')
 
       await tree.removeTag(b, ['web'])
-      list = await tree.listTags()
+      list = tree.listTags()
       assert.equal(list[0], 'web (1)')
 
-      let tagged = await tree.getNodesByTag(['wob'])
+      let tagged = tree.getNodesByTag(['wob'])
       assert.equal(tagged[0][0], '/b')
       assert.equal(tagged[0][1], 'wob')
       assert.equal(tagged[1][0], '/c')
       assert.equal(tagged[1][1], 'wib wob')
 
-      tagged = await tree.getNodesByTag(['wob', 'wib'])
+      tagged = tree.getNodesByTag(['wob', 'wib'])
       assert.equal(tagged[0][0], '/c')
       assert.equal(tagged[0][1], 'wib wob')
 

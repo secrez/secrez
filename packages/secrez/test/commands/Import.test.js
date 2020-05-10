@@ -5,6 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
+const {fromSimpleYamlToJson} = require('../../src/utils')
 const {assertConsole, noPrint, decolorize} = require('../helpers')
 
 const {
@@ -261,7 +262,37 @@ describe('#Import', function () {
 
     let newSecret = await C.cat.cat({path: '/folder/imported/webs/SampleEntryTitle.yml', unformatted: true})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
-    assert.equal(newSecret[0].content.split('\n')[1], 'password: ycXfARD2G1AOBzLlhtbn')
+    let content = fromSimpleYamlToJson(newSecret[0].content)
+    assert.equal(content.password, 'ycXfARD2G1AOBzLlhtbn')
+    assert.equal(content.tags, 'email eth')
+  })
+
+  it('should import a backup from another software but saving the tags as tags', async function () {
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../some.csv',
+      expand: './imported2',
+      tags: true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/imported2/webs/SampleEntryTitle.yml',
+      '/imported2/passwords/twitter/Multi-Line Test Entry.yml',
+      '/imported2/tests/Entry To Test/Special Characters.yml',
+      '/imported2/tests/Entry To Test/JSON data/1.yml',
+      '/imported2/webs/SampleEntryTitle.2.yml'
+    ])
+
+    let newSecret = await C.cat.cat({path: '/imported2/webs/SampleEntryTitle.yml', unformatted: true})
+    assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
+    let content = fromSimpleYamlToJson(newSecret[0].content)
+    assert.equal(content.password, 'ycXfARD2G1AOBzLlhtbn')
+    assert.isUndefined(content.tags)
+
+    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/webs/SampleEntryTitle.yml')
+    assert.equal(prompt.internalFs.tree.getTags(node).join(' '), 'email eth')
 
   })
 

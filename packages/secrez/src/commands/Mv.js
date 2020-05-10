@@ -39,12 +39,15 @@ class Mv extends require('../Command') {
 
   async mv(options, nodes) {
     if (nodes) {
+      this.tree.disableSave()
       for (let node of nodes) {
         await this.internalFs.change({
           path: node.getPath(),
           newPath: options.newPath
         })
       }
+      this.tree.enableSave()
+      this.tree.save()
     } else {
       await this.internalFs.change({
         path: options.path,

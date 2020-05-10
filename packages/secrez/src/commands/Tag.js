@@ -62,19 +62,25 @@ class Tag extends require('../Command') {
     }
   }
 
-  async tag(options) {
+  async tag(options, nodes) {
     let result = []
     if (options.list) {
       return this.tree.listTags()
     } else if (options.show) {
-      result = await this.tree.getNodesByTag(options.show)
+      result = this.tree.getNodesByTag(options.show)
       if (!result.length) {
         throw new Error('Tagged files not found')
       }
       return result
-    } else if (options.path) {
-      let nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
-      this.tree.disableSave()
+    } else if (nodes || options.path) {
+      if (!nodes) {
+        nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+      }
+      const isSaveEnabled = this.tree.isSaveEnabled()
+      if (isSaveEnabled) {
+        // it's called from another command, like Import
+        this.tree.disableSave()
+      }
       for (let node of nodes) {
         if (options.add) {
           await this.tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
@@ -86,8 +92,10 @@ class Tag extends require('../Command') {
           result = [`Tag${s} removed`]
         }
       }
-      this.tree.enableSave()
-      this.tree.saveTags()
+      if (isSaveEnabled) {
+        this.tree.enableSave()
+        this.tree.saveTags()
+      }
       return result
     }
     throw new Error('Insufficient parameters')

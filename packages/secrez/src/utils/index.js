@@ -68,7 +68,17 @@ const utils = {
       })
     }
     return json
+  },
+
+  fromSimpleYamlToJson: yml => {
+    yml = yml.split('\n').map(e =>  e.split(': '))
+    let json = {}
+    for (let y of yml) {
+      json[y[0]] = y[1]
+    }
+    return json
   }
+
 
 }
 
