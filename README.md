@@ -145,6 +145,7 @@ Available options:
   ls      Browses the directories.
   mkdir   Creates a directory.
   mv      Moves and renames files or folders.
+  paste   Paste whatever is in the clipboard in an encrypted entries.
   pwd     Shows the path of the working directory.
   rm      Removes a file or a single version of a file.
   tag     Tags a file and shows existent tags.
