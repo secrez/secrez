@@ -84,6 +84,11 @@ class Cat extends require('../Command') {
   }
 
   async cat(options, justContent) {
+    if (typeof options === 'string') {
+      options = {
+        path: options
+      }
+    }
     let p = this.tree.getNormalizedPath(options.path)
     let node = this.tree.root.getChildFromPath(p)
     if (node && Node.isFile(node)) {

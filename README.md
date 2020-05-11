@@ -145,6 +145,7 @@ Available options:
   ls      Browses the directories.
   mkdir   Creates a directory.
   mv      Moves and renames files or folders.
+  paste   Paste whatever is in the clipboard in an encrypted entries.
   pwd     Shows the path of the working directory.
   rm      Removes a file or a single version of a file.
   tag     Tags a file and shows existent tags.
@@ -257,6 +258,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ### History
+
+__0.5.9__
+* Add Paste to paste the clipboard content in either a new or existent file, emptying the clipboard
+* Fix bug with Copy that was preventing the command from working
 
 __0.5.8__
 * Allow Import, with the options `-t`, to recognize tags during the import from CSV
