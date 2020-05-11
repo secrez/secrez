@@ -67,7 +67,7 @@ describe('#Import', function () {
     inspect.restore()
     assertConsole(inspect, ['Imported files:', '/folder/file0.txt'])
 
-    let newSecret = await C.cat.cat({path: '/folder/file0.txt'})
+    let newSecret = await C.cat.cat('/folder/file0.txt')
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     assert.equal(newSecret[0].content, content)
 
