@@ -258,6 +258,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__0.5.9__
+* Add Paste to paste the clipboard content in either a new or existent file, emptying the clipboard
+* Fix bug with Copy that was preventing the command from working
+
 __0.5.8__
 * Allow Import, with the options `-t`, to recognize tags during the import from CSV
 * Split Export in Export and Copy. The first only exports to the FS, the second copies to the clipboard
