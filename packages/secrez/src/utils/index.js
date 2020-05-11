@@ -79,7 +79,6 @@ const utils = {
     return json
   }
 
-
 }
 
 module.exports = utils

@@ -36,6 +36,11 @@ class Mkdir extends require('../Command') {
   }
 
   async mkdir(options) {
+    if (typeof options === 'string') {
+      options = {
+        path: options
+      }
+    }
     await this.internalFs.make(options)
   }
 

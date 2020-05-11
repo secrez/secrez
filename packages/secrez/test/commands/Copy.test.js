@@ -63,7 +63,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: 'file',
-      clipboard: 1
+      duration: 1
     })
     inspect.restore()
     assertConsole(inspect, ['Copied to clipboard:', 'file'])
@@ -88,7 +88,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      clipboard: 1,
+      duration: 1,
       json: true
     })
     inspect.restore()
@@ -103,7 +103,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      clipboard: 1,
+      duration: 1,
       field: 'password'
     })
     inspect.restore()
@@ -115,7 +115,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      clipboard: 1,
+      duration: 1,
       field: 'none'
     })
     inspect.restore()
@@ -129,7 +129,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      clipboard: 1,
+      duration: 1,
       field: 'password'
     })
     inspect.restore()
@@ -182,8 +182,7 @@ describe('#Copy', function () {
 
     inspect = stdout.inspect()
     await C.copy.exec({
-      path: 'file1.tar.gz',
-      clipboard: 10
+      path: 'file1.tar.gz'
     })
     inspect.restore()
     assertConsole(inspect, ['You can copy to clipboard only text files.'])
