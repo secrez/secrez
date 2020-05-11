@@ -133,7 +133,7 @@ Available options:
   copy    Copy a text file to the clipboard.
   create  Creates interactively a file containing a secret.
   edit    Edits a file containing a secret.
-  exit    Exits TGT.
+  exit    Exits Secrez.
   export  Export encrypted data to the OS in the current local folder
   find    Find a secret.
   help    This help.

@@ -1,10 +1,10 @@
 # Secrez
 A secrets manager in times of crypto coins.
 
-## This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
+### This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
 
 
-### Intro
+#### Intro
 
 Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `cp`, `ls`, `mv`, etc.
 
@@ -32,11 +32,9 @@ To obtain this goal, Secrez assembles a few strategies:
 - Any file — besides if it is a tree version, a directory, a text file, or a binary file — is immutable
 - Any change can be pulled/pushed to a remote private repo
 
-You can create a private repo on, for example, GitHub.
+You can either create a private repo on GitHub, BitBucket, etc. or — much better — setting your own, self-hosted git server.
 
-For now, this is a manual approach. Still, in a future version, GitHub credentials will be encrypted in Secrez, like any other data, and used directly to pull from the repo before doing any change and push to before exiting.
-
-In any case, even if you make changes parallelly, the changes won't generate any conflict because the files are immutable.
+For now, this is a manual approach. In a future version, the git repo will be manageable from inside Secrez.
 
 #### Apparently lost secrets
 
@@ -132,9 +130,10 @@ Available options:
   bash    Execute a bash command in the current disk folder.
   cat     Shows the content of a file.
   cd      Changes the working directory.
+  copy    Copy a text file to the clipboard.
   create  Creates interactively a file containing a secret.
   edit    Edits a file containing a secret.
-  exit    Exits TGT.
+  exit    Exits Secrez.
   export  Export encrypted data to the OS in the current local folder
   find    Find a secret.
   help    This help.
@@ -146,11 +145,12 @@ Available options:
   ls      Browses the directories.
   mkdir   Creates a directory.
   mv      Moves and renames files or folders.
+  paste   Paste whatever is in the clipboard in an encrypted entries.
   pwd     Shows the path of the working directory.
   rm      Removes a file or a single version of a file.
+  tag     Tags a file and shows existent tags.
   touch   Creates a file.
   ver     Shows the version of Secrez.
-
 
 To get help about single commands, specify the command.
 
@@ -184,6 +184,69 @@ This command takes the standard file myWallet.json, contained in the Desktop fol
 This is one of my favorite commands. In fact, let's say that you have just downloaded the private key to access your crypto wallet, you want to encrypt it as soon as possible. With Secrez, you can import the file and delete the cleartext version in one command.
 
 
+#### Importing from other password/secret managers
+
+From version 0.5.2, Secrez supports import of backups from other softwares.
+
+Suppose you have exported your password in a CSV file name export.csv like this:
+```
+Path,Username,Password,Web Site,Notes
+twitter/nick1,nick1@example.com,938eyehddu373,"http://cssasasa.com",
+facebook/account,fb@example.com,926734YYY,,
+somePath,,s83832jedjdj,"http://262626626.com","Multi
+line
+notes"
+```
+It is necessary a field named `path` because if not Secrez does not know where to put the new data. The path is supposed to be relative, allowing you to import it in your favorite folder.
+
+For example, to import it in the `1PasswordData` you could call
+```
+import export.csv -e 1PasswordData
+```
+The parameter `-e, --expand` is necessary. If missed, Secrez will import the file as a single file.
+
+Internally, Secrez converts the CSV in a JSON file like this:
+```
+ [
+    {
+      path: 'twitter/nick1',
+      username: 'nick1@example.com',
+      password: '938eyehddu373',
+      web_site: 'http://cssasasa.com'
+    },
+    {
+      path: 'facebook/account',
+      username: 'fb@example.com',
+      password: '926734YYY'
+    },
+    {
+      path: 'somePath',
+      password: 's83832jedjdj',
+      web_site: 'http://262626626.com',
+      notes: 'Multi\nline\nnotes'
+    }
+  ]
+```
+which means that you can also format your data as a JSON like that and import that directly with
+```
+import export.json -e 1PasswordData
+```
+
+Any item will generate a single Yaml file, like, for example, the last element in the JSON, will generate the file `/1PasswordDate/somePath.yml` with the following content:
+```
+password: s83832jedjdj
+web_site: http://262626626.com
+notes: |-
+  Multi
+  line
+  notes
+```
+
+When you edit the new file, Secrez recognize it as a card and asks you which field you want to edit (if you don't explicit it with, for example, `-f password`) and edit just that field.
+
+At the end of the process, you can remove the original backup, adding the option `-m`.
+You can also simulate the process to see which files will be created with the option `-s`.
+
 #### Some thoughts
 
 Secrez does not want to compete with password managers. So, don't expect in the future to have "form filling" and staff like that. The idea behind Secrez was born in 2017, when I was participating in many ICO and I had so many files to save and any password manager I used was very bad for that. Still, Secrez, for its nature, is file oriented and I guess will remain this way. However, it is open source, and someone is welcome to built a GUI or a mobile app built on it.
@@ -193,6 +256,44 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Documentation
 - More commands, included a Git command to manage the repo
 - Plugin architecture to allow others to add their own commands
+
+### History
+
+__0.5.9__
+* Add Paste to paste the clipboard content in either a new or existent file, emptying the clipboard
+* Fix bug with Copy that was preventing the command from working
+
+__0.5.8__
+* Allow Import, with the options `-t`, to recognize tags during the import from CSV
+* Split Export in Export and Copy. The first only exports to the FS, the second copies to the clipboard
+
+__0.5.7__
+* Add wildcard support for Import, Mv, Rm and Tag
+* Add support for recursion during import
+
+__0.5.6__
+* Add Tag command to tag files and folders
+
+__0.5.5__
+* Optimize Import avoiding intermediate saves of the tree
+* Fix an issue with iterations at launch
+
+__0.5.4__
+* Add Import of many entries from CSV and JSON files
+
+__0.5.3__
+* Use Yaml files as cards, being able to read and edit single fields
+
+__0.5.2__
+* Remove obfuscation of the tree before saving (it was an overkill)
+
+__0.5.1__
+* Add Find to search in files and folders
+
+__0.5.0__
+* First stable version
+
+Versions < 0.5.0 are deprecated because the format was sligtly different and they are incompatible.
 
 #### Copyright
 

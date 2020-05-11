@@ -11,7 +11,7 @@ class Exit extends require('../Command') {
 
   help() {
     return {
-      description: ['Exits TGT.'],
+      description: ['Exits Secrez.'],
       examples: [
         'exit',
         'exit dontSaveHistory'

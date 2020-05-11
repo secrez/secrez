@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "license": "MIT",
   "scripts": {
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
