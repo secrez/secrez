@@ -96,7 +96,7 @@ secrez -si 876352
 ```
 where the `-s` option saves the number locally in a git-ignored `env.json` file. This way you don't have to retype it all the time to launch Secrez (typing a wrong number of iterations, of course, will produce an error).
 
-If you don't explicitly set up the number of iterations, a value for that is asked during the set up, before your password, and, if you passed the options `-s`, is saved in `env.json`. 
+If you don't explicitly set up the number of iterations, a value for that is asked during the set up, before your password, and, if you passed the options `-s`, is saved in `env.json`.
 If starting your account, you put a large number and you think that it's too slow for your computer, delete the Secrez folder (by default `rm -rf ~/.secrez`) and restart.
 
 Other options are:
@@ -260,6 +260,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ### History
+
+__0.5.11__
+* Use tags to prefix the path during import
 
 __0.5.10__
 * Fix the README that was not aligned
