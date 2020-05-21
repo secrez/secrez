@@ -35,17 +35,10 @@ const utils = {
     } catch (e) {
       throw new Error('The CSV is malformed')
     }
-    let havePath = false
     for (let e of firstLine) {
       if (!/^[a-z]{1}[a-z0-9_]*$/.test(e)) {
         throw new Error('The header of the CSV looks wrong')
       }
-      if (e === 'path') {
-        havePath = true
-      }
-    }
-    if (!havePath) {
-      throw new Error('A "path" column in mandatory')
     }
     csv[0] = firstLine.join(',')
     csv = csv.join('\n')
@@ -71,7 +64,7 @@ const utils = {
   },
 
   fromSimpleYamlToJson: yml => {
-    yml = yml.split('\n').map(e =>  e.split(': '))
+    yml = yml.split('\n').map(e => e.split(': '))
     let json = {}
     for (let y of yml) {
       json[y[0]] = y[1]

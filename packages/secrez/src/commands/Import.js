@@ -54,6 +54,11 @@ class Import extends require('../Command') {
         name: 'tags',
         alias: 't',
         type: Boolean
+      },
+      {
+        name: 'use-tags-for-paths',
+        alias: 'u',
+        type: Boolean
       }
     ]
   }
@@ -75,10 +80,17 @@ class Import extends require('../Command') {
         ['import -b -p ~/passwords', 'imports all the files, included binaries'],
         ['import -r ~/data -t', 'imports text files in the folder, recursively'],
         ['import ~/data -s', 'simulates the process listing all involved files'],
-        ['import backup.json -e /fromPasspack', 'imports a backup expanding it to many folders and file in the folder /fromPasspack'],
+        ['import backup.csv -e /imported', 'imports a backup creating files in the "/imported"'],
         ['import backup.json -e .', 'imports a backup in the current folder'],
         ['import backup.csv -e /', 'imports a backup in the root'],
-        ['import backup.csv -t /', 'imports a backup saving the tags field as actual tags']
+        ['import backup.csv -t /', 'imports a backup saving the tags field as actual tags'],
+        ['import backup.csv -ut /fromPasspack',
+          'uses the tags to prefix the path and keeps the tags;',
+          'ex: if "google" is tagged "web,email" the path becomes',
+          '"./web/email/google" or "./email/web/google"',
+          'based on the tag weight'
+        ],
+        ['import backup.csv -u /fromPasspack', 'uses the tags to prefix the path without saving the tags']
       ]
     }
   }
@@ -186,7 +198,34 @@ class Import extends require('../Command') {
       return this.Logger.red('The data is empty')
     }
     if (!data[0].path) {
-      return this.Logger.red('The data does not show a path field')
+      return this.Logger.red('The data misses a path field')
+    }
+    if (options['use-tags-for-paths']) {
+      let weightedTags = {}
+      for (let item of data) {
+        if (item.tags) {
+          let tags = item.tags.split(' ')
+          for (let t of tags) {
+            if (!weightedTags[t]) {
+              weightedTags[t] = 0
+            }
+            weightedTags[t]++
+          }
+        }
+      }
+      for (let item of data) {
+        if (item.tags) {
+          let tags = item.tags.split(' ')
+          item.path = tags.sort((a, b,) => {
+            let A = weightedTags[a]
+            let B = weightedTags[b]
+            return A > B ? -1 : A < B ? 1 : 0
+          }).join('/') + '/' + item.path
+          if (!options.tags) {
+            delete item.tags
+          }
+        }
+      }
     }
     let extra = ''
     if (options.simulate) {

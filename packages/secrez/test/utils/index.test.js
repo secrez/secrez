@@ -34,13 +34,7 @@ describe  ('#utils', function () {
 
     })
 
-    it('should throw if the CSV is bad or misses a path', async function () {
-      try {
-        fromCsvToJson('web,url,password\nssas,sasas,sasasa')
-        assert.isFalse(true)
-      } catch (e) {
-        assert.equal(e.message, 'A "path" column in mandatory')
-      }
+    it('should throw if the CSV is bad', async function () {
 
       try {
         fromCsvToJson('path,"öäü",password\nssas,sasas,sasasa')
