@@ -296,6 +296,66 @@ describe('#Import', function () {
 
   })
 
+  it('should import a backup from another software using tags to prefix the paths', async function () {
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../some.csv',
+      expand: './imported2',
+      tags: true,
+      'use-tags-for-paths': true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/imported2/eth/email/webs/SampleEntryTitle.yml',
+      '/imported2/some/two/passwords/twitter/Multi-Line Test Entry.yml',
+      '/imported2/tests/Entry To Test/Special Characters.yml',
+      '/imported2/eth/web/tests/Entry To Test/JSON data/1.yml',
+      '/imported2/webs/SampleEntryTitle.yml'
+    ])
+
+    let newSecret = await C.cat.cat({path: '/imported2/eth/email/webs/SampleEntryTitle.yml', unformatted: true})
+    assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
+    let content = fromSimpleYamlToJson(newSecret[0].content)
+    assert.equal(content.password, 'ycXfARD2G1AOBzLlhtbn')
+    assert.isUndefined(content.tags)
+
+    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/eth/email/webs/SampleEntryTitle.yml')
+    assert.equal(prompt.internalFs.tree.getTags(node).length, 2)
+
+  })
+
+  it('should import using tags to prefix the paths, ignoring the tags', async function () {
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../some.csv',
+      expand: './imported2',
+      'use-tags-for-paths': true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/imported2/eth/email/webs/SampleEntryTitle.yml',
+      '/imported2/some/two/passwords/twitter/Multi-Line Test Entry.yml',
+      '/imported2/tests/Entry To Test/Special Characters.yml',
+      '/imported2/eth/web/tests/Entry To Test/JSON data/1.yml',
+      '/imported2/webs/SampleEntryTitle.yml'
+    ])
+
+    let newSecret = await C.cat.cat({path: '/imported2/eth/email/webs/SampleEntryTitle.yml', unformatted: true})
+    assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
+    let content = fromSimpleYamlToJson(newSecret[0].content)
+    assert.equal(content.password, 'ycXfARD2G1AOBzLlhtbn')
+    assert.isUndefined(content.tags)
+
+    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/eth/email/webs/SampleEntryTitle.yml')
+    assert.equal(prompt.internalFs.tree.getTags(node).length, 0)
+
+  })
+
+
   it('should throw importing a malformed backup', async function () {
 
     inspect = stdout.inspect()
@@ -312,7 +372,7 @@ describe('#Import', function () {
       expand: './imported'
     })
     inspect.restore()
-    assertConsole(inspect, ['A "path" column in mandatory'])
+    assertConsole(inspect, ['The data misses a path field'])
 
     inspect = stdout.inspect()
     await C.import.exec({

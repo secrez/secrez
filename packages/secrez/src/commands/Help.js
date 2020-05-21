@@ -72,7 +72,7 @@ class Help extends require('../Command') {
                       : '         '
               ),
               'grey',
-              c.hint ? ' (' + c.hint +')' : ''
+              c.hint ? ' (' + c.hint + ')' : ''
           )
         }
       }
@@ -81,25 +81,37 @@ class Help extends require('../Command') {
       console.info()
       this.Logger.reset('Examples:')
       let max = 0
-      let c = ''
       for (let e of data.examples) {
         if (Array.isArray(e)) {
-          c = `(${e[1]})`
           e = e[0]
         }
         max = Math.max(max, e.length)
       }
       for (let e of data.examples) {
-        c = ''
+        if (typeof e === 'string') {
+          e = [e]
+        }
+        let s = e[0]
         if (Array.isArray(e)) {
-          c = `(${e[1]})`
-          e = e[0]
+          e = e.slice(1)
+          let len = e.length
+          if (len > 0) {
+            for (let j = 0; j < len; j++) {
+              let c = e[j]
+              this.Logger.log('black', spacer + (
+                  j
+                      ? ' '.repeat(max + 3)
+                      : s + ' '.repeat(max - s.length + 1)
+              ), 'grey', [
+                !j ? '(' : '',
+                c,
+                len === 1 || j === len -1 ? ')' : ''
+              ].join(''))
+            }
+            continue
+          }
         }
-        if (c) {
-          this.Logger.log('black', spacer + e + ' '.repeat(max - e.length + 1), 'grey', c)
-        } else {
-          this.Logger.reset(spacer + e)
-        }
+        this.Logger.reset(spacer + s)
       }
     }
     console.info()
