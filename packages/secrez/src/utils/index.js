@@ -27,11 +27,7 @@ const utils = {
     }
   },
 
-  fromCsvToJson: (
-      csv,
-      delimiter = ',',
-      skipEmpty = true
-  ) => {
+  fromCsvToJson: (csv, delimiter = ',', skipEmpty = true) => {
     csv = csv.split('\n')
     let firstLine = csv[0]
     try {
