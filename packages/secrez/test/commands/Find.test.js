@@ -136,6 +136,33 @@ describe('#Find', function () {
 
   })
 
+  it('should skip binary files from search', async function () {
+
+    await noPrint(C.mkdir.exec({
+      path: '/folder'
+    }))
+    await noPrint(C.cd.exec({
+      path: '/folder'
+    }))
+
+    await noPrint(C.import.exec({
+      path: 'folder1',
+      'binary-too': true
+    }))
+
+    inspect = stdout.inspect()
+    await C.find.exec({
+      name: 'm',
+      content: true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      '/folder/file1',
+      '/folder/file2'
+    ])
+
+  })
+
 
 })
 
