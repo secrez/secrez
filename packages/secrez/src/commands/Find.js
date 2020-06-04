@@ -72,7 +72,7 @@ class Find extends require('../Command') {
 
   formatResult(result, re, name) {
     if (re.test(result)) {
-      return result.split(re).join(chalk.bold(name))
+      return result.replace(re, a => chalk.bold(a))
     } else {
       return result
     }

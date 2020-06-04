@@ -61,7 +61,7 @@ describe('#Find', function () {
 
     await noPrint(internalFs.change({
       path: '/folder1/file1',
-      newPath: '/folder1/file2',
+      newPath: '/folder1/File2',
       content: 'Password 3'
     }))
 
@@ -76,7 +76,7 @@ describe('#Find', function () {
     }))
 
     await noPrint(internalFs.make({
-      path: 'folder3/folder4/folder5/file3',
+      path: 'folder3/folder4/FOLDER5/File3',
       type: config.types.TEXT
     }))
 
@@ -85,14 +85,14 @@ describe('#Find', function () {
       name: 'file'
     })
     inspect.restore()
-    assertConsole(inspect, ['/folder1/file2',
+    assertConsole(inspect, ['/folder1/File2',
       '/folder2/file3',
-      '/folder3/folder4/folder5/file3'
+      '/folder3/folder4/FOLDER5/File3'
     ])
 
     inspect = stdout.inspect()
     await C.find.exec({
-      name: 'der1'
+      name: 'der'
     })
     inspect.restore()
     assertConsole(inspect, ['/folder1'])
@@ -105,7 +105,7 @@ describe('#Find', function () {
     assertConsole(inspect, [
       '/folder2/file3',
       '/folder3',
-      '/folder3/folder4/folder5/file3'
+      '/folder3/folder4/FOLDER5/File3'
     ])
 
     inspect = stdout.inspect()
@@ -115,7 +115,6 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, [
-      'file1',
       'file1'
     ], true)
 
@@ -126,7 +125,7 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, [
-      '/folder1/file2'
+      '/folder1/File2'
     ])
 
     inspect = stdout.inspect()

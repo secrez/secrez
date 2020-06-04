@@ -146,9 +146,12 @@ class Tree {
               recoveredEntries.push(p)
             }
           }
-          this.alerts.push('Some files/versions have been recovered:')
-          this.alerts = this.alerts.concat(recoveredEntries)
+          if (recoveredEntries.length) {
+            this.alerts.push('Some files/versions have been recovered:')
+            this.alerts = this.alerts.concat(recoveredEntries)
+          }
           await this.save()
+
         }
       }
       await this.loadTags(allTags)
@@ -197,7 +200,7 @@ class Tree {
     let content
     if (Node.isFile(node)) {
       content = node.getContent(ts)
-      if (!content) {
+      if (typeof content === 'undefined') {
         // must be read from disk
         let entry = node.getEntry(ts)
         let fullPath = this.getFullPath(entry)
@@ -205,7 +208,7 @@ class Tree {
         entry.encryptedContent = encryptedContent
         entry.extraName = extraName
         let decryptedEntry = this.secrez.decryptEntry(entry)
-        content = decryptedEntry.content
+        content = node.versions[ts ? ts : node.lastTs].content = decryptedEntry.content
       }
     }
     return {
