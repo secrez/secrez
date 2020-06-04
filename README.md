@@ -261,6 +261,14 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__0.5.12__
+* Optimize find inside contents caching the data
+* Fix an error returning wrong cases in the results
+* Remove an unnecessary message when nothing is recovered
+
+__0.5.11__
+* Use tags to prefix the path during import
+
 __0.5.10__
 * Fix the README that was not aligned
 

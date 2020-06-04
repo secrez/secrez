@@ -294,7 +294,7 @@ class Node {
   }
 
   static getFindRe(options) {
-    return RegExp(Entry.sanitizeName(options.name), options.sensitive ? '' : 'i')
+    return RegExp(Entry.sanitizeName(options.name), 'g' + (options.sensitive ? '' : 'i'))
   }
 
   async find(options, list = []) {
