@@ -360,7 +360,6 @@ describe('#Tree', function () {
       assert.equal(Object.keys(json.children).length, 7)
     })
 
-
   })
 
 })
