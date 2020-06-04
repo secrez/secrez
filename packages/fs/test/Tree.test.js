@@ -275,6 +275,8 @@ describe('#Tree', function () {
         }
       }
 
+      await sleep(100)
+
       await startTree()
 
       await internalFs.make({
@@ -298,6 +300,8 @@ describe('#Tree', function () {
       for (let f of files3) {
         await fs.move(`${backup}/${f}`, `${rootDir}/data/${f}`)
       }
+
+      await sleep(100)
 
       await startTree()
       // jlog(tree.alerts)
