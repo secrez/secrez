@@ -313,7 +313,7 @@ class Node {
               p,
               name
             ])
-          } else if (options.content && options.tree) {
+          } else if (options.content && this.type === config.types.TEXT && options.tree) {
             let {content} = await options.tree.getEntryDetails(this, ts)
             if (re.test(content || '')) {
               list.push([
