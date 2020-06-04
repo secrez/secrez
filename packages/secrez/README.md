@@ -261,6 +261,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__0.5.13__
+* Find in content excludes binary contents
+
 __0.5.12__
 * Optimize find inside contents caching the data
 * Fix an error returning wrong cases in the results
