@@ -128,7 +128,7 @@ describe('#Tree', function () {
 
     let signedUp = false
 
-    async function startTree() {
+    async function startTree(dataIndex) {
       secrez = new Secrez()
       await secrez.init(rootDir)
       if (signedUp) {

@@ -52,6 +52,22 @@ history
     return config
   }
 
+  static async setAndGetSecondaryDb(config, index) {
+    let dataPath = config.dataPath
+    if (typeof dataPathIndex === 'number' && parseInt(index.toString()) === index && index > 0) {
+      dataPath += '.' + index
+      if (!(await fs.pathExists(dataPath))) {
+        let lastData = (await fs.readdir(config.root)).sort().filter(e => /^data/.test(e)).pop()
+        if (lastData === config.dataPath + (index > 1 ? '.' + (index - 1) : '')) {
+          await fs.ensureDir(dataPath)
+        } else {
+          throw new Error('Wrong data index')
+        }
+      }
+    }
+    return dataPath
+  }
+
   static async getEnv() {
     return JSON.parse(await fs.readFile(config.envPath, 'utf8'))
   }

@@ -1,17 +1,21 @@
 const fs = require('fs-extra')
 const path = require('path')
 const Node = require('./Node')
-const {config, Entry, Crypto} = require('@secrez/core')
+const {config, Entry, Crypto, ConfigUtils} = require('@secrez/core')
 
 class Tree {
 
-  constructor(secrez) {
+  constructor(secrez, dataPathIndex) {
 
     this.alerts = []
 
     if (secrez && secrez.constructor.name === 'Secrez') {
+      let dataPath = secrez.config.dataPath
+      if (dataPathIndex) {
+        dataPath = ConfigUtils.setAndGetSecondaryDb(config, dataPathIndex)
+      }
       this.secrez = secrez
-      this.dataPath = secrez.config.dataPath
+      this.dataPath = dataPath
       this.status = Tree.statutes.UNLOADED
       this.errors = []
     } else {
