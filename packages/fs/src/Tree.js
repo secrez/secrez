@@ -155,6 +155,18 @@ class Tree {
         }
       }
       await this.loadTags(allTags)
+      try {
+        let trash = this.root.getChildFromPath('/.trash')
+        if (trash && trash.id === 'tra$') {
+          // we are converting an 0.5.x dataset
+          this.add(new Entry({
+            // name:
+          }))
+
+        }
+
+      } catch(e) {
+      }
 
     } else {
       this.root = Node.initGenericRoot()
