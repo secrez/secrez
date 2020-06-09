@@ -17,16 +17,6 @@ class Node {
       throw new Error('Unsupported type')
     }
 
-    if (!force) {
-      if (isTrash) {
-        throw new Error('The trash node is a reserved one.')
-      }
-
-      if (entry.name === '.trash') {
-        throw new Error('The name ".trash" is reserved.')
-      }
-    }
-
     let allIds = {}
     if (Node.isNode(entry.parent)) {
       allIds = Node.getRoot(entry.parent).allIds
@@ -237,9 +227,6 @@ class Node {
 
     if (Node.isRoot(this)) {
       minSize = this.calculateMinSize(allFiles)
-      let trash = this.children.tra$
-      delete this.children.tra$
-      this.children.tra$ = trash
     }
 
     if (this.versions) {
@@ -651,14 +638,14 @@ class Node {
       throw new Error('Root cannot be moved')
     }
 
-    if (Node.isTrash(this)) {
-      throw new Error('Trash cannot be moved')
-    }
-
-    if (Node.isTrashed(this)) {
-      throw new Error('A deleted file cannot be moved')
-    }
-
+    // if (Node.isTrash(this)) {
+    //   throw new Error('Trash cannot be moved')
+    // }
+    //
+    // if (Node.isTrashed(this)) {
+    //   throw new Error('A deleted file cannot be moved')
+    // }
+    //
     if (entry.id !== this.id) {
       throw new Error('Id does not match')
     }
@@ -672,41 +659,6 @@ class Node {
         this.parent.removeChild(this)
         entry.parent.add(this)
       }
-    }
-  }
-
-  getFromTrash(id) {
-    let trash = Node.getTrash(this)
-    return trash.children['_' + id]
-  }
-
-  trash(deleted) {
-    let trash = Node.getTrash(this)
-    let trashed = this.getFromTrash(deleted.id)
-    let lastTs
-
-    if (!trashed) {
-      lastTs = Object.keys(deleted.versions).sort(Node.sortEntry)[0]
-      trashed = new Node(new Entry({
-        id: '_' + deleted.id,
-        type: deleted.type,
-        ts: lastTs,
-        name: deleted.versions[lastTs].name,
-        encryptedName: deleted.versions[lastTs].file
-      }))
-      trash.add(trashed)
-      delete deleted.versions[lastTs]
-    }
-    for (let v in deleted.versions) {
-      lastTs = trashed.addVersion(Object.assign({
-            ts: v
-          },
-          deleted.versions[v]
-      ))
-    }
-    trashed.lastTs = lastTs
-    if (deleted.all && Node.isDir(deleted)) {
-      trashed.children = deleted.children
     }
   }
 
@@ -746,7 +698,6 @@ class Node {
         deleted.all = true
       }
 
-      // this.trash(deleted)
       if (deleted.all) {
         this.parent.removeChild(this)
       }
@@ -755,10 +706,6 @@ class Node {
   }
 
   removeChild(child) {
-    // if (Node.isTrash(child)) {
-    //   throw new Error('You cannot remove the trash node')
-    // }
-
     delete this.children[child.id]
   }
 

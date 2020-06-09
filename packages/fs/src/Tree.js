@@ -170,7 +170,7 @@ class Tree {
         }
 
         for (let i = 2; i < allIndexes.length; i++) {
-          await fs.unlink(path.join(this.dataPath, allIndexes[i].encryptedName))
+          // await fs.unlink(path.join(this.dataPath, allIndexes[i].encryptedName))
         }
 
       }
