@@ -1,3 +1,4 @@
+const {execSync} = require('child_process')
 const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
@@ -14,7 +15,8 @@ const jlog = require('./helpers/jlog')
 
 const {
   password,
-  iterations
+  iterations,
+  secrez0_5x
 } = require('./fixtures')
 
 describe('#Tree', function () {
@@ -444,6 +446,25 @@ describe('#Tree', function () {
       assert.equal(internalFs.tree.name, 'archive')
 
     })
-  })
 
+    it.only('should load a 0.5.x format and, if finds deleted files, move them to the trash dataset', async function () {
+
+      let p = path.resolve(__dirname, 'fixtures', secrez0_5x.path)
+      let d = path.resolve(__dirname, '../tmp/test/.secrez')
+
+      await fs.emptyDir(d)
+      execSync(`cp -r ${p}/* ${d}`)
+
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signin(secrez0_5x.password, secrez0_5x.iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+      tree = internalFs.tree
+
+      jlog(tree.root)
+
+    })
+
+  })
 })

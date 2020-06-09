@@ -175,6 +175,24 @@ class Tree {
 
       }
       await this.loadTags(allTags)
+      try {
+        let trash = this.root.getChildFromPath('/.trash')
+        if (trash && trash.id === 'tra$') {
+          // we are converting an 0.5.x dataset
+          let newTrash = this.add(new Entry({
+            name: this.datedName('TRASH'),
+            type: this.config.types.DIR
+          }))
+          let children = []
+          for (let id in trash.children) {
+            children.push(trash.children[id])
+          }
+          newTrash.add(children)
+          trash.parent.removeChild(trash)
+          this.save()
+        }
+      } catch(e) {
+      }
 
     } else {
       this.root = Node.initGenericRoot()
@@ -185,8 +203,12 @@ class Tree {
     this.status = Tree.statutes.LOADED
   }
 
+  datedName(prefix) {
+    return prefix + '_' + (new Date()).toISOString().substring(0, 19).replace(/(T|:|-)/g,'')
+  }
+
   async recoverUnlisted(allSecrets) {
-    let recName = this.config.specialName.RECOVERED + '_' + (new Date()).toISOString().substring(0, 19).replace(/(T|:|-)/g,'')
+    let recName = this.datedName(this.config.specialName.RECOVERED)
     this.root.datasetIndex = this.datasetIndex
     this.workingNode = this.root
     let recoveredEntries = []
