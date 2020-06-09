@@ -138,23 +138,29 @@ class Node {
 
   static preFormat(json, secrez, files, trash) {
     json.V = []
-    for (let v of json.v) {
+    for (let j = 0; j < json.v.length; j++) {
+      let v = json.v[j]
       if (/_/.test(v)) {
         trash = true
         json.V.push(new Entry({
           type: config.types.TRASH
         }))
       } else {
-        let entry = secrez.decryptEntry(new Entry({
-          encryptedName: files[v]
-        }))
-        let obj = entry.get(['id', 'ts', 'name'])
-        if (trash) {
-          obj.id = '_' + obj.id
+        if (files[v]) {
+          let entry = secrez.decryptEntry(new Entry({
+            encryptedName: files[v]
+          }))
+          let obj = entry.get(['id', 'ts', 'name'])
+          if (trash) {
+            obj.id = '_' + obj.id
+          }
+          obj.encryptedName = files[v]
+          json.V.push(obj)
+          delete files[v]
+        } else {
+          json.v.splice(j, 1)
+          j--
         }
-        obj.encryptedName = files[v]
-        json.V.push(obj)
-        delete files[v]
       }
     }
     json.V.sort(Node.sortEntry)
@@ -186,31 +192,36 @@ class Node {
 
   static initNode(json, parent) {
 
-    let V0 = json.V[0]
-    let type = V0 ? V0.type || parseInt(V0.encryptedName.substring(0, 1))
-        : config.types.ROOT
-    let node = new Node(new Entry({
-      type,
-      id: V0 ? V0.id : undefined,
-      ts: V0 ? V0.ts : undefined,
-      name: V0 ? V0.name : undefined,
-      encryptedName: V0 ? V0.encryptedName : undefined,
-      parent
-    }), type === config.types.TRASH)
-    for (let i = 1; i < json.V.length; i++) {
-      let V = json.V[i]
-      node.versions[V.ts] = {
-        name: V.name,
-        file: V.encryptedName
+    try {
+      let V0 = json.V[0]
+      let type = V0 ? V0.type || parseInt(V0.encryptedName.substring(0, 1))
+          : config.types.ROOT
+      let node = new Node(new Entry({
+        type,
+        id: V0 ? V0.id : undefined,
+        ts: V0 ? V0.ts : undefined,
+        name: V0 ? V0.name : undefined,
+        encryptedName: V0 ? V0.encryptedName : undefined,
+        parent
+      }), type === config.types.TRASH)
+      for (let i = 1; i < json.V.length; i++) {
+        let V = json.V[i]
+        node.versions[V.ts] = {
+          name: V.name,
+          file: V.encryptedName
+        }
       }
-    }
-    if (Node.isDir(node)) {
-      for (let i = 0; i < json.c.length; i++) {
-        node.add(Node.initNode(json.c[i], node))
+      if (Node.isDir(node)) {
+        for (let i = 0; i < json.c.length; i++) {
+          let n = Node.initNode(json.c[i], node)
+          if (n) {
+            node.add(n)
+          }
+        }
       }
-    }
 
-    return node
+      return node
+    } catch(e) {}
   }
 
   toCompressedJSON(
@@ -705,14 +716,6 @@ class Node {
       throw new Error('Root cannot be removed')
     }
 
-    if (Node.isTrash(this)) {
-      throw new Error('Trash cannot be removed')
-    }
-
-    if (Node.isTrashed(this)) {
-      throw new Error('A deleted file cannot be deleted again')
-    }
-
     if (this.parent) {
       if (!Array.isArray(version)) {
         version = [version]
@@ -732,7 +735,8 @@ class Node {
           result.push({
             id: this.id,
             version: Node.hashVersion(v),
-            name: this.versions[v].name
+            name: this.versions[v].name,
+            file: this.versions[v].file
           })
           deleted.versions[v] = this.versions[v]
           delete this.versions[v]
@@ -742,7 +746,7 @@ class Node {
         deleted.all = true
       }
 
-      this.trash(deleted)
+      // this.trash(deleted)
       if (deleted.all) {
         this.parent.removeChild(this)
       }
@@ -751,9 +755,9 @@ class Node {
   }
 
   removeChild(child) {
-    if (Node.isTrash(child)) {
-      throw new Error('You cannot remove the trash node')
-    }
+    // if (Node.isTrash(child)) {
+    //   throw new Error('You cannot remove the trash node')
+    // }
 
     delete this.children[child.id]
   }

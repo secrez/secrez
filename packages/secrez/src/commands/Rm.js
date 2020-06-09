@@ -38,7 +38,7 @@ class Rm extends require('../Command') {
       ],
       examples: [
         'rm secret1',
-        'rm secret2 -v 9Gcp,8hYU'
+        ['rm secret2 -v 9Gcp 8hYU', 'Removes the listed versions of secret2']
       ]
     }
   }
@@ -46,16 +46,16 @@ class Rm extends require('../Command') {
   async rm(options) {
     let nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
     let deleted = []
-    this.tree.disableSave()
+    this.internalFs.tree.disableSave()
     for (let node of nodes) {
       let result = await this.internalFs.remove(options, node)
       if (result.length) {
         deleted = deleted.concat(result)
       }
     }
-    this.tree.enableSave()
+    this.internalFs.tree.enableSave()
     if (deleted.length) {
-      this.tree.save()
+      this.internalFs.tree.save()
     }
     return deleted
   }
@@ -76,7 +76,7 @@ class Rm extends require('../Command') {
       try {
         let deleted = await this.rm(options)
         if (deleted.length) {
-          this.Logger.agua('Deleted entries:')
+          this.Logger.green('Deleted entries:')
           this.Logger.grey(deleted.map(e => this.formatResult(e)).join('\n'))
         } else {
           this.Logger.red('Target files not found.')

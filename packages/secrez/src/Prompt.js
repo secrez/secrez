@@ -173,19 +173,18 @@ class Prompt {
       this.internalFs.init().then(() => delete this.showLoading)
       this.loadingMessage = 'Initializing'
       await this.loading()
-      await this.internalFs.init()
       await this.loadSavedHistory()
       this.loggedIn = true
       let alerts = this.internalFs.tree.alerts
       if (alerts.length) {
         Logger.red(alerts[0])
-        Logger.blu(alerts.slice(1).join('\n'))
+        Logger.cyan(alerts.slice(1).join('\n'))
       }
     }
     // eslint-disable-next-line no-console
     // console.log()
     try {
-      let pre = chalk.reset(`(${this.internalFs.tree.workingNode.getPath()}) Secrez`)
+      let pre = chalk.reset(`Secrez (${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()})`)
       let answers = await inquirer.prompt([
         {
           type: 'command',

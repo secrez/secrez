@@ -1,5 +1,6 @@
 const homedir = require('homedir')
 const fs = require('fs-extra')
+const path = require('path')
 const Crypto = require('./utils/Crypto')
 const config = require('./config')
 const ConfigUtils = require('./config/ConfigUtils')
@@ -286,7 +287,6 @@ class Secrez {
 
         // when the encryptedName has been already decrypted and we need only the content
         if (encryptedContent) {
-          // let [id, ts, content] = decrypt(encryptedContent, _secrez.masterKey)
           let e = JSON.parse(Crypto.decrypt(encryptedContent, _secrez.masterKey))
 
           if ((nameId && e.i !== nameId) || (nameTs && e.t !== nameTs)) {

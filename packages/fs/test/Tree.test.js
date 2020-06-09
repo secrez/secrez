@@ -116,7 +116,6 @@ describe('#Tree', function () {
 
   })
 
-
   describe('#Fix', function () {
 
     let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
@@ -128,7 +127,7 @@ describe('#Tree', function () {
 
     let signedUp = false
 
-    async function startTree(dataIndex) {
+    async function startTree() {
       secrez = new Secrez()
       await secrez.init(rootDir)
       if (signedUp) {
@@ -165,14 +164,13 @@ describe('#Tree', function () {
       })
 
       await tree.addTag(a, ['web'])
-
       tree.disableSave()
 
       await tree.addTag(b, ['web', 'wob'])
       await tree.addTag(c, ['wib', 'wob'])
 
       tree.enableSave()
-      tree.saveTags()
+      await tree.saveTags()
 
       let list = tree.listTags()
       assert.equal(list[0], 'web (2)')
@@ -353,17 +351,99 @@ describe('#Tree', function () {
       await startTree()
 
       assert.equal(tree.alerts.length, 7)
-      assert.equal(tree.alerts[1], 'b')
-      assert.equal(tree.alerts[2], 'B')
-      assert.equal(tree.alerts[3], 'a')
-      assert.equal(tree.alerts[4], 'C')
-      assert.equal(tree.alerts[5], 'M')
-      assert.equal(tree.alerts[6], 'A')
+      assert.isTrue(tree.alerts[1].indexOf('/b') !== -1)
+      assert.isTrue(tree.alerts[2].indexOf('/B') !== -1)
+      assert.isTrue(tree.alerts[3].indexOf('/a') !== -1)
+      assert.isTrue(tree.alerts[4].indexOf('/C') !== -1)
+      assert.isTrue(tree.alerts[5].indexOf('/M') !== -1)
+      assert.isTrue(tree.alerts[6].indexOf('/A') !== -1)
 
-      let json = tree.root.toJSON()
-      assert.equal(Object.keys(json.children).length, 7)
+      function findRecovered(root) {
+        let recovered
+        for (let c in root.children) {
+          let child = root.children[c]
+          if (/^REC_\d{14}$/.test(child.getName())) {
+            recovered = child
+            break
+          }
+        }
+        return recovered
+      }
+
+      let recovered = findRecovered(tree.root)
+      assert.equal(Object.keys(recovered.children).length, 6)
+
+      await startTree()
+
+      recovered = findRecovered(tree.root)
+      assert.equal(Object.keys(recovered.children).length, 6)
+
     })
 
+  })
+
+  describe('Multi data sets', async function () {
+
+    let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+    let secrez
+    let internalFs
+
+    beforeEach(async function () {
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      if (!secrez) {
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+      }
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+      tree = internalFs.tree
+    })
+
+    it('should load the trees of two data sets', async function () {
+
+      assert.equal(internalFs.tree.name, 'main')
+
+      await internalFs.make({
+        path: '/a',
+        type: secrez.config.types.DIR
+      })
+
+      await internalFs.make({
+        path: '/b',
+        type: secrez.config.types.DIR
+      })
+
+      await internalFs.mountTree(2, true)
+      await internalFs.tree.nameDataset('archive')
+      assert.equal(internalFs.tree.name, 'archive')
+
+      await internalFs.make({
+        path: '/d',
+        type: secrez.config.types.DIR
+      })
+
+      await internalFs.make({
+        path: '/e',
+        type: secrez.config.types.DIR
+      })
+
+      let files = (await internalFs.pseudoFileCompletion()).sort()
+      assert.equal(files.length, 3)
+      assert.equal(files[1], 'd')
+      assert.equal(files[2], 'e')
+
+      await internalFs.mountTree(0, true)
+
+      files = (await internalFs.pseudoFileCompletion()).sort()
+      assert.equal(files.length, 3)
+      assert.equal(files[1], 'a')
+      assert.equal(files[2], 'b')
+
+      await internalFs.mountTree(2, true)
+      assert.equal(internalFs.tree.name, 'archive')
+
+    })
   })
 
 })

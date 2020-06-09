@@ -49,7 +49,7 @@ class Export extends require('../Command') {
     let efs = this.externalFs
     let cat = this.prompt.commands.cat
     let lpwd = this.prompt.commands.lpwd
-    let p = this.tree.getNormalizedPath(options.path)
+    let p = this.internalFs.tree.getNormalizedPath(options.path)
     let file = ifs.tree.root.getChildFromPath(p)
     if (Node.isFile(file)) {
       let entry = (await cat.cat({
@@ -73,7 +73,7 @@ class Export extends require('../Command') {
     }
     try {
       let name = await this.export(options)
-      this.Logger.agua(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
+      this.Logger.green(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

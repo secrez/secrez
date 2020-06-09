@@ -65,8 +65,8 @@ class Find extends require('../Command') {
   }
 
   async find(options) {
-    options.tree = this.tree
-    let start = options.global ? this.tree.root : this.tree.workingNode
+    options.tree = this.internalFs.tree
+    let start = options.global ? this.internalFs.tree.root : this.internalFs.tree.workingNode
     return await start.find(options)
   }
 
@@ -110,6 +110,7 @@ class Find extends require('../Command') {
     try {
       let list = this.formatList(await this.find(options), options)
       if (list && list.length) {
+        this.Logger.grey(`${list.length} results found:`)
         this.Logger.reset(list.join('\n'))
       } else {
         this.Logger.grey('No results.')

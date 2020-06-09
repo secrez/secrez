@@ -21,6 +21,7 @@ class ConfigUtils {
       container,
       localWorkingDir
   ) {
+    config.container = container
     config.root = path.basename(container)
     config.dataPath = path.join(container, 'data')
     config.workingDir = '/'
@@ -52,20 +53,32 @@ history
     return config
   }
 
-  static async setAndGetSecondaryDb(config, index) {
+  static getDatasetPath(config, index) {
+    return config.dataPath + (index > 0 ? `.${index}` : '')
+  }
+
+  static setAndGetDataset(config, index) {
     let dataPath = config.dataPath
-    if (typeof dataPathIndex === 'number' && parseInt(index.toString()) === index && index > 0) {
+    if (typeof index === 'number' && parseInt(index.toString()) === index && index > 0) {
       dataPath += '.' + index
-      if (!(await fs.pathExists(dataPath))) {
-        let lastData = (await fs.readdir(config.root)).sort().filter(e => /^data/.test(e)).pop()
-        if (lastData === config.dataPath + (index > 1 ? '.' + (index - 1) : '')) {
-          await fs.ensureDir(dataPath)
+      if (!fs.existsSync(dataPath)) {
+        let lastData = ConfigUtils.getLastDataset(config)
+        if (lastData === path.basename(config.dataPath) + (index > 1 ? '.' + (index - 1) : '')) {
+          fs.mkdirSync(dataPath)
         } else {
           throw new Error('Wrong data index')
         }
       }
     }
     return dataPath
+  }
+
+  static getLastDataset(config) {
+    return ConfigUtils.listDatasets(config).pop()
+  }
+
+  static listDatasets(config) {
+    return fs.readdirSync(config.container).sort().filter(e => /^data/.test(e))
   }
 
   static async getEnv() {

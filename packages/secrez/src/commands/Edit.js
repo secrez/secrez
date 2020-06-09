@@ -112,7 +112,7 @@ class Edit extends require('../Command') {
     } else if (!isYaml(file)) {
       delete options.field
     }
-    let node = this.tree.workingNode.getChildFromPath(file)
+    let node = this.internalFs.tree.workingNode.getChildFromPath(file)
     let content = options.field ? fields[options.field] || '' : data[0].content
     let message = 'your OS default editor.'
     if (options.internal) {
@@ -124,7 +124,7 @@ class Edit extends require('../Command') {
     let extraMessage = chalk.dim('Press <enter> to launch ')
         + message
         + chalk.reset(
-            options.internal ? chalk.agua('\n  Ctrl-d to save the changes. Ctrl-c to abort.') : ''
+            options.internal ? chalk.green('\n  Ctrl-d to save the changes. Ctrl-c to abort.') : ''
         )
 
     let {newContent} = await this.prompt.inquirer.prompt([{
@@ -147,7 +147,7 @@ class Edit extends require('../Command') {
       } else {
         entry.content = newContent
       }
-      await this.tree.update(node, entry)
+      await this.internalFs.tree.update(node, entry)
       this.Logger.reset('File saved.')
     } else {
       this.Logger.reset('Changes aborted or file not changed')

@@ -290,38 +290,38 @@ describe('#Node', function () {
 
     })
 
-    it('should throw trying to move trash or to move a deleted file', async function () {
-
-      let root = initARootNode()
-      let dir = initRandomNode(D, secrez)
-      let name = dir.getName()
-      let dir2 = initRandomNode(D, secrez)
-
-      root.add([dir, dir2])
-
-      let trash = Node.getTrash(root)
-
-      try {
-        trash.move({
-          parent: dir
-        })
-        assert.isFalse(true)
-      } catch (e) {
-        assert.equal(e.message, 'Trash cannot be moved')
-      }
-
-      dir.remove()
-
-      dir = root.getChildFromPath(`/.trash/${name}`)
-      try {
-        dir.move({
-          parent: dir2
-        })
-        assert.isFalse(true)
-      } catch (e) {
-        assert.equal(e.message, 'A deleted file cannot be moved')
-      }
-    })
+    // it('should throw trying to move trash or to move a deleted file', async function () {
+    //
+    //   let root = initARootNode()
+    //   let dir = initRandomNode(D, secrez)
+    //   let name = dir.getName()
+    //   let dir2 = initRandomNode(D, secrez)
+    //
+    //   root.add([dir, dir2])
+    //
+    //   let trash = Node.getTrash(root)
+    //
+    //   try {
+    //     trash.move({
+    //       parent: dir
+    //     })
+    //     assert.isFalse(true)
+    //   } catch (e) {
+    //     assert.equal(e.message, 'Trash cannot be moved')
+    //   }
+    //
+    //   dir.remove()
+    //
+    //   dir = root.getChildFromPath(`/.trash/${name}`)
+    //   try {
+    //     dir.move({
+    //       parent: dir2
+    //     })
+    //     assert.isFalse(true)
+    //   } catch (e) {
+    //     assert.equal(e.message, 'A deleted file cannot be moved')
+    //   }
+    // })
 
     it('should throw trying to modify a node with different id', async function () {
 
@@ -352,7 +352,7 @@ describe('#Node', function () {
       await secrez.signup(password, iterations)
     })
 
-    it('should remove a node', async function () {
+    it.skip('should remove a node', async function () {
 
       let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
@@ -403,18 +403,18 @@ describe('#Node', function () {
 
     })
 
-    it('should throw trying to remove trash', async function () {
-
-      let root = initARootNode()
-
-      try {
-        Node.getTrash(root).remove()
-        assert.isFalse(true)
-      } catch (e) {
-        assert.equal(e.message, 'Trash cannot be removed')
-      }
-
-    })
+    // it('should throw trying to remove trash', async function () {
+    //
+    //   let root = initARootNode()
+    //
+    //   try {
+    //     Node.getTrash(root).remove()
+    //     assert.isFalse(true)
+    //   } catch (e) {
+    //     assert.equal(e.message, 'Trash cannot be removed')
+    //   }
+    //
+    // })
 
   })
 

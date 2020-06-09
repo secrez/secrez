@@ -38,7 +38,7 @@ class Cd extends require('../Command') {
 
   cd(options) {
     let ifs = this.internalFs
-    let p = this.tree.getNormalizedPath(options.path)
+    let p = this.internalFs.tree.getNormalizedPath(options.path)
     if (!p || /^(\/|~|~\/)$/.test(p)) {
       ifs.tree.workingNode = ifs.tree.root
     } else if (p === '.') {

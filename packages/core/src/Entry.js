@@ -48,17 +48,17 @@ class Entry {
     }
   }
 
-  static sanitizeName(name) {
+  static sanitizeName(name, subst = '') {
     // removes character forbidden by operating systems
     // eslint-disable-next-line no-useless-escape
-    return removeNotPrintableChars(name).replace(/[\\\/\>\<\|\:\&\?\*]/ig, '')
+    return removeNotPrintableChars(name).replace(/[\\\/\>\<\|\:\&\?\*]/ig, subst)
   }
 
-  static sanitizePath(p) {
+  static sanitizePath(p, subst) {
     if (typeof p === 'string') {
       // removes character forbidden by operating systems
       // eslint-disable-next-line no-useless-escape
-      return p.split('/').map(e => Entry.sanitizeName(e)).join('/')
+      return p.split('/').map(e => Entry.sanitizeName(e, subst)).join('/')
     } else {
       throw new Error('Path must be a string')
     }
@@ -81,7 +81,8 @@ Entry.validOptions = [
   'nameId',
   'nameTs',
   'preserveContent',
-  'parent'
+  'parent',
+  'treeIndex'
 ]
 
 

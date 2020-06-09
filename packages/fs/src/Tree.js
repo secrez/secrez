@@ -5,16 +5,17 @@ const {config, Entry, Crypto, ConfigUtils} = require('@secrez/core')
 
 class Tree {
 
-  constructor(secrez, dataPathIndex) {
+  constructor(secrez, datasetIndex = 0) {
 
     this.alerts = []
-
     if (secrez && secrez.constructor.name === 'Secrez') {
       let dataPath = secrez.config.dataPath
-      if (dataPathIndex) {
-        dataPath = ConfigUtils.setAndGetSecondaryDb(config, dataPathIndex)
+      if (datasetIndex) {
+        dataPath = ConfigUtils.setAndGetDataset(config, datasetIndex)
       }
+      this.datasetIndex = datasetIndex
       this.secrez = secrez
+      this.config = secrez.config
       this.dataPath = dataPath
       this.status = Tree.statutes.UNLOADED
       this.errors = []
@@ -24,7 +25,7 @@ class Tree {
   }
 
   async getAllFiles() {
-    return (await fs.readdir(this.dataPath)).filter(file => !/\./.test(file))
+    return (await fs.readdir(this.dataPath)).filter(file => !/^\./.test(file))
   }
 
   async decryptSecret(file) {
@@ -52,10 +53,10 @@ class Tree {
     let files = await this.getAllFiles()
     let allIndexes = []
     let allSecrets = []
+    let allNames = []
     let allTags = []
 
     for (let file of files) {
-
       let [entry, decryptedEntry] = await this.decryptSecret(file)
       if (decryptedEntry.type === config.types.ROOT) {
         let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
@@ -66,31 +67,37 @@ class Tree {
         allIndexes.push(decryptedEntry)
       } else if (decryptedEntry.type === config.types.TAGS) {
         allTags.push(decryptedEntry)
+      } else if (decryptedEntry.type === config.types.NAME) {
+        allNames.push(decryptedEntry)
       } else {
         allSecrets.push(decryptedEntry)
       }
     }
 
+    if (this.datasetIndex === 0) {
+      this.name = 'main'
+    } else if (this.datasetIndex === 1) {
+      this.name = 'trash'
+    } else if (allNames.length) {
+      allNames.sort(Node.sortEntry)
+      this.name = allNames[0].name
+    }
+
     if (allSecrets.length) {
       allSecrets.sort(Node.sortEntry)
-
       if (!allIndexes.length) {
-        this.alerts.push('A valid tree is missing.\nThe following entries have been recovered and put in the root:')
         this.root = Node.initGenericRoot()
-        this.workingNode = this.root
-        for (let entry of allSecrets) {
-          // console.log(entry)
-          entry.parent = this.root
-          this.root.add(new Node(entry))
-          this.alerts.push(entry.name)
-        }
-        await this.save()
+        this.alerts = ['A valid tree is missing.\nThe following entries have been recovered and put in the folder "/recovered":']
+            .concat(await this.recoverUnlisted(allSecrets))
+        this.save()
       } else {
 
         allIndexes.sort(Node.sortEntry)
         let allSecretsFiles = allSecrets.map(e => e.encryptedName)
         let json = JSON.parse(allIndexes[0].content)
         this.root = Node.fromJSON(json, this.secrez, allSecretsFiles)
+
+        this.root.datasetIndex = this.datasetIndex
         this.workingNode = this.root
 
         // verify the tree
@@ -102,7 +109,7 @@ class Tree {
             filesNotOnTree.push(allSecrets[i])
           }
         }
-        if (filesNotOnTree.length) {
+       if (filesNotOnTree.length) {
           let toBeRecovered = {}
           let recoveredEntries = []
           FOR: for (let i = 1; i < allIndexes.length; i++) {
@@ -150,22 +157,65 @@ class Tree {
               recoveredEntries.push(p)
             }
           }
-          if (recoveredEntries.length) {
-            this.alerts.push('Some files/versions have been recovered:')
-            this.alerts = this.alerts.concat(recoveredEntries)
+          if (filesNotOnTree.length || recoveredEntries.length) {
+            this.alerts = ['Some files/versions have been recovered:']
+            if (recoveredEntries.length) {
+              this.alerts = this.alerts.concat(recoveredEntries)
+            }
+            if (filesNotOnTree.length) {
+              this.alerts = this.alerts.concat(await this.recoverUnlisted(filesNotOnTree))
+            }
+            await this.save()
           }
-          await this.save()
-
         }
+
+        for (let i = 2; i < allIndexes.length; i++) {
+          await fs.unlink(path.join(this.dataPath, allIndexes[i].encryptedName))
+        }
+
       }
       await this.loadTags(allTags)
 
     } else {
       this.root = Node.initGenericRoot()
+      this.root.datasetIndex = this.datasetIndex
       this.workingNode = this.root
       await this.loadTags()
     }
     this.status = Tree.statutes.LOADED
+  }
+
+  async recoverUnlisted(allSecrets) {
+    let recName = this.config.specialName.RECOVERED + '_' + (new Date()).toISOString().substring(0, 19).replace(/(T|:|-)/g,'')
+    this.root.datasetIndex = this.datasetIndex
+    this.workingNode = this.root
+    let recoveredEntries = []
+    let recovered
+    for (let entry of allSecrets) {
+      if (!recovered) {
+        try {
+          recovered = await this.add(this.root, new Entry({
+            name: recName,
+            type: this.config.types.DIR
+          }))
+        } catch (e) {
+        }
+      }
+      if (entry.type === this.config.types.DIR && entry.name === recName) {
+        await fs.unlink(path.join(this.dataPath, entry.encryptedName))
+      } else {
+        entry.parent = recovered
+        try {
+          recovered.getChildFromPath(entry.name)
+          entry.name = await this.getVersionedBasename(`/${recName}/${entry.name}`)
+        } catch (e) {
+        }
+        recovered.add(new Node(entry))
+        recoveredEntries.push(`/${recName}/${entry.name}`)
+      }
+    }
+    await this.save()
+    return recoveredEntries
   }
 
   async addAsChildOrVersion(parent, entry) {
@@ -286,17 +336,18 @@ class Tree {
   }
 
   async add(parent, entry, force) {
-
     /* istanbul ignore if  */
-    if (entry.id) {
+    if (entry.id && !force) {
       throw new Error('A new entry cannot have a pre-existent id')
     }
-    entry.set({id: Crypto.getRandomId()})
+    if (!entry.id) {
+      entry.set({id: Crypto.getRandomId()})
+    }
     entry.preserveContent = true
     entry = this.secrez.encryptEntry(entry)
     try {
       await this.saveEntry(entry)
-      let node = new Node(entry)
+      let node = new Node(entry, force)
       parent.add(node)
       await this.save()
       return node
@@ -506,6 +557,50 @@ class Tree {
     tags = this.secrez.encryptEntry(tags)
     await this.saveEntry(tags)
     this.previousTags = tags
+  }
+
+  async nameDataset(name) {
+    if ([0, 1].includes(this.datasetIndex)) {
+      throw new Error('Main and trash dataset cannot be renamed')
+    }
+    if (!/^[a-zA-Z]{1}\w{1,15}$/.test(name)) {
+      throw new Error('Dataset name must be alphanumeric, start with a letter, and at most 16 characters long')
+    }
+    if (name !== this.name) {
+      let entry = new Entry({
+        name,
+        id: config.specialId.NAME,
+        type: config.types.NAME
+      })
+      let encryptedEntry = this.secrez.encryptEntry(entry)
+      await fs.writeFile(path.join(this.dataPath, encryptedEntry.encryptedName), '')
+      this.name = name
+    }
+  }
+
+  async getAllDataFiles(node, files = []) {
+    for (let ts in node.versions) {
+      files.push(node.getFile(ts))
+    }
+    if (node.children) {
+      for (let id in node.children) {
+        await this.getAllDataFiles(node.children[id], files)
+      }
+    }
+    return files
+  }
+
+  async getName() {
+    let files = (await fs.readdir(this.dataPath)).filter(file => RegExp(`^${this.config.types.NAME}`).test(file))
+    let allNames = []
+    for (let file of files) {
+      // eslint-disable-next-line no-unused-vars
+      let [entry, decryptedEntry] = await this.decryptSecret(file)
+      allNames.push(decryptedEntry)
+    }
+    // console.log(allNames)
+    allNames.sort(Node.sortEntry)
+    return allNames[0].name
   }
 
 }

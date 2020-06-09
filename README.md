@@ -261,6 +261,13 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__0.6.0__
+* Allow multiple datasets; `main` and `trash` exists by default
+* `use` allows to use and create new dataset
+* `mv` supports `-d, --destination` for the destination
+* `mv` allows to move files among datasets with a syntax like `mv somefile --to archive` or `mv somefile --from archive`
+* at start, purges old trees after successfully loading a dataset
+
 __0.5.13__
 * Find in content excludes binary contents
 

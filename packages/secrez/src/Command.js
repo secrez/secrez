@@ -12,7 +12,6 @@ class Command {
     this.Logger = Logger
     this.internalFs = prompt.internalFs
     this.externalFs = prompt.externalFs
-    this.tree = prompt.internalFs.tree
   }
 
   help() {
@@ -43,7 +42,7 @@ class Command {
   }
 
   threeRedDots(large) {
-    return chalk.blu(large ? '•••' : '···')
+    return chalk.cyan(large ? '•••' : '···')
   }
 
 }

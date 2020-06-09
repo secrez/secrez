@@ -1,7 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 
-const {Utils, config} = require('@secrez/core')
+const {Utils, config, Entry} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 const {fromCsvToJson, yamlStringify, isYaml} = require('../utils')
 
@@ -96,11 +96,11 @@ class Import extends require('../Command') {
   }
 
   async import(options = {}) {
-    this.tree.disableSave()
+    this.internalFs.tree.disableSave()
     let result = await this._import(options)
-    this.tree.enableSave()
+    this.internalFs.tree.enableSave()
     if (result.length && !options.simulate) {
-      await this.tree.save()
+      await this.internalFs.tree.save()
     }
     return result.sort()
   }
@@ -136,11 +136,12 @@ class Import extends require('../Command') {
         content.push([fn, isBinary, await fs.readFile(fn, isBinary ? 'base64' : 'utf8')])
       }
       for (let fn of content) {
-        let name = await this.tree.getVersionedBasename(path.basename(fn[0]))
+        let basename = Entry.sanitizeName(path.basename(fn[0]), '-')
+        let name = await this.internalFs.tree.getVersionedBasename(basename)
         if (container) {
           name = container + '/' + name
         }
-        result.push(this.tree.getNormalizedPath(name))
+        result.push(this.internalFs.tree.getNormalizedPath(name))
         if (!options.simulate) {
           if (options.move) {
             moved.push(fn[0])
@@ -233,20 +234,20 @@ class Import extends require('../Command') {
     } else if (options.move) {
       extra = ' (moved)'
     }
-    this.Logger.agua(`Imported files${extra}:`)
+    this.Logger.green(`Imported files${extra}:`)
 
     let parentFolderPath = this.internalFs.tree.getNormalizedPath(options.expand)
     let parentFolder
     try {
-      parentFolder = this.tree.root.getChildFromPath(parentFolderPath)
+      parentFolder = this.internalFs.tree.root.getChildFromPath(parentFolderPath)
     } catch (e) {
       await this.prompt.commands.mkdir.mkdir({path: parentFolderPath, type: config.types.DIR})
-      parentFolder = this.tree.root.getChildFromPath(parentFolderPath)
+      parentFolder = this.internalFs.tree.root.getChildFromPath(parentFolderPath)
     }
     if (!Node.isDir(parentFolder)) {
       return this.Logger.red('The destination folder is not a folder.')
     }
-    this.tree.disableSave()
+    this.internalFs.tree.disableSave()
     for (let item of data) {
       let p = item.path
       if (!p) {
@@ -256,16 +257,16 @@ class Import extends require('../Command') {
       let dirname = path.dirname(p)
       let dir
       try {
-        dir = this.tree.root.getChildFromPath(dirname)
+        dir = this.internalFs.tree.root.getChildFromPath(dirname)
       } catch (e) {
         await this.prompt.commands.mkdir.mkdir({path: dirname, type: config.types.DIR})
-        dir = this.tree.root.getChildFromPath(dirname)
+        dir = this.internalFs.tree.root.getChildFromPath(dirname)
       }
       let name = path.basename(p)
       if (!isYaml(name)) {
         name += '.yml'
       }
-      name = await this.tree.getVersionedBasename(path.join(dirname, name), dir)
+      name = await this.internalFs.tree.getVersionedBasename(path.join(dirname, name), dir)
       this.Logger.reset(path.join(dirname, name))
       if (!options.simulate) {
         delete item.path
@@ -286,10 +287,10 @@ class Import extends require('../Command') {
       }
     }
     if (!options.simulate) {
-      this.tree.enableSave()
-      await this.tree.save()
+      this.internalFs.tree.enableSave()
+      await this.internalFs.tree.save()
       if (options.tags) {
-        await this.tree.saveTags()
+        await this.internalFs.tree.saveTags()
       }
       if (options.move) {
         await fs.unlink(fn)
@@ -313,7 +314,7 @@ class Import extends require('../Command') {
           } else if (options.move) {
             extra = ' (moved)'
           }
-          this.Logger.agua(`Imported files${extra}:`)
+          this.Logger.green(`Imported files${extra}:`)
           this.Logger.reset(files.join('\n'))
         } else {
           this.Logger.red('No file has been imported.')

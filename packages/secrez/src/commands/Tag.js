@@ -65,9 +65,9 @@ class Tag extends require('../Command') {
   async tag(options, nodes) {
     let result = []
     if (options.list) {
-      return this.tree.listTags()
+      return this.internalFs.tree.listTags()
     } else if (options.show) {
-      result = this.tree.getNodesByTag(options.show)
+      result = this.internalFs.tree.getNodesByTag(options.show)
       if (!result.length) {
         throw new Error('Tagged files not found')
       }
@@ -76,25 +76,25 @@ class Tag extends require('../Command') {
       if (!nodes) {
         nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
       }
-      const isSaveEnabled = this.tree.isSaveEnabled()
+      const isSaveEnabled = this.internalFs.tree.isSaveEnabled()
       if (isSaveEnabled) {
         // it's called from another command, like Import
-        this.tree.disableSave()
+        this.internalFs.tree.disableSave()
       }
       for (let node of nodes) {
         if (options.add) {
-          await this.tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
+          await this.internalFs.tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
           let s = options.add.length > 1 ? 's' : ''
           result = [`Tag${s} added`]
         } else if (options.remove) {
-          await this.tree.removeTag(node, options.remove.map(e => Case.snake(_.trim(e))))
+          await this.internalFs.tree.removeTag(node, options.remove.map(e => Case.snake(_.trim(e))))
           let s = options.remove.length > 1 ? 's' : ''
           result = [`Tag${s} removed`]
         }
       }
       if (isSaveEnabled) {
-        this.tree.enableSave()
-        this.tree.saveTags()
+        this.internalFs.tree.enableSave()
+        this.internalFs.tree.saveTags()
       }
       return result
     }
@@ -113,9 +113,9 @@ class Tag extends require('../Command') {
     }
 
     if (max + mak + 2 > cols) {
-      return result.map(e => e[0] + '\n' + chalk.blu(e[1]))
+      return result.map(e => e[0] + '\n' + chalk.cyan(e[1]))
     } else {
-      return result.map(e => e[0] + ' '.repeat(max - e[0].length) + '  ' + chalk.blu(e[1]))
+      return result.map(e => e[0] + ' '.repeat(max - e[0].length) + '  ' + chalk.cyan(e[1]))
     }
   }
 
@@ -126,7 +126,7 @@ class Tag extends require('../Command') {
     try {
       let result = await this.tag(options)
       if (options.list) {
-        this.Logger.blu(this.prompt.commandPrompt.formatList(result, 26, true, this.threeRedDots()))
+        this.Logger.cyan(this.prompt.commandPrompt.formatList(result, 26, true, this.threeRedDots()))
       } else if (options.show) {
         this.Logger.reset(this.formatResult(result).join('\n'))
       } else {

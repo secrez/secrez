@@ -10,16 +10,20 @@ const config = {
     TEXT: 2,
     BINARY: 3,
     TRASH: 4,
-    TAGS: 5
+    TAGS: 5,
+    NAME: 6
   },
 
   specialId: {
     ROOT: 'rOOt',
-    TRASH: 'tra$'
+    TRASH: 'tra$',
+    RECOVERED: '$rec',
+    NAME: '$nam'
   },
 
   specialName: {
-    TRASH: '.trash'
+    TRASH: '.trash',
+    RECOVERED: 'REC'
   },
 
   secrez: {}

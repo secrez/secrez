@@ -64,7 +64,7 @@ class Copy extends require('../Command') {
   async copy(options = {}) {
     let ifs = this.internalFs
     let cat = this.prompt.commands.cat
-    let p = this.tree.getNormalizedPath(options.path)
+    let p = this.internalFs.tree.getNormalizedPath(options.path)
     let file = ifs.tree.root.getChildFromPath(p)
     if (Node.isFile(file)) {
       let entry = (await cat.cat({
@@ -116,7 +116,7 @@ class Copy extends require('../Command') {
     }
     try {
       let name = await this.copy(options)
-      this.Logger.agua('Copied to clipboard:')
+      this.Logger.green('Copied to clipboard:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

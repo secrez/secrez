@@ -27,6 +27,11 @@ class Ls extends require('../Command') {
         name: 'all',
         alias: 'a',
         type: Boolean
+      },
+      {
+        name: 'datasets',
+        alias: 'd',
+        type: Boolean
       }
     ]
   }
@@ -38,13 +43,19 @@ class Ls extends require('../Command') {
         'ls coin',
         'ls ../passwords',
         'ls ~',
-        ['ls -al', 'Includes hidden files']
+        ['ls -al', 'Includes hidden files'],
+        ['ls -d', 'Lists the existent datasets']
       ]
     }
   }
 
   async ls(options) {
-    return await this.internalFs.pseudoFileCompletion(options.path || '.', true)
+    if (options.datasets) {
+      let datasetInfo = await this.internalFs.getDatasetsInfo()
+      return datasetInfo.map(e => e.name)
+    } else {
+      return await this.internalFs.pseudoFileCompletion(options.path || '.', true)
+    }
   }
 
   async exec(options = {}) {

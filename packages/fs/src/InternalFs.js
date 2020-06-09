@@ -1,6 +1,7 @@
 const util = require('util')
 const path = require('path')
-const {config, Entry} = require('@secrez/core')
+const fs = require('fs-extra')
+const {config, Entry, ConfigUtils} = require('@secrez/core')
 const Node = require('./Node')
 const Tree = require('./Tree')
 const {ENTRY_EXISTS} = require('./Messages')
@@ -11,7 +12,9 @@ class InternalFs {
     if (secrez && secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
       this.dataPath = secrez.config.dataPath
-      this.tree = new Tree(secrez)
+      this.trees = [new Tree(secrez), new Tree(secrez, 1)]
+      this.treeIndex = 0
+      this.tree = this.trees[this.treeIndex]
     } else {
       throw new Error('InternalFs requires a Secrez instance during construction')
     }
@@ -49,12 +52,13 @@ class InternalFs {
     return child
   }
 
-  normalizePath(p) {
+  normalizePath(p, index) {
     if (!p || typeof p !== 'string') {
       throw new Error('The "path" option must exist and be of type string')
     }
     p = p.replace(/^~\/+/, '/').replace(/~+/g, '')
-    p = path.resolve(this.tree.workingNode.getPath(), p)
+    let tree = index ? this.trees[index] : this.tree
+    p = path.resolve(tree.workingNode.getPath(), p)
     for (let v of p.split('/')) {
       if (v.length > 255) {
         throw new Error('File names cannot be longer that 255 characters')
@@ -63,29 +67,56 @@ class InternalFs {
     return Entry.sanitizePath(p)
   }
 
+  async getIndexes(options) {
+    let indexFrom
+    let indexTo
+    if (options.to || options.from) {
+      for (let dataset of (await this.getDatasetsInfo())) {
+        if (dataset.name.toLowerCase() === (options.to || '').toLowerCase()) {
+          indexTo = dataset.index
+        }
+        if (dataset.name.toLowerCase() === (options.from || '').toLowerCase()) {
+          indexFrom = dataset.index
+        }
+      }
+    }
+    if ((options.to && typeof indexTo === 'undefined') || (options.from && typeof indexFrom === 'undefined')) {
+      throw new Error('Target dataset does not exist')
+    }
+    return [indexFrom || this.treeIndex, indexTo || this.treeIndex]
+  }
+
   async change(options) {
-    let p = this.normalizePath(options.path)
+    let [indexFrom, indexTo] = await this.getIndexes(options)
+    if (!this.trees[indexFrom]) {
+      await this.mountTree(indexFrom)
+    }
+    let treeFrom = this.trees[indexFrom]
+    if (!this.trees[indexTo]) {
+      await this.mountTree(indexTo)
+    }
+    let treeTo = this.trees[indexTo]
+    let p = this.normalizePath(options.path, indexFrom)
     let n
     if (options.newPath) {
-      n = this.normalizePath(options.newPath)
-      if (p === n) {
+      n = this.normalizePath(options.newPath, indexTo)
+      if (p === n && indexFrom === indexTo) {
         n = undefined
       }
     }
-    let node = this.tree.root.getChildFromPath(p)
-
+    let node = treeFrom.root.getChildFromPath(p)
     if (!node) {
       throw new Error('Path does not exist')
     }
     let entry = new Entry(Object.assign(options, node.getEntry()))
     let ancestor, remainingPath
     try {
-      let result = n ? this.tree.root.getChildFromPath(n, true) : []
+      let result = n ? treeTo.root.getChildFromPath(n, true) : []
       ancestor = result[0]
       remainingPath = result[1]
     } catch (e) {
       if (e.message === util.format(ENTRY_EXISTS, path.basename(n))) {
-        let dir = this.tree.root.getChildFromPath(n)
+        let dir = treeTo.root.getChildFromPath(n)
         if (dir && Node.isDir(dir)) {
           ancestor = dir
           remainingPath = path.basename(p)
@@ -103,9 +134,22 @@ class InternalFs {
       }
     }
     if (Node.isFile(entry) && !entry.content) {
-      entry.content = node.getContent()
+      entry.content = node.content = (await treeFrom.getEntryDetails(node)).content
     }
-    await this.tree.update(node, entry)
+    if (!n && indexTo === indexFrom && entry.content === node.content) {
+      // nothing changed
+      return node
+    }
+    node = await treeFrom.update(node, entry)
+    if (indexTo !== indexFrom) {
+      let allFiles = await treeFrom.getAllDataFiles(node)
+      let fromDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexFrom)
+      let toDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexTo)
+      for (let file of allFiles) {
+        await fs.move(path.join(fromDatapath, file), path.join(toDatapath, file))
+      }
+      await treeTo.save()
+    }
     return node
   }
 
@@ -115,6 +159,10 @@ class InternalFs {
       node = this.tree.root.getChildFromPath(p)
     }
     let deleted = await node.remove(options.version)
+
+    await this.change()
+    console.log(deleted)
+
     await this.tree.save()
     return deleted
   }
@@ -171,6 +219,62 @@ class InternalFs {
     return []
   }
 
+  async mountTree(index, makeActive) {
+    if (!this.trees[index]) {
+      this.trees[index] = new Tree(this.secrez, index)
+      await this.trees[index].load()
+    }
+    if (makeActive) {
+      this.tree = this.trees[index]
+      this.treeIndex = index
+    }
+  }
+
+  async getDatasetsInfo() {
+    let result = [{
+      index: 0,
+      name: 'main'
+    }, {
+      index: 1,
+      name: 'trash'
+    }]
+    if (!this.treeCache) {
+      this.treeCache = []
+    }
+    let datasets = ConfigUtils.listDatasets(this.secrez.config)
+    if (datasets.length > 2) {
+      for (let i = 2; i < datasets.length; i++) {
+        let name
+        if (this.trees[i]) {
+          name = this.trees[i].name
+        } else if (this.treeCache[i]) {
+          name = this.treeCache[i]
+        } else {
+          let tree = new Tree(this.secrez, i)
+          name = await tree.getName()
+          this.treeCache[i] = name
+        }
+        result.push({
+          index: i,
+          name
+        })
+      }
+    }
+    return result
+  }
+
+  async getDatasetInfo(name) {
+    let datasets = await this.getDatasetsInfo()
+    for (let dataset of datasets) {
+      if (dataset.name.toLowerCase() === name.toLowerCase()) {
+        return dataset
+      }
+    }
+  }
+
+  updateTreeCache(index, name) {
+    this.treeCache[index] = name
+  }
 }
 
 module.exports = InternalFs

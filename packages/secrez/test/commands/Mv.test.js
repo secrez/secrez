@@ -4,8 +4,9 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')
+const {Node} = require('@secrez/fs')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize} = require('../helpers')
+const {assertConsole, decolorize, noPrint} = require('../helpers')
 
 const {
   password,
@@ -178,6 +179,12 @@ describe('#Mv', function () {
 
     assert.equal(file1.getPath(), '/folder2/file2')
 
+    await C.mv.mv({
+      path: '/folder2/file2',
+      newPath: '/folder1/file2'
+    })
+
+    assert.equal(file1.getPath(), '/folder1/file2')
   })
 
   it('should throw if parameters are missed or wrong', async function () {
@@ -219,9 +226,92 @@ describe('#Mv', function () {
     inspect.restore()
     assertConsole(inspect, 'When using wildcards, the target has to be a folder')
 
-
   })
 
+  it.only('should move files from and to other datasets', async function () {
+
+    let file1 = await C.touch.touch({
+      path: '/folder1/file1',
+      type: config.types.TEXT
+    })
+
+    let folder2 = await C.mkdir.mkdir({
+      path: '/folder1/folder2',
+      type: config.types.DIR
+    })
+
+    await C.touch.touch({
+      path: '/folder1/folder2/file1a',
+      type: config.types.TEXT
+    })
+
+    await C.touch.touch({
+      path: '/folder1/folder2/file1b',
+      type: config.types.TEXT
+    })
+
+    assert.equal(Node.getRoot(file1).datasetIndex, 0)
+
+    await C.use.use({
+      dataset: 'archive',
+      create: true
+    })
+
+    let file2 = await C.touch.touch({
+      path: '/archivedFolder/file2',
+      type: config.types.TEXT
+    })
+
+    assert.equal(Node.getRoot(file2).datasetIndex, 2)
+
+    await C.touch.touch({
+      path: '/archivedFolder/folder/file2b',
+      type: config.types.TEXT
+    })
+
+    await C.touch.touch({
+      path: '/archivedFolder/folder/file3b',
+      type: config.types.TEXT
+    })
+
+    await C.use.use({
+      dataset: 'backup',
+      create: true
+    })
+
+    let file3 = await C.touch.touch({
+      path: '/backupFolder/file3',
+      type: config.types.TEXT
+    })
+
+    assert.equal(Node.getRoot(file3).datasetIndex, 3)
+
+    await C.use.use({
+      dataset: 'main'
+    })
+
+    await C.mv.mv({
+      path: '/folder1/file1',
+      newPath: '/archivedFolder',
+      to: 'archive'
+    })
+
+    assert.equal(Node.getRoot(file1).datasetIndex, 2)
+    assert.equal(file1.getPath(), '/archivedFolder/file1')
+
+    await C.mv.mv({
+      path: '/archivedFolder/file1',
+      newPath: '/backupFolder',
+      from: 'archive',
+      to: 'backup'
+    })
+
+    assert.equal(Node.getRoot(file1).datasetIndex, 3)
+    assert.equal(file1.getPath(), '/backupFolder/file1')
+
+
+
+  })
 
 })
 

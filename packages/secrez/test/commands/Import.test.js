@@ -159,7 +159,7 @@ describe('#Import', function () {
       'binary-too': true
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files:', '/folder/file1', '/folder/file1.tar.gz', '/folder/file2'])
+    assertConsole(inspect, ['Imported files:', '/folder/file-2', '/folder/file1', '/folder/file1.tar.gz'])
 
     let newSecret = await C.cat.cat({path: '/folder/file1.tar.gz'})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.BINARY)
