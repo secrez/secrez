@@ -357,7 +357,7 @@ describe('#Node', function () {
       let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
       let file1 = initRandomNode(F, secrez)
-      let name = file1.getName()
+      // let name = file1.getName()
 
       root.add(dir1)
       dir1.add(file1)

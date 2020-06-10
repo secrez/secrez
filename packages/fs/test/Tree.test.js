@@ -301,7 +301,7 @@ describe('#Tree', function () {
         await fs.move(`${backup}/${f}`, `${rootDir}/data/${f}`)
       }
 
-      await sleep(100)
+      await sleep(300)
 
       await startTree()
       // jlog(tree.alerts)

@@ -1,5 +1,4 @@
 const {Tree} = require('@secrez/fs')
-const {chalk} = require('../utils/Logger')
 
 class Use extends require('../Command') {
 

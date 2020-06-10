@@ -1,6 +1,4 @@
 const _ = require('lodash')
-const chalk = require('chalk')
-const {Crypto, ConfigUtils} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 
 class Mv extends require('../Command') {

@@ -4,8 +4,7 @@ const path = require('path')
 const chai = require('chai')
 const assert = chai.assert
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize, noPrint} = require('../helpers')
-const pkg = require('../../package')
+const {decolorize, noPrint} = require('../helpers')
 
 const {
   password,

@@ -3,10 +3,9 @@ const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
-const {config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize, noPrint} = require('../helpers')
+const {assertConsole, decolorize} = require('../helpers')
 
 const {
   password,
@@ -172,7 +171,7 @@ describe('#Mv', function () {
 
     assert.equal(file1.getPath(), '/folder2/file2')
 
-    let file2 = await C.mv.mv({
+    await C.mv.mv({
       path: '/folder2/file2',
       newPath: '/folder1/file2'
     })
