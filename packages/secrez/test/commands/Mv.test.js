@@ -50,8 +50,7 @@ describe('#Mv', function () {
   it('should rename a file', async function () {
 
     let file1 = await C.touch.touch({
-      path: '/folder2/file1',
-      type: config.types.TEXT
+      path: '/folder2/file1'
     })
 
     await C.mv.mv({
@@ -74,13 +73,11 @@ describe('#Mv', function () {
   it('should move a file to another folder', async function () {
 
     let file1 = await C.touch.touch({
-      path: '/folder1/file1',
-      type: config.types.TEXT
+      path: '/folder1/file1'
     })
 
     await C.mkdir.mkdir({
-      path: '/folder2',
-      type: config.types.DIR
+      path: '/folder2'
     })
 
     inspect = stdout.inspect()
@@ -99,23 +96,19 @@ describe('#Mv', function () {
   it('should move many files to another folder', async function () {
 
     let file1 = await C.touch.touch({
-      path: '/folder1/ff1',
-      type: config.types.TEXT
+      path: '/folder1/ff1'
     })
 
     let file2 = await C.touch.touch({
-      path: '/folder1/ff2',
-      type: config.types.TEXT
+      path: '/folder1/ff2'
     })
 
     let file3 = await C.touch.touch({
-      path: '/folder1/gg',
-      type: config.types.TEXT
+      path: '/folder1/gg'
     })
 
     await C.mkdir.mkdir({
-      path: '/folder2',
-      type: config.types.DIR
+      path: '/folder2'
     })
 
     inspect = stdout.inspect()
@@ -135,13 +128,11 @@ describe('#Mv', function () {
   it('should move a file to another subfolder', async function () {
 
     let file = await C.touch.touch({
-      path: '/f1/f2/f3/f4.txt',
-      type: config.types.TEXT
+      path: '/f1/f2/f3/f4.txt'
     })
 
     await C.mkdir.mkdir({
-      path: '/f1/f5/f6',
-      type: config.types.DIR
+      path: '/f1/f5/f6'
     })
 
     await C.cd.cd({
@@ -162,14 +153,16 @@ describe('#Mv', function () {
 
   it('should move and rename file to another folder', async function () {
 
+    let folder1 = await C.mkdir.mkdir({
+      path: '/folder1'
+    })
+
     let file1 = await C.touch.touch({
-      path: '/folder1/file1',
-      type: config.types.TEXT
+      path: '/folder1/file1'
     })
 
     await C.mkdir.mkdir({
-      path: '/folder2',
-      type: config.types.DIR
+      path: '/folder2'
     })
 
     await C.mv.mv({
@@ -179,12 +172,29 @@ describe('#Mv', function () {
 
     assert.equal(file1.getPath(), '/folder2/file2')
 
-    await C.mv.mv({
+    let file2 = await C.mv.mv({
       path: '/folder2/file2',
       newPath: '/folder1/file2'
     })
 
     assert.equal(file1.getPath(), '/folder1/file2')
+    assert.equal(folder1.getPath(), '/folder1')
+
+    await C.mv.mv({
+      path: '/folder1',
+      newPath: '/folder2'
+    })
+
+    assert.equal(folder1.getPath(), '/folder2/folder1')
+
+    await C.mv.mv({
+      path: '/folder2',
+      newPath: '/folder3'
+    })
+
+    assert.equal(folder1.getPath(), '/folder3/folder1')
+
+
   })
 
   it('should throw if parameters are missed or wrong', async function () {
@@ -206,8 +216,7 @@ describe('#Mv', function () {
 
 
     await C.touch.touch({
-      path: '/bit',
-      type: config.types.TEXT
+      path: '/bit'
     })
 
     inspect = stdout.inspect()
@@ -228,26 +237,22 @@ describe('#Mv', function () {
 
   })
 
-  it.only('should move files from and to other datasets', async function () {
+  it('should move files from and to other datasets', async function () {
 
     let file1 = await C.touch.touch({
-      path: '/folder1/file1',
-      type: config.types.TEXT
+      path: '/folder1/file1'
     })
 
-    let folder2 = await C.mkdir.mkdir({
-      path: '/folder1/folder2',
-      type: config.types.DIR
-    })
-
-    await C.touch.touch({
-      path: '/folder1/folder2/file1a',
-      type: config.types.TEXT
+    await C.mkdir.mkdir({
+      path: '/folder1/folder2'
     })
 
     await C.touch.touch({
-      path: '/folder1/folder2/file1b',
-      type: config.types.TEXT
+      path: '/folder1/folder2/file1a'
+    })
+
+    await C.touch.touch({
+      path: '/folder1/folder2/file1b'
     })
 
     assert.equal(Node.getRoot(file1).datasetIndex, 0)
@@ -258,20 +263,22 @@ describe('#Mv', function () {
     })
 
     let file2 = await C.touch.touch({
-      path: '/archivedFolder/file2',
-      type: config.types.TEXT
+      path: '/archivedFolder/file2'
     })
 
     assert.equal(Node.getRoot(file2).datasetIndex, 2)
 
-    await C.touch.touch({
-      path: '/archivedFolder/folder/file2b',
-      type: config.types.TEXT
+
+    let folder = await C.mkdir.mkdir({
+      path: '/archivedFolder/folder'
     })
 
     await C.touch.touch({
-      path: '/archivedFolder/folder/file3b',
-      type: config.types.TEXT
+      path: '/archivedFolder/folder/file2b'
+    })
+
+    await C.touch.touch({
+      path: '/archivedFolder/folder/file3b'
     })
 
     await C.use.use({
@@ -280,8 +287,7 @@ describe('#Mv', function () {
     })
 
     let file3 = await C.touch.touch({
-      path: '/backupFolder/file3',
-      type: config.types.TEXT
+      path: '/backupFolder/file3'
     })
 
     assert.equal(Node.getRoot(file3).datasetIndex, 3)
@@ -300,15 +306,14 @@ describe('#Mv', function () {
     assert.equal(file1.getPath(), '/archivedFolder/file1')
 
     await C.mv.mv({
-      path: '/archivedFolder/file1',
+      path: '/archivedFolder/folder',
       newPath: '/backupFolder',
       from: 'archive',
       to: 'backup'
     })
 
-    assert.equal(Node.getRoot(file1).datasetIndex, 3)
-    assert.equal(file1.getPath(), '/backupFolder/file1')
-
+    assert.equal(Node.getRoot(folder).datasetIndex, 3)
+    assert.equal(folder.getPath(), '/backupFolder/folder')
 
 
   })

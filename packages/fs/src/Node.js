@@ -1,8 +1,17 @@
 const util = require('util')
 const {config, Crypto, Entry} = require('@secrez/core')
 const {ANCESTOR_NOT_FOUND, ENTRY_EXISTS} = require('./Messages')
+const DataCache = require('./DataCache')
+
+let cache = new DataCache
 
 class Node {
+
+  static setCache(dataCache) {
+    if (typeof dataCache === 'object') {
+      cache = dataCache
+    }
+  }
 
   constructor(entry, force) {
 
@@ -17,15 +26,22 @@ class Node {
       throw new Error('Unsupported type')
     }
 
-    let allIds = {}
-    if (Node.isNode(entry.parent)) {
-      allIds = Node.getRoot(entry.parent).allIds
-    }
-
     this.type = entry.type
+    if (isRoot) {
+      this.id = config.specialId.ROOT
+    } else if (isTrash) {
+      this.id = config.specialId.TRASH
+    } else {
+      if (entry.id) {
+        this.id = entry.id
+      } else {
+        this.id = Crypto.getRandomId(cache ? cache.get('id') : null)
+      }
+      cache.puts('id', this.id)
+    }
     this.id = isRoot ? config.specialId.ROOT
         : isTrash ? config.specialId.TRASH
-            : entry.id || Crypto.getRandomId(allIds)
+            : entry.id || Crypto.getRandomId(cache.get('id'))
 
     if (Node.isDir(entry)) {
       this.children = {}
@@ -33,7 +49,6 @@ class Node {
 
     if (isRoot) {
       this.rnd = Crypto.getRandomId()
-      this.allIds = allIds
     } else if (isTrash) {
       this.lastTs = Crypto.getTimestampWithMicroseconds().join('.')
       this.versions = {}
@@ -53,7 +68,7 @@ class Node {
       if (Node.isNode(entry.parent)) {
         // a Node can be independent of a tree.
         // But if it is part of a tree, any child must have a parent
-        allIds[entry.id.replace(/^_/, '')] = true
+        cache.puts('id', entry.id.replace(/^_/, ''))
         this.parent = entry.parent
       }
       this.versions = {}
@@ -211,7 +226,8 @@ class Node {
       }
 
       return node
-    } catch(e) {}
+    } catch (e) {
+    }
   }
 
   toCompressedJSON(
@@ -229,10 +245,14 @@ class Node {
       minSize = this.calculateMinSize(allFiles)
     }
 
+    if (Node.isTrash(this)) {
+      return
+    }
+
     if (this.versions) {
       for (let ts in this.versions) {
         let version = this.versions[ts]
-        let str = version.file ? version.file.substring(0, minSize) : '_'.repeat(minSize)
+        let str = version.file.substring(0, minSize)
         if (verbose) {
           result.v.push(str + ' ' + ts + ' ' + version.name)
         } else {
@@ -248,7 +268,10 @@ class Node {
       result.c = []
       for (let id in this.children) {
         let child = this.children[id]
-        result.c.push(child.toCompressedJSON(minSize, verbose))
+        let json = child.toCompressedJSON(minSize, verbose)
+        if (json) {
+          result.c.push(json)
+        }
       }
     }
     return result
@@ -340,12 +363,12 @@ class Node {
           type: config.types.ROOT
         })
     )
-    root.add(new Node(
-        new Entry({
-          type: config.types.TRASH,
-          parent: root
-        }), true
-    ))
+    // root.add(new Node(
+    //     new Entry({
+    //       type: config.types.TRASH,
+    //       parent: root
+    //     }), true
+    // ))
     return root
   }
 
@@ -463,28 +486,32 @@ class Node {
     }
   }
 
-  findChildById(id) {
+  findChildById(id, includeThis) {
     if (Node.isFile(this)) {
       throw new Error('A file does not have children')
     }
     if (!id) {
       throw new Error('Id parameter is missing')
     }
-    for (let c in this.children) {
-      let child = this.children[c]
-      if (c === id) {
-        return child
-      }
-      if (Node.isDir(child)) {
-        let found = child.findChildById(id)
-        if (Node.isNode(found)) {
-          return found
+    if (includeThis && id === this.id) {
+      return this
+    } else {
+      for (let c in this.children) {
+        let child = this.children[c]
+        if (c === id) {
+          return child
+        }
+        if (Node.isDir(child)) {
+          let found = child.findChildById(id)
+          if (Node.isNode(found)) {
+            return found
+          }
         }
       }
     }
   }
 
-  getChildFromPath(p, returnCloserAncestor) {
+  getChildFromPath(p, returnCloserAncestor, dontThrow) {
     p = p.split('/').map(e => Entry.sanitizeName(e))
     let node
     let ancestorNode

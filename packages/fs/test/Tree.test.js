@@ -310,8 +310,12 @@ describe('#Tree', function () {
       assert.equal(tree.alerts[1], '/B/D/g')
       assert.equal(tree.alerts[2], '/E/L')
       assert.equal(tree.alerts[3], '/E/L/N')
+      assert.equal(tree.alerts[4], undefined)
 
-      const deleteds = Node.getTrash(tree.root).children
+      // jlog(internalFs.trees[1].root)
+
+      await internalFs.mountTrash()
+      const deleteds = internalFs.trees[1].root.children
       assert.equal(Object.keys(deleteds).length, 3)
 
     })
@@ -431,23 +435,31 @@ describe('#Tree', function () {
       })
 
       let files = (await internalFs.pseudoFileCompletion()).sort()
-      assert.equal(files.length, 3)
-      assert.equal(files[1], 'd')
-      assert.equal(files[2], 'e')
+      assert.equal(files.length, 2)
+      assert.equal(files[0], 'd')
+      assert.equal(files[1], 'e')
 
       await internalFs.mountTree(0, true)
 
       files = (await internalFs.pseudoFileCompletion()).sort()
-      assert.equal(files.length, 3)
-      assert.equal(files[1], 'a')
-      assert.equal(files[2], 'b')
+      assert.equal(files.length, 2)
+      assert.equal(files[0], 'a')
+      assert.equal(files[1], 'b')
 
       await internalFs.mountTree(2, true)
       assert.equal(internalFs.tree.name, 'archive')
 
     })
 
-    it.only('should load a 0.5.x format and, if finds deleted files, move them to the trash dataset', async function () {
+  })
+
+  describe('Convert from single to multi data sets', async function () {
+
+    let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+    let secrez
+    let internalFs
+
+    it('should load a 0.5.x format and, if finds deleted files, move them to the trash dataset', async function () {
 
       let p = path.resolve(__dirname, 'fixtures', secrez0_5x.path)
       let d = path.resolve(__dirname, '../tmp/test/.secrez')
@@ -462,7 +474,14 @@ describe('#Tree', function () {
       await internalFs.init()
       tree = internalFs.tree
 
-      jlog(tree.root)
+      let found = []
+      for (let c in tree.root.children) {
+        let child = tree.root.children[c]
+        if (/^TRASH_\d{14}$/.test(child.getName())) {
+          found.push(child.getName())
+        }
+      }
+      assert.equal(found.length, 1)
 
     })
 

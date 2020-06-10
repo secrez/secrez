@@ -7,8 +7,8 @@
   },
   "scripts": {
     "test": "lerna run test --stream -- --colors",
-    "re-install": "bin/clean-all-modules.sh && lerna bootstrap",
-    "secrez:dev": "cd packages/secrez && npm run dev"
+    "lint": "lerna run lint",
+    "reset": "bin/clean-all-modules.sh && lerna bootstrap"
   },
   "license": "MIT",
   "dependencies": {

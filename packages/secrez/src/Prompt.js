@@ -1,6 +1,7 @@
 const chalk = require('chalk')
 const _ = require('lodash')
 const fs = require('fs-extra')
+const path = require('path')
 const inquirer = require('inquirer')
 
 // eslint-disable-next-line node/no-unpublished-require
@@ -10,7 +11,7 @@ const inquirerCommandPrompt = require('inquirer-command-prompt')
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
 
 const {Secrez, Utils} = require('@secrez/core')
-const {FsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
+const {FsUtils, InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
 
 const Logger = require('./utils/Logger')
 const Completion = require('./Completion')
@@ -31,6 +32,8 @@ class Prompt {
     this.getHistory = inquirerCommandPrompt.getHistory
     this.secrez = new Secrez
     await this.secrez.init(options.container, options.localDir)
+    this.secrez.cache = new DataCache(path.join(options.container, 'cache'))
+    await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
     thiz = this
@@ -184,7 +187,7 @@ class Prompt {
     // eslint-disable-next-line no-console
     // console.log()
     try {
-      let pre = chalk.reset(`Secrez (${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()})`)
+      let pre = chalk.reset(`Secrez ${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()}`)
       let answers = await inquirer.prompt([
         {
           type: 'command',

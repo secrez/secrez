@@ -42,7 +42,7 @@ class Touch extends require('../Command') {
     }
   }
 
-  async touch(options) {
+  async touch(options = {}) {
     let sanitizedPath = Entry.sanitizePath(options.path)
     if (sanitizedPath !== options.path) {
       throw new Error('A filename cannot contain \\/><|:&?* chars.')

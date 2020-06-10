@@ -55,7 +55,7 @@ class Crypto {
         if (allIds[id]) {
           continue
         }
-        allIds[id] = true
+        // allIds[id] = true
       }
       return id
     }

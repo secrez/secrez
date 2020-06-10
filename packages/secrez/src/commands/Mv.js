@@ -63,23 +63,17 @@ class Mv extends require('../Command') {
   }
 
   async mv(options, nodes) {
-
-    // TODO moving a folder, moves the folder's content. Must be fixed.
-
     options = _.pick(options, [
       'to',
       'from',
       'newPath',
-      'path'
+      'path',
+      'removing'
     ])
+    let [indexFrom, indexTo] = await this.internalFs.getIndexes(options)
+    await this.internalFs.mountTree(indexFrom)
+    await this.internalFs.mountTree(indexTo)
     if (nodes) {
-      let [indexFrom, indexTo] = await this.internalFs.getIndexes(options)
-      if (!this.internalFs.trees[indexFrom]) {
-        await this.internalFs.mountTree(indexFrom)
-      }
-      if (!this.internalFs.trees[indexTo]) {
-        await this.internalFs.mountTree(indexTo)
-      }
       this.internalFs.trees[indexFrom].disableSave()
       if (indexTo !== indexFrom) {
         this.internalFs.trees[indexTo].disableSave()
@@ -88,17 +82,17 @@ class Mv extends require('../Command') {
         await this.internalFs.change(Object.assign(options, {path: node.getPath()}))
       }
       this.internalFs.trees[indexFrom].enableSave()
+      await this.internalFs.trees[indexFrom].save()
       if (indexTo !== indexFrom) {
         this.internalFs.trees[indexTo].enableSave()
+        await this.internalFs.trees[indexTo].save()
       }
-      this.internalFs.tree.save()
-
     } else {
       await this.internalFs.change(options)
     }
   }
 
-  async isNotDir(destination, options) {
+  async isNotDir(options = {}) {
     let dir
     try {
       let index = this.internalFs.tree.datasetIndex
@@ -108,11 +102,9 @@ class Mv extends require('../Command') {
           throw new Error('Destination dataset does not exist')
         }
         index = datasetInfo.index
-        if (!this.internalFs.trees[index]) {
-          await this.internalFs.mountTree(index)
-        }
+        await this.internalFs.mountTree(index)
       }
-      let p = this.internalFs.normalizePath(destination, index)
+      let p = this.internalFs.normalizePath(options.destination, index)
       dir = this.internalFs.trees[index].root.getChildFromPath(p)
     } catch (e) {
     }
@@ -126,11 +118,12 @@ class Mv extends require('../Command') {
     try {
       if (!options.path) {
         throw new Error('An origin path is required.')
-      } else if (!options.destination) {
-        throw new Error('A destination path is required.')
       } else {
         let useWildcard = /\?|\*/.test(options.path)
-        let nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+        let nodes = await this.internalFs.pseudoFileCompletion({
+          path: options.path,
+          asIs: true
+        }, null, true)
         if (nodes.length) {
           if (useWildcard) {
             if (await this.isNotDir(options)) {

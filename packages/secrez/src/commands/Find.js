@@ -107,17 +107,21 @@ class Find extends require('../Command') {
     if (options.help) {
       return this.showHelp()
     }
-    try {
-      let list = this.formatList(await this.find(options), options)
-      if (list && list.length) {
-        this.Logger.grey(`${list.length} results found:`)
-        this.Logger.reset(list.join('\n'))
-      } else {
-        this.Logger.grey('No results.')
-      }
+    if (options.name) {
+      try {
+        let list = this.formatList(await this.find(options), options)
+        if (list && list.length) {
+          this.Logger.grey(`${list.length} result${list.length > 1 ? 's' : ''} found:`)
+          this.Logger.reset(list.join('\n'))
+        } else {
+          this.Logger.grey('No results.')
+        }
 
-    } catch (e) {
-      this.Logger.red(e.message)
+      } catch (e) {
+        this.Logger.red(e.message)
+      }
+    } else {
+      this.Logger.grey('Missing parameters')
     }
     this.prompt.run()
   }

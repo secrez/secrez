@@ -14,7 +14,7 @@ class InternalFs {
       this.dataPath = secrez.config.dataPath
       this.trees = [new Tree(secrez), new Tree(secrez, 1)]
       this.treeIndex = 0
-      this.tree = this.trees[this.treeIndex]
+      this.tree = this.trees[0]
     } else {
       throw new Error('InternalFs requires a Secrez instance during construction')
     }
@@ -23,6 +23,7 @@ class InternalFs {
   async init() {
     // eslint-disable-next-line require-atomic-updates
     await this.tree.load()
+    await this.trashToBeDeleted(0)
   }
 
   getFullPath(entry) {
@@ -67,47 +68,60 @@ class InternalFs {
     return Entry.sanitizePath(p)
   }
 
-  async getIndexes(options) {
-    let indexFrom
-    let indexTo
+  async getIndexes(options = {}) {
+    let indexFrom = this.treeIndex
+    let indexTo = this.treeIndex
+    let foundFrom
+    let foundTo
     if (options.to || options.from) {
       for (let dataset of (await this.getDatasetsInfo())) {
         if (dataset.name.toLowerCase() === (options.to || '').toLowerCase()) {
           indexTo = dataset.index
+          foundTo = true
         }
         if (dataset.name.toLowerCase() === (options.from || '').toLowerCase()) {
           indexFrom = dataset.index
+          foundFrom = true
         }
       }
+      if ((options.to && !foundTo) || (options.from && !foundFrom)) {
+        throw new Error('Target dataset does not exist')
+      }
     }
-    if ((options.to && typeof indexTo === 'undefined') || (options.from && typeof indexFrom === 'undefined')) {
-      throw new Error('Target dataset does not exist')
-    }
-    return [indexFrom || this.treeIndex, indexTo || this.treeIndex]
+    return [indexFrom, indexTo]
   }
 
-  async change(options) {
+  async change(options = {}) {
     let [indexFrom, indexTo] = await this.getIndexes(options)
-    if (!this.trees[indexFrom]) {
-      await this.mountTree(indexFrom)
-    }
+
+    let cross = indexTo !== indexFrom
+    let fromTrash = options.removing && indexFrom === 1
+
+    await this.mountTree(indexFrom)
     let treeFrom = this.trees[indexFrom]
-    if (!this.trees[indexTo]) {
+    if (indexFrom !== indexTo) {
       await this.mountTree(indexTo)
     }
     let treeTo = this.trees[indexTo]
+
     let p = this.normalizePath(options.path, indexFrom)
     let n
+
     if (options.newPath) {
       n = this.normalizePath(options.newPath, indexTo)
       if (p === n && indexFrom === indexTo) {
         n = undefined
       }
     }
-    let node = treeFrom.root.getChildFromPath(p)
+    let node
+    try {
+      node = treeFrom.root.getChildFromPath(p)
+    } catch (e) {
+    }
     if (!node) {
       throw new Error('Path does not exist')
     }
+    let originalParentId = node.parent.id
     let entry = new Entry(Object.assign(options, node.getEntry()))
     let ancestor, remainingPath
     try {
@@ -115,6 +129,7 @@ class InternalFs {
       ancestor = result[0]
       remainingPath = result[1]
     } catch (e) {
+
       if (e.message === util.format(ENTRY_EXISTS, path.basename(n))) {
         let dir = treeTo.root.getChildFromPath(n)
         if (dir && Node.isDir(dir)) {
@@ -129,42 +144,78 @@ class InternalFs {
         throw new Error('Cannot move a node to a not existing folder')
       }
       entry.name = remainingPath[0]
-      if (ancestor.id !== node.parent.id) {
+      if (ancestor.id !== node.parent.id || cross) {
         entry.parent = ancestor
       }
     }
-    if (Node.isFile(entry) && !entry.content) {
-      entry.content = node.content = (await treeFrom.getEntryDetails(node)).content
+    if (Node.isFile(entry)) {
+      node.content = (await treeFrom.getEntryDetails(node)).content
+      if (typeof entry.content === 'undefined') {
+        entry.content = node.content
+      }
     }
-    if (!n && indexTo === indexFrom && entry.content === node.content) {
-      // nothing changed
+    if (!n && !cross && entry.content === node.content) {
       return node
     }
-    node = await treeFrom.update(node, entry)
-    if (indexTo !== indexFrom) {
-      let allFiles = await treeFrom.getAllDataFiles(node)
-      let fromDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexFrom)
-      let toDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexTo)
-      for (let file of allFiles) {
-        await fs.move(path.join(fromDatapath, file), path.join(toDatapath, file))
-      }
-      await treeTo.save()
+    entry.preserveContent = true
+    if (entry.name !== node.getName() || entry.content !== node.getContent()) {
+      entry = this.secrez.encryptEntry(entry)
+      await treeFrom.saveEntry(entry)
     }
+    if (cross || fromTrash) {
+      await this.moveOrUnlink(node, indexFrom, indexTo, fromTrash)
+      // let allFiles = await treeFrom.getAllDataFiles(node)
+      // let fromDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexFrom)
+      // let toDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexTo)
+      // for (let file of allFiles) {
+      //   if (await fs.pathExists(path.join(fromDatapath, file))) {
+      //     if (cross) {
+      //       await fs.move(path.join(fromDatapath, file), path.join(toDatapath, file))
+      //     } else {
+      //       await fs.unlink(path.join(fromDatapath, file))
+      //     }
+      //   }
+      // }
+      let originalParent = treeFrom.root.findChildById(originalParentId, true)
+      originalParent.removeChild(node)
+      if (cross) {
+        entry.parent.add(node)
+      }
+      await treeFrom.save()
+      await treeTo.save()
+    } else {
+      node.move(entry)
+      await treeFrom.save()
+    }
+    // console.log(JSON.stringify(treeFrom.root, null, 2))
+    // console.log(JSON.stringify(treeTo.root, null, 2))
+
     return node
   }
 
-  async remove(options, node) {
-    if (!node) {
-      let p = this.normalizePath(options.path)
-      node = this.tree.root.getChildFromPath(p)
+  async moveOrUnlink(node, indexFrom, indexTo, unlink) {
+    let allFiles = await this.trees[indexFrom].getAllDataFiles(node)
+    let fromDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexFrom)
+    let toDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexTo)
+    for (let file of allFiles) {
+      if (await fs.pathExists(path.join(fromDatapath, file))) {
+        if (unlink) {
+          await fs.unlink(path.join(fromDatapath, file))
+        } else {
+          await fs.move(path.join(fromDatapath, file), path.join(toDatapath, file))
+        }
+      }
     }
-    let deleted = await node.remove(options.version)
+  }
 
-    await this.change()
-    console.log(deleted)
-
-    await this.tree.save()
-    return deleted
+  async remove(options = {}, node) {
+    return await this.change(Object.assign(
+        options, {
+          removing: true,
+          to: 'trash',
+          newPath: '/'
+        }
+    ))
   }
 
   async pseudoFileCompletion(options = {}, addSlashIfDir, returnNodes) {
@@ -173,8 +224,11 @@ class InternalFs {
     }
     let files = options.path || './'
     let p = this.tree.getNormalizedPath(files)
-    let end
+    let end = path.basename(p)
     let node
+    if (!/\?|\*/.test(end)) {
+      end = undefined
+    }
     try {
       node = this.tree.root.getChildFromPath(p)
     } catch (e) {
@@ -188,7 +242,8 @@ class InternalFs {
       return ''
     }
     if (node) {
-      if (Node.isFile(node)) {
+      if (Node.isFile(node) || (options.asIs && !end)
+      ) {
         return returnNodes
             ? [node]
             : [getType(node) + node.getName()]
@@ -219,10 +274,35 @@ class InternalFs {
     return []
   }
 
+  async mountTrash() {
+    await this.mountTree(1)
+    return this.trees[1]
+  }
+
+  async trashToBeDeleted(index) {
+    let trash = await this.mountTrash()
+    let tree = this.trees[index]
+    let fromTrash = index === 1
+    if (tree.toBeDeleted.length) {
+      for (let node of tree.toBeDeleted) {
+        if (!fromTrash) {
+          trash.root.add(node)
+        }
+        await this.moveOrUnlink(node, index, 1, fromTrash)
+      }
+      await tree.save()
+      await trash.save()
+      tree.toBeDeleted = []
+    }
+  }
+
   async mountTree(index, makeActive) {
     if (!this.trees[index]) {
       this.trees[index] = new Tree(this.secrez, index)
+    }
+    if (this.trees[index].status !== Tree.statutes.LOADED) {
       await this.trees[index].load()
+      await this.trashToBeDeleted(index)
     }
     if (makeActive) {
       this.tree = this.trees[index]

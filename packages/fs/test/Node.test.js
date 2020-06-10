@@ -352,7 +352,7 @@ describe('#Node', function () {
       await secrez.signup(password, iterations)
     })
 
-    it.skip('should remove a node', async function () {
+    it('should remove a node', async function () {
 
       let root = initARootNode()
       let dir1 = initRandomNode(D, secrez)
@@ -366,14 +366,6 @@ describe('#Node', function () {
       file1.remove()
       assert.isTrue(!dir1.children[file1.id])
 
-      let trashed = root.getChildFromPath(`/.trash/${name}`)
-
-      try {
-        trashed.remove()
-        assert.isTrue(false)
-      } catch(e) {
-        assert.equal(e.message, 'A deleted file cannot be deleted again')
-      }
     })
 
     it('should remove itself', async function () {
@@ -445,8 +437,6 @@ describe('#Node', function () {
       file1.move(entry)
 
       let json = root.toCompressedJSON()
-
-      // jlog(json)
 
       let minSize = json.c[0].v[0].length
       let v = file1.versions

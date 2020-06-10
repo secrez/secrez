@@ -4,5 +4,6 @@ module.exports = {
   FsUtils: require('./FsUtils'),
   Tree: require('./Tree'),
   Node: require('./Node'),
+  DataCache: require('./DataCache'),
   version: require('../package').version
 }

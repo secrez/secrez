@@ -4,7 +4,7 @@ const path = require('path')
 const chai = require('chai')
 const assert = chai.assert
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize} = require('../helpers')
+const {assertConsole, decolorize, noPrint} = require('../helpers')
 const pkg = require('../../package')
 
 const {
@@ -52,23 +52,17 @@ describe('#Use', function () {
 
     assert.equal(internalFs.treeIndex, 0)
 
-    inspect = stdout.inspect()
-    await C.use.exec({
+    await noPrint(C.use.exec({
       dataset: 'archive',
       create: true
-    })
-    inspect.restore()
-    assertConsole(inspect, 'Using archive')
+    }))
     assert.equal(internalFs.treeIndex, 2)
     assert.equal(internalFs.tree.name, 'archive')
 
-    inspect = stdout.inspect()
-    await C.use.exec({
+    await noPrint(C.use.exec({
       dataset: 'main',
       create: true
-    })
-    inspect.restore()
-    assertConsole(inspect, 'Using main')
+    }))
     assert.equal(internalFs.treeIndex, 0)
     assert.equal(internalFs.tree.name, 'main')
 

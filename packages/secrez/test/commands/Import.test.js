@@ -107,8 +107,8 @@ describe('#Import', function () {
       'Imported files:',
       '/file0.txt',
       '/file3',
+      '/folder1/file$2',
       '/folder1/file1',
-      '/folder1/file2',
       '/folder1/folder3/file4'
     ])
 
@@ -120,7 +120,7 @@ describe('#Import', function () {
       path: 'folder1/file1'
     })
     let content2 = await C.lcat.lcat({
-      path: 'folder1/file2'
+      path: 'folder1/file$2'
     })
 
     await noPrint(C.mkdir.exec({
@@ -135,11 +135,11 @@ describe('#Import', function () {
       path: 'folder1'
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files:', '/folder/file1', '/folder/file2'])
+    assertConsole(inspect, ['Imported files:', '/folder/file$2', '/folder/file1'])
 
     let newSecret = await C.cat.cat({path: '/folder/file1'})
     assert.equal(content1, newSecret[0].content)
-    newSecret = await C.cat.cat({path: '/folder/file2'})
+    newSecret = await C.cat.cat({path: '/folder/file$2'})
     assert.equal(content2, newSecret[0].content)
 
   })
@@ -159,7 +159,7 @@ describe('#Import', function () {
       'binary-too': true
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files:', '/folder/file-2', '/folder/file1', '/folder/file1.tar.gz'])
+    assertConsole(inspect, ['Imported files:', '/folder/file$2', '/folder/file1', '/folder/file1.tar.gz'])
 
     let newSecret = await C.cat.cat({path: '/folder/file1.tar.gz'})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.BINARY)
@@ -181,7 +181,7 @@ describe('#Import', function () {
       simulate: true
     })
     inspect.restore()
-    assertConsole(inspect, ['Imported files (simulation):', '/folder/file1', '/folder/file2'])
+    assertConsole(inspect, ['Imported files (simulation):', '/folder/file$2', '/folder/file1'])
 
     try {
       await C.cat.cat({path: '/folder/file1'})
@@ -190,7 +190,7 @@ describe('#Import', function () {
       assert.equal(e.message, 'Path does not exist')
     }
     try {
-      await C.cat.cat({path: '/folder/file2'})
+      await C.cat.cat({path: '/folder/file$2'})
       assert.isTrue(false)
     } catch (e) {
       assert.equal(e.message, 'Path does not exist')

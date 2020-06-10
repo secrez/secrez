@@ -307,7 +307,7 @@ describe('#InternalFs', function () {
       })
 
       assert.equal(root.getChildFromPath('/folder1/file4').id, file1.id)
-      assert.equal(Object.keys(root.flat()).length, 6)
+      assert.equal(Object.keys(root.flat()).length, 5)
 
     })
 
@@ -414,7 +414,6 @@ describe('#InternalFs', function () {
       await internalFs.remove({
         path: '/folder1/file1'
       })
-
       assert.equal(Object.keys(folder1.children).length, 0)
 
       try {
@@ -472,7 +471,7 @@ describe('#InternalFs', function () {
 
     })
 
-    it.only('should create directories and files, and load a tree from disk', async function () {
+    it('should create directories and files, and load a tree from disk', async function () {
 
       await internalFs.make({
         path: '/folder1',
@@ -497,8 +496,8 @@ describe('#InternalFs', function () {
       })
 
       // jlog(internalFs.tree.root)
-      let json0 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
-      jlog(json0)
+      // let json0 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
+      // jlog(json0)
 
       await internalFs.remove({
         path: 'folder1/file2'
@@ -522,14 +521,14 @@ describe('#InternalFs', function () {
       let json1 = root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
       let json2 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
 
-      jlog(json1)
-      jlog(json2)
+      // jlog(json1)
+      // jlog(json2)
 
       assert.isTrue(jsonEqual(json1, json2))
 
     })
 
-    it.skip('should create directories and files, delete everything and loading a tree from disk', async function () {
+    it('should create directories and files, delete everything and loading a tree from disk', async function () {
 
       await internalFs.make({
         path: '/folder1/file1',
@@ -600,7 +599,7 @@ describe('#InternalFs', function () {
       })
 
       let res = await internalFs.pseudoFileCompletion({}, true)
-      assert.equal(res.join(' '), 'dir/ .trash/')
+      assert.equal(res.join(' '), 'dir/')
 
       res = await internalFs.pseudoFileCompletion('/dir')
       assert.equal(res.join(' '), 'file1 file2')

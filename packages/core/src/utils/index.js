@@ -112,12 +112,16 @@ class Utils {
       return false
     }
     try {
-      const data = await fs.readFile(fileFullPath)
-      const stat = await fs.lstat(fileFullPath)
-      if (stat.isDirectory()) {
+      if (await fs.pathExists(fileFullPath)) {
+        const data = await fs.readFile(fileFullPath)
+        const stat = await fs.lstat(fileFullPath)
+        if (stat.isDirectory()) {
+          return false
+        }
+        return await isBinaryFile(data, stat.size)
+      } else {
         return false
       }
-      return await isBinaryFile(data, stat.size)
     } catch(e) {
       throw new Error('A valid file is required')
     }

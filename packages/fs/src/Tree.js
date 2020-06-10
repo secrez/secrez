@@ -15,10 +15,12 @@ class Tree {
       }
       this.datasetIndex = datasetIndex
       this.secrez = secrez
+      Node.setCache(secrez.cache)
       this.config = secrez.config
       this.dataPath = dataPath
       this.status = Tree.statutes.UNLOADED
       this.errors = []
+      this.toBeDeleted = []
     } else {
       throw new Error('Tree requires a Secrez instance during construction')
     }
@@ -87,9 +89,11 @@ class Tree {
       allSecrets.sort(Node.sortEntry)
       if (!allIndexes.length) {
         this.root = Node.initGenericRoot()
+        this.workingNode = this.root
         this.alerts = ['A valid tree is missing.\nThe following entries have been recovered and put in the folder "/recovered":']
             .concat(await this.recoverUnlisted(allSecrets))
-        this.save()
+        await this.loadTags(allTags)
+        await this.save()
       } else {
 
         allIndexes.sort(Node.sortEntry)
@@ -109,7 +113,7 @@ class Tree {
             filesNotOnTree.push(allSecrets[i])
           }
         }
-       if (filesNotOnTree.length) {
+        if (filesNotOnTree.length) {
           let toBeRecovered = {}
           let recoveredEntries = []
           FOR: for (let i = 1; i < allIndexes.length; i++) {
@@ -170,7 +174,7 @@ class Tree {
         }
 
         for (let i = 2; i < allIndexes.length; i++) {
-          // await fs.unlink(path.join(this.dataPath, allIndexes[i].encryptedName))
+          await fs.unlink(path.join(this.dataPath, allIndexes[i].encryptedName))
         }
 
       }
@@ -179,21 +183,22 @@ class Tree {
         let trash = this.root.getChildFromPath('/.trash')
         if (trash && trash.id === 'tra$') {
           // we are converting an 0.5.x dataset
-          let newTrash = this.add(new Entry({
-            name: this.datedName('TRASH'),
-            type: this.config.types.DIR
-          }))
           let children = []
           for (let id in trash.children) {
             children.push(trash.children[id])
           }
-          newTrash.add(children)
-          trash.parent.removeChild(trash)
-          this.save()
+          if (children.length) {
+            let newTrash = await this.add(this.root, new Entry({
+              name: this.datedName('TRASH'),
+              type: this.config.types.DIR
+            }))
+            newTrash.add(children)
+            trash.parent.removeChild(trash)
+          }
+          await this.save()
         }
-      } catch(e) {
+      } catch (e) {
       }
-
     } else {
       this.root = Node.initGenericRoot()
       this.root.datasetIndex = this.datasetIndex
@@ -204,7 +209,7 @@ class Tree {
   }
 
   datedName(prefix) {
-    return prefix + '_' + (new Date()).toISOString().substring(0, 19).replace(/(T|:|-)/g,'')
+    return prefix + '_' + (new Date()).toISOString().substring(0, 19).replace(/(T|:|-)/g, '')
   }
 
   async recoverUnlisted(allSecrets) {
@@ -259,7 +264,7 @@ class Tree {
             done = true
           }
         }
-        parent.trash(temporaryNode)
+        this.toBeDeleted.push(temporaryNode)
       } else {
         entry.name = await this.getVersionedBasename(existentChild.getPath())
         parent.add(new Node(entry))
@@ -363,7 +368,7 @@ class Tree {
       throw new Error('A new entry cannot have a pre-existent id')
     }
     if (!entry.id) {
-      entry.set({id: Crypto.getRandomId()})
+      entry.set({id: Crypto.getRandomId(global.allIds)})
     }
     entry.preserveContent = true
     entry = this.secrez.encryptEntry(entry)

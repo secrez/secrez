@@ -326,14 +326,7 @@ describe('#utils', function () {
     it('should check if a file is binary', async function () {
       let fp = path.resolve(__dirname, '../fixtures/files/file1.tar.gz')
       assert.equal(await utils.isBinary(fp), true)
-
-      try {
-        await utils.isBinary(23)
-        assert.isFalse(true)
-      } catch (e) {
-        assert.equal(e.message, 'A valid file is required')
-      }
-
+      assert.equal(await utils.isBinary(23), false)
     })
 
   })
