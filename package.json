@@ -7,6 +7,7 @@
   },
   "scripts": {
     "test": "lerna run test --stream -- --colors",
+    "test-only": "lerna run test-only --stream -- --colors",
     "lint": "lerna run lint",
     "reset": "bin/clean-all-modules.sh && lerna bootstrap"
   },

@@ -114,30 +114,13 @@ class Edit extends require('../Command') {
     }
     let node = this.internalFs.tree.workingNode.getChildFromPath(file)
     let content = options.field ? fields[options.field] || '' : data[0].content
-    let message = 'your OS default editor.'
-    if (options.internal) {
-      message = 'the minimalistic internal editor.'
-    } else if (options.editor) {
-      message = `${options.editor}.`
-    }
 
-    let extraMessage = chalk.dim('Press <enter> to launch ')
-        + message
-        + chalk.reset(
-            options.internal ? chalk.green('\n  Ctrl-d to save the changes. Ctrl-c to abort.') : ''
-        )
-
-    let {newContent} = await this.prompt.inquirer.prompt([{
-      type: 'multiEditor',
-      name: 'newContent',
-      message: 'Editing...',
-      default: content,
-      tempDir: this.cliConfig.tmpPath,
-      validate: function (text) {
-        return true
-      },
-      extraMessage
-    }])
+    let newContent
+    // if (!/[\r\n]+/.test(content)) {
+    //   newContent = await this.useInput(Object.assign(options, {name: options.field || path.basename(options.path), content}))
+    // } else {
+      newContent = await this.useEditor(Object.assign(options, {content}))
+    // }
 
     if (newContent && newContent !== content) {
       let entry = node.getEntry()
