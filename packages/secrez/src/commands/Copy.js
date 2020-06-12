@@ -43,6 +43,11 @@ class Copy extends require('../Command') {
         name: 'version',
         alias: 'v',
         type: Boolean
+      },
+      {
+        name: 'all-file',
+        alias: 'a',
+        type: Boolean
       }
     ]
   }
@@ -56,6 +61,8 @@ class Copy extends require('../Command') {
         ['copy ethKeys', 'copies to the clipboard for 10 seconds (the default)'],
         ['copy google.yml -t 20 -f password', 'copies the password in the google card'],
         ['copy google.yml -j', 'copies the google card as a JSON'],
+        ['copy google.yml -a', 'copies the google card as is'],
+        ['copy google.yml', 'it will ask to chose the field to copy'],
         ['copy myKey -v UY5d', 'copies version UY5d of myKey']
       ]
     }
@@ -74,24 +81,29 @@ class Copy extends require('../Command') {
       }))[0]
       if (Node.isText(entry)) {
         let {name, content} = entry
-        if (isYaml(p)) {
-          let err = 'Field not found.'
+        if (isYaml(p) && !options['all-file']) {
+          let parsed
           try {
-            let parsed = yamlParse(content)
-            if (options.json) {
-              content = JSON.stringify(parsed, null, 2)
-            } else if (options.field) {
-              if (parsed[options.field]) {
-                content = parsed[options.field]
-              } else {
-                throw new Error(err)
-              }
-            }
+            parsed = yamlParse(content)
           } catch (e) {
-            if (e.message === err) {
-              throw new Error(`Field "${options.field}" not found in "${path.basename(p)}"`)
-            } else if (options.json || options.field) {
               throw new Error('The yml is malformed. To copy the entire content, do not use th options -j or -f')
+          }
+          if (options.json) {
+            content = JSON.stringify(parsed, null, 2)
+          } else if (options.field) {
+            if (parsed[options.field]) {
+              content = parsed[options.field]
+            } else {
+              throw new Error(`Field "${options.field}" not found in "${path.basename(p)}"`)
+            }
+          } else {
+            options.choices = Object.keys(parsed)
+            options.message = 'Select the field to copy'
+            options.field = await this.useSelect(options)
+            if (!options.field) {
+              throw new Error('Command canceled')
+            } else {
+              content = parsed[options.field]
             }
           }
         }

@@ -129,7 +129,6 @@ class InternalFs {
       ancestor = result[0]
       remainingPath = result[1]
     } catch (e) {
-
       if (e.message === util.format(ENTRY_EXISTS, path.basename(n))) {
         let dir = treeTo.root.getChildFromPath(n)
         if (dir && Node.isDir(dir)) {

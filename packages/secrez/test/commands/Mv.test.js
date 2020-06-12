@@ -5,7 +5,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const {Node} = require('@secrez/fs')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize} = require('../helpers')
+const {assertConsole, decolorize, noPrint} = require('../helpers')
 
 const {
   password,
@@ -224,15 +224,8 @@ describe('#Mv', function () {
       destination: 'none'
     })
     inspect.restore()
-    assertConsole(inspect, 'When using wildcards, the target has to be a folder')
+    assertConsole(inspect, 'When using search results or wildcards, the target has to be a folder')
 
-    inspect = stdout.inspect()
-    await C.mv.exec({
-      path: '/b*',
-      destination: 'file'
-    })
-    inspect.restore()
-    assertConsole(inspect, 'When using wildcards, the target has to be a folder')
 
   })
 
@@ -317,5 +310,45 @@ describe('#Mv', function () {
 
   })
 
-})
+  it('should move the results of a find', async function () {
+
+    await C.touch.touch({
+      path: '/folder1/caruso'
+    })
+
+    await C.touch.touch({
+      path: '/caru/mio'
+    })
+
+    await C.touch.touch({
+      path: '/joke/bit'
+    })
+
+    await C.touch.touch({
+      path: '/look',
+      content: 'joke'
+    })
+
+    let destination = await C.mkdir.mkdir({
+      path: '/destination'
+    })
+
+    await noPrint(C.mv.exec({
+      find: 'car',
+      destination: '/destination'
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 2)
+
+    await noPrint(C.mv.exec({
+      find: 'joke',
+      destination: '/destination',
+      'content-too': true
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 4)
+
+  })
+
+  })
 

@@ -40,7 +40,7 @@ For now, this is a manual approach. In a future version, the git repo will be ma
 
 Secrez simulates an operating system. When you load the environment, you can execute commands like `ls`, `mv`, etc. similarly to what you normally to in a Unix terminal.
 
-Starting from version `0.6.0`, the data are organized in datasets. This of them like separate disks, something like `/dev/disk1` and `/dev/disk2`. 
+Starting from version `0.6.0`, the data are organized in datasets. This of them like separate disks, something like `/dev/disk1` and `/dev/disk2`.
 
 By default, Secrez generates two datasets: `main` and `trash`. You can create more with, for example, `use -c archive`. The advantage of multiple datasets is mostly for people who have a lot of secrets to manage. If you have 2,000, if they are all in the primary dataset, the system will probably become quite slow. The solution is to move data to separate datasets (`archive`, `backup`, `twitter`, `cryptos`, etc.)
 
@@ -158,7 +158,7 @@ Available options:
   rm      Removes a file or a single version of a file.
   tag     Tags a file and shows existent tags.
   touch   Creates a file.
-  use     Uses or creates a dataset.  
+  use     Uses or creates a dataset.
   ver     Shows the version of Secrez.
 
 To get help about single commands, specify the command.
@@ -277,6 +277,8 @@ __0.6.0__
 * `mv` supports `-d, --destination` for the destination
 * `mv` allows to move files among datasets with a syntax like `mv somefile --to archive` or `mv somefile --from archive`
 * at start, purges old trees after successfully loading a dataset
+* `copy` allows to select the field to copy in yaml files
+* `mv` adds `--find` and `--content-too` to use the result of a search as input
 
 __0.5.13__
 * Find in content excludes binary contents

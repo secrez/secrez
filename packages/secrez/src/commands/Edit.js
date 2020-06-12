@@ -95,15 +95,12 @@ class Edit extends require('../Command') {
       if (typeof fields === 'object') {
         let choices = Object.keys(fields)
         if (choices.length && !options.field) {
-          let {field} = await this.prompt.inquirer.prompt([
-            {
-              type: 'list',
-              name: 'field',
-              message: 'Select the field to edit',
-              choices
-            }
-          ])
-          options.field = field
+          options.message = 'Select the field to edit'
+          options.field = await this.useSelect(options)
+          if (!options.field) {
+            this.Logger.reset('Changes aborted or file not changed')
+            return
+          }
         }
       } else {
         delete options.field

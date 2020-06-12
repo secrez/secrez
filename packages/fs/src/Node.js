@@ -337,22 +337,30 @@ class Node {
         if (options.all || ts === this.lastTs) {
           let name = this.versions[ts].name
           if (re.test(name)) {
-            list.push([
-              Node.hashVersion(ts),
-              p,
-              name
-            ])
+            if (options.getNodes) {
+              list.push(this)
+            } else {
+              list.push([
+                Node.hashVersion(ts),
+                p,
+                name
+              ])
+            }
           } else
               /* istanbul ignore if  */
             if (options.content && this.type === config.types.TEXT && options.tree) {
             let {content} = await options.tree.getEntryDetails(this, ts)
             if (re.test(content || '')) {
-              list.push([
-                Node.hashVersion(ts),
-                p,
-                undefined,
-                true
-              ])
+              if (options.getNodes) {
+                list.push(this)
+              } else {
+                list.push([
+                  Node.hashVersion(ts),
+                  p,
+                  undefined,
+                  true
+                ])
+              }
             }
           }
         }
@@ -364,11 +372,15 @@ class Node {
         await child.find(options, list)
       }
     }
-    return list.sort((a,b) => {
-      let A = a[1]
-      let B = b[1]
-      return A > B ? 1 : A < B ? -1 : 0
-    })
+    if (options.getNodes) {
+      return list
+    } else {
+      return list.sort((a, b) => {
+        let A = a[1]
+        let B = b[1]
+        return A > B ? 1 : A < B ? -1 : 0
+      })
+    }
   }
 
   static initGenericRoot() {

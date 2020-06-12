@@ -73,6 +73,30 @@ class Command {
     }
   }
 
+
+  async useSelect(options) {
+    /* istanbul ignore if  */
+    if (options) {
+      let cancel = '(cancel)'
+      if (!options.dontCancel) {
+        options.choices = options.choices.concat([cancel])
+      }
+      let {result} = await this.prompt.inquirer.prompt([
+        {
+          type: 'list',
+          name: 'result',
+          message: options.message,
+          choices: options.choices
+        }
+      ])
+      if (result === cancel) {
+        return
+      } else {
+        return result
+      }
+    }
+  }
+
   // async useInput(options) {
   //   let prompt = this.prompt
   //   let exitCode = Crypto.getRandomBase58String(2)

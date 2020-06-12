@@ -118,6 +118,12 @@ describe('#Find', function () {
       '/folder3/folder4/FOLDER5/File3'
     ])
 
+    let nodes = await C.find.find({
+      name: '3',
+      getNodes: true
+    })
+    assert.equal(nodes.length, 3)
+
     inspect = stdout.inspect()
     await C.find.exec({
       name: 'file1',
@@ -138,6 +144,7 @@ describe('#Find', function () {
     assertConsole(inspect, ['1 result found:',
       '/folder1/File2'
     ])
+
   })
 
   it('should find no result without parameters', async function () {

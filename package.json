@@ -9,7 +9,8 @@
     "test": "lerna run test --stream -- --colors",
     "test-only": "lerna run test-only --stream -- --colors",
     "lint": "lerna run lint",
-    "reset": "bin/clean-all-modules.sh && lerna bootstrap"
+    "reset": "bin/clean-all-modules.sh && lerna bootstrap",
+    "pre": "cp README.md packages/secrez/. && gamp.sh '$1'"
   },
   "license": "MIT",
   "dependencies": {

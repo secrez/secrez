@@ -35,6 +35,14 @@ class Mv extends require('../Command') {
         name: 'from',
         alias: 'f',
         type: String
+      },
+      {
+        name: 'find',
+        type: String
+      },
+      {
+        name: 'content-too',
+        type: String
       }
     ]
   }
@@ -55,7 +63,9 @@ class Mv extends require('../Command') {
         ['mv -f archive /old/email/* -d /old-email',
           'moves all the files starting from email contained in /old/email',
           'in the "archive" dataset to the folder "/old-email" in the current dataset'
-        ]
+        ],
+        ['mv --find email -d /emails', 'moves all the files found searching email to /emails;', '--find can be used only on the current dataset'],
+        ['mv --find email --content-too -d /emails', 'moves all the files found searching email in paths and contents']
       ]
     }
   }
@@ -114,22 +124,39 @@ class Mv extends require('../Command') {
       return this.showHelp()
     }
     try {
-      if (!options.path) {
+      if (!options.path && !options.find) {
         throw new Error('An origin path is required.')
+      } else if (options.find && options.from) {
+        throw new Error('Find works only on the dataset in use')
       } else {
-        let useWildcard = /\?|\*/.test(options.path)
-        let nodes = await this.internalFs.pseudoFileCompletion({
-          path: options.path,
-          asIs: true
-        }, null, true)
+        if (!options.destination) {
+          options.destination = '.'
+        }
+        let mustBeFolder = options.find || /\?|\*/.test(options.path)
+        let nodes
+        if (options.find) {
+          options.getNodes = true
+          options.name = options.find
+          options.content = options['content-too']
+          nodes = await this.prompt.commands.find.find(options)
+        } else {
+          nodes = await this.internalFs.pseudoFileCompletion({
+            path: options.path,
+            asIs: true
+          }, null, true)
+        }
         if (nodes.length) {
-          if (useWildcard) {
+          if (mustBeFolder) {
             if (await this.isNotDir(options)) {
-              throw new Error('When using wildcards, the target has to be a folder')
+              throw new Error('When using search results or wildcards, the target has to be a folder')
             }
           }
           await this.mv(Object.assign(options, {newPath: options.destination}), nodes)
-          this.Logger.reset(`${options.path} has been moved to ${options.destination}`)
+          if (options.find) {
+            this.Logger.reset(`The results of searching for ${options.find} has been moved to ${options.destination}`)
+          } else {
+            this.Logger.reset(`${options.path} has been moved to ${options.destination}`)
+          }
         } else {
           this.Logger.red('Path does not exist')
         }
