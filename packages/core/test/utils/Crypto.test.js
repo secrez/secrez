@@ -133,16 +133,16 @@ describe('#Crypto', function () {
       assert.isTrue(Crypto.base58Alphabet.indexOf(rnd[1]) !== -1)
     })
 
-    it('should get scrambled timestamp with pseudo-microseconds in b58 format', async function () {
-      let ts = Date.now()
-      let [timestamp, microseconds] = await Crypto.scrambledTimestamp()
-      // console.log(timestamp, microseconds)
-      for (let i=0;i<20;i++) {
-        let original = Crypto.unscrambleTimestamp(timestamp, microseconds)
-        assert.isTrue(parseInt(original.split('.')[0]) - Math.round(ts / 1000) <= 2)
-        sleep(1)
-      }
-    })
+    // it('should get scrambled timestamp with pseudo-microseconds in b58 format', async function () {
+    //   let ts = Date.now()
+    //   let [timestamp, microseconds] = await Crypto.scrambledTimestamp()
+    //   // console.log(timestamp, microseconds)
+    //   for (let i=0;i<20;i++) {
+    //     let original = Crypto.unscrambleTimestamp(timestamp, microseconds)
+    //     assert.isTrue(parseInt(original.split('.')[0]) - Math.round(ts / 1000) <= 2)
+    //     sleep(1)
+    //   }
+    // })
 
     it('should generate a sha3 in b58 format', async function () {
       assert.equal(Crypto.b58Hash(password), b58Hash)

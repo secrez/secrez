@@ -85,35 +85,38 @@ describe('#Find', function () {
       name: 'file'
     })
     inspect.restore()
-    let output = inspect.output.map(e => decolorize(e).replace(/\n$/, ''))
-    assert.equal(output[0], '3 results found:')
-    output[1] = output[1].split('\n')
-    assert.equal(output[1][0], '/folder1/File2')
-    assert.equal(output[1][1], '/folder2/file3')
-    assert.equal(output[1][2], '/folder3/folder4/FOLDER5/File3')
+    assertConsole(inspect, [
+      '3 results found:',
+      '/folder1/File2',
+      '/folder2/file3',
+      '/folder3/folder4/FOLDER5/File3'
+    ])
 
     inspect = stdout.inspect()
     await C.find.exec({
       name: 'der'
     })
     inspect.restore()
-    output = inspect.output.map(e => decolorize(e).replace(/\n$/, ''))
-    assert.equal(output[0], '6 results found:')
-    output[1] = output[1].split('\n')
-    assert.equal(output[1][0], '/folder1')
-    assert.equal(output[1][5], '/folder3/folder4/FOLDER5')
+    assertConsole(inspect, [
+      '6 results found:',
+      '/folder1',
+      '/folder2',
+      '/folder3',
+      '/folder3/folder4',
+      '/folder3/folder4/FOLDER5',
+      '/folder4'
+    ])
 
     inspect = stdout.inspect()
     await C.find.exec({
       name: '3'
     })
     inspect.restore()
-    output = inspect.output.map(e => decolorize(e).replace(/\n$/, ''))
-    assert.equal(output[0], '3 results found:')
-    output[1] = output[1].split('\n')
-    assert.equal(output[1][0], '/folder2/file3')
-    assert.equal(output[1][1], '/folder3')
-    assert.equal(output[1][2], '/folder3/folder4/FOLDER5/File3')
+    assertConsole(inspect, ['3 results found:',
+      '/folder2/file3',
+      '/folder3',
+      '/folder3/folder4/FOLDER5/File3'
+    ])
 
     inspect = stdout.inspect()
     await C.find.exec({
@@ -121,7 +124,8 @@ describe('#Find', function () {
       all: true
     })
     inspect.restore()
-    assertConsole(inspect, ['1 result found:',
+    assertConsole(inspect, [
+      '1 result found:',
       'file1'
     ], true)
 
@@ -165,11 +169,10 @@ describe('#Find', function () {
       content: true
     })
     inspect.restore()
-    let output = inspect.output.map(e => decolorize(e).replace(/\n$/, ''))
-    assert.equal(output[0], '2 results found:')
-    output[1] = output[1].split('\n')
-    assert.equal(output[1][0], '/folder/file$2')
-    assert.equal(output[1][1], '/folder/file1')
+    assertConsole(inspect, ['2 results found:',
+      '/folder/file$2',
+      '/folder/file1'
+    ])
 
   })
 

@@ -46,6 +46,16 @@ describe('#Ls', function () {
 
   })
 
+  it('should return all the datasets', async function () {
+
+    inspect = stdout.inspect()
+    await C.ls.exec({datasets: true})
+    inspect.restore()
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/main +trash/.test(output[0]))
+
+  })
+
   it('should list folders and files', async function () {
 
     await noPrint(C.mkdir.exec({path: '/dir1/dirA1'}))
@@ -72,18 +82,23 @@ describe('#Ls', function () {
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir2B', list: true})
     inspect.restore()
-    assert.isTrue(inspect.output.length === 0)
+    assertConsole(inspect, ['No files found.'])
 
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir2A/dir6', list: true})
     inspect.restore()
-    assert.isTrue(inspect.output.length === 0)
+    assertConsole(inspect, ['No files found.'])
 
 
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir2A'})
     inspect.restore()
     assertConsole(inspect, ['dir6/    dir7/    '])
+
+    inspect = stdout.inspect()
+    await C.ls.exec({path: '/none'})
+    inspect.restore()
+    assertConsole(inspect, ['No files found.'])
 
   })
 

@@ -70,6 +70,7 @@ class Use extends require('../Command') {
         if (dataset.name === name0) {
           originalIndex = dataset.index
           originalTree = this.internalFs.trees[dataset.index]
+          /* istanbul ignore if  */
           if (!originalTree) {
             originalTree = new Tree(this.internalFs.secrez, dataset.index)
           }
@@ -78,7 +79,7 @@ class Use extends require('../Command') {
       if (!originalTree) {
         throw new Error('Dataset not found')
       }
-      originalTree.nameDataset(name1)
+      await originalTree.nameDataset(name1)
       this.internalFs.updateTreeCache(originalIndex, name1)
       return `The dataset ${name0} has been renamed ${name1}`
     } else if (options.dataset) {
@@ -92,9 +93,10 @@ class Use extends require('../Command') {
       if (!newSet && !options.create) {
         throw new Error('The dataset does not exist; add "-c" to create it')
       }
-      if (newSet && newSet.index === this.internalFs.datasetIndex) {
+      if (newSet && newSet.index === this.internalFs.treeIndex) {
         return `You are already using ${options.dataset}`
-      } else if (newSet) {
+      } else
+        if (newSet) {
         await this.internalFs.mountTree(newSet.index, true)
       } else {
         let index = datasetsInfo[datasetsInfo.length - 1].index + 1

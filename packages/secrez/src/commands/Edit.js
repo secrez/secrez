@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const {chalk} = require('../utils/Logger')
 const path = require('path')
 const fs = require('fs-extra')
 const {isYaml, yamlParse, yamlStringify} = require('../utils')

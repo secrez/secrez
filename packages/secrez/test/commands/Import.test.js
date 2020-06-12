@@ -355,6 +355,24 @@ describe('#Import', function () {
 
   })
 
+  it('should import from a json', async function () {
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../some.json',
+      expand: './imported3'
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/imported3/webs/SampleEntryTitle.yml',
+      '/imported3/passwords/twitter/Multi-Line Test Entry.yml',
+      '/imported3/tests/Entry To Test/Special Characters.yml',
+      '/imported3/tests/Entry To Test/JSON data/1.yml'
+    ])
+
+  })
+
 
   it('should throw importing a malformed backup', async function () {
 
@@ -389,7 +407,6 @@ describe('#Import', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['The header of the CSV looks wrong'])
-
 
   })
 

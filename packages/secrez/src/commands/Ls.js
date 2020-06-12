@@ -64,18 +64,15 @@ class Ls extends require('../Command') {
     }
     try {
       let list = await this.ls(options)
-      if (list) {
-        list = list.filter(e => !/^\./.test(e) || options.all)
-        if (list.length) {
-          this.Logger.reset(options.list
-              ? list.join('\n')
-              : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
-          )
-        }
+      list = list.filter(e => !/^\./.test(e) || options.all)
+      if (list.length) {
+        this.Logger.reset(options.list
+            ? list.join('\n')
+            : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
+        )
       } else {
         this.Logger.grey('No files found.')
       }
-
     } catch (e) {
       this.Logger.red(e.message)
     }

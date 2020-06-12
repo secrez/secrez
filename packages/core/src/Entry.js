@@ -71,7 +71,7 @@ Entry.validOptions = [
   'type',
   'id',
   'ts',
-  'scrambledTs',
+  // 'scrambledTs',
   'name',
   'content',
   'encryptedName',

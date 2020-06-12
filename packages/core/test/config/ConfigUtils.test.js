@@ -58,6 +58,16 @@ describe('#ConfigUtils', function () {
 
   })
 
+  it('#getDatasetPath should get a dataset path', async function () {
+
+    const config = require('../../src/config')
+    await ConfigUtils.setSecrez(config, rootDir)
+    let dataPath = await ConfigUtils.getDatasetPath(config, 1)
+    assert.equal(dataPath, path.join(rootDir, 'data.1'))
+
+
+  })
+
   it('#getEnv should return the environment', async function () {
 
     let secrez = new Secrez()

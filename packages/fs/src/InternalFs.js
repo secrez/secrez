@@ -257,7 +257,12 @@ class InternalFs {
           )
         }
         if (end) {
-          end = '^' + end.replace(/\?/g, '.{1}').replace(/\*/g, '.*').replace(/\\ /g, ' ')
+          end = '^' + end
+                  .replace(/\?/g, '.{1}')
+                  .replace(/\*/g, '.*')
+                  .replace(/\\ /g, ' ')
+                  .replace(/\$/g, '\\$')
+                  .replace(/\^/g, '\\^')
               + (options.forAutoComplete ? '' : '(|\\/)$')
           let re = RegExp(end)
           children = children.filter(e => {

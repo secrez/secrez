@@ -1,7 +1,6 @@
 const crypto = require('crypto')
 const {Keccak} = require('sha3')
 const bs58 = require('bs58')
-const Utils = require('.')
 const microtime = require('microtime')
 
 const {
@@ -95,40 +94,6 @@ class Crypto {
     }
     tmp = tmp.map(e => parseInt(e))
     return tmp
-  }
-
-  static scrambledTimestamp(lastTs) {
-    let alphabet = Crypto.base58Alphabet
-    let blen = 58
-    let [ts0, microseconds] = Crypto.getTimestampWithMicroseconds()
-    let ts = Utils.intToBase58(ts0)
-    let rnd = Crypto.getRandomBase58String(ts.length)
-    for (let i = 0; i < ts.length; i++) {
-      let p = alphabet.indexOf(rnd[i])
-      let v = alphabet.indexOf(ts[i])
-      rnd += alphabet[(p + v) % blen]
-    }
-    return [rnd, Utils.intToBase58(microseconds, 4), [ts0, microseconds].join('.')]
-  }
-
-  static unscrambleTimestamp(ts, microseconds) {
-    let alphabet = Crypto.base58Alphabet
-    let blen = 58
-    let ret = ''
-    let len = ts.length / 2
-    for (let i = 0; i < len; i++) {
-      let p = alphabet.indexOf(ts[i])
-      let v = alphabet.indexOf(ts[i + len])
-      ret += alphabet[(v - p + blen) % blen]
-    }
-    let seconds = Utils.base58ToInt(ret).toString()
-    microseconds = Utils.base58ToInt(microseconds).toString()
-    while(microseconds.length < 6) {
-      microseconds += '0'
-    }
-
-    // console.log(seconds, microseconds)
-    return [seconds, microseconds].join('.')
   }
 
   static fromTsToDate(ts) {

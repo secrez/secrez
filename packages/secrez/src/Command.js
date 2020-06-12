@@ -1,7 +1,6 @@
 const {chalk} = require('./utils/Logger')
 const Logger = require('./utils/Logger')
 const cliConfig = require('./cliConfig')
-const {Crypto} = require('@secrez/core')
 
 class Command {
 
@@ -46,29 +45,32 @@ class Command {
   }
 
   async useEditor(options) {
-    let message = 'your OS default editor.'
-    if (options.internal) {
-      message = 'the minimalistic internal editor.'
-    } else if (options.editor) {
-      message = `${options.editor}.`
+    /* istanbul ignore if  */
+    if (options) {
+      let message = 'your OS default editor.'
+      if (options.internal) {
+        message = 'the minimalistic internal editor.'
+      } else if (options.editor) {
+        message = `${options.editor}.`
+      }
+      let extraMessage = chalk.dim('Press <enter> to launch ')
+          + message
+          + chalk.reset(
+              options.internal ? chalk.green('\n  Ctrl-d to save the changes. Ctrl-c to abort.') : ''
+          )
+      let {result} = await this.prompt.inquirer.prompt([{
+        type: 'multiEditor',
+        name: 'result',
+        message: 'Editing...',
+        default: options.content,
+        tempDir: this.cliConfig.tmpPath,
+        validate: function (text) {
+          return true
+        },
+        extraMessage
+      }])
+      return result
     }
-    let extraMessage = chalk.dim('Press <enter> to launch ')
-        + message
-        + chalk.reset(
-            options.internal ? chalk.green('\n  Ctrl-d to save the changes. Ctrl-c to abort.') : ''
-        )
-    let {result} = await this.prompt.inquirer.prompt([{
-      type: 'multiEditor',
-      name: 'result',
-      message: 'Editing...',
-      default: options.content,
-      tempDir: this.cliConfig.tmpPath,
-      validate: function (text) {
-        return true
-      },
-      extraMessage
-    }])
-    return result
   }
 
   // async useInput(options) {

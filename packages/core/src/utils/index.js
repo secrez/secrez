@@ -35,7 +35,7 @@ class Utils {
             ret = '0' + ret
           }
         }
-      return ret
+        return ret
       } else throw new Error()
     } catch (e) {
       throw new Error('Invalid format')
@@ -111,19 +111,15 @@ class Utils {
     if (/\/$/.test(fileFullPath)) {
       return false
     }
-    try {
-      if (await fs.pathExists(fileFullPath)) {
-        const data = await fs.readFile(fileFullPath)
-        const stat = await fs.lstat(fileFullPath)
-        if (stat.isDirectory()) {
-          return false
-        }
-        return await isBinaryFile(data, stat.size)
-      } else {
+    if (await fs.pathExists(fileFullPath)) {
+      const stat = await fs.lstat(fileFullPath)
+      if (stat.isDirectory()) {
         return false
       }
-    } catch(e) {
-      throw new Error('A valid file is required')
+      const data = await fs.readFile(fileFullPath)
+      return await isBinaryFile(data, stat.size)
+    } else {
+      return false
     }
   }
 

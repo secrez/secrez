@@ -3,6 +3,7 @@ const fs = require('fs-extra')
 const util = require('util')
 const path = require('path')
 const {config, Secrez, Crypto, Entry} = require('@secrez/core')
+const DataCache = require('../src/DataCache')
 const Node = require('../src/Node')
 const {jsonEqual, initRandomNode, setNewNodeVersion, initARootNode} = require('./helpers')
 const {ENTRY_EXISTS} = require('../src/Messages')
@@ -29,6 +30,14 @@ describe('#Node', function () {
       let root = initARootNode()
       assert.equal(root.id, config.specialId.ROOT)
 
+    })
+
+    it('should setup the cache and instantiate the Node', async function () {
+
+      let p = path.resolve(__dirname, '../tmp/cache')
+      let cache = new DataCache(p)
+      Node.setCache(cache)
+      assert.equal(Node.getCache().dataPath, p)
     })
 
     it('should throw if passing a rot without required parameters', async function () {
@@ -142,6 +151,26 @@ describe('#Node', function () {
     })
   })
 
+  describe('#getFindRe', async function () {
+
+    it('should get a re to check a filepath', async function () {
+
+      let name = '/sss/sss/sss'
+      let re = Node.getFindRe({name})
+      assert.isFalse(re.test(name))
+
+      name = 's $|e'
+      re = Node.getFindRe({name})
+      assert.isFalse(re.test(name))
+
+      name = '$good'
+      re = Node.getFindRe({name})
+      assert.isTrue(re.test(name))
+
+    })
+
+  })
+
   describe('#getNames', async function () {
 
     beforeEach(async function () {
@@ -183,6 +212,54 @@ describe('#Node', function () {
       }
 
     })
+  })
+
+  describe('#find', async function () {
+
+    beforeEach(async function () {
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signup(password, iterations)
+    })
+
+    it('should find all childrens satisfying criterias', async function () {
+
+      let root = initARootNode()
+      let dir1 = initRandomNode(D, secrez, false, 'dir1')
+      let dir2 = initRandomNode(D, secrez)
+      let dir3 = initRandomNode(D, secrez, false, 'dir2')
+      let dir4 = initRandomNode(D, secrez)
+      let file1 = initRandomNode(F, secrez, false, undefined, 'Some dir content')
+      let file2 = initRandomNode(F, secrez, false, 'beInDir1')
+      let file3 = initRandomNode(F, secrez, false, '_inDirRoot')
+
+      root.add([dir1, dir2])
+      dir1.add([dir3, dir4, file1, file2])
+      root.add(file3)
+
+      let found = await root.find({
+        name: 'dir'
+      })
+      assert.equal(found[0][1], '/_inDirRoot')
+      assert.equal(found[1][1], '/dir1')
+      assert.equal(found[2][1], '/dir1/beInDir1')
+      assert.equal(found[3][1], '/dir1/dir2')
+
+
+      found = await root.find({})
+      assert.equal(found[0], undefined)
+
+      // found = await root.find({
+      //   name: 'Some',
+      //   content: true
+      // })
+      // console.log(found)
+      //
+      // assert.equal(found[0][2], 'Some dir content')
+      // assert.equal(found[1], undefined)
+    })
+
   })
 
   describe('#add', async function () {
@@ -449,6 +526,7 @@ describe('#Node', function () {
     it('should build an index from a json file', async function () {
 
       let root = initARootNode()
+
       let dir1 = initRandomNode(D, secrez)
       let dir2 = initRandomNode(D, secrez)
       let dir3 = initRandomNode(D, secrez)
@@ -468,7 +546,7 @@ describe('#Node', function () {
 
       let json = root.toCompressedJSON()
       let allFiles = root.getAllFiles()
-      let root2 = Node.fromJSON(json, secrez, allFiles)
+      let root2 = Node.fromJSON(JSON.stringify(json), secrez, allFiles)
       let json2 = root2.toCompressedJSON()
 
       // let's scramble the order because that can be randomly different
@@ -482,6 +560,17 @@ describe('#Node', function () {
       assert.isTrue(jsonEqual(root.toCompressedJSON(), json2))
 
       assert.equal(root.toCompressedJSON(null, true).c[0].id, dir1.id)
+
+      assert.equal(root.getVersions().length, 0)
+
+      json = root.toJSON()
+      let firstChild = Object.keys(root.children)[0]
+      firstChild = root.children[firstChild]
+      let firstVersion = firstChild.getVersions()[0]
+      firstChild = json.children[firstChild.id]
+      firstVersion = firstChild.versions[firstVersion]
+      assert.isTrue(!firstChild.parent)
+      assert.isTrue(!!firstVersion.file)
 
     })
   })

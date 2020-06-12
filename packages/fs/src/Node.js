@@ -13,6 +13,10 @@ class Node {
     }
   }
 
+  static getCache(dataCache) {
+    return cache
+  }
+
   constructor(entry, force) {
 
     if (!entry || entry.constructor.name !== 'Entry') {
@@ -107,16 +111,16 @@ class Node {
     return node.type === config.types.TEXT
   }
 
-  static isTrashed(node) {
-    if (node.parent) {
-      if (Node.isTrash(node.parent)) {
-        return true
-      } else if (node.parent.parent) {
-        return Node.isTrashed(node.parent)
-      }
-    }
-    return false
-  }
+  // static isTrashed(node) {
+  //   if (node.parent) {
+  //     if (Node.isTrash(node.parent)) {
+  //       return true
+  //     } else if (node.parent.parent) {
+  //       return Node.isTrashed(node.parent)
+  //     }
+  //   }
+  //   return false
+  // }
 
   static fromJSON(json, secrez, allFiles) {
     // It takes an already parsed object to make it an instance of the class.
@@ -141,7 +145,9 @@ class Node {
     return root
   }
 
-  static preFormat(json, secrez, files, trash) {
+  static preFormat(json, secrez, files, trash
+                   // trash stays to convert format <0.6.0
+  ) {
     json.V = []
     for (let j = 0; j < json.v.length; j++) {
       let v = json.v[j]
@@ -315,7 +321,9 @@ class Node {
   }
 
   static getFindRe(options) {
-    return RegExp(Entry.sanitizeName(options.name), 'g' + (options.sensitive ? '' : 'i'))
+    return RegExp(
+        Entry.sanitizeName(options.name).replace(/\$/g, '\\$').replace(/\^/g, '\\^'),
+        'g' + (options.sensitive ? '' : 'i'))
   }
 
   async find(options, list = []) {
@@ -334,7 +342,9 @@ class Node {
               p,
               name
             ])
-          } else if (options.content && this.type === config.types.TEXT && options.tree) {
+          } else
+              /* istanbul ignore if  */
+            if (options.content && this.type === config.types.TEXT && options.tree) {
             let {content} = await options.tree.getEntryDetails(this, ts)
             if (re.test(content || '')) {
               list.push([
@@ -354,7 +364,11 @@ class Node {
         await child.find(options, list)
       }
     }
-    return list
+    return list.sort((a,b) => {
+      let A = a[1]
+      let B = b[1]
+      return A > B ? 1 : A < B ? -1 : 0
+    })
   }
 
   static initGenericRoot() {
@@ -461,10 +475,6 @@ class Node {
     } else {
       return Node.getRoot(node.parent)
     }
-  }
-
-  static getTrash(node) {
-    return Node.getRoot(node).findChildById(config.specialId.TRASH)
   }
 
   static isNode(obj) {

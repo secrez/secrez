@@ -20,11 +20,7 @@ class DataCache {
     }
   }
 
-  put(key, value) {
-    this.cache[key] = value
-  }
-
-  puts(key, value, dontSave) {
+  async puts(key, value, dontSave, dontWait) {
     if (!this.cache[key]) {
       this.cache[key] = []
     }
@@ -35,14 +31,22 @@ class DataCache {
       if (!this.cache[key].includes(v)) {
         this.cache[key].push(v)
         if (!dontSave) {
-          this.save(key, v)
+          if (dontWait) {
+            this.save(key, v)
+          } else {
+            await this.save(key, v)
+          }
         }
       }
     }
   }
 
   get(key) {
-    return this.cache[key]
+    return this.cache[key] || []
+  }
+
+  is(key, value) {
+    return (this.cache[key] || []).includes(value)
   }
 
   ensure(key) {
@@ -55,7 +59,7 @@ class DataCache {
   async save(key, value) {
     if (this.dataPath) {
       this.ensure(key)
-      await fs.writeFile(path.join(this.dataPath, key, value))
+      await fs.writeFile(path.join(this.dataPath, key, value), '')
     }
   }
 

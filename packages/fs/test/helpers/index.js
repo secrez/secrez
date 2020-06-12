@@ -37,17 +37,17 @@ const helpers = {
 
   },
 
-  initRandomNode: (type, secrez, getEntry) => {
+  initRandomNode: (type, secrez, getEntry, name, content) => {
     let entry = new Entry({
       id: Crypto.getRandomId(),
-      name: Crypto.getRandomBase58String(16),
+      name: name || Crypto.getRandomBase58String(16),
       type,
       preserveContent: true
     })
+    if (content) {
+      entry.content = content
+    }
     entry = secrez.encryptEntry(entry)
-    // entry.set({
-    //   ts: Crypto.unscrambleTimestamp(entry.scrambledTs, entry.microseconds)
-    // })
     if (getEntry) {
       return [entry, new Node(entry)]
     }
@@ -80,11 +80,11 @@ const helpers = {
     let root = new Node(new Entry({
       type: config.types.ROOT
     }))
-    root.add(new Node(
-        new Entry({
-          type: config.types.TRASH
-        }), true
-    ))
+    // root.add(new Node(
+    //     new Entry({
+    //       type: config.types.TRASH
+    //     }), true
+    // ))
     return root
   },
 

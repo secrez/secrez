@@ -112,7 +112,7 @@ class Find extends require('../Command') {
         let list = this.formatList(await this.find(options), options)
         if (list && list.length) {
           this.Logger.grey(`${list.length} result${list.length > 1 ? 's' : ''} found:`)
-          this.Logger.reset(list.join('\n'))
+          for (let l of list) this.Logger.reset(l)
         } else {
           this.Logger.grey('No results.')
         }

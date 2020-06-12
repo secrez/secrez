@@ -179,21 +179,13 @@ class Import extends require('../Command') {
     let str = await fs.readFile(fn, 'utf-8')
     let ext = path.extname(fn)
     let data
-    try {
-      if (ext === '.json') {
-        data = JSON.parse(str)
-      } else if (ext === '.csv') {
-        try {
-          data = fromCsvToJson(str)
-        } catch (e) {
-          return this.Logger.red(e.message)
-        }
-      }
-    } catch (e) {
-      if (e.message === 'The header of the CSV looks wrong') {
-        throw e
-      } else {
-        return this.Logger.red('The file has a wrong format')
+    if (ext === '.json') {
+      data = JSON.parse(str)
+    } else if (ext === '.csv') {
+      try {
+        data = fromCsvToJson(str)
+      } catch (e) {
+        return this.Logger.red(e.message)
       }
     }
     if (data.length === 0) {
