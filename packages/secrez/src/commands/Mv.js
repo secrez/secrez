@@ -42,7 +42,11 @@ class Mv extends require('../Command') {
       },
       {
         name: 'content-too',
-        type: String
+        type: Boolean
+      },
+      {
+        name: 'span',
+        type: Boolean
       }
     ]
   }
@@ -65,7 +69,8 @@ class Mv extends require('../Command') {
           'in the "archive" dataset to the folder "/old-email" in the current dataset'
         ],
         ['mv --find email -d /emails', 'moves all the files found searching email to /emails;', '--find can be used only on the current dataset'],
-        ['mv --find email --content-too -d /emails', 'moves all the files found searching email in paths and contents']
+        ['mv --find email --content-too -d /emails', 'moves all the files found searching email in paths and contents'],
+        ['mv --find email --span -d /emails', 'moves all the files flattening the results']
       ]
     }
   }
@@ -139,6 +144,16 @@ class Mv extends require('../Command') {
           options.name = options.find
           options.content = options['content-too']
           nodes = await this.prompt.commands.find.find(options)
+          if (!options.span) {
+            for (let i = 0; i < nodes.length; i++) {
+              if (i > 0) {
+                if (Node.isAncestor(nodes[i - 1], nodes[i])) {
+                  nodes.splice(i, 1)
+                  i--
+                }
+              }
+            }
+          }
         } else {
           nodes = await this.internalFs.pseudoFileCompletion({
             path: options.path,

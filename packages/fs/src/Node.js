@@ -372,15 +372,11 @@ class Node {
         await child.find(options, list)
       }
     }
-    if (options.getNodes) {
-      return list
-    } else {
-      return list.sort((a, b) => {
-        let A = a[1]
-        let B = b[1]
-        return A > B ? 1 : A < B ? -1 : 0
-      })
-    }
+    return list.sort((a, b) => {
+      let A = options.getNodes ? a.getPath() : a[1]
+      let B = options.getNodes ? b.getPath() : b[1]
+      return A > B ? 1 : A < B ? -1 : 0
+    })
   }
 
   static initGenericRoot() {
@@ -531,6 +527,16 @@ class Node {
         }
       }
     }
+  }
+
+  static isAncestor(ancestor, node) {
+    while(node.id !== config.types.ROOT) {
+      if (node.id === ancestor.id) {
+        return true
+      }
+      node = node.parent
+    }
+    return false
   }
 
   getChildFromPath(p, returnCloserAncestor, dontThrow) {

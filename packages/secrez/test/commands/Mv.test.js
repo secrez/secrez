@@ -335,7 +335,8 @@ describe('#Mv', function () {
 
     await noPrint(C.mv.exec({
       find: 'car',
-      destination: '/destination'
+      destination: '/destination',
+      span: true
     }))
 
     assert.equal(Object.keys(destination.children).length, 2)
@@ -343,12 +344,54 @@ describe('#Mv', function () {
     await noPrint(C.mv.exec({
       find: 'joke',
       destination: '/destination',
-      'content-too': true
+      'content-too': true,
+      span: true
     }))
 
     assert.equal(Object.keys(destination.children).length, 4)
 
-  })
+    await noPrint(C.mv.exec({
+      path: '/destination/*',
+      destination: '/'
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 0)
+
+    await C.touch.touch({
+      path: '/vello/cappotto',
+      content: 'vello'
+    })
+
+    await noPrint(
+        C.mv.exec({
+          find: 'vello',
+          destination: '/destination',
+          'content-too': true
+        }))
+
+    assert.equal(Object.keys(destination.children).length, 1)
+
+    await noPrint(C.rm.exec({
+      path: '/destination/*'
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 0)
+
+    await C.touch.touch({
+      path: '/vello/cappottino',
+      content: 'vello'
+    })
+
+    await noPrint(C.mv.exec({
+      find: 'vello',
+      destination: '/destination',
+      'content-too': true,
+      span: true
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 2)
 
   })
+
+})
 
