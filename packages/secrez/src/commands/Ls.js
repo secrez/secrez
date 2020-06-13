@@ -56,12 +56,12 @@ class Ls extends require('../Command') {
     }
   }
 
-  async ls(options) {
+  async ls(options = {}) {
     if (options.datasets) {
       let datasetInfo = await this.internalFs.getDatasetsInfo()
       return datasetInfo.map(e => e.name)
     } else {
-      if (options.path) {
+      if (!options.path) {
         options.path = '.'
       }
       return await this.internalFs.pseudoFileCompletion(options, true)
