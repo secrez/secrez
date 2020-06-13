@@ -218,6 +218,16 @@ class InternalFs {
     if (typeof options === 'string') {
       options = {path: options}
     }
+    let onlyDir
+    let onlyFile
+    if (options.only) {
+      onlyDir = options.only === 'd'
+      onlyFile = options.only === 'f'
+      if (onlyDir && onlyFile) {
+        onlyDir = undefined
+        onlyFile = undefined
+      }
+    }
     let files = options.path || './'
     let p = this.tree.getNormalizedPath(files)
     let end = path.basename(p)
@@ -240,16 +250,23 @@ class InternalFs {
     if (node) {
       if (Node.isFile(node) || (options.asIs && !end)
       ) {
+        if ((Node.isFile(node) && onlyDir) || (Node.isDir(node) && onlyFile)) {
+          return []
+        }
         return returnNodes
             ? [node]
             : [getType(node) + node.getName()]
       } else {
         let children = []
         for (let id in node.children) {
+          let child = node.children[id]
+          if ((Node.isFile(child) && onlyDir) || (Node.isDir(child) && onlyFile)) {
+            continue
+          }
           children.push(
               returnNodes
-                  ? node.children[id]
-                  : node.children[id].getName() + getType(node.children[id])
+                  ? child
+                  : child.getName() + getType(child)
           )
         }
         if (end) {

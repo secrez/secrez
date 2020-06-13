@@ -279,6 +279,7 @@ __0.6.0__
 * at start, purges old trees after successfully loading a dataset
 * `copy` allows to select the field to copy in yaml files
 * `mv` adds `--find` and `--content-too` to use the result of a search as input
+* `ls --only-dirs` and `ls --only-files` to limit the
 
 __0.5.13__
 * Find in content excludes binary contents

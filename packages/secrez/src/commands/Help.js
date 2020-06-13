@@ -64,7 +64,10 @@ class Help extends require('../Command') {
           let type = c.type === Boolean ? 'Boolean' : c.type === Number ? 'Number' : 'String'
           this.Logger.log(
               'black',
-              spacer + '-' + c.alias + ', --' + c.name + ' '.repeat(max - c.name.length + 3),
+              spacer +
+              (c.alias ? '-' + c.alias + ', ' : '')
+              + '--' + c.name + ' '.repeat(max - c.name.length + 3) +
+              (c.alias ? '' : '    '),
               'grey',
               type + (type !== 'Boolean' ? '   ' : '  ') + (
                   c.defaultOption
