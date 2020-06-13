@@ -134,8 +134,16 @@ class Mv extends require('../Command') {
       } else if (options.find && options.from) {
         throw new Error('Find works only on the dataset in use')
       } else {
+        /* istanbul ignore if  */
         if (!options.destination) {
-          options.destination = '.'
+          options.message = 'Destination not set.\nWould you like to move to the current active directory in the target dataset?'
+          options.default = false
+          let yes = await this.useConfirm(options)
+          if (yes) {
+            options.destination = '.'
+          } else {
+            throw new Error('Action canceled')
+          }
         }
         let mustBeFolder = options.find || /\?|\*/.test(options.path)
         let nodes

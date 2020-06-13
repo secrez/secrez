@@ -97,6 +97,21 @@ class Command {
     }
   }
 
+  async useConfirm(options) {
+    /* istanbul ignore if  */
+    if (options) {
+      let {result} = await this.prompt.inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'result',
+          message: options.message,
+          default: options.default
+        }
+      ])
+      return result
+    }
+  }
+
   // async useInput(options) {
   //   let prompt = this.prompt
   //   let exitCode = Crypto.getRandomBase58String(2)
