@@ -196,6 +196,27 @@ describe('#Mv', function () {
 
   })
 
+
+  it('should move file managing duplicates', async function () {
+
+    let file1 = await C.touch.touch({
+      path: '/folder1/file'
+    })
+
+    let file2 = await C.touch.touch({
+      path: '/folder2/file'
+    })
+
+    await C.mv.mv({
+      path: '/folder1/file',
+      newPath: '/folder2'
+    })
+
+    assert.equal(file2.getPath(), '/folder2/file')
+    assert.equal(file1.getPath(), '/folder2/file.2')
+
+  })
+
   it('should throw if parameters are missed or wrong', async function () {
 
     inspect = stdout.inspect()

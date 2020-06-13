@@ -530,7 +530,7 @@ class Node {
   }
 
   static isAncestor(ancestor, node) {
-    while(node.id !== config.types.ROOT) {
+    while(node) {
       if (node.id === ancestor.id) {
         return true
       }
@@ -692,23 +692,12 @@ class Node {
     if (Node.isRoot(this)) {
       throw new Error('Root cannot be moved')
     }
-
-    // if (Node.isTrash(this)) {
-    //   throw new Error('Trash cannot be moved')
-    // }
-    //
-    // if (Node.isTrashed(this)) {
-    //   throw new Error('A deleted file cannot be moved')
-    // }
-    //
     if (entry.id !== this.id) {
       throw new Error('Id does not match')
     }
-
     if (!this.versions[entry.ts]) {
       this.addVersion(entry)
     }
-
     if (Node.isNode(entry.parent)) {
       if (entry.parent.id !== this.parent.id) {
         this.parent.removeChild(this)

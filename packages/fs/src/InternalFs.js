@@ -147,42 +147,39 @@ class InternalFs {
         entry.parent = ancestor
       }
     }
+
     if (Node.isFile(entry)) {
       node.content = (await treeFrom.getEntryDetails(node)).content
       if (typeof entry.content === 'undefined') {
         entry.content = node.content
       }
     }
+
     if (!n && !cross && entry.content === node.content) {
       return node
     }
     entry.preserveContent = true
+    if (entry.parent && (!node.parent || entry.parent.id !== node.parent.id)) {
+      entry.name = await treeTo.getVersionedBasename(path.join(entry.parent.getPath(), entry.name), entry.parent)
+    }
     if (entry.name !== node.getName() || entry.content !== node.getContent()) {
       entry = this.secrez.encryptEntry(entry)
       await treeFrom.saveEntry(entry)
     }
+
     if (cross || fromTrash) {
+
       await this.moveOrUnlink(node, indexFrom, indexTo, fromTrash)
-      // let allFiles = await treeFrom.getAllDataFiles(node)
-      // let fromDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexFrom)
-      // let toDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexTo)
-      // for (let file of allFiles) {
-      //   if (await fs.pathExists(path.join(fromDatapath, file))) {
-      //     if (cross) {
-      //       await fs.move(path.join(fromDatapath, file), path.join(toDatapath, file))
-      //     } else {
-      //       await fs.unlink(path.join(fromDatapath, file))
-      //     }
-      //   }
-      // }
-      let originalParent = treeFrom.root.findChildById(originalParentId, true)
+     let originalParent = treeFrom.root.findChildById(originalParentId, true)
       originalParent.removeChild(node)
       if (cross) {
         entry.parent.add(node)
       }
       await treeFrom.save()
       await treeTo.save()
+
     } else {
+
       node.move(entry)
       await treeFrom.save()
     }
