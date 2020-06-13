@@ -93,8 +93,8 @@ class Edit extends require('../Command') {
     if (exists && !options.unformatted && isYaml(file)) {
       fields = data[0].content ? yamlParse(data[0].content) : {}
       if (typeof fields === 'object') {
-        let choices = Object.keys(fields)
-        if (choices.length && !options.field) {
+        options.choices = Object.keys(fields)
+        if (options.choices.length && !options.field) {
           options.message = 'Select the field to edit'
           options.field = await this.useSelect(options)
           if (!options.field) {
