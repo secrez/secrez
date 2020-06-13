@@ -31,11 +31,11 @@ class Mv extends require('../Command') {
         alias: 't',
         type: String
       },
-      {
-        name: 'from',
-        alias: 'f',
-        type: String
-      },
+      // {
+      //   name: 'from',
+      //   alias: 'f',
+      //   type: String
+      // },
       {
         name: 'find',
         type: String
@@ -64,10 +64,10 @@ class Mv extends require('../Command') {
           'to the folder "/old/email" in the "archive" dataset;',
           'The autocomplete works only in the current dataset (for now)'
         ],
-        ['mv -f archive /old/email/* -d /old-email',
-          'moves all the files starting from email contained in /old/email',
-          'in the "archive" dataset to the folder "/old-email" in the current dataset'
-        ],
+        // ['mv -f archive /old/email/* -d /old-email',
+        //   'moves all the files starting from email contained in /old/email',
+        //   'in the "archive" dataset to the folder "/old-email" in the current dataset'
+        // ],
         ['mv --find email -d /emails', 'moves all the files found searching email to /emails;', '--find can be used only on the current dataset'],
         ['mv --find email --content-too -d /emails', 'moves all the files found searching email in paths and contents'],
         ['mv --find email --span -d /emails', 'moves all the files flattening the results']
@@ -78,7 +78,7 @@ class Mv extends require('../Command') {
   async mv(options, nodes) {
     options = _.pick(options, [
       'to',
-      'from',
+      // 'from',
       'newPath',
       'path',
       'removing'
