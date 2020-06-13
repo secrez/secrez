@@ -273,12 +273,14 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 __0.6.0__
 * Allow multiple datasets; `main` and `trash` exists by default
+* at start, purges old trees after successfully loading a dataset
 * `use` allows to use and create new dataset
 * `mv` supports `-d, --destination` for the destination
 * `mv` allows to move files among datasets with a syntax like `mv somefile --to archive` or `mv somefile --from archive`
-* at start, purges old trees after successfully loading a dataset
-* `copy` allows to select the field to copy in yaml files
 * `mv` adds `--find` and `--content-too` to use the result of a search as input
+* `mv`, if no destination set, asks if like to use the active directory in the target dataset
+* `ls -o d` and `ls -o f` to limit the listing only to folders or files
+* `copy` allows to select the field to copy in yaml files
 
 __0.5.13__
 * Find in content excludes binary contents
