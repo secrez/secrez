@@ -31,8 +31,11 @@ class InternalFs {
   }
 
   async make(options) {
+    let data = await this.getTreeIndexAndPath(options.path)
+    options.path = data.path
+    let tree = data.tree
     let p = this.normalizePath(options.path)
-    let [ancestor, remainingPath] = this.tree.root.getChildFromPath(p, true)
+    let [ancestor, remainingPath] = tree.root.getChildFromPath(p, true)
     p = remainingPath.split('/')
     let len = p.length
     let child
@@ -45,7 +48,7 @@ class InternalFs {
       if (Node.isFile(options) && options.content) {
         entry.set({content: options.content})
       }
-      child = await this.tree.add(ancestor, entry)
+      child = await tree.add(ancestor, entry)
       if (notLast) {
         ancestor = child
       }
@@ -73,6 +76,7 @@ class InternalFs {
     let indexTo = this.treeIndex
     let foundFrom
     let foundTo
+
     if (options.to || options.from) {
       for (let dataset of (await this.getDatasetsInfo())) {
         if (dataset.name.toLowerCase() === (options.to || '').toLowerCase()) {
@@ -92,20 +96,27 @@ class InternalFs {
   }
 
   async change(options = {}) {
-    let [indexFrom, indexTo] = await this.getIndexes(options)
+
+    console.log(1)
+
+    let dataFrom = await this.getTreeIndexAndPath(options.path)
+    let indexFrom = dataFrom.index
+    let treeFrom = dataFrom.tree
+    options.path = dataFrom.path
+    let dataTo = await this.getTreeIndexAndPath(options.newPath)
+    let indexTo = dataTo.index
+    let treeTo = dataTo.tree
+    options.newPath = dataTo.path
 
     let cross = indexTo !== indexFrom
     let fromTrash = options.removing && indexFrom === 1
 
-    await this.mountTree(indexFrom)
-    let treeFrom = this.trees[indexFrom]
-    if (indexFrom !== indexTo) {
-      await this.mountTree(indexTo)
-    }
-    let treeTo = this.trees[indexTo]
-
     let p = this.normalizePath(options.path, indexFrom)
     let n
+
+    console.log(indexFrom, indexTo, p)
+
+    console.log(JSON.stringify(treeFrom.root, null, 2))
 
     if (options.newPath) {
       n = this.normalizePath(options.newPath, indexTo)
@@ -170,7 +181,7 @@ class InternalFs {
     if (cross || fromTrash) {
 
       await this.moveOrUnlink(node, indexFrom, indexTo, fromTrash)
-     let originalParent = treeFrom.root.findChildById(originalParentId, true)
+      let originalParent = treeFrom.root.findChildById(originalParentId, true)
       originalParent.removeChild(node)
       if (cross) {
         entry.parent.add(node)
@@ -214,22 +225,55 @@ class InternalFs {
     ))
   }
 
+  async getTreeIndexAndPath(p = './') {
+    let data = {
+      tree: this.tree,
+      name: this.tree.name,
+      index: this.treeIndex,
+      path: p || './'
+    }
+    let datasetAndPath = p.split(':')
+    if (datasetAndPath.length > 1) {
+      let dataset = await this.getDatasetInfo(datasetAndPath[0])
+      if (dataset === false) {
+        throw new Error('Dataset not found')
+      } else if (dataset.index !== this.treeIndex) {
+        await this.mountTree(dataset.index)
+        data.index = dataset.index
+        data.tree = this.trees[dataset.index]
+        data.name = this.trees[dataset.index].name
+      }
+      data.path = datasetAndPath[1] || './'
+      data.updated = true
+    }
+    return data
+  }
+
   async pseudoFileCompletion(options = {}, addSlashIfDir, returnNodes) {
     if (typeof options === 'string') {
       options = {path: options}
     }
-    let files = options.path || './'
-    let p = this.tree.getNormalizedPath(files)
+    if (Array.isArray(options.path)) {
+      options.path = options.path[options.path.length - 1]
+    }
+    let data = await this.getTreeIndexAndPath(options.path)
+    let datasets = []
+    if (!data.updated && !options.ignoreDatasets) {
+      datasets = (await this.getDatasetsInfo()).map(e => e.name).filter(e => RegExp('^' + options.path).test(e))
+    }
+    let tree = data.tree
+    let files = data.path
+    let p = tree.getNormalizedPath(files)
     let end = path.basename(p)
     let node
     if (!/\?|\*/.test(end)) {
       end = undefined
     }
     try {
-      node = this.tree.root.getChildFromPath(p)
+      node = tree.root.getChildFromPath(p)
     } catch (e) {
       end = path.basename(p)
-      node = this.tree.root.getChildFromPath(path.dirname(p))
+      node = tree.root.getChildFromPath(path.dirname(p))
     }
     const getType = n => {
       if (addSlashIfDir) {
@@ -247,7 +291,7 @@ class InternalFs {
             ? [node]
             : [getType(node) + node.getName()]
       } else {
-        let children = []
+        let children = returnNodes ? [] : datasets
         for (let id in node.children) {
           let child = node.children[id]
           if ((Node.isFile(child) && options.only === 'd') || (Node.isDir(child) && options.only === 'f')) {
@@ -264,8 +308,6 @@ class InternalFs {
                   .replace(/\?/g, '.{1}')
                   .replace(/\*/g, '.*')
                   .replace(/\\ /g, ' ')
-                  .replace(/\$/g, '\\$')
-                  .replace(/\^/g, '\\^')
               + (options.forAutoComplete ? '' : '(|\\/)$')
           let re = RegExp(end)
           children = children.filter(e => {
@@ -358,6 +400,7 @@ class InternalFs {
         return dataset
       }
     }
+    return false
   }
 
   updateTreeCache(index, name) {

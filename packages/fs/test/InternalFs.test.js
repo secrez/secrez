@@ -361,8 +361,7 @@ describe('#InternalFs', function () {
 
       await internalFs.change({
         path: '/folder1/folder2',
-        newPath: '/folder2',
-        to: 'archive'
+        newPath: 'archive:/folder2'
       })
 
       assert.equal(internalFs.trees[2].root.getChildFromPath('/folder2').id, folder2.id)

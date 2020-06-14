@@ -19,18 +19,19 @@ class Mv extends require('../Command') {
         name: 'path',
         alias: 'p',
         defaultOption: true,
+        multiple: true,
         type: String
       },
-      {
-        name: 'destination',
-        alias: 'd',
-        type: String
-      },
-      {
-        name: 'to',
-        alias: 't',
-        type: String
-      },
+      // {
+      //   name: 'destination',
+      //   alias: 'd',
+      //   type: String
+      // },
+      // {
+      //   name: 'to',
+      //   alias: 't',
+      //   type: String
+      // },
       // {
       //   name: 'from',
       //   alias: 'f',
@@ -38,7 +39,8 @@ class Mv extends require('../Command') {
       // },
       {
         name: 'find',
-        type: String
+        type: String,
+        multiple: true
       },
       {
         name: 'content-too',
@@ -54,51 +56,45 @@ class Mv extends require('../Command') {
   help() {
     return {
       description: ['Moves and renames files or folders.',
-        'It asks for the destination.'],
+        'If a destination is not specified it tries to move to the current folder.'],
       examples: [
-        'mv somefile -d someother',
+        'mv somefile someother',
         'mv -p ../dir1/file -d ../dir1/file-renamed',
-        ['mv pass/email* -d emails', 'moves all the files starting from email contained in pass'],
-        ['mv pass/email* -d /old/email -t archive',
+        ['mv pass/email* emails', 'moves all the files starting from email contained in pass'],
+        ['mv pass/email* archive:/old/email',
           'moves all the files starting from email contained in pass',
           'to the folder "/old/email" in the "archive" dataset;',
           'The autocomplete works only in the current dataset (for now)'
         ],
-        // ['mv -f archive /old/email/* -d /old-email',
-        //   'moves all the files starting from email contained in /old/email',
-        //   'in the "archive" dataset to the folder "/old-email" in the current dataset'
-        // ],
-        ['mv --find email -d /emails', 'moves all the files found searching email to /emails;', '--find can be used only on the current dataset'],
-        ['mv --find email --content-too -d /emails', 'moves all the files found searching email in paths and contents'],
-        ['mv --find email --span -d /emails', 'moves all the files flattening the results']
+        ['mv archive:/old/email/* /old-email',
+          'moves all the files starting from email contained in /old/email',
+          'in the "archive" dataset to the folder "/old-email" in the current dataset'
+        ],
+        ['mv --find email /emails', 'moves all the files found searching email to /emails;'],
+        ['mv --find email /emails --content-too', 'moves all the files found searching email in paths and contents'],
+        ['mv --find email archive:/emails --span ', 'moves all the files flattening the results']
       ]
     }
   }
 
   async mv(options, nodes) {
-    options = _.pick(options, [
-      'to',
-      // 'from',
-      'newPath',
-      'path',
-      'removing'
-    ])
-    let [indexFrom, indexTo] = await this.internalFs.getIndexes(options)
-    await this.internalFs.mountTree(indexFrom)
-    await this.internalFs.mountTree(indexTo)
+    let dataFrom = await this.internalFs.getTreeIndexAndPath(options.path)
+    await this.internalFs.mountTree(dataFrom.index)
+    let dataTo = await this.internalFs.getTreeIndexAndPath(options.newPath)
+    if (dataFrom.index !== dataTo.index) {
+      await this.internalFs.mountTree(dataTo.index)
+    }
     if (nodes) {
-      this.internalFs.trees[indexFrom].disableSave()
-      if (indexTo !== indexFrom) {
-        this.internalFs.trees[indexTo].disableSave()
-      }
+      this.internalFs.trees[dataFrom.index].disableSave()
+      this.internalFs.trees[dataTo.index].disableSave()
       for (let node of nodes) {
-        await this.internalFs.change(Object.assign(options, {path: node.getPath()}))
+        await this.internalFs.change(Object.assign(options, {path: `${dataFrom.name}:${node.getPath()}`}))
       }
-      this.internalFs.trees[indexFrom].enableSave()
-      await this.internalFs.trees[indexFrom].save()
-      if (indexTo !== indexFrom) {
-        this.internalFs.trees[indexTo].enableSave()
-        await this.internalFs.trees[indexTo].save()
+      this.internalFs.trees[dataFrom.index].enableSave()
+      await this.internalFs.trees[dataFrom.index].save()
+      if (dataFrom.index !== dataTo.index) {
+        this.internalFs.trees[dataTo.index].enableSave()
+        await this.internalFs.trees[dataTo.index].save()
       }
     } else {
       await this.internalFs.change(options)
@@ -108,6 +104,9 @@ class Mv extends require('../Command') {
   async isNotDir(options = {}) {
     let dir
     try {
+      let data = await this.internalFs.getTreeIndexAndPath(options.newPath || '')
+      options.newPath = data.path
+      options.to = data.name
       let index = this.internalFs.tree.datasetIndex
       if (options.to) {
         let datasetInfo = await this.internalFs.getDatasetInfo(options.to)
@@ -117,7 +116,7 @@ class Mv extends require('../Command') {
         index = datasetInfo.index
         await this.internalFs.mountTree(index)
       }
-      let p = this.internalFs.normalizePath(options.destination, index)
+      let p = this.internalFs.normalizePath(options.newPath, index)
       dir = this.internalFs.trees[index].root.getChildFromPath(p)
     } catch (e) {
     }
@@ -129,18 +128,23 @@ class Mv extends require('../Command') {
       return this.showHelp()
     }
     try {
+      if (options.find) {
+        options.newPath = options.find[1]
+        options.find = options.find[0]
+      } else {
+        options.newPath = options.path[1]
+        options.path = options.path[0]
+      }
       if (!options.path && !options.find) {
         throw new Error('An origin path is required.')
-      } else if (options.find && options.from) {
-        throw new Error('Find works only on the dataset in use')
       } else {
         /* istanbul ignore if  */
-        if (!options.destination) {
+        if (!options.newPath) {
           options.message = 'Destination not set.\nWould you like to move to the current active directory in the target dataset?'
           options.default = false
           let yes = await this.useConfirm(options)
           if (yes) {
-            options.destination = '.'
+            options.newPath = '.'
           } else {
             throw new Error('Action canceled')
           }
@@ -150,7 +154,7 @@ class Mv extends require('../Command') {
         if (options.find) {
           options.getNodes = true
           options.name = options.find
-          options.content = options['content-too']
+          options.content = options.contentToo
           nodes = await this.prompt.commands.find.find(options)
           if (!options.span) {
             for (let i = 0; i < nodes.length; i++) {
@@ -174,17 +178,18 @@ class Mv extends require('../Command') {
               throw new Error('When using search results or wildcards, the target has to be a folder')
             }
           }
-          await this.mv(Object.assign(options, {newPath: options.destination}), nodes)
+          await this.mv(Object.assign(options, {newPath: options.newPath}), nodes)
           if (options.find) {
-            this.Logger.reset(`The results of searching for ${options.find} has been moved to ${options.destination}`)
+            this.Logger.reset(`The results of searching for ${options.find} has been moved to ${options.newPath}`)
           } else {
-            this.Logger.reset(`${options.path} has been moved to ${options.destination}`)
+            this.Logger.reset(`${options.path} has been moved to ${options.newPath}`)
           }
         } else {
           this.Logger.red('Path does not exist')
         }
       }
     } catch (e) {
+      console.log(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

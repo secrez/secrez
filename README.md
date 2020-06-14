@@ -139,7 +139,6 @@ Available options:
   cat     Shows the content of a file.
   cd      Changes the working directory.
   copy    Copy a text file to the clipboard.
-  create  Creates interactively a file containing a secret.
   edit    Edits a file containing a secret.
   exit    Exits Secrez.
   export  Export encrypted data to the OS in the current local folder
@@ -281,6 +280,8 @@ __0.6.0__
 * `mv`, if no destination set, asks if like to use the active directory in the target dataset
 * `ls -o d` and `ls -o f` to limit the listing only to folders or files
 * `copy` allows to select the field to copy in yaml files
+* improve autocomplete to handle datasets
+* fix autocomplete in `lcat`, which was wrongly using the internal files
 
 __0.5.13__
 * Find in content excludes binary contents

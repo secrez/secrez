@@ -38,8 +38,7 @@ class Rm extends require('../Command') {
 
   async rm(options = {}) {
     options.asIs = true
-    options.to = 'trash'
-    options.newPath = '/'
+    options.newPath = 'trash:/'
     options.removing = true
 
     let nodes = await this.internalFs.pseudoFileCompletion(options, null, true)

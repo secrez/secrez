@@ -69,10 +69,16 @@ class Copy extends require('../Command') {
   }
 
   async copy(options = {}) {
-    let ifs = this.internalFs
     let cat = this.prompt.commands.cat
-    let p = this.internalFs.tree.getNormalizedPath(options.path)
-    let file = ifs.tree.root.getChildFromPath(p)
+    let currentIndex = this.internalFs.treeIndex
+    let data = await this.internalFs.getTreeIndexAndPath(options.path)
+    if (currentIndex !== data.index) {
+      await this.internalFs.mountTree(data.index, true)
+    }
+    options.path = data.path
+    let tree = data.tree
+    let p = tree.getNormalizedPath(options.path)
+    let file = tree.root.getChildFromPath(p)
     if (Node.isFile(file)) {
       let entry = (await cat.cat({
         path: p,
@@ -81,7 +87,7 @@ class Copy extends require('../Command') {
       }))[0]
       if (Node.isText(entry)) {
         let {name, content} = entry
-        if (isYaml(p) && !options['all-file']) {
+        if (isYaml(p) && !options.allFile) {
           let parsed
           try {
             parsed = yamlParse(content)

@@ -77,21 +77,21 @@ class Edit extends require('../Command') {
   async edit(options) {
     let file = options.path
     let exists = false
-    let data
+    let fileData
     try {
-      data = await this.prompt.commands.cat.cat({path: file}, true)
+      fileData = await this.prompt.commands.cat.cat({path: file}, true)
       exists = true
     } catch (e) {
       if (options.create) {
         await this.prompt.commands.touch.touch({path: file})
-        data = await this.prompt.commands.cat.cat({path: file}, true)
+        fileData = await this.prompt.commands.cat.cat({path: file}, true)
       } else {
         throw e
       }
     }
     let fields = {}
     if (exists && !options.unformatted && isYaml(file)) {
-      fields = data[0].content ? yamlParse(data[0].content) : {}
+      fields = fileData[0].content ? yamlParse(fileData[0].content) : {}
       if (typeof fields === 'object') {
         options.choices = Object.keys(fields)
         if (options.choices.length && !options.field) {
@@ -109,14 +109,9 @@ class Edit extends require('../Command') {
       delete options.field
     }
     let node = this.internalFs.tree.workingNode.getChildFromPath(file)
-    let content = options.field ? fields[options.field] || '' : data[0].content
+    let content = options.field ? fields[options.field] || '' : fileData[0].content
 
-    let newContent
-    // if (!/[\r\n]+/.test(content)) {
-    //   newContent = await this.useInput(Object.assign(options, {name: options.field || path.basename(options.path), content}))
-    // } else {
-      newContent = await this.useEditor(Object.assign(options, {content}))
-    // }
+    let newContent = await this.useEditor(Object.assign(options, {content}))
 
     if (newContent && newContent !== content) {
       let entry = node.getEntry()

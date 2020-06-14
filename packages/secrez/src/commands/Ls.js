@@ -57,12 +57,16 @@ class Ls extends require('../Command') {
   }
 
   async ls(options = {}) {
+    let datasetInfo = await this.internalFs.getDatasetsInfo()
     if (options.datasets) {
-      let datasetInfo = await this.internalFs.getDatasetsInfo()
       return datasetInfo.map(e => e.name)
     } else {
       if (!options.path) {
         options.path = '.'
+      }
+      options.ignoreDatasets = true
+      if (datasetInfo.map(e => e.name).includes(options.path)) {
+        options.path += ':'
       }
       return await this.internalFs.pseudoFileCompletion(options, true)
     }
@@ -80,8 +84,6 @@ class Ls extends require('../Command') {
             ? list.join('\n')
             : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
         )
-      } else {
-        this.Logger.grey('No files found.')
       }
     } catch (e) {
       this.Logger.red(e.message)

@@ -43,7 +43,8 @@ class Import extends require('../Command') {
       {
         name: 'expand',
         alias: 'e',
-        type: String
+        type: String,
+        hint: 'It must be on the current dataset'
       },
       {
         name: 'recursive',
@@ -131,7 +132,7 @@ class Import extends require('../Command') {
         }
         let isBinary = await Utils.isBinary(fn)
 
-        if (isBinary && !options['binary-too']) {
+        if (isBinary && !options.binaryToo) {
           continue
         }
         content.push([fn, isBinary, await fs.readFile(fn, isBinary ? 'base64' : 'utf8')])
@@ -194,7 +195,7 @@ class Import extends require('../Command') {
     if (!data[0].path) {
       return this.Logger.red('The data misses a path field')
     }
-    if (options['use-tags-for-paths']) {
+    if (options.useTagsForPaths) {
       let weightedTags = {}
       for (let item of data) {
         if (item.tags) {

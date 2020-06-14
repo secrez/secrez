@@ -51,7 +51,7 @@ class Entry {
   static sanitizeName(name, subst = '') {
     // removes character forbidden by operating systems
     // eslint-disable-next-line no-useless-escape
-    return removeNotPrintableChars(name).replace(/[\\\/\>\<\|\:\&\?\*]/ig, subst)
+    return removeNotPrintableChars(name).replace(/[\\\/\>\<\|\:\&\?\*\^\$]/ig, subst)
   }
 
   static sanitizePath(p, subst) {

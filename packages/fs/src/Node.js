@@ -322,7 +322,7 @@ class Node {
 
   static getFindRe(options) {
     return RegExp(
-        Entry.sanitizeName(options.name).replace(/\$/g, '\\$').replace(/\^/g, '\\^'),
+        Entry.sanitizeName(options.name),
         'g' + (options.sensitive ? '' : 'i'))
   }
 

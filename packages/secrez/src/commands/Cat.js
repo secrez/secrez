@@ -89,8 +89,11 @@ class Cat extends require('../Command') {
         path: options
       }
     }
-    let p = this.internalFs.tree.getNormalizedPath(options.path)
-    let node = this.internalFs.tree.root.getChildFromPath(p)
+    let data = await this.internalFs.getTreeIndexAndPath(options.path)
+    options.path = data.path
+    let tree = data.tree
+    let p = tree.getNormalizedPath(options.path)
+    let node = tree.root.getChildFromPath(p)
     if (node && Node.isFile(node)) {
       let result = []
       if (!isYaml(p)) {
@@ -98,7 +101,7 @@ class Cat extends require('../Command') {
       }
 
       const pushDetails = async (node, ts, field) => {
-        let details = await this.internalFs.tree.getEntryDetails(node, ts)
+        let details = await tree.getEntryDetails(node, ts)
         if (!justContent && !options.unformatted && isYaml(p)) {
           let fields
           try {

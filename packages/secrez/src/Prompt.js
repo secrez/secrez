@@ -9,7 +9,6 @@ const inquirer = require('inquirer')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
-
 const {Secrez, Utils} = require('@secrez/core')
 const {FsUtils, InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
 
@@ -82,8 +81,8 @@ class Prompt {
       let ret = [cmd]
       for (let c of result) {
         if (!def[c.key].defaultOption) {
-          if (ret.length && /^-/.test(ret[ret.length -1])) {
-            ret[ret.length -1] += def[c.key].alias
+          if (ret.length && /^-/.test(ret[ret.length - 1])) {
+            ret[ret.length - 1] += def[c.key].alias
           } else {
             ret.push('-' + def[c.key].alias)
           }
@@ -155,7 +154,7 @@ class Prompt {
       for (let i = 0; i < m.length; i++) {
         try {
           if (m[i] !== l) {
-            m[i] = m[i].split(r)[1]
+            m[i] = m[i].replace(RegExp('^' + r), '')
             if (m[i]) {
               res.push(m[i])
             }

@@ -5,7 +5,7 @@ class Lcat extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.lcat = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.fileCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.lcat = true

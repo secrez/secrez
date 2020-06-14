@@ -53,16 +53,17 @@ describe('#Command', function () {
 
       await noPrint(C.mkdir.exec({path: '/dir1'}))
       await noPrint(C.mkdir.exec({path: '/dir2'}))
-      await noPrint(C.mkdir.exec({path: '/dir3'}))
+      await noPrint(C.touch.exec({path: '/dir3/file3'}))
       await noPrint(C.touch.exec({path: '/file1'}))
       await noPrint(C.touch.exec({path: '/file2'}))
 
       let pseudoFileCompletion = command.pseudoFileCompletion(C.ls, {})
       let dir = await pseudoFileCompletion({path: '.'})
+      assert.equal(dir.sort().join(' '),'dir1/ dir2/ dir3/ file1 file2 main trash')
 
-      for (let p of ['dir1', 'dir2', 'dir3', 'file1', 'file2']) {
-        assert.isTrue(dir.includes(p))
-      }
+      dir = await pseudoFileCompletion({path: '/dir3'})
+      assert.equal(dir.sort().join(' '),'file3')
+
     })
 
   })

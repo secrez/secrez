@@ -110,7 +110,7 @@ describe('#Mkdir', function () {
       path: '/fol*?der'
     })
     inspect.restore()
-    assertConsole(inspect, 'A filename cannot contain \\/><|:&?* chars.')
+    assertConsole(inspect, 'A filename cannot contain \\/><|:&?*^$ chars.')
 
 
   })

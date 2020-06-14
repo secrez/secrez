@@ -62,6 +62,7 @@ class Help extends require('../Command') {
         }
         for (let c of optionDefinitions) {
           let type = c.type === Boolean ? 'Boolean' : c.type === Number ? 'Number' : 'String'
+          let space = c.multiple ? '[] ': '   '
           this.Logger.log(
               'black',
               spacer +
@@ -69,7 +70,7 @@ class Help extends require('../Command') {
               + '--' + c.name + ' '.repeat(max - c.name.length + 3) +
               (c.alias ? '' : '    '),
               'grey',
-              type + (type !== 'Boolean' ? '   ' : '  ') + (
+              type + space + (type !== 'Boolean' ? ' ' : '') + (
                   c.defaultOption
                       ? '(default)'
                       : '         '

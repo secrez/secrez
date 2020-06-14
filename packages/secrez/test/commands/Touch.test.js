@@ -116,7 +116,7 @@ describe('#Touch', function () {
       path: '/fil|<e'
     })
     inspect.restore()
-    assertConsole(inspect, 'A filename cannot contain \\/><|:&?* chars.')
+    assertConsole(inspect, 'A filename cannot contain \\/><|:&?*^$ chars.')
 
   })
 
