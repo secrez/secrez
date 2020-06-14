@@ -82,12 +82,12 @@ describe('#Ls', function () {
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir2B', list: true})
     inspect.restore()
-    assertConsole(inspect, [''])
+    assert.isUndefined(inspect.output[0])
 
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir2A/dir6', list: true})
     inspect.restore()
-    assertConsole(inspect, [''])
+    assert.isUndefined(inspect.output[0])
 
 
     inspect = stdout.inspect()
@@ -98,7 +98,7 @@ describe('#Ls', function () {
     inspect = stdout.inspect()
     await C.ls.exec({path: '/none'})
     inspect.restore()
-    assertConsole(inspect, [''])
+    assert.isUndefined(inspect.output[0])
 
   })
 

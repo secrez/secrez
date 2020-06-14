@@ -178,18 +178,22 @@ class Mv extends require('../Command') {
               throw new Error('When using search results or wildcards, the target has to be a folder')
             }
           }
+          let paths = nodes.map(e => e.getPath())
           await this.mv(Object.assign(options, {newPath: options.newPath}), nodes)
           if (options.find) {
             this.Logger.reset(`The results of searching for ${options.find} has been moved to ${options.newPath}`)
           } else {
-            this.Logger.reset(`${options.path} has been moved to ${options.newPath}`)
+            this.Logger.reset(`The following have been moved to ${options.newPath}`)
+            for (let p of paths) {
+              this.Logger.reset(p)
+            }
           }
         } else {
           this.Logger.red('Path does not exist')
         }
       }
     } catch (e) {
-      console.log(e)
+      // console.log(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

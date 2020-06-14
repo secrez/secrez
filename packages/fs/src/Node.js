@@ -297,7 +297,10 @@ class Node {
         node[key] = this[key]
       }
     }
-    delete node.parent
+    if (node.parent) {
+      node.parentId = node.parent
+      delete node.parent
+    }
     if (this.children) {
       for (let id in this.children) {
         let child = this.children[id]

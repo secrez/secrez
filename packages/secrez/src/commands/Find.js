@@ -71,6 +71,9 @@ class Find extends require('../Command') {
   }
 
   async find(options) {
+    if (!options.name && options.keywords) {
+      options.name = options.keywords
+    }
     if (options.global) {
       let withDataset = /:/.test(options.name)
       if (withDataset) {

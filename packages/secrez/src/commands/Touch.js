@@ -49,6 +49,7 @@ class Touch extends require('../Command') {
   }
 
   async touch(options = {}) {
+    this.checkPath(options)
     let data = await this.internalFs.getTreeIndexAndPath(options.path)
     let sanitizedPath = Entry.sanitizePath(data.path)
     if (sanitizedPath !== data.path) {
@@ -62,26 +63,24 @@ class Touch extends require('../Command') {
     if (options.help) {
       return this.showHelp()
     }
-    if (!options.path) {
-      this.Logger.red('File path not specified.')
-    } else {
-      try {
-        if (options.notVisibleContent) {
-          let content = await this.useInput(Object.assign(options, {
-            type: 'password',
-            message: 'Type the secret'
-          }))
-          if (content) {
-            options.content = content
-          } else {
-            throw new Error('Command canceled')
-          }
+    try {
+      this.checkPath(options)
+      /* istanbul ignore if  */
+      if (options.notVisibleContent) {
+        let content = await this.useInput(Object.assign(options, {
+          type: 'password',
+          message: 'Type the secret'
+        }))
+        if (content) {
+          options.content = content
+        } else {
+          throw new Error('Command canceled')
         }
-        await this.touch(options)
-        this.Logger.grey(`New file "${options.path}" created.`)
-      } catch (e) {
-        this.Logger.red(e.message)
       }
+      await this.touch(options)
+      this.Logger.grey(`New file "${options.path}" created.`)
+    } catch (e) {
+      this.Logger.red(e.message)
     }
     this.prompt.run()
   }

@@ -34,7 +34,7 @@ describe('#Ver', function () {
 
   })
 
-  it('should show the working folder', async function () {
+  it('should show the current version', async function () {
 
     inspect = stdout.inspect()
     await C.ver.exec()

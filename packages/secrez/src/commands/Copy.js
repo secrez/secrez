@@ -1,6 +1,6 @@
 const path = require('path')
 const clipboardy = require('clipboardy')
-const {isYaml, yamlParse} = require('../utils')
+const {isYaml, yamlParse, TRUE} = require('../utils')
 
 const {Node} = require('@secrez/fs')
 
@@ -72,6 +72,7 @@ class Copy extends require('../Command') {
     let cat = this.prompt.commands.cat
     let currentIndex = this.internalFs.treeIndex
     let data = await this.internalFs.getTreeIndexAndPath(options.path)
+    /* istanbul ignore if  */
     if (currentIndex !== data.index) {
       await this.internalFs.mountTree(data.index, true)
     }
@@ -103,13 +104,16 @@ class Copy extends require('../Command') {
               throw new Error(`Field "${options.field}" not found in "${path.basename(p)}"`)
             }
           } else {
-            options.choices = Object.keys(parsed)
-            options.message = 'Select the field to copy'
-            options.field = await this.useSelect(options)
-            if (!options.field) {
-              throw new Error('Command canceled')
-            } else {
-              content = parsed[options.field]
+            /* istanbul ignore if  */
+            if (TRUE()) {
+              options.choices = Object.keys(parsed)
+              options.message = 'Select the field to copy'
+              options.field = await this.useSelect(options)
+              if (!options.field) {
+                throw new Error('Command canceled')
+              } else {
+                content = parsed[options.field]
+              }
             }
           }
         }

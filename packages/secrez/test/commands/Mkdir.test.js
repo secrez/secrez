@@ -85,14 +85,14 @@ describe('#Mkdir', function () {
     inspect = stdout.inspect()
     await C.mkdir.exec({})
     inspect.restore()
-    assertConsole(inspect, 'Directory path not specified.')
+    assertConsole(inspect, 'A valid path is required')
 
     inspect = stdout.inspect()
     await C.mkdir.exec({
       path: {}
     })
     inspect.restore()
-    assertConsole(inspect, 'Path must be a string')
+    assertConsole(inspect, 'A valid path is required')
 
     await noPrint(C.mkdir.exec({
       path: '/folder'

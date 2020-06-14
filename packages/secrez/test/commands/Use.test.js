@@ -85,37 +85,42 @@ describe('#Use', function () {
     }))
 
     await noPrint(C.use.exec({
-      rename: ['archive', 'backup']
+      dataset: 'archive',
+      rename: 'backup'
     }))
     assert.equal(internalFs.trees[2].name, 'backup')
 
     inspect = stdout.inspect()
     await C.use.exec({
-      rename: 'main primary'
-    })
-    inspect.restore()
-    assertConsole(inspect, ['Wrong number of parameters'])
-
-    inspect = stdout.inspect()
-    await C.use.exec({
-      rename: ['main', 'primary']
+      dataset: 'trash',
+      rename: 'bin'
     })
     inspect.restore()
     assertConsole(inspect, ['main and trash cannot be renamed'])
 
     inspect = stdout.inspect()
     await C.use.exec({
-      rename: ['backup', 'restore']
+      dataset: 'main',
+      rename: 'primary'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['main and trash cannot be renamed'])
+
+    inspect = stdout.inspect()
+    await C.use.exec({
+      dataset: 'backup',
+      rename: 'restore'
     })
     inspect.restore()
     assertConsole(inspect, ['A dataset named restore already exists'])
 
     inspect = stdout.inspect()
     await C.use.exec({
-      rename: ['biondo', 'bruno']
+      dataset: 'biondo',
+      rename: 'bruno'
     })
     inspect.restore()
-    assertConsole(inspect, ['Dataset not found'])
+    assertConsole(inspect, ['The dataset does not exist; add "-c" to create it'])
 
     inspect = stdout.inspect()
     await C.use.exec({
@@ -131,7 +136,17 @@ describe('#Use', function () {
     inspect.restore()
     assertConsole(inspect, ['Wrong parameters'])
 
+  })
 
+  it('#completion should return the list of the datasets', async function () {
+
+    let completion = C.use.completion()
+    let result = (await completion({})).sort()
+    assert.equal(result.join(' '), 'main trash')
+    result = (await completion({
+      dataset: 'ma'
+    })).sort()
+    assert.equal(result.join(' '), 'main')
 
   })
 

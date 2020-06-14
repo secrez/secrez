@@ -37,9 +37,13 @@ const helpers = {
 
   },
 
-  decolorize: (str) => {
-    // eslint-disable-next-line no-control-regex
-    return str.replace(/\x1b\[[0-9;]*m/g, '')
+  decolorize: (str, inspect) => {
+    if (inspect) {
+      console.info(inspect.output.map(e => helpers.decolorize(e)))
+    } else {
+      // eslint-disable-next-line no-control-regex
+      return str.replace(/\x1b\[[0-9;]*m/g, '')
+    }
   },
 
   assertConsole: (inspect, message, includes) => {

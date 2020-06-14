@@ -309,7 +309,9 @@ class Import extends require('../Command') {
             extra = ' (moved)'
           }
           this.Logger.green(`Imported files${extra}:`)
-          this.Logger.reset(files.join('\n'))
+          for (let f of files) {
+            this.Logger.reset(f)
+          }
         } else {
           this.Logger.red('No file has been imported.')
         }

@@ -81,11 +81,14 @@ describe('#Mv', function () {
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: '/folder1/file1',
-      destination: '/folder2/file1'
+      path: ['/folder1/file1', '/folder2/file1']
     })
     inspect.restore()
-    assertConsole(inspect, '/folder1/file1 has been moved to /folder2/file1')
+    assertConsole(inspect,
+        'The following have been moved to /folder2',
+        '/folder1/ff1',
+        '/folder1/ff2'
+    )
 
     assert.equal(file1.getPath(), '/folder2/file1')
 
@@ -112,11 +115,14 @@ describe('#Mv', function () {
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: '/folder1/ff*',
-      destination: '/folder2'
+      path: ['/folder1/ff*', '/folder2']
     })
     inspect.restore()
-    assertConsole(inspect, '/folder1/ff* has been moved to /folder2')
+    assertConsole(inspect,
+        'The following have been moved to /folder2',
+        '/folder1/ff1',
+        '/folder1/ff2'
+    )
 
     assert.equal(file1.getPath(), '/folder2/ff1')
     assert.equal(file2.getPath(), '/folder2/ff2')
@@ -140,11 +146,13 @@ describe('#Mv', function () {
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: 'f3/f4.txt',
-      destination: '../f5/f6/f4.txt'
+      path: ['f3/f4.txt', '../f5/f6/f4.txt']
     })
     inspect.restore()
-    assertConsole(inspect, 'f3/f4.txt has been moved to ../f5/f6/f4.txt')
+    assertConsole(inspect,
+        'The following have been moved to ../f5/f6/f4.txt',
+        '/f1/f2/f3/f4.txt'
+    )
 
     assert.equal(file.getPath(), '/f1/f5/f6/f4.txt')
 
@@ -221,15 +229,14 @@ describe('#Mv', function () {
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      destination: '/bollu'
+      path: ''
     })
     inspect.restore()
     assertConsole(inspect, 'An origin path is required.')
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: '/bullo',
-      destination: '/bollu'
+      path: ['/bullo', '/bollu']
     })
     inspect.restore()
     assertConsole(inspect, 'Path does not exist')
@@ -241,8 +248,7 @@ describe('#Mv', function () {
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: '/b*',
-      destination: 'none'
+      path: ['/b*', 'none']
     })
     inspect.restore()
     assertConsole(inspect, 'When using search results or wildcards, the target has to be a folder')
@@ -311,22 +317,19 @@ describe('#Mv', function () {
 
     await C.mv.mv({
       path: '/folder1/file1',
-      newPath: '/archivedFolder',
-      to: 'archive'
+      newPath: 'archive:/archivedFolder'
     })
 
     assert.equal(Node.getRoot(file1).datasetIndex, 2)
     assert.equal(file1.getPath(), '/archivedFolder/file1')
 
-    // await C.mv.mv({
-    //   path: '/archivedFolder/folder',
-    //   newPath: '/backupFolder',
-    //   from: 'archive',
-    //   to: 'backup'
-    // })
-    //
-    // assert.equal(Node.getRoot(folder).datasetIndex, 3)
-    // assert.equal(folder.getPath(), '/backupFolder/folder')
+    await C.mv.mv({
+      path: 'archive:/archivedFolder/folder',
+      newPath: 'backup:/backupFolder'
+    })
+
+    assert.equal(Node.getRoot(folder).datasetIndex, 3)
+    assert.equal(folder.getPath(), '/backupFolder/folder')
 
 
   })
@@ -355,25 +358,22 @@ describe('#Mv', function () {
     })
 
     await noPrint(C.mv.exec({
-      find: 'car',
-      destination: '/destination',
+      find: ['car', '/destination'],
       span: true
     }))
 
     assert.equal(Object.keys(destination.children).length, 2)
 
     await noPrint(C.mv.exec({
-      find: 'joke',
-      destination: '/destination',
-      'content-too': true,
+      find: ['joke', '/destination'],
+      contentToo: true,
       span: true
     }))
 
     assert.equal(Object.keys(destination.children).length, 4)
 
     await noPrint(C.mv.exec({
-      path: '/destination/*',
-      destination: '/'
+      path: ['/destination/*', '/']
     }))
 
     assert.equal(Object.keys(destination.children).length, 0)
@@ -383,12 +383,10 @@ describe('#Mv', function () {
       content: 'vello'
     })
 
-    await noPrint(
-        C.mv.exec({
-          find: 'vello',
-          destination: '/destination',
-          'content-too': true
-        }))
+    await noPrint(C.mv.exec({
+      find: ['vello', '/destination'],
+      contentToo: true
+    }))
 
     assert.equal(Object.keys(destination.children).length, 1)
 
@@ -404,9 +402,8 @@ describe('#Mv', function () {
     })
 
     await noPrint(C.mv.exec({
-      find: 'vello',
-      destination: '/destination',
-      'content-too': true,
+      find: ['vello', '/destination'],
+      contentToo: true,
       span: true
     }))
 
