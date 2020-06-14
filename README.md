@@ -1,5 +1,5 @@
 # Secrez
-A secrets manager in times of crypto coins.
+A secrets manager as an encrypted file system.
 
 ### This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
 
