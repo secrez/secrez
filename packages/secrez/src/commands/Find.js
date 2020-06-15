@@ -74,10 +74,11 @@ class Find extends require('../Command') {
     if (!options.name && options.keywords) {
       options.name = options.keywords
     }
-    if (options.global) {
-      let withDataset = /:/.test(options.name)
+    let splitted = options.name.split(':')
+    let withDataset = splitted.length > 1
+    if (options.global || (splitted[1] && !splitted[0])) {
       if (withDataset) {
-        options.name = options.name.split(':')[1]
+        options.name = splitted[1]
       }
       if (!options.name) {
         throw new Error('Keywords required')
@@ -92,7 +93,6 @@ class Find extends require('../Command') {
       }
       return results
     } else {
-      let withDataset = /:/.test(options.name)
       let data = await this.internalFs.getTreeIndexAndPath(options.name)
       if (withDataset) {
         options.dataset = data.name

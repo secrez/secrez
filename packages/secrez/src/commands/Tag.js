@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const {chalk} = require('../utils/Logger')
 const Case = require('case')
+const {Node} = require('@secrez/fs')
 
 class Tag extends require('../Command') {
 
@@ -43,6 +44,14 @@ class Tag extends require('../Command') {
         name: 'remove',
         alias: 'r',
         type: Boolean
+      },
+      {
+        name: 'find',
+        type: String
+      },
+      {
+        name: 'content-too',
+        type: Boolean
       }
     ]
   }
@@ -53,9 +62,10 @@ class Tag extends require('../Command') {
         'Tags a file and shows existent tags.'
       ],
       examples: [
-        'tag ethWallet.yml -t wallet,ethereum',
+        'tag ethWallet.yml -a wallet,ethereum',
         ['tag ethWallet.yml -r ethereum', 'removes tag "ethereum"'],
         ['tag -l', 'lists all tags'],
+        ['tag', 'lists all tags'],
         ['tag -s wallet', 'lists all files tagged wallet'],
         ['tag -s email cloud', 'lists all files tagged email and cloud']
       ]
@@ -64,6 +74,9 @@ class Tag extends require('../Command') {
 
   async tag(options, nodes) {
     let result = []
+    if (!Object.keys(options).length) {
+      options.list = true
+    }
     if (options.list) {
       return this.internalFs.tree.listTags()
     } else if (options.show) {
@@ -72,9 +85,16 @@ class Tag extends require('../Command') {
         throw new Error('Tagged files not found')
       }
       return result
-    } else if (nodes || options.path) {
+    } else if (nodes || options.path || options.find) {
       if (!nodes) {
-        nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+        if (options.find) {
+          options.getNodes = true
+          options.name = options.find
+          options.content = options.contentToo
+          nodes = (await this.prompt.commands.find.find(options)).filter(n => Node.isFile(n))
+        } else {
+          nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+        }
       }
       const isSaveEnabled = this.internalFs.tree.isSaveEnabled()
       if (isSaveEnabled) {
@@ -133,6 +153,7 @@ class Tag extends require('../Command') {
         this.Logger.grey(result.join('\n'))
       }
     } catch (e) {
+      console.log(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

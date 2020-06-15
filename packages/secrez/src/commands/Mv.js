@@ -22,21 +22,6 @@ class Mv extends require('../Command') {
         multiple: true,
         type: String
       },
-      // {
-      //   name: 'destination',
-      //   alias: 'd',
-      //   type: String
-      // },
-      // {
-      //   name: 'to',
-      //   alias: 't',
-      //   type: String
-      // },
-      // {
-      //   name: 'from',
-      //   alias: 'f',
-      //   type: String
-      // },
       {
         name: 'find',
         type: String,
