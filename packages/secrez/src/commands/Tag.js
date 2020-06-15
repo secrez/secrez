@@ -148,12 +148,15 @@ class Tag extends require('../Command') {
       if (options.list) {
         this.Logger.cyan(this.prompt.commandPrompt.formatList(result, 26, true, this.threeRedDots()))
       } else if (options.show) {
-        this.Logger.reset(this.formatResult(result).join('\n'))
+        for (let r of this.formatResult(result)) {
+          this.Logger.reset(r)
+        }
       } else {
-        this.Logger.grey(result.join('\n'))
+        for (let r of result) {
+          this.Logger.grey(r)
+        }
       }
     } catch (e) {
-      console.log(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()
