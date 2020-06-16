@@ -282,6 +282,7 @@ __0.6.0__
 * `copy` allows to select the field to copy in yaml files
 * improve autocomplete to handle datasets
 * fix autocomplete in `lcat`, which was wrongly using the internal files
+* `tag` is able to list and show tags along all the datasets
 
 __0.5.13__
 * Find in content excludes binary contents
