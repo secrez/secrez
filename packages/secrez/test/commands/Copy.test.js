@@ -174,7 +174,7 @@ describe('#Copy', function () {
     }))
     await noPrint(C.import.exec({
       path: 'folder1/file1.tar.gz',
-      'binary-too': true
+      binaryToo: true
     }))
     await noPrint(C.lcd.exec({
       path: '../../../tmp/test'

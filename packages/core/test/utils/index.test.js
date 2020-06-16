@@ -88,6 +88,7 @@ describe('#utils', function () {
 
     it('should convert an integer to a base58 string', async function () {
       assert.equal(utils.intToBase58(32454), 'aDy')
+      assert.equal(utils.intToBase58(32454, 10), '0000000aDy')
     })
 
     it('should fail if invalid format', async function () {
@@ -325,15 +326,11 @@ describe('#utils', function () {
 
     it('should check if a file is binary', async function () {
       let fp = path.resolve(__dirname, '../fixtures/files/file1.tar.gz')
+      let dir = path.resolve(__dirname, '../fixtures')
       assert.equal(await utils.isBinary(fp), true)
-
-      try {
-        await utils.isBinary(23)
-        assert.isFalse(true)
-      } catch (e) {
-        assert.equal(e.message, 'A valid file is required')
-      }
-
+      assert.equal(await utils.isBinary(23), false)
+      assert.equal(await utils.isBinary('somedir/'), false)
+      assert.equal(await utils.isBinary(dir), false)
     })
 
   })

@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const {chalk} = require('../utils/Logger')
 const path = require('path')
 const fs = require('fs-extra')
 const {isYaml, yamlParse, yamlStringify} = require('../utils')
@@ -78,33 +77,30 @@ class Edit extends require('../Command') {
   async edit(options) {
     let file = options.path
     let exists = false
-    let data
+    let fileData
     try {
-      data = await this.prompt.commands.cat.cat({path: file}, true)
+      fileData = await this.prompt.commands.cat.cat({path: file}, true)
       exists = true
     } catch (e) {
       if (options.create) {
         await this.prompt.commands.touch.touch({path: file})
-        data = await this.prompt.commands.cat.cat({path: file}, true)
+        fileData = await this.prompt.commands.cat.cat({path: file}, true)
       } else {
         throw e
       }
     }
     let fields = {}
     if (exists && !options.unformatted && isYaml(file)) {
-      fields = data[0].content ? yamlParse(data[0].content) : {}
+      fields = fileData[0].content ? yamlParse(fileData[0].content) : {}
       if (typeof fields === 'object') {
-        let choices = Object.keys(fields)
-        if (choices.length && !options.field) {
-          let {field} = await this.prompt.inquirer.prompt([
-            {
-              type: 'list',
-              name: 'field',
-              message: 'Select the field to edit',
-              choices
-            }
-          ])
-          options.field = field
+        options.choices = Object.keys(fields)
+        if (options.choices.length && !options.field) {
+          options.message = 'Select the field to edit'
+          options.field = await this.useSelect(options)
+          if (!options.field) {
+            this.Logger.reset('Changes aborted or file not changed')
+            return
+          }
         }
       } else {
         delete options.field
@@ -112,32 +108,10 @@ class Edit extends require('../Command') {
     } else if (!isYaml(file)) {
       delete options.field
     }
-    let node = this.tree.workingNode.getChildFromPath(file)
-    let content = options.field ? fields[options.field] || '' : data[0].content
-    let message = 'your OS default editor.'
-    if (options.internal) {
-      message = 'the minimalistic internal editor.'
-    } else if (options.editor) {
-      message = `${options.editor}.`
-    }
+    let node = this.internalFs.tree.workingNode.getChildFromPath(file)
+    let content = options.field ? fields[options.field] || '' : fileData[0].content
 
-    let extraMessage = chalk.dim('Press <enter> to launch ')
-        + message
-        + chalk.reset(
-            options.internal ? chalk.agua('\n  Ctrl-d to save the changes. Ctrl-c to abort.') : ''
-        )
-
-    let {newContent} = await this.prompt.inquirer.prompt([{
-      type: 'multiEditor',
-      name: 'newContent',
-      message: 'Editing...',
-      default: content,
-      tempDir: this.cliConfig.tmpPath,
-      validate: function (text) {
-        return true
-      },
-      extraMessage
-    }])
+    let newContent = await this.useEditor(Object.assign(options, {content}))
 
     if (newContent && newContent !== content) {
       let entry = node.getEntry()
@@ -147,7 +121,7 @@ class Edit extends require('../Command') {
       } else {
         entry.content = newContent
       }
-      await this.tree.update(node, entry)
+      await this.internalFs.tree.update(node, entry)
       this.Logger.reset('File saved.')
     } else {
       this.Logger.reset('Changes aborted or file not changed')

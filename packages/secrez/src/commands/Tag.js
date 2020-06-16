@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const {chalk} = require('../utils/Logger')
 const Case = require('case')
+const {Node} = require('@secrez/fs')
 
 class Tag extends require('../Command') {
 
@@ -28,6 +29,11 @@ class Tag extends require('../Command') {
         type: Boolean
       },
       {
+        name: 'global',
+        alias: 'g',
+        type: Boolean
+      },
+      {
         name: 'show',
         alias: 's',
         multiple: true,
@@ -43,6 +49,14 @@ class Tag extends require('../Command') {
         name: 'remove',
         alias: 'r',
         type: Boolean
+      },
+      {
+        name: 'find',
+        type: String
+      },
+      {
+        name: 'content-too',
+        type: Boolean
       }
     ]
   }
@@ -53,9 +67,10 @@ class Tag extends require('../Command') {
         'Tags a file and shows existent tags.'
       ],
       examples: [
-        'tag ethWallet.yml -t wallet,ethereum',
+        'tag ethWallet.yml -a wallet,ethereum',
         ['tag ethWallet.yml -r ethereum', 'removes tag "ethereum"'],
-        ['tag -l', 'lists all tags'],
+        ['tag', 'lists all tags in the current dataset'],
+        ['tag -lg', 'lists all tags in any dataset'],
         ['tag -s wallet', 'lists all files tagged wallet'],
         ['tag -s email cloud', 'lists all files tagged email and cloud']
       ]
@@ -64,37 +79,80 @@ class Tag extends require('../Command') {
 
   async tag(options, nodes) {
     let result = []
+    if (!Object.keys(options).length) {
+      options.list = true
+    }
     if (options.list) {
-      return this.tree.listTags()
+      if (options.global) {
+        let datasetInfo = await this.internalFs.getDatasetsInfo()
+        let result = {}
+        for (let dataset of datasetInfo) {
+          await this.internalFs.mountTree(dataset.index)
+          let tags = this.internalFs.trees[dataset.index].listTags()
+          if (tags.length) {
+            result[dataset.name] = tags
+          }
+        }
+        return result
+      } else {
+        return this.internalFs.tree.listTags()
+      }
     } else if (options.show) {
-      result = this.tree.getNodesByTag(options.show)
+      if (options.global) {
+        let datasetInfo = await this.internalFs.getDatasetsInfo()
+        result = []
+        for (let dataset of datasetInfo) {
+          await this.internalFs.mountTree(dataset.index)
+          let tags = this.internalFs.trees[dataset.index].getNodesByTag(options.show).map(e => {
+            e[0] = dataset.name + ':' + e[0]
+            return e
+          })
+          result = result.concat(tags)
+        }
+      } else {
+        result = this.internalFs.tree.getNodesByTag(options.show)
+      }
       if (!result.length) {
         throw new Error('Tagged files not found')
       }
       return result
-    } else if (nodes || options.path) {
+    } else if (nodes || options.path || options.find) {
       if (!nodes) {
-        nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+        if (options.find) {
+          options.getNodes = true
+          options.name = options.find
+          options.content = options.contentToo
+          nodes = (await this.prompt.commands.find.find(options)).filter(n => Node.isFile(n))
+        } else {
+          nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+        }
       }
-      const isSaveEnabled = this.tree.isSaveEnabled()
-      if (isSaveEnabled) {
-        // it's called from another command, like Import
-        this.tree.disableSave()
-      }
+      let isSaveEnabled = {}
       for (let node of nodes) {
+        let datasetIndex = Node.getRoot(node).datasetIndex
+        let tree = this.internalFs.trees[datasetIndex]
+        if (typeof isSaveEnabled[datasetIndex.toString()] === 'undefined') {
+          isSaveEnabled[datasetIndex.toString()] = tree.isSaveEnabled()
+          if (tree.isSaveEnabled()) {
+            // it's called from another command, like Import
+            tree.disableSave()
+          }
+        }
         if (options.add) {
-          await this.tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
+          await tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
           let s = options.add.length > 1 ? 's' : ''
           result = [`Tag${s} added`]
         } else if (options.remove) {
-          await this.tree.removeTag(node, options.remove.map(e => Case.snake(_.trim(e))))
+          await tree.removeTag(node, options.remove.map(e => Case.snake(_.trim(e))))
           let s = options.remove.length > 1 ? 's' : ''
           result = [`Tag${s} removed`]
         }
       }
-      if (isSaveEnabled) {
-        this.tree.enableSave()
-        this.tree.saveTags()
+      for (let datasetIndex in isSaveEnabled) {
+        if (isSaveEnabled[datasetIndex]) {
+          this.internalFs.trees[datasetIndex].enableSave()
+          this.internalFs.trees[datasetIndex].saveTags()
+        }
       }
       return result
     }
@@ -113,9 +171,9 @@ class Tag extends require('../Command') {
     }
 
     if (max + mak + 2 > cols) {
-      return result.map(e => e[0] + '\n' + chalk.blu(e[1]))
+      return result.map(e => e[0] + '\n' + chalk.cyan(e[1]))
     } else {
-      return result.map(e => e[0] + ' '.repeat(max - e[0].length) + '  ' + chalk.blu(e[1]))
+      return result.map(e => e[0] + ' '.repeat(max - e[0].length) + '  ' + chalk.cyan(e[1]))
     }
   }
 
@@ -126,13 +184,25 @@ class Tag extends require('../Command') {
     try {
       let result = await this.tag(options)
       if (options.list) {
-        this.Logger.blu(this.prompt.commandPrompt.formatList(result, 26, true, this.threeRedDots()))
+        if (options.global) {
+          for (let name in result) {
+            this.Logger.grey(name)
+            this.Logger.cyan(this.prompt.commandPrompt.formatList(result[name], 26, true, this.threeRedDots()))
+          }
+        } else {
+          this.Logger.cyan(this.prompt.commandPrompt.formatList(result, 26, true, this.threeRedDots()))
+        }
       } else if (options.show) {
-        this.Logger.reset(this.formatResult(result).join('\n'))
+        for (let r of this.formatResult(result)) {
+          this.Logger.reset(r)
+        }
       } else {
-        this.Logger.grey(result.join('\n'))
+        for (let r of result) {
+          this.Logger.grey(r)
+        }
       }
     } catch (e) {
+      // console.log(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

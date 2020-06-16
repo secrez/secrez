@@ -36,17 +36,24 @@ class Cd extends require('../Command') {
     }
   }
 
-  cd(options) {
-    let ifs = this.internalFs
-    let p = this.tree.getNormalizedPath(options.path)
+  async cd(options) {
+    let currentIndex = this.internalFs.treeIndex
+    let startingPath = options.path
+    let data = await this.internalFs.getTreeIndexAndPath(options.path)
+    if (currentIndex !== data.index) {
+      await this.internalFs.mountTree(data.index, true)
+    }
+    options.path = startingPath ? data.path : '/'
+    let tree = data.tree
+    let p = tree.getNormalizedPath(options.path)
     if (!p || /^(\/|~|~\/)$/.test(p)) {
-      ifs.tree.workingNode = ifs.tree.root
+      tree.workingNode = tree.root
     } else if (p === '.') {
       // nothing
     } else {
-      let node = ifs.tree.root.getChildFromPath(p)
+      let node = tree.root.getChildFromPath(p)
       if (Node.isDir(node)) {
-        ifs.tree.workingNode = node
+        tree.workingNode = node
       } else {
         throw new Error('You cannot cd to a file')
       }

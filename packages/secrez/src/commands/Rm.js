@@ -19,43 +19,32 @@ class Rm extends require('../Command') {
         alias: 'p',
         defaultOption: true,
         type: String
-      },
-      {
-        name: 'version',
-        alias: 'v',
-        multiple: true,
-        type: String
       }
     ]
   }
 
   help() {
     return {
-      description: ['Removes a file or a single version of a file.',
-        'Since in Secrez files are immutable, the file is not deleted,',
-        'it is move to the hidden folder .trash, where it remains visible.',
-        'Wildcards are not supported with rm to limit involuntary deletes.'
+      description: ['Removes one or more files and folders.',
+        'Technically files are moved to the trash dataset (access it with "use trash").',
+        'If you remove a file from the trash dataset, the data will be deleted from disk;',
+        'this action is not undoable.'
       ],
       examples: [
-        'rm secret1',
-        'rm secret2 -v 9Gcp,8hYU'
+        'rm secret1'
       ]
     }
   }
 
-  async rm(options) {
-    let nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
-    let deleted = []
-    this.tree.disableSave()
-    for (let node of nodes) {
-      let result = await this.internalFs.remove(options, node)
-      if (result.length) {
-        deleted = deleted.concat(result)
-      }
-    }
-    this.tree.enableSave()
+  async rm(options = {}) {
+    options.asIs = true
+    options.newPath = 'trash:/'
+    options.removing = true
+
+    let nodes = await this.internalFs.pseudoFileCompletion(options, null, true)
+    let deleted = nodes.map(n => n.getPath())
     if (deleted.length) {
-      this.tree.save()
+      await this.prompt.commands.mv.mv(options, nodes)
     }
     return deleted
   }
@@ -70,16 +59,13 @@ class Rm extends require('../Command') {
     }
     if (!options.path) {
       this.Logger.red('File path not specified.')
-    } else if (options.version && /\?|\*/.test(options.path)) {
-      this.Logger.red('Wildcards not supported when version is specified.')
     } else {
       try {
         let deleted = await this.rm(options)
-        if (deleted.length) {
-          this.Logger.agua('Deleted entries:')
-          this.Logger.grey(deleted.map(e => this.formatResult(e)).join('\n'))
+        if (deleted.length === 0) {
+          this.Logger.green('No files have been deleted.')
         } else {
-          this.Logger.red('Target files not found.')
+          this.Logger.green('Deleted entries:\n' + deleted.join('\n'))
         }
       } catch (e) {
         this.Logger.red(e.message)

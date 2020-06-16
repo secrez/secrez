@@ -91,14 +91,14 @@ describe('#Touch', function () {
     inspect = stdout.inspect()
     await C.touch.exec({})
     inspect.restore()
-    assertConsole(inspect, 'File path not specified.')
+    assertConsole(inspect, 'A valid path is required')
 
     inspect = stdout.inspect()
     await C.touch.exec({
       path: {}
     })
     inspect.restore()
-    assertConsole(inspect, 'Path must be a string')
+    assertConsole(inspect, 'A valid path is required')
 
     await noPrint(C.touch.exec({
       path: '/file'
@@ -116,7 +116,7 @@ describe('#Touch', function () {
       path: '/fil|<e'
     })
     inspect.restore()
-    assertConsole(inspect, 'A filename cannot contain \\/><|:&?* chars.')
+    assertConsole(inspect, 'A filename cannot contain \\/><|:&?*^$ chars.')
 
   })
 

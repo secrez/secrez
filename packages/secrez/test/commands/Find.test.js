@@ -82,57 +82,113 @@ describe('#Find', function () {
 
     inspect = stdout.inspect()
     await C.find.exec({
-      name: 'file'
+      keywords: 'file'
     })
     inspect.restore()
-    assertConsole(inspect, ['/folder1/File2',
+    assertConsole(inspect, [
+      '3 results found:',
+      '/folder1/File2',
       '/folder2/file3',
       '/folder3/folder4/FOLDER5/File3'
     ])
 
     inspect = stdout.inspect()
     await C.find.exec({
-      name: 'der'
-    })
-    inspect.restore()
-    assertConsole(inspect, ['/folder1'])
-
-    inspect = stdout.inspect()
-    await C.find.exec({
-      name: '3'
+      keywords: 'der'
     })
     inspect.restore()
     assertConsole(inspect, [
+      '6 results found:',
+      '/folder1',
+      '/folder2',
+      '/folder3',
+      '/folder3/folder4',
+      '/folder3/folder4/FOLDER5',
+      '/folder4'
+    ])
+
+    inspect = stdout.inspect()
+    await C.find.exec({
+      keywords: '3'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['3 results found:',
       '/folder2/file3',
       '/folder3',
       '/folder3/folder4/FOLDER5/File3'
     ])
 
+    let nodes = await C.find.find({
+      keywords: '3',
+      getNodes: true
+    })
+
+    assert.equal(nodes.length, 3)
+
     inspect = stdout.inspect()
     await C.find.exec({
-      name: 'file1',
+      keywords: 'file1',
       all: true
     })
     inspect.restore()
     assertConsole(inspect, [
+      '1 result found:',
       'file1'
     ], true)
 
     inspect = stdout.inspect()
     await C.find.exec({
-      name: 'Password',
+      keywords: 'Password',
       content: true
     })
     inspect.restore()
-    assertConsole(inspect, [
+    assertConsole(inspect, ['1 result found:',
       '/folder1/File2'
     ])
 
+
     inspect = stdout.inspect()
     await C.find.exec({
+      keywords: 'main:Password',
+      content: true
     })
     inspect.restore()
-    assertConsole(inspect, [])
+    assertConsole(inspect, ['1 result found:',
+      'main:/folder1/File2'
+    ])
+
+    await noPrint(C.use.exec({
+      dataset: 'archive',
+      create: true
+    }))
+
+    await noPrint(C.touch.exec({
+      path: 'archive:/password',
+      content: 's6s633g3ret'
+    }))
+
+    inspect = stdout.inspect()
+    await C.find.exec({
+      keywords: 'word',
+      content: true,
+      global: true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      '2 results found:',
+      'main:/folder1/File2',
+      'archive:/password'
+    ])
+
+
+  })
+
+  it('should find no result without parameters', async function () {
+
+    inspect = stdout.inspect()
+    await C.find.exec({})
+    inspect.restore()
+    assertConsole(inspect, ['Missing parameters'])
 
   })
 
@@ -147,18 +203,18 @@ describe('#Find', function () {
 
     await noPrint(C.import.exec({
       path: 'folder1',
-      'binary-too': true
+      binaryToo: true
     }))
 
     inspect = stdout.inspect()
     await C.find.exec({
-      name: 'm',
+      keywords: 'm',
       content: true
     })
     inspect.restore()
-    assertConsole(inspect, [
-      '/folder/file1',
-      '/folder/file2'
+    assertConsole(inspect, ['2 results found:',
+      '/folder/file-2',
+      '/folder/file1'
     ])
 
   })

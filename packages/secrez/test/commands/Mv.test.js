@@ -3,9 +3,9 @@ const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
-const {config} = require('@secrez/core')
+const {Node} = require('@secrez/fs')
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize} = require('../helpers')
+const {assertConsole, decolorize, noPrint} = require('../helpers')
 
 const {
   password,
@@ -49,8 +49,7 @@ describe('#Mv', function () {
   it('should rename a file', async function () {
 
     let file1 = await C.touch.touch({
-      path: '/folder2/file1',
-      type: config.types.TEXT
+      path: '/folder2/file1'
     })
 
     await C.mv.mv({
@@ -73,22 +72,23 @@ describe('#Mv', function () {
   it('should move a file to another folder', async function () {
 
     let file1 = await C.touch.touch({
-      path: '/folder1/file1',
-      type: config.types.TEXT
+      path: '/folder1/file1'
     })
 
     await C.mkdir.mkdir({
-      path: '/folder2',
-      type: config.types.DIR
+      path: '/folder2'
     })
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: '/folder1/file1',
-      destination: '/folder2/file1'
+      path: ['/folder1/file1', '/folder2/file1']
     })
     inspect.restore()
-    assertConsole(inspect, '/folder1/file1 has been moved to /folder2/file1')
+    assertConsole(inspect,
+        'The following have been moved to /folder2',
+        '/folder1/ff1',
+        '/folder1/ff2'
+    )
 
     assert.equal(file1.getPath(), '/folder2/file1')
 
@@ -98,32 +98,31 @@ describe('#Mv', function () {
   it('should move many files to another folder', async function () {
 
     let file1 = await C.touch.touch({
-      path: '/folder1/ff1',
-      type: config.types.TEXT
+      path: '/folder1/ff1'
     })
 
     let file2 = await C.touch.touch({
-      path: '/folder1/ff2',
-      type: config.types.TEXT
+      path: '/folder1/ff2'
     })
 
     let file3 = await C.touch.touch({
-      path: '/folder1/gg',
-      type: config.types.TEXT
+      path: '/folder1/gg'
     })
 
     await C.mkdir.mkdir({
-      path: '/folder2',
-      type: config.types.DIR
+      path: '/folder2'
     })
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: '/folder1/ff*',
-      destination: '/folder2'
+      path: ['/folder1/ff*', '/folder2']
     })
     inspect.restore()
-    assertConsole(inspect, '/folder1/ff* has been moved to /folder2')
+    assertConsole(inspect,
+        'The following have been moved to /folder2',
+        '/folder1/ff1',
+        '/folder1/ff2'
+    )
 
     assert.equal(file1.getPath(), '/folder2/ff1')
     assert.equal(file2.getPath(), '/folder2/ff2')
@@ -134,13 +133,11 @@ describe('#Mv', function () {
   it('should move a file to another subfolder', async function () {
 
     let file = await C.touch.touch({
-      path: '/f1/f2/f3/f4.txt',
-      type: config.types.TEXT
+      path: '/f1/f2/f3/f4.txt'
     })
 
     await C.mkdir.mkdir({
-      path: '/f1/f5/f6',
-      type: config.types.DIR
+      path: '/f1/f5/f6'
     })
 
     await C.cd.cd({
@@ -149,11 +146,13 @@ describe('#Mv', function () {
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: 'f3/f4.txt',
-      destination: '../f5/f6/f4.txt'
+      path: ['f3/f4.txt', '../f5/f6/f4.txt']
     })
     inspect.restore()
-    assertConsole(inspect, 'f3/f4.txt has been moved to ../f5/f6/f4.txt')
+    assertConsole(inspect,
+        'The following have been moved to ../f5/f6/f4.txt',
+        '/f1/f2/f3/f4.txt'
+    )
 
     assert.equal(file.getPath(), '/f1/f5/f6/f4.txt')
 
@@ -161,14 +160,16 @@ describe('#Mv', function () {
 
   it('should move and rename file to another folder', async function () {
 
+    let folder1 = await C.mkdir.mkdir({
+      path: '/folder1'
+    })
+
     let file1 = await C.touch.touch({
-      path: '/folder1/file1',
-      type: config.types.TEXT
+      path: '/folder1/file1'
     })
 
     await C.mkdir.mkdir({
-      path: '/folder2',
-      type: config.types.DIR
+      path: '/folder2'
     })
 
     await C.mv.mv({
@@ -178,50 +179,237 @@ describe('#Mv', function () {
 
     assert.equal(file1.getPath(), '/folder2/file2')
 
+    await C.mv.mv({
+      path: '/folder2/file2',
+      newPath: '/folder1/file2'
+    })
+
+    assert.equal(file1.getPath(), '/folder1/file2')
+    assert.equal(folder1.getPath(), '/folder1')
+
+    await C.mv.mv({
+      path: '/folder1',
+      newPath: '/folder2'
+    })
+
+    assert.equal(folder1.getPath(), '/folder2/folder1')
+
+    await C.mv.mv({
+      path: '/folder2',
+      newPath: '/folder3'
+    })
+
+    assert.equal(folder1.getPath(), '/folder3/folder1')
+
+
+  })
+
+
+  it('should move file managing duplicates', async function () {
+
+    let file1 = await C.touch.touch({
+      path: '/folder1/file'
+    })
+
+    let file2 = await C.touch.touch({
+      path: '/folder2/file'
+    })
+
+    await C.mv.mv({
+      path: '/folder1/file',
+      newPath: '/folder2'
+    })
+
+    assert.equal(file2.getPath(), '/folder2/file')
+    assert.equal(file1.getPath(), '/folder2/file.2')
+
   })
 
   it('should throw if parameters are missed or wrong', async function () {
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      destination: '/bollu'
+      path: ''
     })
     inspect.restore()
     assertConsole(inspect, 'An origin path is required.')
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: '/bullo',
-      destination: '/bollu'
+      path: ['/bullo', '/bollu']
     })
     inspect.restore()
     assertConsole(inspect, 'Path does not exist')
 
 
     await C.touch.touch({
-      path: '/bit',
-      type: config.types.TEXT
+      path: '/bit'
     })
 
     inspect = stdout.inspect()
     await C.mv.exec({
-      path: '/b*',
-      destination: 'none'
+      path: ['/b*', 'none']
     })
     inspect.restore()
-    assertConsole(inspect, 'When using wildcards, the target has to be a folder')
-
-    inspect = stdout.inspect()
-    await C.mv.exec({
-      path: '/b*',
-      destination: 'file'
-    })
-    inspect.restore()
-    assertConsole(inspect, 'When using wildcards, the target has to be a folder')
+    assertConsole(inspect, 'When using search results or wildcards, the target has to be a folder')
 
 
   })
 
+  it('should move files from and to other datasets', async function () {
+
+    let file1 = await C.touch.touch({
+      path: '/folder1/file1'
+    })
+
+    await C.mkdir.mkdir({
+      path: '/folder1/folder2'
+    })
+
+    await C.touch.touch({
+      path: '/folder1/folder2/file1a'
+    })
+
+    await C.touch.touch({
+      path: '/folder1/folder2/file1b'
+    })
+
+    assert.equal(Node.getRoot(file1).datasetIndex, 0)
+
+    await C.use.use({
+      dataset: 'archive',
+      create: true
+    })
+
+    let file2 = await C.touch.touch({
+      path: '/archivedFolder/file2'
+    })
+
+    assert.equal(Node.getRoot(file2).datasetIndex, 2)
+
+
+    let folder = await C.mkdir.mkdir({
+      path: '/archivedFolder/folder'
+    })
+
+    await C.touch.touch({
+      path: '/archivedFolder/folder/file2b'
+    })
+
+    await C.touch.touch({
+      path: '/archivedFolder/folder/file3b'
+    })
+
+    await C.use.use({
+      dataset: 'backup',
+      create: true
+    })
+
+    let file3 = await C.touch.touch({
+      path: '/backupFolder/file3'
+    })
+
+    assert.equal(Node.getRoot(file3).datasetIndex, 3)
+
+    await C.use.use({
+      dataset: 'main'
+    })
+
+    await C.mv.mv({
+      path: '/folder1/file1',
+      newPath: 'archive:/archivedFolder'
+    })
+
+    assert.equal(Node.getRoot(file1).datasetIndex, 2)
+    assert.equal(file1.getPath(), '/archivedFolder/file1')
+
+    await C.mv.mv({
+      path: 'archive:/archivedFolder/folder',
+      newPath: 'backup:/backupFolder'
+    })
+
+    assert.equal(Node.getRoot(folder).datasetIndex, 3)
+    assert.equal(folder.getPath(), '/backupFolder/folder')
+
+
+  })
+
+  it('should move the results of a find', async function () {
+
+    await C.touch.touch({
+      path: '/folder1/caruso'
+    })
+
+    await C.touch.touch({
+      path: '/caru/mio'
+    })
+
+    await C.touch.touch({
+      path: '/joke/bit'
+    })
+
+    await C.touch.touch({
+      path: '/look',
+      content: 'joke'
+    })
+
+    let destination = await C.mkdir.mkdir({
+      path: '/destination'
+    })
+
+    await noPrint(C.mv.exec({
+      find: ['car', '/destination'],
+      span: true
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 2)
+
+    await noPrint(C.mv.exec({
+      find: ['joke', '/destination'],
+      contentToo: true,
+      span: true
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 4)
+
+    await noPrint(C.mv.exec({
+      path: ['/destination/*', '/']
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 0)
+
+    await C.touch.touch({
+      path: '/vello/cappotto',
+      content: 'vello'
+    })
+
+    await noPrint(C.mv.exec({
+      find: ['vello', '/destination'],
+      contentToo: true
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 1)
+
+    await noPrint(C.rm.exec({
+      path: '/destination/*'
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 0)
+
+    await C.touch.touch({
+      path: '/vello/cappottino',
+      content: 'vello'
+    })
+
+    await noPrint(C.mv.exec({
+      find: ['vello', '/destination'],
+      contentToo: true,
+      span: true
+    }))
+
+    assert.equal(Object.keys(destination.children).length, 2)
+
+  })
 
 })
 

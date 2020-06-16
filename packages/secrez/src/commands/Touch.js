@@ -24,6 +24,11 @@ class Touch extends require('../Command') {
         name: 'content',
         alias: 'c',
         type: String
+      },
+      {
+        name: 'not-visible-content',
+        alias: 'n',
+        type: Boolean
       }
     ]
   }
@@ -38,14 +43,17 @@ class Touch extends require('../Command') {
         'touch somefile',
         'touch -p afile --content "Password: 1432874565"',
         'touch ether -c "Private Key: eweiu34y23h4y23ih4uy23hiu4y234i23y4iuh3"',
+        ['touch ether -h', 'Prompts a password field to type the content']
       ]
     }
   }
 
-  async touch(options) {
-    let sanitizedPath = Entry.sanitizePath(options.path)
-    if (sanitizedPath !== options.path) {
-      throw new Error('A filename cannot contain \\/><|:&?* chars.')
+  async touch(options = {}) {
+    this.checkPath(options)
+    let data = await this.internalFs.getTreeIndexAndPath(options.path)
+    let sanitizedPath = Entry.sanitizePath(data.path)
+    if (sanitizedPath !== data.path) {
+      throw new Error('A filename cannot contain \\/><|:&?*^$ chars.')
     }
     options.type = config.types.TEXT
     return await this.internalFs.make(options)
@@ -55,15 +63,24 @@ class Touch extends require('../Command') {
     if (options.help) {
       return this.showHelp()
     }
-    if (!options.path) {
-      this.Logger.red('File path not specified.')
-    } else {
-      try {
-        await this.touch(options)
-        this.Logger.grey(`New file "${options.path}" created.`)
-      } catch (e) {
-        this.Logger.red(e.message)
+    try {
+      this.checkPath(options)
+      /* istanbul ignore if  */
+      if (options.notVisibleContent) {
+        let content = await this.useInput(Object.assign(options, {
+          type: 'password',
+          message: 'Type the secret'
+        }))
+        if (content) {
+          options.content = content
+        } else {
+          throw new Error('Command canceled')
+        }
       }
+      await this.touch(options)
+      this.Logger.grey(`New file "${options.path}" created.`)
+    } catch (e) {
+      this.Logger.red(e.message)
     }
     this.prompt.run()
   }

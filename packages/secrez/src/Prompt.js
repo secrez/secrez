@@ -1,6 +1,7 @@
 const chalk = require('chalk')
 const _ = require('lodash')
 const fs = require('fs-extra')
+const path = require('path')
 const inquirer = require('inquirer')
 
 // eslint-disable-next-line node/no-unpublished-require
@@ -8,9 +9,8 @@ const inquirer = require('inquirer')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
-
 const {Secrez, Utils} = require('@secrez/core')
-const {FsUtils, InternalFs, ExternalFs} = require('@secrez/fs')
+const {FsUtils, InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
 
 const Logger = require('./utils/Logger')
 const Completion = require('./Completion')
@@ -31,6 +31,8 @@ class Prompt {
     this.getHistory = inquirerCommandPrompt.getHistory
     this.secrez = new Secrez
     await this.secrez.init(options.container, options.localDir)
+    this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'))
+    await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
     thiz = this
@@ -79,8 +81,8 @@ class Prompt {
       let ret = [cmd]
       for (let c of result) {
         if (!def[c.key].defaultOption) {
-          if (ret.length && /^-/.test(ret[ret.length -1])) {
-            ret[ret.length -1] += def[c.key].alias
+          if (ret.length && /^-/.test(ret[ret.length - 1])) {
+            ret[ret.length - 1] += def[c.key].alias
           } else {
             ret.push('-' + def[c.key].alias)
           }
@@ -152,7 +154,7 @@ class Prompt {
       for (let i = 0; i < m.length; i++) {
         try {
           if (m[i] !== l) {
-            m[i] = m[i].split(r)[1]
+            m[i] = m[i].replace(RegExp('^' + r), '')
             if (m[i]) {
               res.push(m[i])
             }
@@ -173,19 +175,18 @@ class Prompt {
       this.internalFs.init().then(() => delete this.showLoading)
       this.loadingMessage = 'Initializing'
       await this.loading()
-      await this.internalFs.init()
       await this.loadSavedHistory()
       this.loggedIn = true
       let alerts = this.internalFs.tree.alerts
       if (alerts.length) {
         Logger.red(alerts[0])
-        Logger.blu(alerts.slice(1).join('\n'))
+        Logger.cyan(alerts.slice(1).join('\n'))
       }
     }
     // eslint-disable-next-line no-console
     // console.log()
     try {
-      let pre = chalk.reset(`(${this.internalFs.tree.workingNode.getPath()}) Secrez`)
+      let pre = chalk.reset(`Secrez ${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()}`)
       let answers = await inquirer.prompt([
         {
           type: 'command',

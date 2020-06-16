@@ -27,6 +27,16 @@ class Ls extends require('../Command') {
         name: 'all',
         alias: 'a',
         type: Boolean
+      },
+      {
+        name: 'datasets',
+        alias: 'd',
+        type: Boolean
+      },
+      {
+        name: 'only',
+        alias: 'o',
+        type: String
       }
     ]
   }
@@ -38,13 +48,28 @@ class Ls extends require('../Command') {
         'ls coin',
         'ls ../passwords',
         'ls ~',
-        ['ls -al', 'Includes hidden files']
+        ['ls -al', 'Includes hidden files'],
+        ['ls -o d', 'Lists only the directories'],
+        ['ls -o f', 'Lists only the files'],
+        ['ls -d', 'Lists the existent datasets']
       ]
     }
   }
 
-  async ls(options) {
-    return await this.internalFs.pseudoFileCompletion(options.path || '.', true)
+  async ls(options = {}) {
+    let datasetInfo = await this.internalFs.getDatasetsInfo()
+    if (options.datasets) {
+      return datasetInfo.map(e => e.name)
+    } else {
+      if (!options.path) {
+        options.path = '.'
+      }
+      options.ignoreDatasets = true
+      if (datasetInfo.map(e => e.name).includes(options.path)) {
+        options.path += ':'
+      }
+      return await this.internalFs.pseudoFileCompletion(options, true)
+    }
   }
 
   async exec(options = {}) {
@@ -53,18 +78,13 @@ class Ls extends require('../Command') {
     }
     try {
       let list = await this.ls(options)
-      if (list) {
-        list = list.filter(e => !/^\./.test(e) || options.all)
-        if (list.length) {
-          this.Logger.reset(options.list
-              ? list.join('\n')
-              : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
-          )
-        }
-      } else {
-        this.Logger.grey('No files found.')
+      list = list.filter(e => !/^\./.test(e) || options.all)
+      if (list.length) {
+        this.Logger.reset(options.list
+            ? list.join('\n')
+            : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
+        )
       }
-
     } catch (e) {
       this.Logger.red(e.message)
     }

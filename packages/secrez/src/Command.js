@@ -1,18 +1,18 @@
 const {chalk} = require('./utils/Logger')
-
 const Logger = require('./utils/Logger')
 const cliConfig = require('./cliConfig')
+const PreCommand = require('./PreCommand')
 
-class Command {
+class Command extends PreCommand{
 
   constructor(prompt) {
+    super()
     this.prompt = prompt
     this.optionDefinitions = []
     this.cliConfig = cliConfig
     this.Logger = Logger
     this.internalFs = prompt.internalFs
     this.externalFs = prompt.externalFs
-    this.tree = prompt.internalFs.tree
   }
 
   help() {
@@ -30,7 +30,7 @@ class Command {
     return async options => {
       options = Object.assign(extraOptions, options)
       options.forAutoComplete = true
-      return await self.prompt.internalFs.pseudoFileCompletion(options)
+      return await self.prompt.internalFs.pseudoFileCompletion(options, true)
     }
   }
 
@@ -43,7 +43,13 @@ class Command {
   }
 
   threeRedDots(large) {
-    return chalk.blu(large ? '•••' : '···')
+    return chalk.cyan(large ? '•••' : '···')
+  }
+
+  checkPath(options) {
+    if (typeof options.path !== 'string' || !options.path) {
+      throw new Error('A valid path is required')
+    }
   }
 
 }

@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.5.13",
+  "version": "0.6.0",
   "license": "MIT",
   "scripts": {
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -13,12 +13,13 @@
     "include": "src",
     "exclude": [
       "src/utils/Logger.js",
-      "src/commands/Edit.js"
+      "src/commands/Edit.js",
+      "src/PreCommand.js"
     ]
   },
   "dependencies": {
-    "@secrez/core": "^0.5.3",
-    "@secrez/fs": "^0.5.8",
+    "@secrez/core": "^0.5.4",
+    "@secrez/fs": "^0.6.4",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
     "clipboardy": "^2.3.0",

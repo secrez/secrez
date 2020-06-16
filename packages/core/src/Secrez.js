@@ -286,7 +286,6 @@ class Secrez {
 
         // when the encryptedName has been already decrypted and we need only the content
         if (encryptedContent) {
-          // let [id, ts, content] = decrypt(encryptedContent, _secrez.masterKey)
           let e = JSON.parse(Crypto.decrypt(encryptedContent, _secrez.masterKey))
 
           if ((nameId && e.i !== nameId) || (nameTs && e.t !== nameTs)) {

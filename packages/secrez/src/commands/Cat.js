@@ -89,8 +89,11 @@ class Cat extends require('../Command') {
         path: options
       }
     }
-    let p = this.tree.getNormalizedPath(options.path)
-    let node = this.tree.root.getChildFromPath(p)
+    let data = await this.internalFs.getTreeIndexAndPath(options.path)
+    options.path = data.path
+    let tree = data.tree
+    let p = tree.getNormalizedPath(options.path)
+    let node = tree.root.getChildFromPath(p)
     if (node && Node.isFile(node)) {
       let result = []
       if (!isYaml(p)) {
@@ -98,7 +101,7 @@ class Cat extends require('../Command') {
       }
 
       const pushDetails = async (node, ts, field) => {
-        let details = await this.tree.getEntryDetails(node, ts)
+        let details = await tree.getEntryDetails(node, ts)
         if (!justContent && !options.unformatted && isYaml(p)) {
           let fields
           try {
@@ -112,7 +115,7 @@ class Cat extends require('../Command') {
             if (/\n/.test(val)) {
               val = '\n' + val
             }
-            return [chalk.blu(field + ':'), val].join(' ')
+            return [chalk.cyan(field + ':'), val].join(' ')
           }
           if (typeof fields === 'object') {
             if (field) {
@@ -178,16 +181,16 @@ class Cat extends require('../Command') {
         for (let d of data) {
           let {content, ts, type, name} = d
           if (extra) {
-            this.Logger.agua(`${this.formatTs(ts, fn === name ? undefined : name)}`)
+            this.Logger.green(`${this.formatTs(ts, fn === name ? undefined : name)}`)
           }
           if (type === config.types.TEXT) {
             if (_.trim(content)) {
               this.Logger.reset(_.trim(content))
             } else {
-              this.Logger.blu('-- this version is empty --')
+              this.Logger.cyan('-- this version is empty --')
             }
           } else {
-            this.Logger.blu('-- this is a binary file --')
+            this.Logger.cyan('-- this is a binary file --')
           }
         }
         if (options.notFound && options.notFound.length) {

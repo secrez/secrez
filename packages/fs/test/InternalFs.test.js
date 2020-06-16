@@ -227,7 +227,7 @@ describe('#InternalFs', function () {
 
   })
 
-  describe('update', async function () {
+  describe('change', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
@@ -295,13 +295,19 @@ describe('#InternalFs', function () {
       assert.equal(file2.getContent(), 'PIN: 5678')
 
       await internalFs.change({
+        path: '/folder1/file2',
+        content: 'PIN: 5678'
+      })
+
+      assert.equal(file2.getContent(), 'PIN: 5678')
+
+      await internalFs.change({
         path: '/folder2/file4',
         newPath: '/folder1'
       })
 
       assert.equal(root.getChildFromPath('/folder1/file4').id, file1.id)
-
-      assert.equal(Object.keys(root.flat()).length, 6)
+      assert.equal(Object.keys(root.flat()).length, 5)
 
     })
 
@@ -320,6 +326,60 @@ describe('#InternalFs', function () {
 
     })
 
+    it('should move files between datasets', async function () {
+
+      await internalFs.make({
+        path: '/folder1/file1',
+        type: config.types.TEXT,
+        content: 'Some content'
+      })
+
+      let folder2 = await internalFs.make({
+        path: '/folder1/folder2',
+        type: config.types.DIR
+      })
+
+      await internalFs.make({
+        path: '/folder1/folder2/file2',
+        type: config.types.TEXT
+      })
+
+      await internalFs.make({
+        path: '/folder1/folder2/file3',
+        type: config.types.TEXT
+      })
+
+      await internalFs.make({
+        path: '/folder1/folder2/folder3/file4',
+        type: config.types.TEXT
+      })
+
+      assert.equal(root.getChildFromPath('/folder1/folder2').id, folder2.id)
+
+      await internalFs.mountTree(2)
+      await internalFs.trees[2].nameDataset('archive')
+
+      await internalFs.change({
+        path: '/folder1/folder2',
+        newPath: 'archive:/folder2'
+      })
+
+      assert.equal(internalFs.trees[2].root.getChildFromPath('/folder2').id, folder2.id)
+
+      delete internalFs.trees[0]
+      delete internalFs.trees[2]
+
+      await internalFs.mountTree(0)
+      await internalFs.mountTree(2)
+
+      try {
+        internalFs.trees[2].root.getChildFromPath('/folder1/folder2')
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'Path does not exist')
+      }
+      assert.equal(internalFs.trees[2].root.getChildFromPath('/folder2').id, folder2.id)
+    })
   })
 
   describe('remove', async function () {
@@ -353,7 +413,6 @@ describe('#InternalFs', function () {
       await internalFs.remove({
         path: '/folder1/file1'
       })
-
       assert.equal(Object.keys(folder1.children).length, 0)
 
       try {
@@ -411,7 +470,7 @@ describe('#InternalFs', function () {
 
     })
 
-    it('should create directories and files, delete one file and loading a tree from disk', async function () {
+    it('should create directories and files, and load a tree from disk', async function () {
 
       await internalFs.make({
         path: '/folder1',
@@ -435,15 +494,28 @@ describe('#InternalFs', function () {
         content: 'PIN: 1234'
       })
 
+      // jlog(internalFs.tree.root)
+      // let json0 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
+      // jlog(json0)
+
       await internalFs.remove({
         path: 'folder1/file2'
       })
+
+      // jlog(internalFs.tree.root)
 
       let internalFs2 = new InternalFs(secrez)
       await internalFs2.init()
       root = internalFs2.tree.root
 
+      // jlog(root)
+
+
       let file1b = root.findChildById(file1.id)
+
+      // console.log(file1.getName())
+      // console.log(file1b.getName())
+
       assert.equal(file1b.getName(), file1.getName())
       let json1 = root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
       let json2 = internalFs.tree.root.toCompressedJSON(null, null, await internalFs.tree.getAllFiles())
@@ -526,7 +598,7 @@ describe('#InternalFs', function () {
       })
 
       let res = await internalFs.pseudoFileCompletion({}, true)
-      assert.equal(res.join(' '), 'dir/ .trash/')
+      assert.equal(res.join(' '), 'dir/')
 
       res = await internalFs.pseudoFileCompletion('/dir')
       assert.equal(res.join(' '), 'file1 file2')

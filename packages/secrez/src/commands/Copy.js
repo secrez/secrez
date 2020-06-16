@@ -1,6 +1,6 @@
 const path = require('path')
 const clipboardy = require('clipboardy')
-const {isYaml, yamlParse} = require('../utils')
+const {isYaml, yamlParse, TRUE} = require('../utils')
 
 const {Node} = require('@secrez/fs')
 
@@ -43,6 +43,11 @@ class Copy extends require('../Command') {
         name: 'version',
         alias: 'v',
         type: Boolean
+      },
+      {
+        name: 'all-file',
+        alias: 'a',
+        type: Boolean
       }
     ]
   }
@@ -56,16 +61,25 @@ class Copy extends require('../Command') {
         ['copy ethKeys', 'copies to the clipboard for 10 seconds (the default)'],
         ['copy google.yml -t 20 -f password', 'copies the password in the google card'],
         ['copy google.yml -j', 'copies the google card as a JSON'],
+        ['copy google.yml -a', 'copies the google card as is'],
+        ['copy google.yml', 'it will ask to chose the field to copy'],
         ['copy myKey -v UY5d', 'copies version UY5d of myKey']
       ]
     }
   }
 
   async copy(options = {}) {
-    let ifs = this.internalFs
     let cat = this.prompt.commands.cat
-    let p = this.tree.getNormalizedPath(options.path)
-    let file = ifs.tree.root.getChildFromPath(p)
+    let currentIndex = this.internalFs.treeIndex
+    let data = await this.internalFs.getTreeIndexAndPath(options.path)
+    /* istanbul ignore if  */
+    if (currentIndex !== data.index) {
+      await this.internalFs.mountTree(data.index, true)
+    }
+    options.path = data.path
+    let tree = data.tree
+    let p = tree.getNormalizedPath(options.path)
+    let file = tree.root.getChildFromPath(p)
     if (Node.isFile(file)) {
       let entry = (await cat.cat({
         path: p,
@@ -74,24 +88,32 @@ class Copy extends require('../Command') {
       }))[0]
       if (Node.isText(entry)) {
         let {name, content} = entry
-        if (isYaml(p)) {
-          let err = 'Field not found.'
+        if (isYaml(p) && !options.allFile) {
+          let parsed
           try {
-            let parsed = yamlParse(content)
-            if (options.json) {
-              content = JSON.stringify(parsed, null, 2)
-            } else if (options.field) {
-              if (parsed[options.field]) {
-                content = parsed[options.field]
-              } else {
-                throw new Error(err)
-              }
-            }
+            parsed = yamlParse(content)
           } catch (e) {
-            if (e.message === err) {
-              throw new Error(`Field "${options.field}" not found in "${path.basename(p)}"`)
-            } else if (options.json || options.field) {
               throw new Error('The yml is malformed. To copy the entire content, do not use th options -j or -f')
+          }
+          if (options.json) {
+            content = JSON.stringify(parsed, null, 2)
+          } else if (options.field) {
+            if (parsed[options.field]) {
+              content = parsed[options.field]
+            } else {
+              throw new Error(`Field "${options.field}" not found in "${path.basename(p)}"`)
+            }
+          } else {
+            /* istanbul ignore if  */
+            if (TRUE()) {
+              options.choices = Object.keys(parsed)
+              options.message = 'Select the field to copy'
+              options.field = await this.useSelect(options)
+              if (!options.field) {
+                throw new Error('Command canceled')
+              } else {
+                content = parsed[options.field]
+              }
             }
           }
         }
@@ -116,7 +138,7 @@ class Copy extends require('../Command') {
     }
     try {
       let name = await this.copy(options)
-      this.Logger.agua('Copied to clipboard:')
+      this.Logger.green('Copied to clipboard:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

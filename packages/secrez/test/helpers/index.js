@@ -1,5 +1,6 @@
 const chai = require('chai')
 const assert = chai.assert
+const _ = require('lodash')
 const stdout = require('test-console').stdout
 
 // const {Crypto, config, Entry} = require('@secrez/core')
@@ -37,9 +38,13 @@ const helpers = {
 
   },
 
-  decolorize: (str) => {
-    // eslint-disable-next-line no-control-regex
-    return str.replace(/\x1b\[[0-9;]*m/g, '')
+  decolorize: (str, inspect) => {
+    if (inspect) {
+      console.info(inspect.output.map(e => helpers.decolorize(e)))
+    } else {
+      // eslint-disable-next-line no-control-regex
+      return str.replace(/\x1b\[[0-9;]*m/g, '')
+    }
   },
 
   assertConsole: (inspect, message, includes) => {
@@ -49,7 +54,7 @@ const helpers = {
       o = o.split('\n')
       for (let i of o) {
         if (i) {
-          result.push(i)
+          result.push(_.trim(i))
         }
       }
     }

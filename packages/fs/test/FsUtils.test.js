@@ -4,7 +4,6 @@ const utils = require('../src/FsUtils')
 
 describe('#FsUtils', function () {
 
-
   describe('preParseCommandLine', async function () {
 
     let commandLine
@@ -20,20 +19,20 @@ describe('#FsUtils', function () {
       assert.equal(JSON.stringify(parsed), '["ls","--list","*"]')
     })
 
-    // it('should preParse a command line with escaped pars', async function () {
-    //   commandLine = 'ls casa*\\ secca'
-    //   parsed = utils.preParseCommandLine(commandLine)
-    //   assert.equal(JSON.stringify(parsed), '["ls","casa* secca"]')
-    //
-    //   commandLine = 'ls casa\\\\ secca'
-    //   parsed = utils.preParseCommandLine(commandLine)
-    //   assert.equal(JSON.stringify(parsed), '["ls","casa\\ secca"]')
-    //
-    //   commandLine = 'ls casa\\'
-    //   parsed = utils.preParseCommandLine(commandLine)
-    //   assert.equal(JSON.stringify(parsed), '["ls","casa\\"]')
-    //
-    // })
+    it('should preParse a command line with escaped pars', async function () {
+      commandLine = 'ls casa*\\ secca'
+      parsed = utils.preParseCommandLine(commandLine)
+      assert.equal(JSON.stringify(parsed), '["ls","casa* secca"]')
+
+      commandLine = 'ls casa\\\\ secca'
+      parsed = utils.preParseCommandLine(commandLine)
+      assert.equal(JSON.stringify(parsed), '["ls","casa\\\\ secca"]')
+
+      commandLine = 'ls casa\\'
+      parsed = utils.preParseCommandLine(commandLine)
+      assert.equal(JSON.stringify(parsed), '["ls","casa\\\\"]')
+
+    })
 
     it('should preParse a command line using quotes for params', async function () {
       commandLine = 'ls "casa secca"'
@@ -143,6 +142,13 @@ describe('#FsUtils', function () {
 
     })
 
+    it('should get all the files', async function () {
+
+      filtered = await utils.filterLs('.', list)
+      assert.equal(filtered.length, 5)
+
+    })
+
     it('should return an empty array if nothing is found', async function () {
 
       filtered = await utils.filterLs('*.rad', list)
@@ -170,13 +176,13 @@ describe('#FsUtils', function () {
 
   })
 
-  describe('#ls', async function () {
-
-    it('should list the content of a folder', async function () {
-
-    })
-
-  })
+  // describe('#ls', async function () {
+  //
+  //   it('should list the content of a folder', async function () {
+  //
+  //   })
+  //
+  // })
 
 
 })

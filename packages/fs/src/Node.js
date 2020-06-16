@@ -1,8 +1,21 @@
 const util = require('util')
 const {config, Crypto, Entry} = require('@secrez/core')
 const {ANCESTOR_NOT_FOUND, ENTRY_EXISTS} = require('./Messages')
+const DataCache = require('./DataCache')
+
+let cache = new DataCache
 
 class Node {
+
+  static setCache(dataCache) {
+    if (typeof dataCache === 'object') {
+      cache = dataCache
+    }
+  }
+
+  static getCache(dataCache) {
+    return cache
+  }
 
   constructor(entry, force) {
 
@@ -17,25 +30,22 @@ class Node {
       throw new Error('Unsupported type')
     }
 
-    if (!force) {
-      if (isTrash) {
-        throw new Error('The trash node is a reserved one.')
-      }
-
-      if (entry.name === '.trash') {
-        throw new Error('The name ".trash" is reserved.')
-      }
-    }
-
-    let allIds = {}
-    if (Node.isNode(entry.parent)) {
-      allIds = Node.getRoot(entry.parent).allIds
-    }
-
     this.type = entry.type
+    if (isRoot) {
+      this.id = config.specialId.ROOT
+    } else if (isTrash) {
+      this.id = config.specialId.TRASH
+    } else {
+      if (entry.id) {
+        this.id = entry.id
+      } else {
+        this.id = Crypto.getRandomId(cache ? cache.get('id') : null)
+      }
+      cache.puts('id', this.id)
+    }
     this.id = isRoot ? config.specialId.ROOT
         : isTrash ? config.specialId.TRASH
-            : entry.id || Crypto.getRandomId(allIds)
+            : entry.id || Crypto.getRandomId(cache.get('id'))
 
     if (Node.isDir(entry)) {
       this.children = {}
@@ -43,7 +53,6 @@ class Node {
 
     if (isRoot) {
       this.rnd = Crypto.getRandomId()
-      this.allIds = allIds
     } else if (isTrash) {
       this.lastTs = Crypto.getTimestampWithMicroseconds().join('.')
       this.versions = {}
@@ -63,7 +72,7 @@ class Node {
       if (Node.isNode(entry.parent)) {
         // a Node can be independent of a tree.
         // But if it is part of a tree, any child must have a parent
-        allIds[entry.id.replace(/^_/, '')] = true
+        cache.puts('id', entry.id.replace(/^_/, ''))
         this.parent = entry.parent
       }
       this.versions = {}
@@ -102,16 +111,16 @@ class Node {
     return node.type === config.types.TEXT
   }
 
-  static isTrashed(node) {
-    if (node.parent) {
-      if (Node.isTrash(node.parent)) {
-        return true
-      } else if (node.parent.parent) {
-        return Node.isTrashed(node.parent)
-      }
-    }
-    return false
-  }
+  // static isTrashed(node) {
+  //   if (node.parent) {
+  //     if (Node.isTrash(node.parent)) {
+  //       return true
+  //     } else if (node.parent.parent) {
+  //       return Node.isTrashed(node.parent)
+  //     }
+  //   }
+  //   return false
+  // }
 
   static fromJSON(json, secrez, allFiles) {
     // It takes an already parsed object to make it an instance of the class.
@@ -136,25 +145,33 @@ class Node {
     return root
   }
 
-  static preFormat(json, secrez, files, trash) {
+  static preFormat(json, secrez, files, trash
+                   // trash stays to convert format <0.6.0
+  ) {
     json.V = []
-    for (let v of json.v) {
+    for (let j = 0; j < json.v.length; j++) {
+      let v = json.v[j]
       if (/_/.test(v)) {
         trash = true
         json.V.push(new Entry({
           type: config.types.TRASH
         }))
       } else {
-        let entry = secrez.decryptEntry(new Entry({
-          encryptedName: files[v]
-        }))
-        let obj = entry.get(['id', 'ts', 'name'])
-        if (trash) {
-          obj.id = '_' + obj.id
+        if (files[v]) {
+          let entry = secrez.decryptEntry(new Entry({
+            encryptedName: files[v]
+          }))
+          let obj = entry.get(['id', 'ts', 'name'])
+          if (trash) {
+            obj.id = '_' + obj.id
+          }
+          obj.encryptedName = files[v]
+          json.V.push(obj)
+          delete files[v]
+        } else {
+          json.v.splice(j, 1)
+          j--
         }
-        obj.encryptedName = files[v]
-        json.V.push(obj)
-        delete files[v]
       }
     }
     json.V.sort(Node.sortEntry)
@@ -186,31 +203,37 @@ class Node {
 
   static initNode(json, parent) {
 
-    let V0 = json.V[0]
-    let type = V0 ? V0.type || parseInt(V0.encryptedName.substring(0, 1))
-        : config.types.ROOT
-    let node = new Node(new Entry({
-      type,
-      id: V0 ? V0.id : undefined,
-      ts: V0 ? V0.ts : undefined,
-      name: V0 ? V0.name : undefined,
-      encryptedName: V0 ? V0.encryptedName : undefined,
-      parent
-    }), type === config.types.TRASH)
-    for (let i = 1; i < json.V.length; i++) {
-      let V = json.V[i]
-      node.versions[V.ts] = {
-        name: V.name,
-        file: V.encryptedName
+    try {
+      let V0 = json.V[0]
+      let type = V0 ? V0.type || parseInt(V0.encryptedName.substring(0, 1))
+          : config.types.ROOT
+      let node = new Node(new Entry({
+        type,
+        id: V0 ? V0.id : undefined,
+        ts: V0 ? V0.ts : undefined,
+        name: V0 ? V0.name : undefined,
+        encryptedName: V0 ? V0.encryptedName : undefined,
+        parent
+      }), type === config.types.TRASH)
+      for (let i = 1; i < json.V.length; i++) {
+        let V = json.V[i]
+        node.versions[V.ts] = {
+          name: V.name,
+          file: V.encryptedName
+        }
       }
-    }
-    if (Node.isDir(node)) {
-      for (let i = 0; i < json.c.length; i++) {
-        node.add(Node.initNode(json.c[i], node))
+      if (Node.isDir(node)) {
+        for (let i = 0; i < json.c.length; i++) {
+          let n = Node.initNode(json.c[i], node)
+          if (n) {
+            node.add(n)
+          }
+        }
       }
-    }
 
-    return node
+      return node
+    } catch (e) {
+    }
   }
 
   toCompressedJSON(
@@ -226,15 +249,16 @@ class Node {
 
     if (Node.isRoot(this)) {
       minSize = this.calculateMinSize(allFiles)
-      let trash = this.children.tra$
-      delete this.children.tra$
-      this.children.tra$ = trash
+    }
+
+    if (Node.isTrash(this)) {
+      return
     }
 
     if (this.versions) {
       for (let ts in this.versions) {
         let version = this.versions[ts]
-        let str = version.file ? version.file.substring(0, minSize) : '_'.repeat(minSize)
+        let str = version.file.substring(0, minSize)
         if (verbose) {
           result.v.push(str + ' ' + ts + ' ' + version.name)
         } else {
@@ -250,7 +274,10 @@ class Node {
       result.c = []
       for (let id in this.children) {
         let child = this.children[id]
-        result.c.push(child.toCompressedJSON(minSize, verbose))
+        let json = child.toCompressedJSON(minSize, verbose)
+        if (json) {
+          result.c.push(json)
+        }
       }
     }
     return result
@@ -270,7 +297,10 @@ class Node {
         node[key] = this[key]
       }
     }
-    delete node.parent
+    if (node.parent) {
+      node.parentId = node.parent
+      delete node.parent
+    }
     if (this.children) {
       for (let id in this.children) {
         let child = this.children[id]
@@ -294,7 +324,9 @@ class Node {
   }
 
   static getFindRe(options) {
-    return RegExp(Entry.sanitizeName(options.name), 'g' + (options.sensitive ? '' : 'i'))
+    return RegExp(
+        Entry.sanitizeName(options.name),
+        'g' + (options.sensitive ? '' : 'i'))
   }
 
   async find(options, list = []) {
@@ -308,20 +340,30 @@ class Node {
         if (options.all || ts === this.lastTs) {
           let name = this.versions[ts].name
           if (re.test(name)) {
-            list.push([
-              Node.hashVersion(ts),
-              p,
-              name
-            ])
-          } else if (options.content && this.type === config.types.TEXT && options.tree) {
-            let {content} = await options.tree.getEntryDetails(this, ts)
-            if (re.test(content || '')) {
+            if (options.getNodes) {
+              list.push(this)
+            } else {
               list.push([
                 Node.hashVersion(ts),
                 p,
-                undefined,
-                true
+                name
               ])
+            }
+          } else
+              /* istanbul ignore if  */
+            if (options.content && this.type === config.types.TEXT && options.tree) {
+            let {content} = await options.tree.getEntryDetails(this, ts)
+            if (re.test(content || '')) {
+              if (options.getNodes) {
+                list.push(this)
+              } else {
+                list.push([
+                  Node.hashVersion(ts),
+                  p,
+                  undefined,
+                  true
+                ])
+              }
             }
           }
         }
@@ -333,7 +375,11 @@ class Node {
         await child.find(options, list)
       }
     }
-    return list
+    return list.sort((a, b) => {
+      let A = options.getNodes ? a.getPath() : a[1]
+      let B = options.getNodes ? b.getPath() : b[1]
+      return A > B ? 1 : A < B ? -1 : 0
+    })
   }
 
   static initGenericRoot() {
@@ -342,12 +388,12 @@ class Node {
           type: config.types.ROOT
         })
     )
-    root.add(new Node(
-        new Entry({
-          type: config.types.TRASH,
-          parent: root
-        }), true
-    ))
+    // root.add(new Node(
+    //     new Entry({
+    //       type: config.types.TRASH,
+    //       parent: root
+    //     }), true
+    // ))
     return root
   }
 
@@ -442,10 +488,6 @@ class Node {
     }
   }
 
-  static getTrash(node) {
-    return Node.getRoot(node).findChildById(config.specialId.TRASH)
-  }
-
   static isNode(obj) {
     return typeof obj === 'object' && obj.constructor.name === 'Node'
   }
@@ -465,28 +507,42 @@ class Node {
     }
   }
 
-  findChildById(id) {
+  findChildById(id, includeThis) {
     if (Node.isFile(this)) {
       throw new Error('A file does not have children')
     }
     if (!id) {
       throw new Error('Id parameter is missing')
     }
-    for (let c in this.children) {
-      let child = this.children[c]
-      if (c === id) {
-        return child
-      }
-      if (Node.isDir(child)) {
-        let found = child.findChildById(id)
-        if (Node.isNode(found)) {
-          return found
+    if (includeThis && id === this.id) {
+      return this
+    } else {
+      for (let c in this.children) {
+        let child = this.children[c]
+        if (c === id) {
+          return child
+        }
+        if (Node.isDir(child)) {
+          let found = child.findChildById(id)
+          if (Node.isNode(found)) {
+            return found
+          }
         }
       }
     }
   }
 
-  getChildFromPath(p, returnCloserAncestor) {
+  static isAncestor(ancestor, node) {
+    while(node) {
+      if (node.id === ancestor.id) {
+        return true
+      }
+      node = node.parent
+    }
+    return false
+  }
+
+  getChildFromPath(p, returnCloserAncestor, dontThrow) {
     p = p.split('/').map(e => Entry.sanitizeName(e))
     let node
     let ancestorNode
@@ -639,23 +695,12 @@ class Node {
     if (Node.isRoot(this)) {
       throw new Error('Root cannot be moved')
     }
-
-    if (Node.isTrash(this)) {
-      throw new Error('Trash cannot be moved')
-    }
-
-    if (Node.isTrashed(this)) {
-      throw new Error('A deleted file cannot be moved')
-    }
-
     if (entry.id !== this.id) {
       throw new Error('Id does not match')
     }
-
     if (!this.versions[entry.ts]) {
       this.addVersion(entry)
     }
-
     if (Node.isNode(entry.parent)) {
       if (entry.parent.id !== this.parent.id) {
         this.parent.removeChild(this)
@@ -664,53 +709,10 @@ class Node {
     }
   }
 
-  getFromTrash(id) {
-    let trash = Node.getTrash(this)
-    return trash.children['_' + id]
-  }
-
-  trash(deleted) {
-    let trash = Node.getTrash(this)
-    let trashed = this.getFromTrash(deleted.id)
-    let lastTs
-
-    if (!trashed) {
-      lastTs = Object.keys(deleted.versions).sort(Node.sortEntry)[0]
-      trashed = new Node(new Entry({
-        id: '_' + deleted.id,
-        type: deleted.type,
-        ts: lastTs,
-        name: deleted.versions[lastTs].name,
-        encryptedName: deleted.versions[lastTs].file
-      }))
-      trash.add(trashed)
-      delete deleted.versions[lastTs]
-    }
-    for (let v in deleted.versions) {
-      lastTs = trashed.addVersion(Object.assign({
-            ts: v
-          },
-          deleted.versions[v]
-      ))
-    }
-    trashed.lastTs = lastTs
-    if (deleted.all && Node.isDir(deleted)) {
-      trashed.children = deleted.children
-    }
-  }
-
   remove(version = []) {
 
     if (Node.isRoot(this)) {
       throw new Error('Root cannot be removed')
-    }
-
-    if (Node.isTrash(this)) {
-      throw new Error('Trash cannot be removed')
-    }
-
-    if (Node.isTrashed(this)) {
-      throw new Error('A deleted file cannot be deleted again')
     }
 
     if (this.parent) {
@@ -732,7 +734,8 @@ class Node {
           result.push({
             id: this.id,
             version: Node.hashVersion(v),
-            name: this.versions[v].name
+            name: this.versions[v].name,
+            file: this.versions[v].file
           })
           deleted.versions[v] = this.versions[v]
           delete this.versions[v]
@@ -742,7 +745,6 @@ class Node {
         deleted.all = true
       }
 
-      this.trash(deleted)
       if (deleted.all) {
         this.parent.removeChild(this)
       }
@@ -751,10 +753,6 @@ class Node {
   }
 
   removeChild(child) {
-    if (Node.isTrash(child)) {
-      throw new Error('You cannot remove the trash node')
-    }
-
     delete this.children[child.id]
   }
 

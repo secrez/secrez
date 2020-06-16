@@ -35,28 +35,27 @@ class Mkdir extends require('../Command') {
     }
   }
 
-  async mkdir(options) {
-    await this.internalFs.make(options)
+  async mkdir(options = {}) {
+    this.checkPath(options)
+    options.type = config.types.DIR
+    return await this.internalFs.make(options)
   }
 
   async exec(options = {}) {
     if (options.help) {
       return this.showHelp()
     }
-    if (!options.path) {
-      this.Logger.red('Directory path not specified.')
-    } else {
-      try {
-        let sanitizedPath = Entry.sanitizePath(options.path)
-        if (sanitizedPath !== options.path) {
-          throw new Error('A filename cannot contain \\/><|:&?* chars.')
-        }
-        options.type = config.types.DIR
-        await this.mkdir(options)
-        this.Logger.grey(`New folder "${options.path}" created.`)
-      } catch (e) {
-        this.Logger.red(e.message)
+    try {
+      this.checkPath(options)
+      let data = await this.internalFs.getTreeIndexAndPath(options.path)
+      let sanitizedPath = Entry.sanitizePath(data.path)
+      if (sanitizedPath !== data.path) {
+        throw new Error('A filename cannot contain \\/><|:&?*^$ chars.')
       }
+      await this.mkdir(options)
+      this.Logger.grey(`New folder "${options.path}" created.`)
+    } catch (e) {
+      this.Logger.red(e.message)
     }
     this.prompt.run()
   }

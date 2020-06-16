@@ -45,15 +45,18 @@ class Export extends require('../Command') {
   }
 
   async export(options = {}) {
-    let ifs = this.internalFs
     let efs = this.externalFs
     let cat = this.prompt.commands.cat
     let lpwd = this.prompt.commands.lpwd
-    let p = this.tree.getNormalizedPath(options.path)
-    let file = ifs.tree.root.getChildFromPath(p)
+    let originalPath = options.path
+    let data = await this.internalFs.getTreeIndexAndPath(options.path)
+    options.path = data.path
+    let tree = data.tree
+    let p = tree.getNormalizedPath(options.path)
+    let file = tree.root.getChildFromPath(p)
     if (Node.isFile(file)) {
       let entry = (await cat.cat({
-        path: p,
+        path: originalPath,
         version: options.version,
         unformatted: true
       }))[0]
@@ -73,7 +76,7 @@ class Export extends require('../Command') {
     }
     try {
       let name = await this.export(options)
-      this.Logger.agua(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
+      this.Logger.green(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

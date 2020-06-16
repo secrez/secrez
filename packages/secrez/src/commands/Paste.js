@@ -52,7 +52,7 @@ class Paste extends require('../Command') {
   async paste(options = {}) {
     let ifs = this.internalFs
     let cat = this.prompt.commands.cat
-    let p = this.tree.getNormalizedPath(options.path)
+    let p = this.internalFs.tree.getNormalizedPath(options.path)
     let file
     let existingContent
     try {
@@ -107,7 +107,7 @@ class Paste extends require('../Command') {
     }
     try {
       let name = await this.paste(options)
-      this.Logger.agua('Pasted the clipboard to:')
+      this.Logger.green('Pasted the clipboard to:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

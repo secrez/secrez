@@ -70,7 +70,9 @@ const utils = {
       json[y[0]] = y[1]
     }
     return json
-  }
+  },
+
+  TRUE: () => true
 
 }
 

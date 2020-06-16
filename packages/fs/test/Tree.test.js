@@ -1,3 +1,4 @@
+const {execSync} = require('child_process')
 const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
@@ -14,7 +15,8 @@ const jlog = require('./helpers/jlog')
 
 const {
   password,
-  iterations
+  iterations,
+  secrez0_5x
 } = require('./fixtures')
 
 describe('#Tree', function () {
@@ -116,7 +118,6 @@ describe('#Tree', function () {
 
   })
 
-
   describe('#Fix', function () {
 
     let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
@@ -165,14 +166,13 @@ describe('#Tree', function () {
       })
 
       await tree.addTag(a, ['web'])
-
       tree.disableSave()
 
       await tree.addTag(b, ['web', 'wob'])
       await tree.addTag(c, ['wib', 'wob'])
 
       tree.enableSave()
-      tree.saveTags()
+      await tree.saveTags()
 
       let list = tree.listTags()
       assert.equal(list[0], 'web (2)')
@@ -301,7 +301,7 @@ describe('#Tree', function () {
         await fs.move(`${backup}/${f}`, `${rootDir}/data/${f}`)
       }
 
-      await sleep(100)
+      await sleep(300)
 
       await startTree()
       // jlog(tree.alerts)
@@ -310,8 +310,12 @@ describe('#Tree', function () {
       assert.equal(tree.alerts[1], '/B/D/g')
       assert.equal(tree.alerts[2], '/E/L')
       assert.equal(tree.alerts[3], '/E/L/N')
+      assert.equal(tree.alerts[4], undefined)
 
-      const deleteds = Node.getTrash(tree.root).children
+      // jlog(internalFs.trees[1].root)
+
+      await internalFs.mountTrash()
+      const deleteds = internalFs.trees[1].root.children
       assert.equal(Object.keys(deleteds).length, 3)
 
     })
@@ -353,17 +357,133 @@ describe('#Tree', function () {
       await startTree()
 
       assert.equal(tree.alerts.length, 7)
-      assert.equal(tree.alerts[1], 'b')
-      assert.equal(tree.alerts[2], 'B')
-      assert.equal(tree.alerts[3], 'a')
-      assert.equal(tree.alerts[4], 'C')
-      assert.equal(tree.alerts[5], 'M')
-      assert.equal(tree.alerts[6], 'A')
+      assert.isTrue(tree.alerts[1].indexOf('/b') !== -1)
+      assert.isTrue(tree.alerts[2].indexOf('/B') !== -1)
+      assert.isTrue(tree.alerts[3].indexOf('/a') !== -1)
+      assert.isTrue(tree.alerts[4].indexOf('/C') !== -1)
+      assert.isTrue(tree.alerts[5].indexOf('/M') !== -1)
+      assert.isTrue(tree.alerts[6].indexOf('/A') !== -1)
 
-      let json = tree.root.toJSON()
-      assert.equal(Object.keys(json.children).length, 7)
+      function findRecovered(root) {
+        let recovered
+        for (let c in root.children) {
+          let child = root.children[c]
+          if (/^REC_\d{14}$/.test(child.getName())) {
+            recovered = child
+            break
+          }
+        }
+        return recovered
+      }
+
+      let recovered = findRecovered(tree.root)
+      assert.equal(Object.keys(recovered.children).length, 6)
+
+      await startTree()
+
+      recovered = findRecovered(tree.root)
+      assert.equal(Object.keys(recovered.children).length, 6)
+
     })
 
   })
 
+  describe('Multi data sets', async function () {
+
+    let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+    let secrez
+    let internalFs
+
+    beforeEach(async function () {
+      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+      if (!secrez) {
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+      }
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+      tree = internalFs.tree
+    })
+
+    it('should load the trees of two data sets', async function () {
+
+      assert.equal(internalFs.tree.name, 'main')
+
+      await internalFs.make({
+        path: '/a',
+        type: secrez.config.types.DIR
+      })
+
+      await internalFs.make({
+        path: '/b',
+        type: secrez.config.types.DIR
+      })
+
+      await internalFs.mountTree(2, true)
+      await internalFs.tree.nameDataset('archive')
+      assert.equal(internalFs.tree.name, 'archive')
+
+      await internalFs.make({
+        path: '/d',
+        type: secrez.config.types.DIR
+      })
+
+      await internalFs.make({
+        path: '/e',
+        type: secrez.config.types.DIR
+      })
+
+      let files = (await internalFs.pseudoFileCompletion()).sort()
+      assert.equal(files.length, 2)
+      assert.equal(files[0], 'd')
+      assert.equal(files[1], 'e')
+
+      await internalFs.mountTree(0, true)
+
+      files = (await internalFs.pseudoFileCompletion()).sort()
+      assert.equal(files.length, 2)
+      assert.equal(files[0], 'a')
+      assert.equal(files[1], 'b')
+
+      await internalFs.mountTree(2, true)
+      assert.equal(internalFs.tree.name, 'archive')
+
+    })
+
+  })
+
+  describe('Convert from single to multi data sets', async function () {
+
+    let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+    let secrez
+    let internalFs
+
+    it('should load a 0.5.x format and, if finds deleted files, move them to the trash dataset', async function () {
+
+      let p = path.resolve(__dirname, 'fixtures', secrez0_5x.path)
+      let d = path.resolve(__dirname, '../tmp/test/.secrez')
+
+      await fs.emptyDir(d)
+      execSync(`cp -r ${p}/* ${d}`)
+
+      secrez = new Secrez()
+      await secrez.init(rootDir)
+      await secrez.signin(secrez0_5x.password, secrez0_5x.iterations)
+      internalFs = new InternalFs(secrez)
+      await internalFs.init()
+      tree = internalFs.tree
+
+      let found = []
+      for (let c in tree.root.children) {
+        let child = tree.root.children[c]
+        if (/^TRASH_\d{14}$/.test(child.getName())) {
+          found.push(child.getName())
+        }
+      }
+      assert.equal(found.length, 1)
+
+    })
+
+  })
 })

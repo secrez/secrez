@@ -34,7 +34,8 @@ class FsUtils {
   static parseCommandLine(definitions, commandLine) {
     if (definitions && definitions.length) {
       let argv = {
-        partial: true
+        partial: true,
+        camelCase: true
       }
       if (commandLine) {
         argv.argv = this.preParseCommandLine(commandLine)

@@ -44,15 +44,6 @@ describe('#Tag', function () {
 
   })
 
-  it('should return an error if insufficient parameters', async function () {
-
-    inspect = stdout.inspect()
-    await C.tag.exec({})
-    inspect.restore()
-    assertConsole(inspect, ['Insufficient parameters'])
-
-  })
-
   it('should tag a file', async function () {
 
     await noPrint(C.touch.exec({
@@ -164,6 +155,12 @@ describe('#Tag', function () {
     assert.isTrue(/web \(2\)/.test(output[0]))
     assert.isTrue(/eth \(1\)/.test(output[0]))
 
+    inspect = stdout.inspect()
+    await C.tag.exec({})
+    inspect.restore()
+    output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/email \(2\)/.test(output[0]))
+
   })
 
   it('should show the file tagged as', async function () {
@@ -216,6 +213,71 @@ describe('#Tag', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['Tagged files not found'])
+
+    await noPrint(C.tag.exec({
+      find: 'f',
+      add: ['some']
+    }))
+
+    inspect = stdout.inspect()
+    await C.tag.exec({
+      show: ['some']
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      '/f1  email some',
+      '/f2  email eth some web',
+      '/f3  some web'
+    ])
+
+    await noPrint(C.use.exec({
+      dataset: 'archive',
+      create: true
+    }))
+
+    await noPrint(C.touch.exec({
+      path: 'archive:/folder/bingo'
+    }))
+
+    await noPrint(C.use.exec({
+      dataset: 'restore',
+      create: true
+    }))
+
+    await noPrint(C.touch.exec({
+      path: 'restore:/folder/bingo'
+    }))
+
+    await noPrint(C.tag.exec({
+      find: ':bingo',
+      add: ['bingo']
+    }))
+
+    inspect = stdout.inspect()
+    await C.tag.exec({
+      list: true,
+      global: true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'main',
+      'email (2)    eth (1)      some (3)     web (2)',
+      'archive',
+      'bingo (1)',
+      'restore',
+      'bingo (1)'
+    ])
+
+    inspect = stdout.inspect()
+    await C.tag.exec({
+      show: ['bingo'],
+      global: true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'archive:/folder/bingo  bingo',
+      'restore:/folder/bingo  bingo'
+    ])
 
   })
 

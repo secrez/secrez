@@ -68,14 +68,10 @@ describe('#Lls', function () {
 
   it('return a message if no files are found', async function () {
 
-    // inspect = stdout.inspect()
-    // await C.lls.exec({path: './folder1/folder2' })
-    // inspect.restore()
-    // assertConsole(inspect, '-- no files found --')
-
-
-    await C.lcd.exec({path: '/Users/sullof' })
-    await C.lls.exec({path: '.secrez'})
+    inspect = stdout.inspect()
+    await C.lls.exec({path: './folder1/folder2' })
+    inspect.restore()
+    assertConsole(inspect, '-- no files found --')
 
   })
 

@@ -36,7 +36,16 @@ You can either create a private repo on GitHub, BitBucket, etc. or — much bett
 
 For now, this is a manual approach. In a future version, the git repo will be manageable from inside Secrez.
 
-#### Apparently lost secrets
+#### The structure
+
+Secrez simulates an operating system. When you load the environment, you can execute commands like `ls`, `mv`, etc. similarly to what you normally to in a Unix terminal.
+
+Starting from version `0.6.0`, the data are organized in datasets. This of them like separate disks, something like `/dev/disk1` and `/dev/disk2`.
+
+By default, Secrez generates two datasets: `main` and `trash`. You can create more with, for example, `use -c archive`. The advantage of multiple datasets is mostly for people who have a lot of secrets to manage. If you have 2,000, if they are all in the primary dataset, the system will probably become quite slow. The solution is to move data to separate datasets (`archive`, `backup`, `twitter`, `cryptos`, etc.)
+
+
+#### Secrez never lose secrets
 
 One of the primary goal of a secrets manager is that you will never lose any data.
 
@@ -57,7 +66,7 @@ Since files are immutable, the strategy is not obvious. This is what happens in 
 2. The secret is a file in a folder that actually exists. The file is added as is, but the folders with existent paths are trashed.
 3. The secret is a file but a file with the same name exists in the same position. The system checks the content of the file. If it is the same, the secret is ignored, if not it is added as a version.
 
-Either any unused secret or secret that is rewritten (as a version) is trashed (you can check them in the `.trash` folder).
+Either any unused secret or secret that is rewritten (as a version) is trashed (you can check them in the `trash` dataset).
 
 In any case, all the content are kept.
 
@@ -130,7 +139,6 @@ Available options:
   cat     Shows the content of a file.
   cd      Changes the working directory.
   copy    Copy a text file to the clipboard.
-  create  Creates interactively a file containing a secret.
   edit    Edits a file containing a secret.
   exit    Exits Secrez.
   export  Export encrypted data to the OS in the current local folder
@@ -149,6 +157,7 @@ Available options:
   rm      Removes a file or a single version of a file.
   tag     Tags a file and shows existent tags.
   touch   Creates a file.
+  use     Uses or creates a dataset.
   ver     Shows the version of Secrez.
 
 To get help about single commands, specify the command.
@@ -260,6 +269,20 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ### History
+
+__0.6.0__
+* Allow multiple datasets; `main` and `trash` exists by default
+* at start, purges old trees after successfully loading a dataset
+* `use` allows to use and create new dataset
+* `mv` supports `-d, --destination` for the destination
+* `mv` allows to move files among datasets with a syntax like `mv somefile --to archive` or `mv somefile --from archive`
+* `mv` adds `--find` and `--content-too` to use the result of a search as input
+* `mv`, if no destination set, asks if like to use the active directory in the target dataset
+* `ls -o d` and `ls -o f` to limit the listing only to folders or files
+* `copy` allows to select the field to copy in yaml files
+* improve autocomplete to handle datasets
+* fix autocomplete in `lcat`, which was wrongly using the internal files
+* `tag` is able to list and show tags along all the datasets
 
 __0.5.13__
 * Find in content excludes binary contents
