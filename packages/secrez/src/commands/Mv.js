@@ -1,4 +1,3 @@
-const _ = require('lodash')
 const {Node} = require('@secrez/fs')
 
 class Mv extends require('../Command') {

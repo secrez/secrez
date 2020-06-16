@@ -1,4 +1,3 @@
-const {Tree} = require('@secrez/fs')
 
 class Use extends require('../Command') {
 

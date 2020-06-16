@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.6.0-beta.9",
+  "version": "0.6.0-beta.10",
   "license": "MIT",
   "scripts": {
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@secrez/core": "^0.5.4",
-    "@secrez/fs": "^0.6.3",
+    "@secrez/fs": "^0.6.4",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
     "clipboardy": "^2.3.0",

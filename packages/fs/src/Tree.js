@@ -89,6 +89,7 @@ class Tree {
       allSecrets.sort(Node.sortEntry)
       if (!allIndexes.length) {
         this.root = Node.initGenericRoot()
+        this.root.datasetIndex = this.datasetIndex
         this.workingNode = this.root
         this.alerts = ['A valid tree is missing.\nThe following entries have been recovered and put in the folder "/recovered":']
             .concat(await this.recoverUnlisted(allSecrets))

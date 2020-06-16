@@ -93,7 +93,7 @@ describe('#Ls', function () {
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir2A'})
     inspect.restore()
-    assertConsole(inspect, ['dir6/    dir7/    '])
+    assertConsole(inspect, ['dir6/    dir7/'])
 
     inspect = stdout.inspect()
     await C.ls.exec({path: '/none'})

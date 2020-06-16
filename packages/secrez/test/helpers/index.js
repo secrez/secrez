@@ -1,5 +1,6 @@
 const chai = require('chai')
 const assert = chai.assert
+const _ = require('lodash')
 const stdout = require('test-console').stdout
 
 // const {Crypto, config, Entry} = require('@secrez/core')
@@ -53,7 +54,7 @@ const helpers = {
       o = o.split('\n')
       for (let i of o) {
         if (i) {
-          result.push(i)
+          result.push(_.trim(i))
         }
       }
     }

@@ -29,6 +29,11 @@ class Tag extends require('../Command') {
         type: Boolean
       },
       {
+        name: 'global',
+        alias: 'g',
+        type: Boolean
+      },
+      {
         name: 'show',
         alias: 's',
         multiple: true,
@@ -64,8 +69,8 @@ class Tag extends require('../Command') {
       examples: [
         'tag ethWallet.yml -a wallet,ethereum',
         ['tag ethWallet.yml -r ethereum', 'removes tag "ethereum"'],
-        ['tag -l', 'lists all tags'],
-        ['tag', 'lists all tags'],
+        ['tag', 'lists all tags in the current dataset'],
+        ['tag -lg', 'lists all tags in any dataset'],
         ['tag -s wallet', 'lists all files tagged wallet'],
         ['tag -s email cloud', 'lists all files tagged email and cloud']
       ]
@@ -78,9 +83,35 @@ class Tag extends require('../Command') {
       options.list = true
     }
     if (options.list) {
-      return this.internalFs.tree.listTags()
+      if (options.global) {
+        let datasetInfo = await this.internalFs.getDatasetsInfo()
+        let result = {}
+        for (let dataset of datasetInfo) {
+          await this.internalFs.mountTree(dataset.index)
+          let tags = this.internalFs.trees[dataset.index].listTags()
+          if (tags.length) {
+            result[dataset.name] = tags
+          }
+        }
+        return result
+      } else {
+        return this.internalFs.tree.listTags()
+      }
     } else if (options.show) {
-      result = this.internalFs.tree.getNodesByTag(options.show)
+      if (options.global) {
+        let datasetInfo = await this.internalFs.getDatasetsInfo()
+        result = []
+        for (let dataset of datasetInfo) {
+          await this.internalFs.mountTree(dataset.index)
+          let tags = this.internalFs.trees[dataset.index].getNodesByTag(options.show).map(e => {
+            e[0] = dataset.name + ':' + e[0]
+            return e
+          })
+          result = result.concat(tags)
+        }
+      } else {
+        result = this.internalFs.tree.getNodesByTag(options.show)
+      }
       if (!result.length) {
         throw new Error('Tagged files not found')
       }
@@ -96,25 +127,32 @@ class Tag extends require('../Command') {
           nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
         }
       }
-      const isSaveEnabled = this.internalFs.tree.isSaveEnabled()
-      if (isSaveEnabled) {
-        // it's called from another command, like Import
-        this.internalFs.tree.disableSave()
-      }
+      let isSaveEnabled = {}
       for (let node of nodes) {
+        let datasetIndex = Node.getRoot(node).datasetIndex
+        let tree = this.internalFs.trees[datasetIndex]
+        if (typeof isSaveEnabled[datasetIndex.toString()] === 'undefined') {
+          isSaveEnabled[datasetIndex.toString()] = tree.isSaveEnabled()
+          if (tree.isSaveEnabled()) {
+            // it's called from another command, like Import
+            tree.disableSave()
+          }
+        }
         if (options.add) {
-          await this.internalFs.tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
+          await tree.addTag(node, options.add.map(e => Case.snake(_.trim(e))))
           let s = options.add.length > 1 ? 's' : ''
           result = [`Tag${s} added`]
         } else if (options.remove) {
-          await this.internalFs.tree.removeTag(node, options.remove.map(e => Case.snake(_.trim(e))))
+          await tree.removeTag(node, options.remove.map(e => Case.snake(_.trim(e))))
           let s = options.remove.length > 1 ? 's' : ''
           result = [`Tag${s} removed`]
         }
       }
-      if (isSaveEnabled) {
-        this.internalFs.tree.enableSave()
-        this.internalFs.tree.saveTags()
+      for (let datasetIndex in isSaveEnabled) {
+        if (isSaveEnabled[datasetIndex]) {
+          this.internalFs.trees[datasetIndex].enableSave()
+          this.internalFs.trees[datasetIndex].saveTags()
+        }
       }
       return result
     }
@@ -146,7 +184,14 @@ class Tag extends require('../Command') {
     try {
       let result = await this.tag(options)
       if (options.list) {
-        this.Logger.cyan(this.prompt.commandPrompt.formatList(result, 26, true, this.threeRedDots()))
+        if (options.global) {
+          for (let name in result) {
+            this.Logger.grey(name)
+            this.Logger.cyan(this.prompt.commandPrompt.formatList(result[name], 26, true, this.threeRedDots()))
+          }
+        } else {
+          this.Logger.cyan(this.prompt.commandPrompt.formatList(result, 26, true, this.threeRedDots()))
+        }
       } else if (options.show) {
         for (let r of this.formatResult(result)) {
           this.Logger.reset(r)
@@ -157,6 +202,7 @@ class Tag extends require('../Command') {
         }
       }
     } catch (e) {
+      // console.log(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

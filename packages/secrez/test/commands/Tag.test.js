@@ -230,6 +230,55 @@ describe('#Tag', function () {
       '/f3  some web'
     ])
 
+    await noPrint(C.use.exec({
+      dataset: 'archive',
+      create: true
+    }))
+
+    await noPrint(C.touch.exec({
+      path: 'archive:/folder/bingo'
+    }))
+
+    await noPrint(C.use.exec({
+      dataset: 'restore',
+      create: true
+    }))
+
+    await noPrint(C.touch.exec({
+      path: 'restore:/folder/bingo'
+    }))
+
+    await noPrint(C.tag.exec({
+      find: ':bingo',
+      add: ['bingo']
+    }))
+
+    inspect = stdout.inspect()
+    await C.tag.exec({
+      list: true,
+      global: true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'main',
+      'email (2)    eth (1)      some (3)     web (2)',
+      'archive',
+      'bingo (1)',
+      'restore',
+      'bingo (1)'
+    ])
+
+    inspect = stdout.inspect()
+    await C.tag.exec({
+      show: ['bingo'],
+      global: true
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'archive:/folder/bingo  bingo',
+      'restore:/folder/bingo  bingo'
+    ])
+
   })
 
   it('should show very long file tagged as', async function () {
