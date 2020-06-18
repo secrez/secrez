@@ -1,7 +1,10 @@
 const crypto = require('crypto')
+const util = require('util')
 const {Keccak} = require('sha3')
 const bs58 = require('bs58')
 const microtime = require('microtime')
+const shamir = require('shamir')
+const bip39 = require('bip39')
 
 const {
   box,
@@ -37,7 +40,7 @@ class Crypto {
   }
 
   static getRandomBase58String(size) {
-    let i = Math.round(size/2)
+    let i = Math.round(size / 2)
     let j = i + size
     return bs58.encode(Buffer.from(randomBytes(2 * size))).substring(i, j)
   }
@@ -58,6 +61,14 @@ class Crypto {
       }
       return id
     }
+  }
+
+  static getMnemonic() {
+    return bip39.entropyToMnemonic(crypto.randomBytes(16).toString('hex'))
+  }
+
+  static async getSeed(mnemonic) {
+    return await bip39.mnemonicToSeed(mnemonic)
   }
 
   static SHA3(data) {
@@ -86,7 +97,7 @@ class Crypto {
 
   static getTimestampWithMicroseconds() {
     let tmp = microtime.nowDouble().toString().split('.')
-    for (;;) {
+    for (; ;) {
       if (tmp[1].length === 6) {
         break
       }
@@ -140,6 +151,10 @@ class Crypto {
   static generateKey(noEncode) {
     let key = randomBytes(secretbox.keyLength)
     return noEncode ? key : bs58.encode(Buffer.from(key))
+  }
+
+  static isUint8Array(key) {
+    return typeof key === 'object' && key.constructor === Uint8Array
   }
 
   static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce) {
@@ -238,6 +253,20 @@ class Crypto {
   static verifySignature(message, signature, publicKey) {
     let verified = sign.detached.verify(decodeUTF8(message), bs58.decode(signature), publicKey)
     return verified
+  }
+
+  static splitSecret(secretBytes, parts, quorum) {
+    if (!Crypto.isUint8Array(secretBytes)) {
+      const utf8Encoder = new util.TextEncoder()
+      secretBytes = utf8Encoder.encode(secretBytes)
+    }
+    return shamir.split(Crypto.randomBytes, parts, quorum, secretBytes)
+  }
+
+  static joinSecret(parts, asUint8Array) {
+    const utf8Decoder = new util.TextDecoder()
+    const recovered = shamir.join(parts)
+    return asUint8Array ? recovered : utf8Decoder.decode(recovered)
   }
 
   //

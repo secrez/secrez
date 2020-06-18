@@ -55,13 +55,13 @@ describe('#Crypto', function () {
     it('should verify that the random id is random enough', async function () {
 
       let allIds = {}
-      for (let i=0; i <= 1e5;i++) {
+      for (let i = 0; i <= 1e5; i++) {
         allIds[Crypto.getRandomId(allIds)] = true
       }
-      for (let i =0; i< 4;i++) {
+      for (let i = 0; i < 4; i++) {
         let chars = {}
         for (let j in allIds) {
-          let c = j.substring(i, i+1)
+          let c = j.substring(i, i + 1)
           if (!chars[c]) {
             chars[c] = 0
           }
@@ -75,7 +75,7 @@ describe('#Crypto', function () {
           min = Math.min(chars[k], min)
           max = Math.max(chars[k], max)
         }
-        assert.isTrue(max/min < 1.2)
+        assert.isTrue(max / min < 1.2)
       }
     })
 
@@ -86,15 +86,15 @@ describe('#Crypto', function () {
 
     it('should convert a decimal to an uint8array', async function () {
       let ts = 1576126788489..toString(16)
-      let expected = [ 1, 110, 248, 122, 51, 137 ]
+      let expected = [1, 110, 248, 122, 51, 137]
       let result = Crypto.hexToUint8Array(ts)
-      for (let i=0;i<result.length;i++) {
+      for (let i = 0; i < result.length; i++) {
         assert.equal(result[i], expected[i])
       }
     })
 
     it('should convert a uint8Array to a decimal', async function () {
-      let uint8 = Uint8Array.from([ 1, 110, 248, 122, 51, 137 ])
+      let uint8 = Uint8Array.from([1, 110, 248, 122, 51, 137])
       let hexTs = Crypto.uint8ArrayToHex(uint8)
       let expected = 1576126788489
       assert.equal(expected, parseInt(hexTs, 16))
@@ -154,7 +154,7 @@ describe('#Crypto', function () {
 
     it('should recover a date from a timestamp with microseconds', async function () {
 
-      for (let i=0;i<20;i++) {
+      for (let i = 0; i < 20; i++) {
         let ts = Crypto.getTimestampWithMicroseconds().join('.')
         let d = (new Date).toISOString().substring(0, 18)
         assert.isTrue(RegExp('^' + d).test(Crypto.fromTsToDate(ts)[0]))
@@ -193,7 +193,7 @@ describe('#Crypto', function () {
       let [nonce, encrypted] = Crypto.encrypt(hash23456iterations, key, undefined, true)
       assert.equal(nonce.length, 24)
       let recoveredNonce = Crypto.getNonceFromMessage(encrypted)
-      for (let i=0;i<nonce.length;i++) {
+      for (let i = 0; i < nonce.length; i++) {
         assert.equal(nonce[i], recoveredNonce[i])
       }
     })
@@ -230,7 +230,7 @@ describe('#Crypto', function () {
         let encrypted = Crypto.boxEncrypt(sharedA, msg, key) + '5F'
         Crypto.boxDecrypt(sharedB, encrypted, key)
         assert.equal(true, 'Should throw')
-      } catch(e) {
+      } catch (e) {
         assert.equal(e.message, 'Could not decrypt message')
       }
     })
@@ -249,9 +249,63 @@ describe('#Crypto', function () {
 
     })
 
+  })
 
+  describe('#getMnemonic && #getSeed', function () {
+
+    it('should return a random mnemonic', async function () {
+      const mnemonic = Crypto.getMnemonic()
+      assert.equal(mnemonic.split(' ').length, 12)
+    })
+
+    it('should return a random seed', async function () {
+      const mnemonic = Crypto.getMnemonic()
+      const seed = await Crypto.getSeed(mnemonic)
+      assert.equal(new Uint8Array(seed).length, 64)
+    })
 
   })
 
+  describe('#splitSecret & #joinSecret', function () {
+
+    it('should generate a shared secret', async function () {
+
+      let secret = 'Some crazy secret'
+      let parts = 5
+      let quorum = 3
+
+      let shared = Crypto.splitSecret(secret, parts, quorum)
+      delete shared[1]
+      let recovered = Crypto.joinSecret(shared)
+      assert.equal(secret, recovered)
+
+      delete shared[4]
+      recovered = Crypto.joinSecret(shared)
+      assert.equal(secret, recovered)\
+
+      delete shared[2]
+      recovered = Crypto.joinSecret(shared)
+      assert.notEqual(secret, recovered)
+
+      secret = 'Some crazy secret'
+      parts = 2
+      quorum = 2
+
+      shared = Crypto.splitSecret(secret, parts, quorum)
+      recovered = Crypto.joinSecret(shared)
+      assert.equal(secret, recovered)
+
+      delete shared[1]
+      recovered = Crypto.joinSecret(shared)
+      assert.notEqual(secret, recovered)
+
+      secret = Crypto.generateKey(true)
+      shared = Crypto.splitSecret(secret, parts, quorum)
+      recovered = Crypto.joinSecret(shared, true)
+      assert.equal(secret.toString(), recovered.toString())
+
+    })
+
+  })
 
 })

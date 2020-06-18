@@ -35,6 +35,9 @@ class InternalFs {
     options.path = data.path
     let tree = data.tree
     let p = this.normalizePath(options.path)
+    if (Node.isFile(options) && options.versionIfExists) {
+      p = path.join(path.dirname(p), await tree.getVersionedBasename(p))
+    }
     let [ancestor, remainingPath] = tree.root.getChildFromPath(p, true)
     p = remainingPath.split('/')
     let len = p.length

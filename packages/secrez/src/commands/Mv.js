@@ -130,7 +130,7 @@ class Mv extends require('../Command') {
           if (yes) {
             options.newPath = '.'
           } else {
-            throw new Error('Action canceled')
+            throw new Error('Operation canceled')
           }
         }
         let mustBeFolder = options.find || /\?|\*/.test(options.path)

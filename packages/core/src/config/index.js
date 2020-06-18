@@ -26,6 +26,11 @@ const config = {
     RECOVERED: 'REC'
   },
 
+  sharedKeys: {
+    UTF_KEY: 1,
+    EMERGENCY_CODE: 2
+  },
+
   secrez: {}
 
 }

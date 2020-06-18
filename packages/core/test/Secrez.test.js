@@ -14,10 +14,13 @@ const jlog = require('./helpers/jlog')
 const {
   password,
   iterations,
-  hash23456iterationsNoSalt
+  hash23456iterationsNoSalt,
+  signatureData,
+  registration,
+  signer
 } = require('./fixtures')
 
-describe('#Secrez', function () {
+describe.only('#Secrez', function () {
 
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 
@@ -418,6 +421,47 @@ describe('#Secrez', function () {
         assert.equal(name, decryptedData)
       })
     })
+
+    describe('generateSharedSecrets && recoverSharedSecrets', async function () {
+
+      beforeEach(async function () {
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+      })
+
+      it('should set up a second factor', async function () {
+        await secrez.signup(password, iterations)
+
+        let parts = secrez.generateSharedSecrets(signatureData)
+        let sharedData = {
+          parts,
+          type: config.sharedKeys.UTF_KEY,
+          signer,
+          registration
+        }
+        await secrez.saveSharedSecrets(sharedData)
+        secrez.signout()
+        try {
+          await secrez.signin(password, iterations)
+          assert.isTrue(false)
+        } catch(e) {
+          assert.equal(e.message, 'A second factor is required')
+        }
+
+        await secrez.sharedSignin(signer, signatureData)
+        assert.isDefined(secrez.masterKeyHash)
+
+        await secrez.removeSecondFactors()
+        secrez.signout()
+
+        await secrez.signin(password, iterations)
+        assert.isDefined(secrez.masterKeyHash)
+      })
+    })
+
+
   })
+
 
 })
