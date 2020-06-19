@@ -170,10 +170,9 @@ class Conf extends require('../Command') {
     let client = this.fido2Client
     let list = await client.getKeys(true)
     let authenticator = Case.snake(_.trim(options.register))
-    if (authenticator === 'mnemonic') {
-      throw new Error('The name "mnemonic" is reserver do the emergency mnemonic')
-    }
-    if (!options.register) {
+    if (!authenticator) {
+      throw new Error('A valid name for the authenticator is required')
+    }    if (!options.register) {
       throw new Error('The nickname of the key is invalid')
     }
     let conf = {}
@@ -244,7 +243,8 @@ class Conf extends require('../Command') {
             message: 'Type the nickname of the mnemonic'
           })
           if (name) {
-            options.mnemonic = name
+            options.mnemonic = true
+            options.register = name
             return await this.conf(options)
           } else {
             this.Logger.grey('Emergency code not set')
@@ -266,12 +266,25 @@ class Conf extends require('../Command') {
       message: `Are you sure you want to remove the ${authenticator} authenticator?`,
       default: false
     })
+    let code
     if (yes) {
-
-      let code = await this.secrez.removeSharedSecret(authenticator)
+      code = await this.secrez.removeSharedSecret(authenticator)
       this.Logger.reset(code === 1 ? `${authenticator} has been removed` : 'All second factors have been removed')
     } else {
       this.Logger.grey('Operation canceled')
+    }
+    if (code === 2) {
+      for (let factor in allFactors) {
+        if (allFactors[factor] === this.secrez.config.sharedKeys.MNEMONIC) {
+          await this.prompt.commands.rm.rm({
+            path: `main:/.MNEMONIC_${factor}`
+          })
+        }
+      }
+    } else if (allFactors[authenticator] === this.secrez.config.sharedKeys.MNEMONIC) {
+      await this.prompt.commands.rm.rm({
+        path: `main:/.MNEMONIC_${authenticator}`
+      })
     }
   }
 
