@@ -1,8 +1,9 @@
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
 const cliConfig = require('./cliConfig')
+const {Crypto} = require('@secrez/core')
 const Logger = require('./utils/Logger')
-const U2fClient = require('./U2fClient')
+const Fido2Client = require('./Fido2Client')
 
 class Welcome {
 
@@ -41,6 +42,7 @@ class Welcome {
     }])
     return parseInt(iterations)
   }
+
 // chimney piano fabric forest curious black hip axis story stool spoil fold
   async saveIterations(secrez) {
     if (this.options.saveIterations) {
@@ -49,7 +51,6 @@ class Welcome {
   }
 
   async login(secrez) {
-    let runSharedLogin
     for (; ;) {
       try {
         let {password} = await inquirer.prompt([{
@@ -83,47 +84,54 @@ class Welcome {
   }
 
   async sharedLogin(secrez) {
-    let u2fClient = new U2fClient()
-    await u2fClient.discover(secrez)
-    let signer
-    let list = u2fClient.list()
-    if (list.length === 1) {
-      signer = list[0]
-    } else {
-      let p = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'signer',
-          message: 'Which second factor would you like to use?',
-          choices: list
-        }
-      ])
-      signer = p.signer
+    let fido2Client = new Fido2Client(secrez)
+    let authenticator
+    let list = await fido2Client.getKeys()
+    const conf = await secrez.readConf()
+    let choices = []
+    for (let authenticator in conf.data.keys) {
+      choices.push(authenticator)
     }
-    let signatureData
-    // for (; ;) {
+    for (; ;) {
+      if (list.length === 1) {
+        authenticator = list[0]
+      } else {
+        let p = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'authenticator',
+            message: 'Which second factor would you like to use?',
+            choices
+          }
+        ])
+        authenticator = p.authenticator
+      }
+      let secret
       try {
         try {
-          if (u2fClient.keys[signer]) {
-            let registration = u2fClient.keys[signer]
-            signatureData = await u2fClient.sign(registration, 'Touch the key to authenticate...')
-            console.log(signatureData)
+          if (fido2Client.keys[authenticator]) {
+            Logger.grey('Touch your fido2 authenticator device now...')
+            secret = await fido2Client.verifySecret(authenticator)
           } else {
+            let exitCode = Crypto.getRandomBase58String(2)
             let p = await inquirer.prompt([{
               name: 'mnemonic',
               type: 'password',
               message: 'Paste your mnemonic:',
               validate: value => {
-                if (value.length && value.split(' ').length === 12) {
+                if (value.length && (value.split(' ').length === 12 || value === exitCode)) {
                   return true
                 } else {
-                  return 'Please paste a valid 12-words mnemonic'
+                  return `Please paste a valid 12-words mnemonic or type ${exitCode} to choose another factor.`
                 }
               }
             }])
-            signatureData = p.mnemonic
+            if (p.mnemonic === exitCode) {
+              continue
+            }
+            secret = p.mnemonic
           }
-          await secrez.sharedSignin(signer, signatureData)
+          await secrez.sharedSignin(authenticator, secret)
           if (secrez.masterKeyHash) {
             await this.saveIterations(secrez)
           }
@@ -132,9 +140,9 @@ class Welcome {
           Logger.red(`${e.message}. Try again or Ctrl-C to exit.`)
         }
       } catch (e) {
-        Logger.red('Unrecognized error. Try again or Ctrl-c to exit.')
+        Logger.red('Unrecognized error. Try again or Ctrl-C to exit.')
       }
-    // }
+    }
   }
 
   async signup(secrez) {

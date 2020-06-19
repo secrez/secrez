@@ -30,10 +30,8 @@ from __future__ import print_function, absolute_import, unicode_literals
 from fido2.hid import CtapHidDevice
 from fido2.client import Fido2Client
 from fido2.extensions import HmacSecretExtension
-from fido2.utils import websafe_encode, websafe_decode
-from fido2.ctap2 import AttestedCredentialData
+from fido2.utils import websafe_encode
 
-from binascii import b2a_hex
 import sys, getopt, random, string
 
 def randomString(stringLength=8):
@@ -42,19 +40,15 @@ def randomString(stringLength=8):
 
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv,"i:n:s:c:",[])
+    opts, args = getopt.getopt(argv,"i:n:",[])
 except getopt.GetoptError:
-    print('test.py -i <inputfile> -o <outputfile>')
+    print('python fido2_credential.py -i id -n name')
     sys.exit(2)
 for opt, arg in opts:
     if opt in ("-i"):
         user_id = arg
     elif opt in ("-n"):
         user_name = arg
-    elif opt in ("-s"):
-        salt = bytes(arg, encoding='utf-8')
-    elif opt in ("-c"):
-        credential = AttestedCredentialData(websafe_decode(arg))
 
 try:
     from fido2.pcsc import CtapPcscDevice
@@ -69,8 +63,6 @@ def enumerate_devices():
         for dev in CtapPcscDevice.list_devices():
             yield dev
 
-
-# Locate a device
 for dev in enumerate_devices():
     client = Fido2Client(dev, "https://secrez.io")
     if HmacSecretExtension.NAME in client.info.extensions:
@@ -79,33 +71,18 @@ else:
     print("No Authenticator with the HmacSecret extension found!")
     sys.exit(1)
 
-# use_nfc = CtapPcscDevice and isinstance(dev, CtapPcscDevice)
-
-# Prepare parameters for makeCredential
-rp = {"id": "secrez.io", "name": "secrez.io"}
+rp = {"id": "secrez.io", "name": "secrez"}
 user = {"id": bytes(user_id, encoding='utf-8'), "name": user_name}
-
 challenge = bytes(randomString(12), encoding='utf-8')
-
 hmac_ext = HmacSecretExtension(client.ctap2)
-
-challenge = bytes(randomString(12), encoding='utf-8')
-
-allow_list = [{"type": "public-key", "id": credential.credential_id}]
-
-assertions, client_data = client.get_assertion(
+attestation_object, client_data = client.make_credential(
     {
-        "rpId": rp["id"],
+        "rp": rp,
+        "user": user,
         "challenge": challenge,
-        "allowCredentials": allow_list,
-        "extensions": hmac_ext.get_dict(salt),
+        "pubKeyCredParams": [{"type": "public-key", "alg": -7}],
+        "extensions": hmac_ext.create_dict(),
     }
 )
-
-assertion = assertions[0]
-hmac_res = hmac_ext.results_for(assertion.auth_data)
-
-secret = b2a_hex(hmac_res[0]).decode("utf-8")
-
-print(secret)
-
+credential = attestation_object.auth_data.credential_data
+print(websafe_encode(credential))

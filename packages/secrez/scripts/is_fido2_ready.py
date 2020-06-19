@@ -36,31 +36,10 @@ from fido2.ctap2 import AttestedCredentialData
 from binascii import b2a_hex
 import sys, getopt, random, string
 
-def randomString(stringLength=8):
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(stringLength))
-
-argv = sys.argv[1:]
-try:
-    opts, args = getopt.getopt(argv,"i:n:s:c:",[])
-except getopt.GetoptError:
-    print('test.py -i <inputfile> -o <outputfile>')
-    sys.exit(2)
-for opt, arg in opts:
-    if opt in ("-i"):
-        user_id = arg
-    elif opt in ("-n"):
-        user_name = arg
-    elif opt in ("-s"):
-        salt = bytes(arg, encoding='utf-8')
-    elif opt in ("-c"):
-        credential = AttestedCredentialData(websafe_decode(arg))
-
 try:
     from fido2.pcsc import CtapPcscDevice
 except ImportError:
     CtapPcscDevice = None
-
 
 def enumerate_devices():
     for dev in CtapHidDevice.list_devices():
@@ -69,43 +48,9 @@ def enumerate_devices():
         for dev in CtapPcscDevice.list_devices():
             yield dev
 
-
-# Locate a device
 for dev in enumerate_devices():
     client = Fido2Client(dev, "https://secrez.io")
     if HmacSecretExtension.NAME in client.info.extensions:
         break
-else:
-    print("No Authenticator with the HmacSecret extension found!")
-    sys.exit(1)
 
-# use_nfc = CtapPcscDevice and isinstance(dev, CtapPcscDevice)
-
-# Prepare parameters for makeCredential
-rp = {"id": "secrez.io", "name": "secrez.io"}
-user = {"id": bytes(user_id, encoding='utf-8'), "name": user_name}
-
-challenge = bytes(randomString(12), encoding='utf-8')
-
-hmac_ext = HmacSecretExtension(client.ctap2)
-
-challenge = bytes(randomString(12), encoding='utf-8')
-
-allow_list = [{"type": "public-key", "id": credential.credential_id}]
-
-assertions, client_data = client.get_assertion(
-    {
-        "rpId": rp["id"],
-        "challenge": challenge,
-        "allowCredentials": allow_list,
-        "extensions": hmac_ext.get_dict(salt),
-    }
-)
-
-assertion = assertions[0]
-hmac_res = hmac_ext.results_for(assertion.auth_data)
-
-secret = b2a_hex(hmac_res[0]).decode("utf-8")
-
-print(secret)
-
+print('Ready')

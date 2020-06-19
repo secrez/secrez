@@ -27,8 +27,8 @@ const config = {
   },
 
   sharedKeys: {
-    UTF_KEY: 1,
-    EMERGENCY_CODE: 2
+    FIDO2_KEY: 1,
+    MNEMONIC: 2
   },
 
   secrez: {}

@@ -20,12 +20,17 @@ class _Secrez {
 
   async signup() {
     this.masterKey = Crypto.generateKey()
-    let key = Crypto.encrypt(this.masterKey, this.derivedPassword)
+    let key = this.preEncrypt(this.masterKey)
     let hash = Crypto.b58Hash(this.masterKey)
     return {
       key,
       hash
     }
+  }
+
+  async restoreKey() {
+    delete this.conf.data.keys
+    this.conf.data.key = this.preEncrypt(this.masterKey)
   }
 
   setConf(conf, doNotVerify) {
@@ -44,7 +49,7 @@ class _Secrez {
 
   async signin(data) {
     try {
-      this.masterKey = await Crypto.decrypt(data.key, this.derivedPassword)
+      this.masterKey = await this.preDecrypt(data.key, true)
       this.boxKey = Crypto.fromBase58(_secrez.decrypt(data.box.secretKey))
       this.signKey = Crypto.fromBase58(_secrez.decrypt(data.sign.secretKey))
     } catch (e) {
@@ -57,10 +62,10 @@ class _Secrez {
     }
   }
 
-  async sharedSignin(data, signer, signature) {
-    let key = data.keys[signer]
+  async sharedSignin(data, authenticator, secret) {
+    let key = data.keys[authenticator]
     try {
-      let masterKey = this.recoverSharedSecrets(key.parts, signature)
+      let masterKey = this.recoverSharedSecrets(key.parts, secret)
       if (!utils.secureCompare(Crypto.b58Hash(masterKey), data.hash)) {
         throw new Error('Hash on file does not match the master key')
       }
@@ -69,7 +74,7 @@ class _Secrez {
       this.signKey = Crypto.fromBase58(_secrez.decrypt(data.sign.secretKey))
       return data.hash
     } catch (e) {
-      throw new Error('Wrong data/signature')
+      throw new Error('Wrong data/secret')
     }
   }
 
@@ -83,7 +88,7 @@ class _Secrez {
     if (this.conf.data.key) {
       return this.conf.data.key
     } else {
-      return Crypto.encrypt(this.masterKey, this.derivedPassword)
+      return this.preEncrypt(this.masterKey)
     }
   }
 
@@ -101,23 +106,34 @@ class _Secrez {
     return Crypto.decrypt(encryptedData, this.masterKey)
   }
 
-  encodeSignature(signature) {
-    const encoded = bs58.encode(Buffer.from(Crypto.SHA3(signature)))
-    console.log(encoded)
+  preEncrypt(data) {
+    return Crypto.encrypt(data, this.derivedPassword)
+  }
+
+  preDecrypt(encryptedData, unsafeMode) {
+    let data = Crypto.decrypt(encryptedData, this.derivedPassword)
+    if (!unsafeMode && data === this.masterKey) {
+      throw new Error('Attempt to hack the master key')
+    }
+    return data
+  }
+
+  encodeSignature(secret) {
+    const encoded = bs58.encode(Buffer.from(Crypto.SHA3(secret)))
     return encoded
   }
 
-  generateSharedSecrets(signature) {
+  generateSharedSecrets(secret) {
     let parts = Crypto.splitSecret(this.masterKey, 2, 2)
-    parts[1] = Crypto.encrypt(bs58.encode(Buffer.from(parts['1'])), this.derivedPassword)
-    parts[2] = Crypto.encrypt(bs58.encode(Buffer.from(parts['2'])), this.encodeSignature(signature))
+    parts[1] = this.preEncrypt(bs58.encode(Buffer.from(parts['1'])))
+    parts[2] = Crypto.encrypt(bs58.encode(Buffer.from(parts['2'])), this.encodeSignature(secret))
     return parts
   }
 
-  recoverSharedSecrets(parts, signature) {
+  recoverSharedSecrets(parts, secret) {
     parts = {
-      1: new Uint8Array(bs58.decode(Crypto.decrypt(parts[1], this.derivedPassword))),
-      2: new Uint8Array(bs58.decode(Crypto.decrypt(parts[2], this.encodeSignature(signature))))
+      1: new Uint8Array(bs58.decode(this.preDecrypt(parts[1]))),
+      2: new Uint8Array(bs58.decode(Crypto.decrypt(parts[2], this.encodeSignature(secret))))
     }
     return Crypto.joinSecret(parts)//, true)
   }
@@ -220,8 +236,30 @@ class Secrez {
     await ConfigUtils.putEnv(env)
   }
 
-  generateSharedSecrets(signature) {
-    return _secrez.generateSharedSecrets(signature)
+  generateSharedSecrets(secret) {
+    return _secrez.generateSharedSecrets(secret)
+  }
+
+  async removeSharedSecret(authenticator) {
+    let data = _secrez.conf.data
+    if (data.keys && data.keys[authenticator]) {
+      delete data.keys[authenticator]
+    }
+    let code = 1
+    let found = false
+    for (let authenticator in data.keys) {
+      if (data.keys[authenticator].type === config.sharedKeys.FIDO2_KEY) {
+        found = true
+        break
+      }
+    }
+    if (!found) {
+      code = 2
+      _secrez.restoreKey()
+    }
+    let conf = await this.signAndSave(data)
+    _secrez.setConf(conf, true)
+    return code
   }
 
   async saveSharedSecrets(sharedData) {
@@ -229,9 +267,18 @@ class Secrez {
     if (!conf.data.keys) {
       conf.data.keys = {}
     }
-    let signer = sharedData.signer
-    delete sharedData.signer
-    conf.data.keys[signer] = sharedData
+    let authenticator = sharedData.authenticator
+    delete sharedData.authenticator
+    if (sharedData.id) {
+      sharedData.id = this.preEncryptData(sharedData.id)
+    }
+    if (sharedData.salt) {
+      sharedData.salt = this.preEncryptData(sharedData.salt)
+    }
+    if (sharedData.credential) {
+      sharedData.credential = this.preEncryptData(sharedData.credential)
+    }
+    conf.data.keys[authenticator] = sharedData
     if (conf.data.key) {
       delete conf.data.key
     }
@@ -294,20 +341,20 @@ class Secrez {
     }
   }
 
-  async getSecondFactorData(signer) {
+  async getSecondFactorData(authenticator) {
     if (!this.config || !this.config.keysPath || !_secrez || !_secrez.isInitiated()) {
       throw new Error('A standard sign in must be run before to initiate Secrez')
     }
     const conf = await this.readConf()
-    let data = conf.data.keys[signer]
+    let data = conf.data.keys[authenticator]
     if (data) {
       return data
     } else {
-      throw new Error(`No registered data with the signer ${signer}`)
+      throw new Error(`No registered data with the authenticator ${authenticator}`)
     }
   }
 
-  async sharedSignin(signer, signatureData) {
+  async sharedSignin(authenticator, secret) {
     if (!this.config || !this.config.keysPath || !_secrez || !_secrez.isInitiated()) {
       throw new Error('A standard sign in must be run before to initiate Secrez')
     }
@@ -315,10 +362,10 @@ class Secrez {
     const data = conf.data
     if (!data.keys) {
       throw new Error('No second factor registered')
-    } else if (!data.keys[signer]) {
-      throw new Error(`No second factor registered with the signer ${signer}`)
+    } else if (!data.keys[authenticator]) {
+      throw new Error(`No second factor registered with the authenticator ${authenticator}`)
     }
-    let masterKeyHash = await _secrez.sharedSignin(data, signer, signatureData)
+    let masterKeyHash = await _secrez.sharedSignin(data, authenticator, secret)
     if (_secrez.setConf(conf)) {
       this.masterKeyHash = masterKeyHash
     } else {
@@ -342,6 +389,14 @@ class Secrez {
 
   decryptData(encryptedData) {
     return _secrez.decrypt(encryptedData)
+  }
+
+  preEncryptData(data) {
+    return _secrez.preEncrypt(data)
+  }
+
+  preDecryptData(encryptedData) {
+    return _secrez.preDecrypt(encryptedData)
   }
 
   encryptEntry(entry) {

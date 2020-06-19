@@ -17,7 +17,7 @@ const {
   hash23456iterationsNoSalt,
   signatureData,
   registration,
-  signer
+  authenticator
 } = require('./fixtures')
 
 describe.only('#Secrez', function () {
@@ -436,8 +436,8 @@ describe.only('#Secrez', function () {
         let parts = secrez.generateSharedSecrets(signatureData)
         let sharedData = {
           parts,
-          type: config.sharedKeys.UTF_KEY,
-          signer,
+          type: config.sharedKeys.FIDO2_KEY,
+          authenticator,
           registration
         }
         await secrez.saveSharedSecrets(sharedData)
@@ -449,7 +449,7 @@ describe.only('#Secrez', function () {
           assert.equal(e.message, 'A second factor is required')
         }
 
-        await secrez.sharedSignin(signer, signatureData)
+        await secrez.sharedSignin(authenticator, signatureData)
         assert.isDefined(secrez.masterKeyHash)
 
         await secrez.removeSecondFactors()
