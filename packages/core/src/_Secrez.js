@@ -31,11 +31,12 @@ class _Secrez {
   }
 
   setConf(conf, doNotVerify) {
-    if (doNotVerify || this.verifySavedData(conf)) {
+    /* istanbul ignore if  */
+    if (!doNotVerify && !this.verifySavedData(conf)) {
+      throw new Error('The configuration file is corrupted')
+    } else {
       this.conf = conf
       return true
-    } else {
-      throw new Error('The configuration file is corrupted')
     }
   }
 
@@ -63,6 +64,7 @@ class _Secrez {
     let key = data.keys[authenticator]
     try {
       let masterKey = this.recoverSharedSecrets(key.parts, secret)
+      /* istanbul ignore if  */
       if (!utils.secureCompare(Crypto.b58Hash(masterKey), data.hash)) {
         throw new Error('Hash on file does not match the master key')
       }
@@ -72,20 +74,6 @@ class _Secrez {
       return data.hash
     } catch (e) {
       throw new Error('Wrong data/secret')
-    }
-  }
-
-  getEncryptedMasterKey() {
-    if (!_masterKey) {
-        throw new Error('Master key not found')
-    }
-    if (!this.conf || !this.conf.data) {
-      throw new Error('Data not loaded')
-    }
-    if (this.conf.data.key) {
-      return this.conf.data.key
-    } else {
-      return this.preEncrypt(_masterKey)
     }
   }
 

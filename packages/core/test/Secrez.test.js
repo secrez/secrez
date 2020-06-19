@@ -1,5 +1,6 @@
 const chai = require('chai')
 const assert = chai.assert
+const _ = require('lodash')
 const path = require('path')
 const homedir = require('homedir')
 const Secrez = require('../src/Secrez')
@@ -15,12 +16,10 @@ const {
   password,
   iterations,
   hash23456iterationsNoSalt,
-  signatureData,
-  registration,
-  authenticator
+  secondFactor
 } = require('./fixtures')
 
-describe.only('#Secrez', function () {
+describe('#Secrez', function () {
 
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 
@@ -420,6 +419,36 @@ describe.only('#Secrez', function () {
         let decryptedData = secrez.decryptData(encryptedData)
         assert.equal(name, decryptedData)
       })
+
+    })
+
+    describe('preEncryptData and preDecryptData', async function () {
+
+      beforeEach(async function () {
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+      })
+
+      it('should encrypt some data with the derivedPassword and decrypt it', async function () {
+        await secrez.signup(password, iterations)
+        let name = 'some random data'
+        let encryptedData = secrez.preEncryptData(name)
+        let decryptedData = secrez.preDecryptData(encryptedData)
+        assert.equal(name, decryptedData)
+      })
+
+      it('should throw trying to get the master key', async function () {
+        await secrez.signup(password, iterations)
+        let conf = await secrez.getConf()
+        try {
+          secrez.preDecryptData(conf.data.key)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'Attempt to hack the master key')
+        }
+      })
+
     })
 
     describe('generateSharedSecrets && recoverSharedSecrets', async function () {
@@ -430,36 +459,274 @@ describe.only('#Secrez', function () {
         await secrez.init(rootDir)
       })
 
+      let {authenticator, secret, id, salt, credential, mnemonic, wrongMnemonic} = secondFactor
+
       it('should set up a second factor', async function () {
         await secrez.signup(password, iterations)
 
-        let parts = secrez.generateSharedSecrets(signatureData)
+        let parts = secrez.generateSharedSecrets(secret)
         let sharedData = {
           parts,
           type: config.sharedKeys.FIDO2_KEY,
           authenticator,
-          registration
+          secret,
+          id,
+          salt,
+          credential
         }
         await secrez.saveSharedSecrets(sharedData)
+
+        let authData = await secrez.getSecondFactorData(authenticator)
+        assert.equal(Object.keys(authData).sort().join(' '), 'credential id parts salt secret type')
+
         secrez.signout()
         try {
           await secrez.signin(password, iterations)
           assert.isTrue(false)
-        } catch(e) {
+        } catch (e) {
           assert.equal(e.message, 'A second factor is required')
         }
 
-        await secrez.sharedSignin(authenticator, signatureData)
+        await secrez.sharedSignin(authenticator, secret)
         assert.isDefined(secrez.masterKeyHash)
 
-        await secrez.removeSecondFactors()
+        await secrez.removeSharedSecret(null, true)
+
         secrez.signout()
 
         await secrez.signin(password, iterations)
         assert.isDefined(secrez.masterKeyHash)
+
       })
+
+
+      it('should set up a second factor and a mnemonic and remove them', async function () {
+        await secrez.signup(password, iterations)
+
+        let parts = secrez.generateSharedSecrets(secret)
+        let sharedData = {
+          parts,
+          type: config.sharedKeys.FIDO2_KEY,
+          authenticator,
+          secret,
+          id,
+          salt,
+          credential
+        }
+        await secrez.saveSharedSecrets(sharedData)
+
+        parts = secrez.generateSharedSecrets(mnemonic)
+        sharedData = {
+          parts,
+          type: config.sharedKeys.MNEMONIC,
+          authenticator: 'mnemonic',
+          secret: mnemonic
+        }
+        await secrez.saveSharedSecrets(sharedData)
+
+        secrez.signout()
+        try {
+          await secrez.signin(password, iterations)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A second factor is required')
+        }
+
+        await secrez.sharedSignin('mnemonic', mnemonic)
+        assert.isDefined(secrez.masterKeyHash)
+
+        await secrez.removeSharedSecret(authenticator)
+
+        secrez.signout()
+
+        await secrez.signin(password, iterations)
+        assert.isDefined(secrez.masterKeyHash)
+
+
+      })
+
+
+      it('should set up a second factor and a mnemonic and remove the mnemonic', async function () {
+        await secrez.signup(password, iterations)
+
+        let parts = secrez.generateSharedSecrets(secret)
+        let sharedData = {
+          parts,
+          type: config.sharedKeys.FIDO2_KEY,
+          authenticator,
+          secret,
+          id,
+          salt,
+          credential
+        }
+        await secrez.saveSharedSecrets(sharedData)
+
+        parts = secrez.generateSharedSecrets(mnemonic)
+        sharedData = {
+          parts,
+          type: config.sharedKeys.MNEMONIC,
+          authenticator: 'mnemonic',
+          secret: mnemonic
+        }
+        await secrez.saveSharedSecrets(sharedData)
+
+        secrez.signout()
+        try {
+          await secrez.getSecondFactorData(authenticator)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A standard sign in must be run before to initiate Secrez')
+        }
+
+        try {
+          await secrez.signin(password, iterations)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A second factor is required')
+        }
+
+        await secrez.sharedSignin('mnemonic', mnemonic)
+        assert.isDefined(secrez.masterKeyHash)
+
+        try {
+          await secrez.getSecondFactorData('billy')
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'No registered data with the authenticator billy')
+        }
+
+        await secrez.removeSharedSecret('mnemonic')
+
+        secrez.signout()
+
+        try {
+          await secrez.signin(password, iterations)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A second factor is required')
+        }
+
+        await secrez.sharedSignin(authenticator, secret)
+        assert.isDefined(secrez.masterKeyHash)
+
+
+      })
+
+      it('should throw if wrong secret', async function () {
+        await secrez.signup(password, iterations)
+
+        let parts = secrez.generateSharedSecrets(mnemonic)
+        let sharedData = {
+          parts,
+          type: config.sharedKeys.MNEMONIC,
+          authenticator: 'mnemonic',
+          secret: mnemonic
+        }
+        await secrez.saveSharedSecrets(sharedData)
+
+        secrez.signout()
+
+        try {
+          await secrez.sharedSignin('mnemonic', wrongMnemonic)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A standard sign in must be run before to initiate Secrez')
+        }
+
+        try {
+          await secrez.signin(password, iterations)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A second factor is required')
+        }
+
+
+        try {
+          await secrez.sharedSignin('mnemonic', wrongMnemonic)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'Wrong data/secret')
+        }
+
+
+      })
+
+      it('should throw if wrong authenticator', async function () {
+        await secrez.signup(password, iterations)
+
+        let parts = secrez.generateSharedSecrets(mnemonic)
+        let sharedData = {
+          parts,
+          type: config.sharedKeys.MNEMONIC,
+          authenticator: 'mnemonic',
+          secret: mnemonic
+        }
+        await secrez.saveSharedSecrets(sharedData)
+
+        secrez.signout()
+
+        try {
+          await secrez.sharedSignin('mnemonic', wrongMnemonic)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A standard sign in must be run before to initiate Secrez')
+        }
+
+        try {
+          await secrez.signin(password, iterations)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A second factor is required')
+        }
+
+
+        try {
+          await secrez.sharedSignin('billy', mnemonic)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'No second factor registered with the authenticator billy')
+        }
+
+
+      })
+
     })
 
+
+    describe('#readConf', async function () {
+
+      beforeEach(async function () {
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        // await secrez.init(rootDir)
+      })
+
+      it('should encrypt some data with the derivedPassword and decrypt it', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+        assert.isDefined(await secrez.readConf())
+      })
+
+      it('should throw trying to get the master key', async function () {
+        await secrez.init(rootDir)
+        try {
+          await secrez.readConf()
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'Account not set yet')
+        }
+      })
+
+      it('should throw trying to get the master key', async function () {
+        try {
+          await secrez.readConf()
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'Secrez not initiated')
+        }
+      })
+
+    })
 
   })
 

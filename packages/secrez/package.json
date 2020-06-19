@@ -15,7 +15,7 @@
       "src/utils/Logger.js",
       "src/commands/Edit.js",
       "src/PreCommand.js",
-      "src/U2fClient.js",
+      "src/Fido2Client.js",
       "src/commands/Conf.js"
     ]
   },

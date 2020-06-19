@@ -89,20 +89,22 @@ class Secrez {
     return _secrez.generateSharedSecrets(secret)
   }
 
-  async removeSharedSecret(authenticator) {
+  async removeSharedSecret(authenticator, all) {
     let data = _secrez.conf.data
-    if (data.keys && data.keys[authenticator]) {
-      delete data.keys[authenticator]
-    }
     let code = 1
-    let found = false
-    for (let authenticator in data.keys) {
-      if (data.keys[authenticator].type === config.sharedKeys.FIDO2_KEY) {
-        found = true
-        break
+    let removeAll = true
+    if (!all) {
+      if (data.keys && data.keys[authenticator]) {
+        delete data.keys[authenticator]
+      }
+      for (let authenticator in data.keys) {
+        if (data.keys[authenticator].type === config.sharedKeys.FIDO2_KEY) {
+          removeAll = false
+          break
+        }
       }
     }
-    if (!found) {
+    if (removeAll) {
       code = 2
       _secrez.restoreKey()
     }
@@ -131,15 +133,6 @@ class Secrez {
     if (conf.data.key) {
       delete conf.data.key
     }
-    conf = await this.signAndSave(conf.data)
-    _secrez.setConf(conf, true)
-    return conf
-  }
-
-  async removeSecondFactors() {
-    let conf = _.clone(await this.readConf())
-    conf.data.key = _secrez.getEncryptedMasterKey()
-    delete conf.data.keys
     conf = await this.signAndSave(conf.data)
     _secrez.setConf(conf, true)
     return conf
@@ -176,17 +169,15 @@ class Secrez {
     const data = conf.data
     _secrez = new _Secrez
     await _secrez.init(password, iterations)
+    /* istanbul ignore if  */
+    if (!data.key && !data.keys) {
+      throw new Error('No valid data found')
+    }
     if (data.key) {
       let masterKeyHash = await _secrez.signin(data)
-      if (_secrez.setConf(conf)) {
-        this.masterKeyHash = masterKeyHash
-      } else {
-        throw new Error('keys.json looks corrupted')
-      }
-    } else if (data.keys) {
-      throw new Error('A second factor is required')
+      this.setMasterKeyHash(conf, masterKeyHash)
     } else {
-      throw new Error('No valid data found')
+      throw new Error('A second factor is required')
     }
   }
 
@@ -209,17 +200,23 @@ class Secrez {
     }
     const conf = await this.readConf()
     const data = conf.data
+    /* istanbul ignore if  */
     if (!data.keys) {
       throw new Error('No second factor registered')
-    } else if (!data.keys[authenticator]) {
+    }
+    if (!data.keys[authenticator]) {
       throw new Error(`No second factor registered with the authenticator ${authenticator}`)
     }
     let masterKeyHash = await _secrez.sharedSignin(data, authenticator, secret)
-    if (_secrez.setConf(conf)) {
-      this.masterKeyHash = masterKeyHash
-    } else {
+    this.setMasterKeyHash(conf, masterKeyHash)
+  }
+
+  setMasterKeyHash(conf, masterKeyHash) {
+    /* istanbul ignore if  */
+    if (!_secrez.setConf(conf)) {
       throw new Error('keys.json looks corrupted')
     }
+    this.masterKeyHash = masterKeyHash
   }
 
   preserveEntry(prev, next) {

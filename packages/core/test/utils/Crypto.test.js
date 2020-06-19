@@ -281,7 +281,7 @@ describe('#Crypto', function () {
 
       delete shared[4]
       recovered = Crypto.joinSecret(shared)
-      assert.equal(secret, recovered)\
+      assert.equal(secret, recovered)
 
       delete shared[2]
       recovered = Crypto.joinSecret(shared)

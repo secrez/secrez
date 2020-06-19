@@ -122,7 +122,7 @@ class Mv extends require('../Command') {
       if (!options.path && !options.find) {
         throw new Error('An origin path is required.')
       } else {
-        /* istanbul ignore if  */
+        c
         if (!options.newPath) {
           options.message = 'Destination not set.\nWould you like to move to the current active directory in the target dataset?'
           options.default = false
