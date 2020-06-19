@@ -253,14 +253,14 @@ describe('#Crypto', function () {
 
   describe('#getMnemonic && #getSeed', function () {
 
-    it('should return a random mnemonic', async function () {
-      const mnemonic = Crypto.getMnemonic()
-      assert.equal(mnemonic.split(' ').length, 12)
+    it('should return a random recoveryCode', async function () {
+      const recoveryCode = Crypto.getMnemonic()
+      assert.equal(recoveryCode.split(' ').length, 12)
     })
 
     it('should return a random seed', async function () {
-      const mnemonic = Crypto.getMnemonic()
-      const seed = await Crypto.getSeed(mnemonic)
+      const recoveryCode = Crypto.getMnemonic()
+      const seed = await Crypto.getSeed(recoveryCode)
       assert.equal(new Uint8Array(seed).length, 64)
     })
 

@@ -115,21 +115,21 @@ class Welcome {
           } else {
             let exitCode = Crypto.getRandomBase58String(2)
             let p = await inquirer.prompt([{
-              name: 'mnemonic',
+              name: 'recoveryCode',
               type: 'password',
-              message: 'Paste your mnemonic:',
+              message: 'Paste your recovery code:',
               validate: value => {
-                if (value.length && (value.split(' ').length === 12 || value === exitCode)) {
+                if (value.length) {
                   return true
                 } else {
-                  return `Please paste a valid 12-words mnemonic or type ${exitCode} to choose another factor.`
+                  return `Please paste a valid recovery code or type ${exitCode} to choose another factor.`
                 }
               }
             }])
-            if (p.mnemonic === exitCode) {
+            if (p.recoveryCode === exitCode) {
               continue
             }
-            secret = p.mnemonic
+            secret = p.recoveryCode
           }
           await secrez.sharedSignin(authenticator, secret)
           if (secrez.masterKeyHash) {

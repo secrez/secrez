@@ -67,8 +67,8 @@ class Crypto {
     return bip39.entropyToMnemonic(crypto.randomBytes(16).toString('hex'))
   }
 
-  static async getSeed(mnemonic) {
-    return await bip39.mnemonicToSeed(mnemonic)
+  static async getSeed(recoveryCode) {
+    return await bip39.mnemonicToSeed(recoveryCode)
   }
 
   static SHA3(data) {

@@ -14,7 +14,7 @@ module.exports = {
     salt: 'jskeywhetduw63t4f45stwgeyrhtteur',
     secret: 'sadsasewiuwnefdnsd09f38092erdu9feaofjfwy2feqoasz',
     credential: 'sadadada',
-    mnemonic: 'salad spring peace silk snake real they thunder please final clinic close',
+    recoveryCode: 'salad spring peace silk snake real they thunder please final clinic close',
     wrongMnemonic: 'they thunder please final clinic close salad spring peace silk snake real'
   }
 

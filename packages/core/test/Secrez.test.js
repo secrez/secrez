@@ -459,7 +459,7 @@ describe('#Secrez', function () {
         await secrez.init(rootDir)
       })
 
-      let {authenticator, secret, id, salt, credential, mnemonic, wrongMnemonic} = secondFactor
+      let {authenticator, secret, id, salt, credential, recoveryCode, wrongMnemonic} = secondFactor
 
       it('should set up a second factor', async function () {
         await secrez.signup(password, iterations)
@@ -500,7 +500,7 @@ describe('#Secrez', function () {
       })
 
 
-      it('should set up a second factor and a mnemonic and remove them', async function () {
+      it('should set up a second factor and a recovery code and remove them', async function () {
         await secrez.signup(password, iterations)
 
         let parts = secrez.generateSharedSecrets(secret)
@@ -515,12 +515,12 @@ describe('#Secrez', function () {
         }
         await secrez.saveSharedSecrets(sharedData)
 
-        parts = secrez.generateSharedSecrets(mnemonic)
+        parts = secrez.generateSharedSecrets(recoveryCode)
         sharedData = {
           parts,
-          type: config.sharedKeys.MNEMONIC,
-          authenticator: 'mnemonic',
-          secret: mnemonic
+          type: config.sharedKeys.RECOVERY_CODE,
+          authenticator: 'recoveryCode',
+          secret: recoveryCode
         }
         await secrez.saveSharedSecrets(sharedData)
 
@@ -532,7 +532,7 @@ describe('#Secrez', function () {
           assert.equal(e.message, 'A second factor is required')
         }
 
-        await secrez.sharedSignin('mnemonic', mnemonic)
+        await secrez.sharedSignin('recoveryCode', recoveryCode)
         assert.isDefined(secrez.masterKeyHash)
 
         await secrez.removeSharedSecret(authenticator)
@@ -546,7 +546,7 @@ describe('#Secrez', function () {
       })
 
 
-      it('should set up a second factor and a mnemonic and remove the mnemonic', async function () {
+      it('should set up a second factor and a recovery code and remove the recovery code', async function () {
         await secrez.signup(password, iterations)
 
         let parts = secrez.generateSharedSecrets(secret)
@@ -561,12 +561,12 @@ describe('#Secrez', function () {
         }
         await secrez.saveSharedSecrets(sharedData)
 
-        parts = secrez.generateSharedSecrets(mnemonic)
+        parts = secrez.generateSharedSecrets(recoveryCode)
         sharedData = {
           parts,
-          type: config.sharedKeys.MNEMONIC,
-          authenticator: 'mnemonic',
-          secret: mnemonic
+          type: config.sharedKeys.RECOVERY_CODE,
+          authenticator: 'recoveryCode',
+          secret: recoveryCode
         }
         await secrez.saveSharedSecrets(sharedData)
 
@@ -585,7 +585,7 @@ describe('#Secrez', function () {
           assert.equal(e.message, 'A second factor is required')
         }
 
-        await secrez.sharedSignin('mnemonic', mnemonic)
+        await secrez.sharedSignin('recoveryCode', recoveryCode)
         assert.isDefined(secrez.masterKeyHash)
 
         try {
@@ -595,7 +595,7 @@ describe('#Secrez', function () {
           assert.equal(e.message, 'No registered data with the authenticator billy')
         }
 
-        await secrez.removeSharedSecret('mnemonic')
+        await secrez.removeSharedSecret('recoveryCode')
 
         secrez.signout()
 
@@ -615,19 +615,19 @@ describe('#Secrez', function () {
       it('should throw if wrong secret', async function () {
         await secrez.signup(password, iterations)
 
-        let parts = secrez.generateSharedSecrets(mnemonic)
+        let parts = secrez.generateSharedSecrets(recoveryCode)
         let sharedData = {
           parts,
-          type: config.sharedKeys.MNEMONIC,
-          authenticator: 'mnemonic',
-          secret: mnemonic
+          type: config.sharedKeys.RECOVERY_CODE,
+          authenticator: 'recoveryCode',
+          secret: recoveryCode
         }
         await secrez.saveSharedSecrets(sharedData)
 
         secrez.signout()
 
         try {
-          await secrez.sharedSignin('mnemonic', wrongMnemonic)
+          await secrez.sharedSignin('recoveryCode', wrongMnemonic)
           assert.isTrue(false)
         } catch (e) {
           assert.equal(e.message, 'A standard sign in must be run before to initiate Secrez')
@@ -642,7 +642,7 @@ describe('#Secrez', function () {
 
 
         try {
-          await secrez.sharedSignin('mnemonic', wrongMnemonic)
+          await secrez.sharedSignin('recoveryCode', wrongMnemonic)
           assert.isTrue(false)
         } catch (e) {
           assert.equal(e.message, 'Wrong data/secret')
@@ -654,19 +654,19 @@ describe('#Secrez', function () {
       it('should throw if wrong authenticator', async function () {
         await secrez.signup(password, iterations)
 
-        let parts = secrez.generateSharedSecrets(mnemonic)
+        let parts = secrez.generateSharedSecrets(recoveryCode)
         let sharedData = {
           parts,
-          type: config.sharedKeys.MNEMONIC,
-          authenticator: 'mnemonic',
-          secret: mnemonic
+          type: config.sharedKeys.RECOVERY_CODE,
+          authenticator: 'recoveryCode',
+          secret: recoveryCode
         }
         await secrez.saveSharedSecrets(sharedData)
 
         secrez.signout()
 
         try {
-          await secrez.sharedSignin('mnemonic', wrongMnemonic)
+          await secrez.sharedSignin('recoveryCode', wrongMnemonic)
           assert.isTrue(false)
         } catch (e) {
           assert.equal(e.message, 'A standard sign in must be run before to initiate Secrez')
@@ -681,7 +681,7 @@ describe('#Secrez', function () {
 
 
         try {
-          await secrez.sharedSignin('billy', mnemonic)
+          await secrez.sharedSignin('billy', recoveryCode)
           assert.isTrue(false)
         } catch (e) {
           assert.equal(e.message, 'No second factor registered with the authenticator billy')

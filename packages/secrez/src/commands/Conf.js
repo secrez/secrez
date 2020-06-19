@@ -28,7 +28,7 @@ class Conf extends require('../Command') {
         type: String
       },
       {
-        name: 'mnemonic',
+        name: 'recoveryCode',
         type: Boolean
       },
       {
@@ -39,6 +39,10 @@ class Conf extends require('../Command') {
         name: 'list',
         alias: 'l',
         type: Boolean
+      },
+      {
+        name: 'use-this',
+        type: String
       }
     ]
   }
@@ -51,7 +55,8 @@ class Conf extends require('../Command') {
           'registers a new key saving it as "solo"; if there are registered keys,',
           'it will checks if the new one is one of them before adding it.'],
         ['conf -l', 'lists all factors'],
-        ['conf --mnemonic -r memo', 'registers an emergency mnemonic called "memo" to be used if all the factors are lost'],
+        ['conf --recoveryCode -r memo', 'registers an emergency recovery code called "memo" to be used if all the factors are lost'],
+        ['conf --recoveryCode -r seed --use-this "salad spring peace silk snake real they thunder please final clinic close"', 'registers an emergency recovery code called "seed" using the seed passed with the parameter "--use-this"'],
         ['conf -u solo',
           'unregister the fido2 key "solo"; if that is the only key, ',
           'it unregister also any emergency code and restores the normal access.']
@@ -63,7 +68,7 @@ class Conf extends require('../Command') {
     const conf = this.secrez.getConf()
     let keys = conf.data.keys || {}
     for (let authenticator in keys) {
-      if (keys[authenticator].type === this.secrez.config.sharedKeys.MNEMONIC) {
+      if (keys[authenticator].type === this.secrez.config.sharedKeys.RECOVERY_CODE) {
         return true
       }
     }
@@ -125,10 +130,10 @@ class Conf extends require('../Command') {
     for (let factor of factors) {
       let type = factor[1]
       if ((options.fido2 && type !== config.sharedKeys.FIDO2_KEY)
-          || (options.mnemonic && type !== config.sharedKeys.MNEMONIC)) {
+          || (options.recoveryCode && type !== config.sharedKeys.RECOVERY_CODE)) {
         continue
       }
-      type = chalk.grey(`(${type === config.sharedKeys.FIDO2_KEY ? 'fido2 key' : 'mnemonic'})`)
+      type = chalk.grey(`(${type === config.sharedKeys.FIDO2_KEY ? 'fido2 key' : 'recoveryCode'})`)
       this.Logger.reset(`${factor[0]} ${' '.repeat(max - factor[0].length)} ${type}`)
     }
   }
@@ -137,19 +142,19 @@ class Conf extends require('../Command') {
     let client = this.fido2Client
     let list = await client.getKeys(true)
     if (!Object.keys(list).length) {
-      throw new Error('An emergency mnemonic can be set only if at least one security key has been registered.')
+      throw new Error('An emergency recovery code can be set only if at least one security key has been registered.')
     }
     let authenticator = Case.snake(_.trim(options.register))
     if (!authenticator) {
-      throw new Error('A valid name for the mnemonic is required')
+      throw new Error('A valid name for the recovery code is required')
     }
     let conf = this.secrez.getConf()
     if (conf.data.keys[authenticator]) {
       throw new Error('A second factor with this name already exists')
     }
-    let mnemonic = Crypto.getMnemonic()
-    let type = this.secrez.config.sharedKeys.MNEMONIC
-    let parts = this.secrez.generateSharedSecrets(mnemonic)
+    let recoveryCode = options.useThis || Crypto.getMnemonic()
+    let type = this.secrez.config.sharedKeys.RECOVERY_CODE
+    let parts = this.secrez.generateSharedSecrets(recoveryCode)
     let sharedData = {
       parts,
       type,
@@ -158,11 +163,11 @@ class Conf extends require('../Command') {
     await this.secrez.saveSharedSecrets(sharedData)
     await client.updateConf()
     let node = await this.prompt.commands.touch.touch({
-      path: `main:/.MNEMONIC_${authenticator}`,
-      content: mnemonic,
+      path: `main:/.RECOVERY_CODE_${authenticator}`,
+      content: recoveryCode,
       versionIfExists: true
     })
-    this.Logger.reset(`The mnemonic has been saved in the hidden file main:${node.getPath()}`)
+    this.Logger.reset(`The recovery code has been saved in the hidden file main:${node.getPath()}`)
     this.Logger.reset('When possible, "cat" it, save it in a safe place and remove the file.')
   }
 
@@ -214,7 +219,7 @@ class Conf extends require('../Command') {
     fido2Options.secret = result.message
 
     let yes = await this.useConfirm({
-      message: `Are you sure you want to use the key ${authenticator} as a second factor? If you loose it who could not be able to access you account anymore.`,
+      message: `Are you sure you want to use the key ${authenticator} as a second factor? If you lose it who could not be able to access you account anymore.`,
       default: false
     })
     if (yes) {
@@ -235,15 +240,15 @@ class Conf extends require('../Command') {
       this.Logger.reset(`A second factor using ${authenticator} has been set.`)
       if (!this.isEmergencyCodeSetUp()) {
         let yes = await this.useConfirm({
-          message: `An emergency mnemonic would allow you to recover the account if you loose ${authenticator}. Would you like to set it now?`,
+          message: `An emergency recovery code would allow you to recover the account if you lose ${authenticator}. Would you like to set it now?`,
           default: true
         })
         if (yes) {
           let name = await this.useInput({
-            message: 'Type the nickname of the mnemonic'
+            message: 'Type the nickname of the recovery code'
           })
           if (name) {
-            options.mnemonic = true
+            options.recoveryCode = true
             options.register = name
             return await this.conf(options)
           } else {
@@ -275,15 +280,15 @@ class Conf extends require('../Command') {
     }
     if (code === 2) {
       for (let factor in allFactors) {
-        if (allFactors[factor] === this.secrez.config.sharedKeys.MNEMONIC) {
+        if (allFactors[factor] === this.secrez.config.sharedKeys.RECOVERY_CODE) {
           await this.prompt.commands.rm.rm({
-            path: `main:/.MNEMONIC_${factor}`
+            path: `main:/.RECOVERY_CODE_${factor}`
           })
         }
       }
-    } else if (allFactors[authenticator] === this.secrez.config.sharedKeys.MNEMONIC) {
+    } else if (allFactors[authenticator] === this.secrez.config.sharedKeys.RECOVERY_CODE) {
       await this.prompt.commands.rm.rm({
-        path: `main:/.MNEMONIC_${authenticator}`
+        path: `main:/.RECOVERY_CODE_${authenticator}`
       })
     }
   }
@@ -295,7 +300,7 @@ class Conf extends require('../Command') {
     await this.fido2Client.checkIfReady()
     if (options.list) {
       await this.showList(options)
-    } else if (options.mnemonic) {
+    } else if (options.recoveryCode) {
       await this.setMnemonic(options)
     } else if (options.fido2) {
       await this.setFido2(options)
@@ -311,10 +316,10 @@ class Conf extends require('../Command') {
       return this.showHelp()
     }
     try {
-      if (options.fido2 && options.mnemonic) {
+      if (options.fido2 && options.recoveryCode) {
         throw new Error('Conflicting params. Launch "conf -h" for examples.')
       }
-      if (options.register && !(options.fido2 || options.mnemonic)) {
+      if (options.register && !(options.fido2 || options.recoveryCode)) {
         throw new Error('Missing parameters. Launch "conf -h" for examples.')
       }
       await this.conf(options)

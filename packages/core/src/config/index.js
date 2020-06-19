@@ -28,7 +28,7 @@ const config = {
 
   sharedKeys: {
     FIDO2_KEY: 1,
-    MNEMONIC: 2
+     RECOVERY_CODE: 2
   },
 
   secrez: {}
