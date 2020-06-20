@@ -72,6 +72,10 @@ const utils = {
     return json
   },
 
+  getCols: () => {
+    return process.env.NODE_ENV === 'test' ? 80 : (process.stdout.columns || 80)
+  },
+
   TRUE: () => true
 
 }

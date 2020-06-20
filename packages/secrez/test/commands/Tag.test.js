@@ -93,6 +93,7 @@ describe('#Tag', function () {
       add: ['email', 'web']
     }))
 
+    // console.log(1)
     inspect = stdout.inspect()
     await C.tag.exec({
       path: '/f2',
@@ -101,10 +102,14 @@ describe('#Tag', function () {
     inspect.restore()
     assertConsole(inspect, ['Tag removed'])
 
+    // console.log(2)
+
     await noPrint(C.tag.exec({
       path: '/f2',
       add: ['email']
     }))
+
+    // console.log(3)
 
     inspect = stdout.inspect()
     await C.tag.exec({

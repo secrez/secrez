@@ -1,4 +1,6 @@
 const chalk = require('chalk')
+const utils = require('../utils')
+
 class Help extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -85,8 +87,8 @@ class Help extends require('../Command') {
     if (data.examples.length) {
       this.Logger.reset('Examples:')
       let max = 0
-      const cols = process.stdout.columns
-          || 80 // workaround for lerna testing
+      const cols = utils.getCols()
+
       let MAX = parseInt(cols * 2 / 6)
       for (let e of data.examples) {
         if (Array.isArray(e)) {
