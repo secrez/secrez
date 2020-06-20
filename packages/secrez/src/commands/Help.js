@@ -29,13 +29,13 @@ class Help extends require('../Command') {
         let help = this.prompt.commands[command].help()
         this.helpDescription.push(`${command}${' '.repeat(1 + maxSize - command.length)} ${help.description[0]}`)
       }
-      this.helpDescription.push('\nTo get help about single commands, specify the command.')
+      this.helpDescription.push('\nTo get help about single commands, specify the command, or use the -h option.')
     }
     return {
       description: this.helpDescription,
       examples: [
-        'help list',
-        'help set'
+        'help touch',
+        'import -h'
       ],
       completion: this.completion
     }

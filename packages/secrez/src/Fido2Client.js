@@ -86,7 +86,7 @@ class Fido2Client {
   async checkIfReady() {
     let result = await this.exec('which', __dirname, ['python'])
     if (typeof result.message === 'undefined') {
-      throw new Error('The Fido2 module requires Python 3. Please install it on your computer.')
+      throw new Error('The Fido2 module requires Python. Please install it on your computer.')
     }
     // result = await this.exec('python', __dirname, ['--version'])
     // if (!/Python 3/.test(result.message)) {
@@ -94,7 +94,7 @@ class Fido2Client {
     // }
     result =  await this.exec('python', this.scriptsPath, ['is_fido2_ready.py'])
     if (result.message !== 'Ready') {
-      throw new Error('fido2 is required. Install it with "pip install fido2"')
+      throw new Error('Python-fido2 is required. Install it with "pip install fido2"')
     }
   }
 

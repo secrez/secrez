@@ -129,15 +129,17 @@ At first run, secrez will ask you for the number of iterations (suggested betwee
 
 #### The commands
 
-Here, the output of `help`:
+From the output of `help`:
 
 ```
-(/) Secrez $ help
+
+Secrez main:/ $ help
 
 Available options:
   bash    Execute a bash command in the current disk folder.
   cat     Shows the content of a file.
   cd      Changes the working directory.
+  conf    Configure a second factor using an Fido2 key
   copy    Copy a text file to the clipboard.
   edit    Edits a file containing a secret.
   exit    Exits Secrez.
@@ -154,43 +156,19 @@ Available options:
   mv      Moves and renames files or folders.
   paste   Paste whatever is in the clipboard in an encrypted entries.
   pwd     Shows the path of the working directory.
-  rm      Removes a file or a single version of a file.
+  rm      Removes one or more files and folders.
   tag     Tags a file and shows existent tags.
   touch   Creates a file.
-  use     Uses or creates a dataset.
+  use     Uses a specific dataset.
   ver     Shows the version of Secrez.
-
-To get help about single commands, specify the command.
+  
+To get help about single commands, specify the command, or use the -h option.
 
 Examples:
-  help list
-  help set
+  help touch  ()
+  import -h   ()
+  
 ```
-
-#### Some example
-
-```
-cat myPrivateKey
-```
-
-This command will show the content of an encrypted file, which is called `myPrivateKey`. In particular, it will show the latest version of the file.
-
-Adding options to the command, it is possible to either see a specific version or list all the versions.
-
-The versioning is very important in Secrez because the primary way to backup and distribute the data is using Git. In this case, you want to avoid conflicts that can be not fixable because of the encryption. So, every time there is a change, an entirely new file is created, with metadata about its id and timestamp.
-
-The timestamp is used to assign a version to the file. A version is a 4-letters hash of the timestamp.
-
-Another example:
-
-```
-import ~/Desktop/myWallet.json -m
-```
-
-This command takes the standard file myWallet.json, contained in the Desktop folder, encrypts it, saves it in the encrypted file system, and removes (-m) it from the original folder.
-
-This is one of my favorite commands. In fact, let's say that you have just downloaded the private key to access your crypto wallet, you want to encrypt it as soon as possible. With Secrez, you can import the file and delete the cleartext version in one command.
-
 
 #### Importing from other password/secret managers
 
@@ -257,6 +235,53 @@ You can also simulate the process to see which files will be created with the op
 
 If in the CSV file there is also the field `tags`, you can tag automatically any entries with the options `-t, --tags`. If you don't use the option, instead, they will be saved in the yaml file like any other field.
 
+
+#### Second factor authentication
+
+Secrez uses external scripts in Python, based on  Python-Fido2 by Yubiko, and it's compatible with any Fido2 authenticator device implementing the hmac-secret extension.
+
+To register a new fido2 key with the name `solo`, you can call
+
+```
+conf -r solo --fido2
+```
+If some of the requirements are missing, you will see an error message.
+
+After activating the first fido2 key, Secrez asks if you also want to generate an emergency recovery code. It allows you to recover the account if all the registered keys are lost.
+
+You can set more than one, with a command like:
+
+```
+conf -r memo --recovery-code
+```
+If you already have a mnemonic you use to recover something else, you can use it, like:
+```
+conf -r memo --recovery-code --use-this "laugh elevator chimney account 
+  tone kiwi aware fall flee couple hurry domain"
+```
+
+To list all the factors, run:
+
+```
+conf -l
+```
+or, to see only the usb keys:
+
+```
+conf -l --fido2
+```
+To unregister a key or a mnemonic, run:
+
+```
+conf -u solo
+```
+If solo is the only USB device you set, Secrez removes all the recovery codes and reverses the account for a normal login.
+
+**Risks**
+
+Adding or removing a second factor changes the keys.json file. So, if you are using a git repository, be sure you don't create conflicts, i.e., don't change the second factor configuration in more computer parallely because you risk to damage your data.
+
+As a rule of thumb, if you use a git repo, always commit and push before changing the configuration.
 
 #### Some thoughts
 

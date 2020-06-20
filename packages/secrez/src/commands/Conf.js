@@ -49,7 +49,7 @@ class Conf extends require('../Command') {
 
   help() {
     return {
-      description: ['Configure a second factor using an U2F key'],
+      description: ['Configure a second factor using an Fido2 key'],
       examples: [
         ['conf --fido2 -r solo',
           'registers a new key saving it as "solo"; if there are registered keys, it will checks if the new one is one of them before adding it.'],
