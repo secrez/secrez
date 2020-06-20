@@ -1,5 +1,4 @@
 const homedir = require('homedir')
-const _ = require('lodash')
 const fs = require('fs-extra')
 const Crypto = require('./utils/Crypto')
 const config = require('./config')

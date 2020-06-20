@@ -263,7 +263,7 @@ class InternalFs {
     // console.log(data)
     let datasets = []
     if (!data.updated && !options.ignoreDatasets) {
-      datasets = (await this.getDatasetsInfo()).map(e => e.name).filter(e => RegExp('^' + options.path.replace(/\*/g,'\\*').replace(/\?/g,'\\?')).test(e))
+      datasets = (await this.getDatasetsInfo()).map(e => e.name).filter(e => RegExp('^' + (options.path || '').replace(/\*/g, '\\*').replace(/\?/g, '\\?')).test(e))
     }
     let tree = data.tree
     let files = data.path

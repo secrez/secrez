@@ -138,7 +138,7 @@ class Conf extends require('../Command') {
     }
   }
 
-  async setMnemonic(options) {
+  async setRecoveryCode(options) {
     let client = this.fido2Client
     let list = await client.getKeys(true)
     if (!Object.keys(list).length) {
@@ -177,7 +177,8 @@ class Conf extends require('../Command') {
     let authenticator = Case.snake(_.trim(options.register))
     if (!authenticator) {
       throw new Error('A valid name for the authenticator is required')
-    }    if (!options.register) {
+    }
+    if (!options.register) {
       throw new Error('The nickname of the key is invalid')
     }
     let conf = {}
@@ -281,15 +282,21 @@ class Conf extends require('../Command') {
     if (code === 2) {
       for (let factor in allFactors) {
         if (allFactors[factor] === this.secrez.config.sharedKeys.RECOVERY_CODE) {
-          await this.prompt.commands.rm.rm({
-            path: `main:/.RECOVERY_CODE_${factor}`
-          })
+          try {
+            await this.prompt.commands.rm.rm({
+              path: `main:/.RECOVERY_CODE_${factor}`
+            })
+          } catch (e) {
+          }
         }
       }
     } else if (allFactors[authenticator] === this.secrez.config.sharedKeys.RECOVERY_CODE) {
-      await this.prompt.commands.rm.rm({
-        path: `main:/.RECOVERY_CODE_${authenticator}`
-      })
+      try {
+        await this.prompt.commands.rm.rm({
+          path: `main:/.RECOVERY_CODE_${authenticator}`
+        })
+      } catch (e) {
+      }
     }
   }
 
@@ -301,7 +308,7 @@ class Conf extends require('../Command') {
     if (options.list) {
       await this.showList(options)
     } else if (options.recoveryCode) {
-      await this.setMnemonic(options)
+      await this.setRecoveryCode(options)
     } else if (options.fido2) {
       await this.setFido2(options)
     } else if (options.unregister) {

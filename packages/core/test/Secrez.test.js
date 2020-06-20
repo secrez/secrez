@@ -1,6 +1,5 @@
 const chai = require('chai')
 const assert = chai.assert
-const _ = require('lodash')
 const path = require('path')
 const homedir = require('homedir')
 const Secrez = require('../src/Secrez')
