@@ -306,14 +306,14 @@ __0.6.0__
 * at start, purges old trees after successfully loading a dataset
 * `use` allows to use and create new dataset
 * `mv` supports `-d, --destination` for the destination
-* `mv` allows to move files among datasets with a syntax like `mv somefile --to archive` or `mv somefile --from archive`
+* `mv` allows to move files among datasets with a syntax like `mv somefile archive:/` or `mv archive:somefile main:/some/`
 * `mv` adds `--find` and `--content-too` to use the result of a search as input
 * `mv`, if no destination set, asks if like to use the active directory in the target dataset
 * `ls -o d` and `ls -o f` to limit the listing only to folders or files
 * `copy` allows to select the field to copy in yaml files
 * improve autocomplete to handle datasets
 * fix autocomplete in `lcat`, which was wrongly using the internal files
-* `tag` is able to list and show tags along all the datasets
+* `tag` is able to list and show tags along all the datasets, anche can use `--find` like `mv`
 
 __0.5.13__
 * Find in content excludes binary contents

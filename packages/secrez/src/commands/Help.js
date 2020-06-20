@@ -83,10 +83,11 @@ class Help extends require('../Command') {
       }
     }
     if (data.examples.length) {
-      console.info()
       this.Logger.reset('Examples:')
       let max = 0
-      let MAX = parseInt(process.stdout.columns * 2 / 6)
+      const cols = process.stdout.columns
+          || 80 // workaround for lerna testing
+      let MAX = parseInt(cols * 2 / 6)
       for (let e of data.examples) {
         if (Array.isArray(e)) {
           e = e[0]
@@ -99,30 +100,47 @@ class Help extends require('../Command') {
       }
 
       const formatExample = (example, ...hint) => {
-        hint = `(${hint.join(' ')})`
+        hint = hint.length ? `(${hint.join(' ')})` : undefined
         let str = []
         let i = 0
         let tot = (2 * spacer.length) + max
         let x = 0
+        let j = -1
+        let elem
         for (; ;) {
           let m = max - x
           if (example.length <= m) {
-            let elem = spacer + ' '.repeat(x) + example
+            elem = spacer + ' '.repeat(x) + example
             str.push(elem + ' '.repeat(tot - elem.length))
             break
           } else {
+            j = -1
             let partial = example.substring(0, m)
             let li = partial.lastIndexOf(' ')
+            if (li === -1) {
+              j = i
+              li = example.lastIndexOf(' ')
+              if (li === -1) {
+                elem = spacer + ' '.repeat(x) + example
+                str.push(elem)
+                break
+              }
+            }
             let good = example.substring(0, li)
-            let elem = spacer + ' '.repeat(x) + good
+            elem = spacer + ' '.repeat(x) + good
             str.push(elem + ' '.repeat(tot - elem.length))
             example = example.substring(li + 1)
             i++
+            // console.log(i, example)
           }
           x = 2
         }
         let len = str[0].length
-        let xam = process.stdout.columns - len
+        if (hint && i === j) {
+          i++
+          str[i] = ' '.repeat(len)
+        }
+        let xam = cols - len
         x = 0
         if (hint) {
           for (; ;) {
@@ -136,6 +154,16 @@ class Help extends require('../Command') {
             }
             let partial = hint.substring(0, m)
             let li = partial.lastIndexOf(' ')
+            if (li === -1) {
+              j = i
+              li = hint.lastIndexOf(' ')
+              if (li === -1) {
+                elem = ' '.repeat(x) + hint
+                str[i] += chalk.grey(elem)
+                break
+              }
+            }
+
             let good = hint.substring(0, li)
             str[i] += ' '.repeat(x) + chalk.grey(good)
             hint = hint.substring(li + 1)
@@ -143,7 +171,7 @@ class Help extends require('../Command') {
             x = 2
           }
         }
-        console.log(str.join('\n'))
+        console.info(str.join('\n'))
       }
 
       for (let e of data.examples) {
