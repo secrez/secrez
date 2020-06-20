@@ -28,7 +28,7 @@ class Conf extends require('../Command') {
         type: String
       },
       {
-        name: 'recoveryCode',
+        name: 'recovery-code',
         type: Boolean
       },
       {
@@ -52,14 +52,13 @@ class Conf extends require('../Command') {
       description: ['Configure a second factor using an U2F key'],
       examples: [
         ['conf --fido2 -r solo',
-          'registers a new key saving it as "solo"; if there are registered keys,',
-          'it will checks if the new one is one of them before adding it.'],
+          'registers a new key saving it as "solo"; if there are registered keys, it will checks if the new one is one of them before adding it.'],
         ['conf -l', 'lists all factors'],
-        ['conf --recoveryCode -r memo', 'registers an emergency recovery code called "memo" to be used if all the factors are lost'],
-        ['conf --recoveryCode -r seed --use-this "salad spring peace silk snake real they thunder please final clinic close"', 'registers an emergency recovery code called "seed" using the seed passed with the parameter "--use-this"'],
+        ['conf --recovery-code -r memo',
+          'registers an emergency recovery code called "memo" to be used if all the factors are lost'],
+        ['conf --recovery-code -r seed --use-this "salad spring peace silk snake real they thunder please final clinic close"', 'registers an emergency recovery code called "seed" using the seed passed with the parameter "--use-this"'],
         ['conf -u solo',
-          'unregister the fido2 key "solo"; if that is the only key, ',
-          'it unregister also any emergency code and restores the normal access.']
+          'unregister the fido2 key "solo"; if that is the only key, it unregister also any emergency code and restores the normal access.']
       ]
     }
   }

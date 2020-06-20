@@ -1,3 +1,4 @@
+const chalk = require('chalk')
 class Help extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -62,7 +63,7 @@ class Help extends require('../Command') {
         }
         for (let c of optionDefinitions) {
           let type = c.type === Boolean ? 'Boolean' : c.type === Number ? 'Number' : 'String'
-          let space = c.multiple ? '[] ': '   '
+          let space = c.multiple ? '[] ' : '   '
           this.Logger.log(
               'black',
               spacer +
@@ -85,37 +86,74 @@ class Help extends require('../Command') {
       console.info()
       this.Logger.reset('Examples:')
       let max = 0
+      let MAX = parseInt(process.stdout.columns * 2 / 6)
       for (let e of data.examples) {
         if (Array.isArray(e)) {
           e = e[0]
         }
         max = Math.max(max, e.length)
+        if (max > MAX) {
+          max = MAX
+          break
+        }
       }
+
+      const formatExample = (example, ...hint) => {
+        hint = `(${hint.join(' ')})`
+        let str = []
+        let i = 0
+        let tot = (2 * spacer.length) + max
+        let x = 0
+        for (; ;) {
+          let m = max - x
+          if (example.length <= m) {
+            let elem = spacer + ' '.repeat(x) + example
+            str.push(elem + ' '.repeat(tot - elem.length))
+            break
+          } else {
+            let partial = example.substring(0, m)
+            let li = partial.lastIndexOf(' ')
+            let good = example.substring(0, li)
+            let elem = spacer + ' '.repeat(x) + good
+            str.push(elem + ' '.repeat(tot - elem.length))
+            example = example.substring(li + 1)
+            i++
+          }
+          x = 2
+        }
+        let len = str[0].length
+        let xam = process.stdout.columns - len
+        x = 0
+        if (hint) {
+          for (; ;) {
+            if (!str[i]) {
+              str[i] = ' '.repeat(len)
+            }
+            let m = xam - x
+            if (hint.length <= m) {
+              str[i] += ' '.repeat(x) + chalk.grey(hint)
+              break
+            }
+            let partial = hint.substring(0, m)
+            let li = partial.lastIndexOf(' ')
+            let good = hint.substring(0, li)
+            str[i] += ' '.repeat(x) + chalk.grey(good)
+            hint = hint.substring(li + 1)
+            i++
+            x = 2
+          }
+        }
+        console.log(str.join('\n'))
+      }
+
       for (let e of data.examples) {
         if (typeof e === 'string') {
           e = [e]
         }
-        let s = e[0]
-        if (Array.isArray(e)) {
-          e = e.slice(1)
-          let len = e.length
-          if (len > 0) {
-            for (let j = 0; j < len; j++) {
-              let c = e[j]
-              this.Logger.log('black', spacer + (
-                  j
-                      ? ' '.repeat(max + 3)
-                      : s + ' '.repeat(max - s.length + 1)
-              ), 'grey', [
-                !j ? '(' : '',
-                c,
-                len === 1 || j === len -1 ? ')' : ''
-              ].join(''))
-            }
-            continue
-          }
+        if (!Array.isArray(e)) {
+          e = [e]
         }
-        this.Logger.reset(spacer + s)
+        formatExample(...e)
       }
     }
     console.info()
