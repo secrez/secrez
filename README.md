@@ -274,6 +274,7 @@ __0.6.1__
 * Add support for U2F keys (Yubikey, Solokeys, etc.)
 * `ls` now returns sorted results
 * fixed bug with `mv` and `rm` when using wildcards
+* dynamic format for help, managing large examples
 
 __0.6.0__
 * Allow multiple datasets; `main` and `trash` exists by default
