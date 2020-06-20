@@ -1,4 +1,5 @@
 const {chalk} = require('./utils/Logger')
+const {Crypto} = require('@secrez/core')
 
 class PreCommand {
 

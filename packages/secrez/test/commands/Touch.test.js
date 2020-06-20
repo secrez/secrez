@@ -54,6 +54,28 @@ describe('#Touch', function () {
 
     assert.equal(prompt.internalFs.tree.root.getChildFromPath('/folder2/file1').type, prompt.secrez.config.types.TEXT)
 
+
+    inspect = stdout.inspect()
+    await C.touch.exec({
+      path: '/folder2/file1'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['An entry with the name "file1" already exists'])
+
+    await noPrint(C.touch.exec({
+      path: '/folder2/file1',
+      versionIfExists: true
+    }))
+
+    let names = []
+    let children = prompt.internalFs.tree.root.getChildFromPath('/folder2').children
+    for (let id in children) {
+      names.push(children[id].getPath())
+    }
+
+    assert.equal(names[0], '/folder2/file1')
+    assert.equal(names[1], '/folder2/file1.2')
+
   })
 
 

@@ -29,6 +29,11 @@ class Touch extends require('../Command') {
         name: 'not-visible-content',
         alias: 'n',
         type: Boolean
+      },
+      {
+        name: 'version-if-exists',
+        alias: 'v',
+        type: Boolean
       }
     ]
   }
@@ -43,7 +48,7 @@ class Touch extends require('../Command') {
         'touch somefile',
         'touch -p afile --content "Password: 1432874565"',
         'touch ether -c "Private Key: eweiu34y23h4y23ih4uy23hiu4y234i23y4iuh3"',
-        ['touch ether -h', 'Prompts a password field to type the content']
+        ['touch ether -v', 'Save the file as ether.2 if ether already exists']
       ]
     }
   }
@@ -77,8 +82,8 @@ class Touch extends require('../Command') {
           throw new Error('Command canceled')
         }
       }
-      await this.touch(options)
-      this.Logger.grey(`New file "${options.path}" created.`)
+      let newFile = await this.touch(options)
+      this.Logger.grey(`New file "${newFile.getPath()}" created.`)
     } catch (e) {
       this.Logger.red(e.message)
     }

@@ -1,7 +1,9 @@
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
 const cliConfig = require('./cliConfig')
+const {Crypto} = require('@secrez/core')
 const Logger = require('./utils/Logger')
+const Fido2Client = require('./Fido2Client')
 
 class Welcome {
 
@@ -9,7 +11,10 @@ class Welcome {
     this.options = options
     this.iterations = options.iterations || await this.getIterations()
     if (await fs.pathExists(cliConfig.keysPath)) {
-      await this.login(secrez)
+      let errorCode = await this.login(secrez)
+      if (errorCode === 1) {
+        await this.sharedLogin(secrez)
+      }
     } else {
       Logger.grey('Please signup to create your local account')
       await this.signup(secrez)
@@ -38,6 +43,7 @@ class Welcome {
     return parseInt(iterations)
   }
 
+// chimney piano fabric forest curious black hip axis story stool spoil fold
   async saveIterations(secrez) {
     if (this.options.saveIterations) {
       await secrez.saveIterations(this.iterations)
@@ -47,7 +53,7 @@ class Welcome {
   async login(secrez) {
     for (; ;) {
       try {
-        let p = await inquirer.prompt([{
+        let {password} = await inquirer.prompt([{
           name: 'password',
           type: 'password',
           message: 'Enter your master password:',
@@ -60,16 +66,81 @@ class Welcome {
           }
         }])
         try {
-          await secrez.signin(p.password, this.iterations)
+          await secrez.signin(password, this.iterations)
+          if (secrez.masterKeyHash) {
+            await this.saveIterations(secrez)
+          }
+          return 0
+        } catch (e) {
+          if (e.message === 'A second factor is required') {
+            return 1
+          }
+          Logger.red(`${e.message}. Try again or Ctrl-C to exit.`)
+        }
+      } catch (e) {
+        Logger.red('Unrecognized error. Try again or Ctrl-c to exit.')
+      }
+    }
+  }
+
+  async sharedLogin(secrez) {
+    let fido2Client = new Fido2Client(secrez)
+    let authenticator
+    let list = await fido2Client.getKeys()
+    const conf = await secrez.readConf()
+    let choices = []
+    for (let authenticator in conf.data.keys) {
+      choices.push(authenticator)
+    }
+    for (; ;) {
+      if (list.length === 1) {
+        authenticator = list[0]
+      } else {
+        let p = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'authenticator',
+            message: 'Which second factor would you like to use?',
+            choices
+          }
+        ])
+        authenticator = p.authenticator
+      }
+      let secret
+      try {
+        try {
+          if (fido2Client.keys[authenticator]) {
+            Logger.grey('Touch your fido2 authenticator device now...')
+            secret = await fido2Client.verifySecret(authenticator)
+          } else {
+            let exitCode = Crypto.getRandomBase58String(2)
+            let p = await inquirer.prompt([{
+              name: 'recoveryCode',
+              type: 'password',
+              message: 'Paste your recovery code:',
+              validate: value => {
+                if (value.length) {
+                  return true
+                } else {
+                  return `Please paste a valid recovery code or type ${exitCode} to choose another factor.`
+                }
+              }
+            }])
+            if (p.recoveryCode === exitCode) {
+              continue
+            }
+            secret = p.recoveryCode
+          }
+          await secrez.sharedSignin(authenticator, secret)
           if (secrez.masterKeyHash) {
             await this.saveIterations(secrez)
           }
           return
         } catch (e) {
-          Logger.red('The password you typed is wrong. Try again or Ctrl-C to exit.')
+          Logger.red(`${e.message}. Try again or Ctrl-C to exit.`)
         }
       } catch (e) {
-        Logger.red('Unrecognized error. Try again or Ctrl-c to exit.')
+        Logger.red('Unrecognized error. Try again or Ctrl-C to exit.')
       }
     }
   }

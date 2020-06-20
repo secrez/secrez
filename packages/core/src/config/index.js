@@ -26,6 +26,11 @@ const config = {
     RECOVERED: 'REC'
   },
 
+  sharedKeys: {
+    FIDO2_KEY: 1,
+     RECOVERY_CODE: 2
+  },
+
   secrez: {}
 
 }

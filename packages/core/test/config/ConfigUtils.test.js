@@ -65,7 +65,6 @@ describe('#ConfigUtils', function () {
     let dataPath = await ConfigUtils.getDatasetPath(config, 1)
     assert.equal(dataPath, path.join(rootDir, 'data.1'))
 
-
   })
 
   it('#getEnv should return the environment', async function () {

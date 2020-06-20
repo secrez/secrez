@@ -35,6 +35,9 @@ class InternalFs {
     options.path = data.path
     let tree = data.tree
     let p = this.normalizePath(options.path)
+    if (Node.isFile(options) && options.versionIfExists) {
+      p = path.join(path.dirname(p), await tree.getVersionedBasename(p))
+    }
     let [ancestor, remainingPath] = tree.root.getChildFromPath(p, true)
     p = remainingPath.split('/')
     let len = p.length
@@ -120,6 +123,7 @@ class InternalFs {
         n = undefined
       }
     }
+
     let node
     try {
       node = treeFrom.root.getChildFromPath(p)
@@ -199,53 +203,6 @@ class InternalFs {
     return node
   }
 
-  // async updateContent(options) {
-  //   let p = this.normalizePath(options.path)
-  //   let n
-  //   if (options.newPath) {
-  //     n = this.normalizePath(options.newPath)
-  //     if (p === n) {
-  //       n = undefined
-  //     }
-  //   }
-  //   let node = this.tree.root.getChildFromPath(p)
-  //
-  //   if (!node) {
-  //     throw new Error('Path does not exist')
-  //   }
-  //   let entry = new Entry(Object.assign(options, node.getEntry()))
-  //   let ancestor, remainingPath
-  //   try {
-  //     let result = n ? this.tree.root.getChildFromPath(n, true) : []
-  //     ancestor = result[0]
-  //     remainingPath = result[1]
-  //   } catch (e) {
-  //     if (e.message === util.format(ENTRY_EXISTS, path.basename(n))) {
-  //       let dir = this.tree.root.getChildFromPath(n)
-  //       if (dir && Node.isDir(dir)) {
-  //         ancestor = dir
-  //         remainingPath = path.basename(p)
-  //       }
-  //     }
-  //   }
-  //   if (ancestor) {
-  //     remainingPath = remainingPath.split('/')
-  //     if (remainingPath.length > 1) {
-  //       throw new Error('Cannot move a node to a not existing folder')
-  //     }
-  //     entry.name = remainingPath[0]
-  //     if (ancestor.id !== node.parent.id) {
-  //       entry.parent = ancestor
-  //     }
-  //   }
-  //   if (Node.isFile(entry) && !entry.content) {
-  //     entry.content = node.getContent()
-  //   }
-  //   await this.tree.update(node, entry)
-  //   return node
-  // }
-
-
   async moveOrUnlink(node, indexFrom, indexTo, unlink) {
     let allFiles = await this.trees[indexFrom].getAllDataFiles(node)
     let fromDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexFrom)
@@ -303,9 +260,10 @@ class InternalFs {
       options.path = options.path[options.path.length - 1]
     }
     let data = await this.getTreeIndexAndPath(options.path)
+    // console.log(data)
     let datasets = []
     if (!data.updated && !options.ignoreDatasets) {
-      datasets = (await this.getDatasetsInfo()).map(e => e.name).filter(e => RegExp('^' + options.path).test(e))
+      datasets = (await this.getDatasetsInfo()).map(e => e.name).filter(e => RegExp('^' + (options.path || '').replace(/\*/g, '\\*').replace(/\?/g, '\\?')).test(e))
     }
     let tree = data.tree
     let files = data.path

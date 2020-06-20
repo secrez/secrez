@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const {Node} = require('@secrez/fs')
 
 class Mv extends require('../Command') {
@@ -72,7 +73,8 @@ class Mv extends require('../Command') {
       this.internalFs.trees[dataFrom.index].disableSave()
       this.internalFs.trees[dataTo.index].disableSave()
       for (let node of nodes) {
-        await this.internalFs.change(Object.assign(options, {path: `${dataFrom.name}:${node.getPath()}`}))
+        let opt = _.clone(options)
+        await this.internalFs.change(Object.assign(opt, {path: `${dataFrom.name}:${node.getPath()}`}))
       }
       this.internalFs.trees[dataFrom.index].enableSave()
       await this.internalFs.trees[dataFrom.index].save()
@@ -89,18 +91,17 @@ class Mv extends require('../Command') {
     let dir
     try {
       let data = await this.internalFs.getTreeIndexAndPath(options.newPath || '')
-      options.newPath = data.path
-      options.to = data.name
+      let to = data.name
       let index = this.internalFs.tree.datasetIndex
-      if (options.to) {
-        let datasetInfo = await this.internalFs.getDatasetInfo(options.to)
+      if (to) {
+        let datasetInfo = await this.internalFs.getDatasetInfo(to)
         if (!datasetInfo) {
           throw new Error('Destination dataset does not exist')
         }
         index = datasetInfo.index
         await this.internalFs.mountTree(index)
       }
-      let p = this.internalFs.normalizePath(options.newPath, index)
+      let p = this.internalFs.normalizePath(data.path, index)
       dir = this.internalFs.trees[index].root.getChildFromPath(p)
     } catch (e) {
     }
@@ -122,7 +123,6 @@ class Mv extends require('../Command') {
       if (!options.path && !options.find) {
         throw new Error('An origin path is required.')
       } else {
-        /* istanbul ignore if  */
         if (!options.newPath) {
           options.message = 'Destination not set.\nWould you like to move to the current active directory in the target dataset?'
           options.default = false
@@ -130,9 +130,10 @@ class Mv extends require('../Command') {
           if (yes) {
             options.newPath = '.'
           } else {
-            throw new Error('Action canceled')
+            throw new Error('Operation canceled')
           }
         }
+        let dataFrom = await this.internalFs.getTreeIndexAndPath(options.path)
         let mustBeFolder = options.find || /\?|\*/.test(options.path)
         let nodes
         if (options.find) {
@@ -162,14 +163,15 @@ class Mv extends require('../Command') {
               throw new Error('When using search results or wildcards, the target has to be a folder')
             }
           }
-          let paths = nodes.map(e => e.getPath())
+          let paths = nodes.map(e => [e.getPath(), e.id])
           await this.mv(Object.assign(options, {newPath: options.newPath}), nodes)
           if (options.find) {
             this.Logger.reset(`The results of searching for ${options.find} has been moved to ${options.newPath}`)
           } else {
-            this.Logger.reset(`The following have been moved to ${options.newPath}`)
+            this.Logger.reset('The following have been moved:')
+            let data = await this.internalFs.getTreeIndexAndPath(options.newPath || '')
             for (let p of paths) {
-              this.Logger.reset(p)
+              this.Logger.reset(`${dataFrom.name}:${p[0]}  >  ${data.name}:${data.tree.root.findChildById(p[1]).getPath()}`)
             }
           }
         } else {
@@ -177,7 +179,6 @@ class Mv extends require('../Command') {
         }
       }
     } catch (e) {
-      // console.log(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()
