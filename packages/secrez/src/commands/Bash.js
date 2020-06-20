@@ -7,7 +7,6 @@ class Bash extends require('../Command') {
       _self: this
     }
     this.cliConfig.completion.help.bash = true
-    this.noAutoComplete = true
     this.optionDefinitions = [
       {
         name: 'help',

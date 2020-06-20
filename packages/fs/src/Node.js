@@ -619,6 +619,15 @@ class Node {
     }
   }
 
+  exists(p) {
+    try {
+      Node.getRoot(this).getChildFromPath(p)
+      return false
+    } catch(e) {
+      return true
+    }
+  }
+
   getPathToChild(child) {
 
     if (!child || child.constructor.name !== 'Node') {

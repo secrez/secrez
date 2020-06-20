@@ -1,6 +1,6 @@
 {
   "name": "@secrez/fs",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
@@ -10,7 +10,7 @@
     "posttest": "nyc check-coverage --statements 85 --branches 80 --functions 85 --lines 85"
   },
   "dependencies": {
-    "@secrez/core": "^0.5.4",
+    "@secrez/core": "^0.6.0",
     "base58": "^2.0.1",
     "bs58": "^4.0.1",
     "command-line-args": "^5.1.1",
@@ -29,7 +29,7 @@
     "eslint-plugin-node": "^11.0.0",
     "log": "^6.0.0",
     "mocha": "^7.1.1",
-    "nyc": "^15.0.0"
+    "nyc": "^15.1.0"
   },
   "description": "The Secrez fs library.",
   "main": "src/index.js",

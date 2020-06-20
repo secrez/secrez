@@ -598,7 +598,7 @@ describe('#InternalFs', function () {
       })
 
       let res = await internalFs.pseudoFileCompletion({}, true)
-      assert.equal(res.join(' '), 'dir/')
+      assert.equal(res.join(' '), 'main trash dir/')
 
       res = await internalFs.pseudoFileCompletion('/dir')
       assert.equal(res.join(' '), 'file1 file2')

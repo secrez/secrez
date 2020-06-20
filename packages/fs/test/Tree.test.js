@@ -435,16 +435,22 @@ describe('#Tree', function () {
       })
 
       let files = (await internalFs.pseudoFileCompletion()).sort()
-      assert.equal(files.length, 2)
-      assert.equal(files[0], 'd')
-      assert.equal(files[1], 'e')
+      assert.equal(files.length, 5)
+      assert.equal(files[0], 'archive')
+      assert.equal(files[1], 'd')
+      assert.equal(files[2], 'e')
+      assert.equal(files[3], 'main')
+      assert.equal(files[4], 'trash')
 
       await internalFs.mountTree(0, true)
 
       files = (await internalFs.pseudoFileCompletion()).sort()
-      assert.equal(files.length, 2)
+      assert.equal(files.length, 5)
       assert.equal(files[0], 'a')
-      assert.equal(files[1], 'b')
+      assert.equal(files[1], 'archive')
+      assert.equal(files[2], 'b')
+      assert.equal(files[3], 'main')
+      assert.equal(files[4], 'trash')
 
       await internalFs.mountTree(2, true)
       assert.equal(internalFs.tree.name, 'archive')

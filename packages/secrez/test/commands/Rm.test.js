@@ -69,24 +69,25 @@ describe('#Rm', function () {
     for (let i = 0; i < 3; i++) {
 
       await C.touch.touch({
-        path: '/folder2/file' + i,
+        path: '/file' + i,
         type: config.types.TEXT
       })
 
     }
 
     inspect = stdout.inspect()
-    await C.rm.exec({path: '/folder2/file*'})
+    await C.rm.exec({path: '/file*'})
     inspect.restore()
     assertConsole(inspect, [
       'Deleted entries:',
-      '/folder2/file0',
-      '/folder2/file1',
-      '/folder2/file2'
-
+      '/file0',
+      '/file1',
+      '/file2'
     ])
 
-    // assert.equal(Node.getRoot(file1).datasetIndex, 1)
+    let ls = await C.ls.ls({path: '.'})
+
+    assert.equal(ls.length, 0)
 
   })
 

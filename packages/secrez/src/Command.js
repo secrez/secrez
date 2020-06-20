@@ -8,6 +8,7 @@ class Command extends PreCommand{
   constructor(prompt) {
     super()
     this.prompt = prompt
+    this.secrez = prompt.secrez
     this.optionDefinitions = []
     this.cliConfig = cliConfig
     this.Logger = Logger

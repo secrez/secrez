@@ -1,6 +1,6 @@
 {
   "name": "@secrez/core",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
@@ -21,6 +21,7 @@
     "pbkdf2": "^3.0.17",
     "seedrandom": "^3.0.5",
     "sha3": "^2.1.2",
+    "shamir": "^0.7.1",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1"
   },
@@ -32,7 +33,7 @@
     "eslint-plugin-node": "^11.0.0",
     "log": "^6.0.0",
     "mocha": "^7.1.2",
-    "nyc": "^15.0.0"
+    "nyc": "^15.1.0"
   },
   "description": "The Secrez core library.",
   "main": "src/index.js",

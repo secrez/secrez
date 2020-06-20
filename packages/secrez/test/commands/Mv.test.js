@@ -84,11 +84,10 @@ describe('#Mv', function () {
       path: ['/folder1/file1', '/folder2/file1']
     })
     inspect.restore()
-    assertConsole(inspect,
-        'The following have been moved to /folder2',
-        '/folder1/ff1',
-        '/folder1/ff2'
-    )
+    assertConsole(inspect, [
+      'The following have been moved:',
+      'main:/folder1/file1  >  main:/folder2/file1'
+    ])
 
     assert.equal(file1.getPath(), '/folder2/file1')
 
@@ -118,11 +117,11 @@ describe('#Mv', function () {
       path: ['/folder1/ff*', '/folder2']
     })
     inspect.restore()
-    assertConsole(inspect,
-        'The following have been moved to /folder2',
-        '/folder1/ff1',
-        '/folder1/ff2'
-    )
+    assertConsole(inspect, [
+      'The following have been moved:',
+      'main:/folder1/ff1  >  main:/folder2/ff1',
+      'main:/folder1/ff2  >  main:/folder2/ff2'
+    ])
 
     assert.equal(file1.getPath(), '/folder2/ff1')
     assert.equal(file2.getPath(), '/folder2/ff2')
@@ -149,10 +148,10 @@ describe('#Mv', function () {
       path: ['f3/f4.txt', '../f5/f6/f4.txt']
     })
     inspect.restore()
-    assertConsole(inspect,
-        'The following have been moved to ../f5/f6/f4.txt',
-        '/f1/f2/f3/f4.txt'
-    )
+    assertConsole(inspect, [
+      'The following have been moved:',
+      'main:/f1/f2/f3/f4.txt  >  main:/f1/f5/f6/f4.txt'
+    ])
 
     assert.equal(file.getPath(), '/f1/f5/f6/f4.txt')
 
@@ -201,6 +200,79 @@ describe('#Mv', function () {
 
     assert.equal(folder1.getPath(), '/folder3/folder1')
 
+
+  })
+
+  it('should move file to another folder using wildcards', async function () {
+
+    let file1 = await C.touch.touch({
+      path: '/file1'
+    })
+
+    let file2 = await C.touch.touch({
+      path: '/file2'
+    })
+
+    let file3 = await C.touch.touch({
+      path: '/file3'
+    })
+
+    await C.mkdir.mkdir({
+      path: '/folder2'
+    })
+
+    await noPrint(C.mv.exec({
+      path: ['file*', '/folder2']
+    }))
+
+    assert.equal(file1.getPath(), '/folder2/file1')
+    assert.equal(file2.getPath(), '/folder2/file2')
+    assert.equal(file3.getPath(), '/folder2/file3')
+
+  })
+
+
+  it('should move file to another dataset using wildcards', async function () {
+
+    let file1 = await C.touch.touch({
+      path: '/folder/file1'
+    })
+
+    let file2 = await C.touch.touch({
+      path: '/folder/file2'
+    })
+
+    let file3 = await C.touch.touch({
+      path: '/folder/file3'
+    })
+
+    await noPrint(C.use.exec({
+      dataset: 'archive',
+      create: true
+    }))
+
+    await C.mkdir.mkdir({
+      path: '/dir'
+    })
+
+    await noPrint(C.use.exec({
+      dataset: 'main'
+    }))
+
+    let files = await C.ls.ls({
+      path: '/folder/file*'
+    })
+
+    assert.equal(files.sort().join(' '), 'file1 file2 file3')
+
+    await noPrint(C.mv.exec({
+      path: ['/folder/file*', 'archive:/dir']
+    }))
+
+    assert.equal(Node.getRoot(file1).datasetIndex, 2)
+    assert.equal(file1.getPath(), '/dir/file1')
+    assert.equal(file2.getPath(), '/dir/file2')
+    assert.equal(file3.getPath(), '/dir/file3')
 
   })
 

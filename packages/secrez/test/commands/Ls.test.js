@@ -72,7 +72,7 @@ describe('#Ls', function () {
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1', list: true})
     inspect.restore()
-    assertConsole(inspect, ['dirA1/', 'dirA2/', 'dirB1/', 'dirB2/', 'dir2A/', 'dir2B/', 'file1', 'file2'])
+    assertConsole(inspect, ['dir2A/', 'dir2B/', 'dirA1/', 'dirA2/', 'dirB1/', 'dirB2/', 'file1', 'file2'])
 
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir2A', list: true})
@@ -127,7 +127,7 @@ describe('#Ls', function () {
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir*', list: true})
     inspect.restore()
-    assertConsole(inspect, ['dirA1/', 'dirA2/', 'dirB1/', 'dirB2/', 'dir2A/', 'dir2B/'])
+    assertConsole(inspect, ['dir2A/', 'dir2B/', 'dirA1/', 'dirA2/', 'dirB1/', 'dirB2/'])
 
     inspect = stdout.inspect()
     await C.ls.exec({path: '/dir1/dir?1', list: true})

@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "license": "MIT",
   "scripts": {
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -14,12 +14,14 @@
     "exclude": [
       "src/utils/Logger.js",
       "src/commands/Edit.js",
-      "src/PreCommand.js"
+      "src/PreCommand.js",
+      "src/Fido2Client.js",
+      "src/commands/Conf.js"
     ]
   },
   "dependencies": {
-    "@secrez/core": "^0.5.4",
-    "@secrez/fs": "^0.6.4",
+    "@secrez/core": "^0.6.0",
+    "@secrez/fs": "^0.6.5",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
     "clipboardy": "^2.3.0",
@@ -42,7 +44,7 @@
     "eslint-plugin-node": "^11.0.0",
     "log": "^6.0.0",
     "mocha": "^7.1.1",
-    "nyc": "^15.0.0",
+    "nyc": "^15.1.0",
     "sinon": "^7.5.0",
     "test-console": "^1.1.0"
   },
