@@ -2,6 +2,7 @@ const _ = require('lodash')
 const {chalk} = require('../utils/Logger')
 const Case = require('case')
 const {Node} = require('@secrez/fs')
+const utils = require('../utils')
 
 class Tag extends require('../Command') {
 
@@ -151,7 +152,7 @@ class Tag extends require('../Command') {
       for (let datasetIndex in isSaveEnabled) {
         if (isSaveEnabled[datasetIndex]) {
           this.internalFs.trees[datasetIndex].enableSave()
-          this.internalFs.trees[datasetIndex].saveTags()
+          await this.internalFs.trees[datasetIndex].saveTags()
         }
       }
       return result
@@ -160,8 +161,7 @@ class Tag extends require('../Command') {
   }
 
   formatResult(result) {
-    const cols = process.stdout.columns
-        || 80 // workaround for lerna testing
+    const cols = utils.getCols()
 
     let max = 0
     let mak = 0
