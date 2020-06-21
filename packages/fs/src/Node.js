@@ -13,7 +13,7 @@ class Node {
     }
   }
 
-  static getCache(dataCache) {
+  static getCache() {
     return cache
   }
 
@@ -39,13 +39,10 @@ class Node {
       if (entry.id) {
         this.id = entry.id
       } else {
-        this.id = Crypto.getRandomId(cache ? cache.get('id') : null)
+        this.id = Crypto.getRandomId(cache ? cache.list('id') : null)
+        cache.puts('id', this.id)
       }
-      cache.puts('id', this.id)
     }
-    this.id = isRoot ? config.specialId.ROOT
-        : isTrash ? config.specialId.TRASH
-            : entry.id || Crypto.getRandomId(cache.get('id'))
 
     if (Node.isDir(entry)) {
       this.children = {}

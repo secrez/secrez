@@ -17,6 +17,7 @@ const Completion = require('./Completion')
 const cliConfig = require('./cliConfig')
 const Commands = require('./commands')
 const welcome = require('./Welcome')
+const AliasManager = require('./AliasManager')
 
 inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('multiEditor', multiEditorPrompt)
@@ -31,7 +32,7 @@ class Prompt {
     this.getHistory = inquirerCommandPrompt.getHistory
     this.secrez = new Secrez
     await this.secrez.init(options.container, options.localDir)
-    this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'))
+    this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'), this.secrez)
     await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
@@ -45,6 +46,7 @@ class Prompt {
       onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd
     })
     this.commands = (new Commands(this, cliConfig)).getCommands()
+
   }
 
   reorderCommandLineWithDefaultAtEnd(line) {
@@ -182,12 +184,13 @@ class Prompt {
         Logger.red(alerts[0])
         Logger.cyan(alerts.slice(1).join('\n'))
       }
+      await this.secrez.cache.load('alias', true)
+      AliasManager.setCache(this.secrez.cache)
+      this.aliasManager = new AliasManager()
     }
-    // eslint-disable-next-line no-console
-    // console.log()
     try {
       let pre = chalk.reset(`Secrez ${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()}`)
-      let answers = await inquirer.prompt([
+      let {cmd} = await inquirer.prompt([
         {
           type: 'command',
           name: 'cmd',
@@ -209,8 +212,19 @@ class Prompt {
                 : chalk.grey('Press TAB for suggestions.')
           }
         }
-      ]) //, {input: require('./utils/stdin')})
-      await this.exec([answers.cmd])
+      ])
+      cmd = _.trim(cmd)
+      let command = cmd.split(' ')[0]
+      if (!this.basicCommands.includes(command)) {
+        command = command.replace(/^\$/, '')
+        let data = this.aliasManager.get(command)
+        if (data) {
+          cmd = data.content
+          Logger.grey('Executing: ' + chalk.bold(cmd))
+        }
+      }
+      await this.exec([cmd])
+      this.previousCommandLine = cmd
     } catch (e) {
       // console.error(e)
       Logger.red(e.message)

@@ -6,25 +6,25 @@ A secrets manager as an encrypted file system.
 
 #### Intro
 
-Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `cp`, `ls`, `mv`, etc.
+Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `mkdir`, `ls`, `mv`, etc.
 
-The idea is to interact with encrypted virtual files as if they are just files in a standard file system. After running Secrez and logging in the local account, at the prompt, the user can execute commands.
+The idea is to interact with encrypted virtual files as if they are just files in a standard file system.
 
 
 #### Why Secrez?
 
 There are two primary approaches to secrets and password management:
 
-1. Online systems that save the primary data online (like LastPass)
+1. Online systems that save the data online (like LastPass)
 2. Desktop tools who keep data in the computer (like KeyPass)
 
 An Online Password Manager requires that you trust the remote server.
-I founded Passpack in 2006, and I know very well how, at any moment, you can add a backdoor, and probably nobody will notice it. A malicious service could also inject a backdoor only for a specific user.
+I founded Passpack in 2006, and I know very well how, at any moment, you can add a backdoor —— even only for a specific user —— and most likely nobody will notice it.
 
 The second case, a desktop tool is intrinsically more secure, but it is hard to use on more than one computer.
-The standard solution is to back up the database on Dropbox or Google Drive and -- before using it -- download it locally, which is prone to produce unfixable problems and cause data loss.
+The standard solution is to backup the database on Dropbox or Google Drive and —— before using it —— download it locally, which is prone to produce unfixable problems and cause data loss.
 
-Secrez goal is to be as safe as KeyPass but available everywhere, like Lastpass.
+Secrez's goal is to be as safe as KeyPass but available everywhere, like Lastpass.
 
 To obtain this goal, Secrez assembles a few strategies:
 
@@ -40,7 +40,7 @@ For now, this is a manual approach. In a future version, the git repo will be ma
 
 Secrez simulates an operating system. When you load the environment, you can execute commands like `ls`, `mv`, etc. similarly to what you normally to in a Unix terminal.
 
-Starting from version `0.6.0`, the data are organized in datasets. This of them like separate disks, something like `/dev/disk1` and `/dev/disk2`.
+Starting from version `0.6.0`, the data are organized in datasets. Think of them like separate disks, something like `/dev/disk1` and `/dev/disk2`.
 
 By default, Secrez generates two datasets: `main` and `trash`. You can create more with, for example, `use -c archive`. The advantage of multiple datasets is mostly for people who have a lot of secrets to manage. If you have 2,000, if they are all in the primary dataset, the system will probably become quite slow. The solution is to move data to separate datasets (`archive`, `backup`, `twitter`, `cryptos`, etc.)
 
@@ -68,7 +68,7 @@ Since files are immutable, the strategy is not obvious. This is what happens in 
 
 Either any unused secret or secret that is rewritten (as a version) is trashed (you can check them in the `trash` dataset).
 
-In any case, all the content are kept.
+In any case, all the contents are kept.
 
 To avoid to repeat the same process on the other computer (which will generate files with different IDs and more deleted items), Alice should align the repo on A before doing anything there. But, if she does not, nothing will be lost anyway.
 
@@ -123,8 +123,6 @@ Basically, running Secrez with different containers (`-c` option) you can set up
 npm install -g secrez
 ```
 
-On same version of MacOS, there can be errors during the install. Search the Internet to find the solution.
-
 At first run, secrez will ask you for the number of iterations (suggested between 500000 and 1000000, but the more the better) and a master password — ideally a phrase hard to guess, but easy to remember and type, something like, for example "heavy march with 2 eggs" or "grace was a glad president".
 
 #### The commands
@@ -169,6 +167,50 @@ Examples:
   import -h   ()
   
 ```
+
+#### Some example
+
+```
+cat myPrivateKey
+```
+
+This command will show the content of an encrypted file, which is called `myPrivateKey`. In particular, it will show the latest version of the file.
+
+Adding options to the command, it is possible to either see a specific version or list all the versions.
+
+The versioning is very important in Secrez because the primary way to backup and distribute the data is using Git. In this case, you want to avoid conflicts that can be not fixable because of the encryption. So, every time there is a change, an entirely new file is created, with metadata about its id and timestamp.
+
+The timestamp is used to assign a version to the file. A version is a 4-letters hash of the timestamp.
+
+Another example:
+
+```
+import ~/Desktop/myWallet.json -m
+```
+
+This command takes the standard file myWallet.json, contained in the Desktop folder, encrypts it, saves it in the encrypted file system, and removes (-m) it from the original folder.
+
+This is one of my favorite commands. In fact, let's say that you have just downloaded the private key to access your crypto wallet, you want to encrypt it as soon as possible. With Secrez, you can import the file and delete the cleartext version in one command.
+
+#### Aliases — where the fun comes :-)
+
+Suppose that you have a card for your bank and like to login to your bank. You could copy email and password to the clipboard to paste them in the browser. Suppose that you expect to be able in 4 seconds to move from the terminal to the browser, you could run the command:    
+
+```
+copy bank.yml -f email password -t 4 3
+```
+This will copy the email field and give you 4 seconds to paste it in the browser. After it will emit a beep and you have 3 seconds to paste the password. It sounds quite useful, but **it can be better.**
+
+If you use that login often, you could like to create an alias for it with:
+```
+alias b -c "copy bank.yml -f email password -t 4 3"
+```
+Next time, you can just type
+```
+b
+```
+and press enter to execute that command. It's fantastic, isn't it?
+
 
 #### Importing from other password/secret managers
 
@@ -238,18 +280,17 @@ If in the CSV file there is also the field `tags`, you can tag automatically any
 
 #### Second factor authentication
 
-Secrez uses external scripts in Python, based on  Python-Fido2 by Yubiko, and it's compatible with any Fido2 authenticator device implementing the hmac-secret extension.
+Since version 0.6.1, Secrez supports 2FA. It uses external scripts in Python, based on  Python-Fido2 by Yubiko, and it's compatible with any Fido2 authenticator device implementing the hmac-secret extension.
 
 To register a new fido2 key with the name `solo`, you can call
 
 ```
 conf -r solo --fido2
 ```
-If some of the requirements are missing, you will see an error message.
 
-After activating the first fido2 key, Secrez asks if you also want to generate an emergency recovery code. It allows you to recover the account if all the registered keys are lost.
+When you activate the first fido2 key, Secrez asks if you also want to generate an emergency recovery code. It allows you to recover the account if all the registered keys are lost.
 
-You can set more than one, with a command like:
+You can set more keys and more recovery codes. For the latter, with a command like:
 
 ```
 conf -r memo --recovery-code
@@ -279,9 +320,9 @@ If solo is the only USB device you set, Secrez removes all the recovery codes an
 
 **Risks**
 
-Adding or removing a second factor changes the keys.json file. So, if you are using a git repository, be sure you don't create conflicts, i.e., don't change the second factor configuration in more computer parallely because you risk to damage your data.
+Adding or removing a second factor changes the keys.json file. So, if you are using a git repository, be sure you don't create conflicts, i.e., don't change the second factor configuration in more computer parallelly because you risk to damage your data.
 
-As a rule of thumb, if you use a git repo, always commit and push before changing the configuration.
+As a rule of thumb, if you use a git repo, always pull before running Secrez, and always commit and push after exiting.
 
 #### Some thoughts
 
