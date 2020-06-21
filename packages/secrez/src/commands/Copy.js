@@ -164,10 +164,8 @@ class Copy extends require('../Command') {
       if (this.counter === counter) {
         let wait = i ? duration[1] : duration[0]
         await this.writeAndWait(content[i], wait, counter)
-        if (i < content.length - 1) {
-          if (this.counter === counter && !options.noBeep) {
-            beep()
-          }
+        if (i < content.length - 1 && this.counter === counter && !options.noBeep) {
+          beep()
         }
       }
     }
@@ -175,10 +173,12 @@ class Copy extends require('../Command') {
 
   async writeAndWait(content, wait, counter) {
     let previousContent = await clipboardy.read()
-    await clipboardy.write(content)
-    await sleep(wait)
-    if (this.counter === counter && content === (await clipboardy.read())) {
-      await clipboardy.write(previousContent)
+    if (this.counter === counter) {
+      await clipboardy.write(content)
+      await sleep(wait)
+      if (this.counter === counter && content === (await clipboardy.read())) {
+        await clipboardy.write(previousContent)
+      }
     }
   }
 
