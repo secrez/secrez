@@ -1,4 +1,3 @@
-
 class Use extends require('../Command') {
 
   setHelpAndCompletion() {
@@ -33,15 +32,15 @@ class Use extends require('../Command') {
   }
 
   completion(self) {
-      return async options => {
-        let datasetsInfo = await this.internalFs.getDatasetsInfo()
-        options.forAutoComplete = true
-        if (options.dataset) {
-          return datasetsInfo.map(e => e.name).filter(e => RegExp('^' + options.dataset).test(e))
-        } else {
-          return datasetsInfo.map(e => e.name)
-        }
+    return async options => {
+      let datasetsInfo = await this.internalFs.getDatasetsInfo()
+      options.forAutoComplete = true
+      if (options.dataset) {
+        return datasetsInfo.map(e => e.name).filter(e => RegExp('^' + options.dataset).test(e))
+      } else {
+        return datasetsInfo.map(e => e.name)
       }
+    }
   }
 
   help() {
@@ -72,20 +71,20 @@ class Use extends require('../Command') {
         throw new Error('The dataset does not exist; add "-c" to create it')
       }
       if (newSet && options.rename) {
-          if (['main', 'trash'].includes(options.dataset)) {
-            throw new Error('main and trash cannot be renamed')
+        if (['main', 'trash'].includes(options.dataset)) {
+          throw new Error('main and trash cannot be renamed')
+        }
+        let name = options.dataset
+        let newName = options.rename
+        for (let dataset of datasetsInfo) {
+          if (dataset.name === newName) {
+            throw new Error(`A dataset named ${newName} already exists`)
           }
-          let name = options.dataset
-          let newName = options.rename
-          for (let dataset of datasetsInfo) {
-            if (dataset.name === newName) {
-              throw new Error(`A dataset named ${newName} already exists`)
-            }
-          }
-          await this.internalFs.mountTree(newIndex)
-          await this.internalFs.trees[newIndex].nameDataset(newName)
-          this.internalFs.updateTreeCache(newIndex, newName)
-          return `The dataset ${name} has been renamed ${newName}`
+        }
+        await this.internalFs.mountTree(newIndex)
+        await this.internalFs.trees[newIndex].nameDataset(newName)
+        this.internalFs.updateTreeCache(newIndex, newName)
+        return `The dataset ${name} has been renamed ${newName}`
       }
       if (newSet && newSet.index === this.internalFs.treeIndex) {
         return `You are already using ${options.dataset}`
@@ -110,7 +109,7 @@ class Use extends require('../Command') {
       if (result) {
         this.Logger.reset(result)
       }
-    } catch(e) {
+    } catch (e) {
       this.Logger.red(e.message)
     }
     this.prompt.run()

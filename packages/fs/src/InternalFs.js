@@ -280,6 +280,9 @@ class InternalFs {
       end = undefined
     }
     try {
+      if (/\?|\*/.test(path.basename(p))) {
+        throw new Error()
+      }
       node = tree.root.getChildFromPath(p)
     } catch (e) {
       end = path.basename(p)

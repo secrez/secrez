@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const {isYaml, yamlParse, yamlStringify, fromCsvToJson} = require('../../src/utils')
+const {isYaml, yamlParse, yamlStringify, fromCsvToJson, TRUE} = require('../../src/utils')
 
 const {yml, yml2} = require('../fixtures')
 
@@ -92,6 +92,14 @@ describe  ('#utils', function () {
       assert.equal(yamlStringify({
         pass: 'PASS'
       }), 'pass: PASS\n')
+    })
+
+  })
+
+  describe('TRUE', async function () {
+
+    it('should return true', async function () {
+      assert.equal(TRUE(), true)
     })
 
   })

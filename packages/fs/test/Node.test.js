@@ -3,7 +3,6 @@ const fs = require('fs-extra')
 const util = require('util')
 const path = require('path')
 const {config, Secrez, Crypto, Entry} = require('@secrez/core')
-const DataCache = require('../src/DataCache')
 const Node = require('../src/Node')
 const {jsonEqual, initRandomNode, setNewNodeVersion, initARootNode} = require('./helpers')
 const {ENTRY_EXISTS} = require('../src/Messages')
@@ -18,6 +17,8 @@ const jlog = require('./helpers/jlog')
 
 describe('#Node', function () {
 
+  let testDir = path.resolve(__dirname, '../tmp/test')
+  fs.emptyDirSync(testDir)
   let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
   const D = config.types.DIR
@@ -30,14 +31,6 @@ describe('#Node', function () {
       let root = initARootNode()
       assert.equal(root.id, config.specialId.ROOT)
 
-    })
-
-    it('should setup the cache and instantiate the Node', async function () {
-
-      let p = path.resolve(__dirname, '../tmp/cache')
-      let cache = new DataCache(p)
-      Node.setCache(cache)
-      assert.equal(Node.getCache().dataPath, p)
     })
 
     it('should throw if passing a rot without required parameters', async function () {

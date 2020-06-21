@@ -7,6 +7,12 @@ class Exit extends require('../Command') {
       // dontSaveHistory: TRUE // not supported, yet
     })
     this.cliConfig.completion.help.exit = true
+    this.optionDefinitions = [
+      {
+        name: 'help',
+        alias: 'h',
+        type: Boolean
+      }]
   }
 
   help() {
@@ -20,6 +26,9 @@ class Exit extends require('../Command') {
   }
 
   async exec(options = {}) {
+    if (options.help) {
+      return this.showHelp()
+    }
     this.Logger.reset('Bye bye :o)')
     /* istanbul ignore if  */
     // eslint-disable-next-line no-constant-condition
