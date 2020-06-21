@@ -295,6 +295,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__0.6.2__
+* `copy` can put many fields in the clipboard, scheduling them
+
 __0.6.1__
 * Add support for U2F keys (Yubikey, Solokeys, etc.)
 * `ls` now returns sorted results

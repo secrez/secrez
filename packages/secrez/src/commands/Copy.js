@@ -1,7 +1,7 @@
 const path = require('path')
 const clipboardy = require('clipboardy')
-const {isYaml, yamlParse, TRUE} = require('../utils')
-
+const {isYaml, yamlParse, TRUE, sleep} = require('../utils')
+const beep = require('beepbeep')
 const {Node} = require('@secrez/fs')
 
 class Copy extends require('../Command') {
@@ -27,6 +27,12 @@ class Copy extends require('../Command') {
       {
         name: 'duration',
         alias: 'd',
+        multiple: true,
+        type: Number
+      },
+      {
+        name: 'durationInMillis',
+        multiple: true,
         type: Number
       },
       {
@@ -37,16 +43,21 @@ class Copy extends require('../Command') {
       {
         name: 'field',
         alias: 'f',
-        type: String
+        type: String,
+        multiple: true
       },
       {
         name: 'version',
         alias: 'v',
-        type: Boolean
+        type: String
       },
       {
         name: 'all-file',
         alias: 'a',
+        type: Boolean
+      },
+      {
+        name: 'no-beep',
         type: Boolean
       }
     ]
@@ -59,11 +70,14 @@ class Copy extends require('../Command') {
       ],
       examples: [
         ['copy ethKeys', 'copies to the clipboard for 10 seconds (the default)'],
-        ['copy google.yml -t 20 -f password', 'copies the password in the google card'],
         ['copy google.yml -j', 'copies the google card as a JSON'],
         ['copy google.yml -a', 'copies the google card as is'],
         ['copy google.yml', 'it will ask to chose the field to copy'],
-        ['copy myKey -v UY5d', 'copies version UY5d of myKey']
+        ['copy myKey -v UY5d', 'copies version UY5d of myKey'],
+        ['copy google.yml -d 10 -f password', 'copies the password in the google card and keeps it in the clipboard for 10 seconds; default is 5 seconds'],
+        ['copy google.yml -f email password -d 3 2', 'copies email and keeps it in the clipboard for 3 seconds, after copies password and keeps it for 2 seconds; a bip will sound when a new data is copied'],
+        ['copy google.yml -f user email password -d 3', 'copies user, email and password, one after the other, with an interval of 3 seconds'],
+        ['copy google.yml -f email password --no-beep', 'copies without emitting a beep at clipboard change']
       ]
     }
   }
@@ -83,7 +97,7 @@ class Copy extends require('../Command') {
     if (Node.isFile(file)) {
       let entry = (await cat.cat({
         path: p,
-        version: options.version,
+        version: options.version ? [options.version] : undefined,
         unformatted: true
       }))[0]
       if (Node.isText(entry)) {
@@ -93,15 +107,18 @@ class Copy extends require('../Command') {
           try {
             parsed = yamlParse(content)
           } catch (e) {
-              throw new Error('The yml is malformed. To copy the entire content, do not use th options -j or -f')
+            throw new Error('The yml is malformed. To copy the entire content, do not use th options -j or -f')
           }
           if (options.json) {
             content = JSON.stringify(parsed, null, 2)
           } else if (options.field) {
-            if (parsed[options.field]) {
-              content = parsed[options.field]
-            } else {
-              throw new Error(`Field "${options.field}" not found in "${path.basename(p)}"`)
+            content = []
+            for (let f of options.field) {
+              if (parsed[f]) {
+                content.push(parsed[f].toString())
+              } else {
+                throw new Error(`Field "${f}" not found in "${path.basename(p)}"`)
+              }
             }
           } else {
             /* istanbul ignore if  */
@@ -117,18 +134,52 @@ class Copy extends require('../Command') {
             }
           }
         }
-        await clipboardy.write(content)
-        setTimeout(async () => {
-          if (content === (await clipboardy.read())) {
-            await clipboardy.write('')
-          }
-        }, 1000 * (options.duration || 10))
+        if (!Array.isArray(content)) {
+          content = [content]
+        }
+        if (!this.counter) {
+          this.counter = 0
+        }
+        this.counter++
+        this.write(content, options, 0 + this.counter)
         return name
       } else {
         throw new Error('You can copy to clipboard only text files.')
       }
     } else {
       throw new Error('Cannot copy a folder')
+    }
+  }
+
+  async write(content, options, counter) {
+    let duration = options.durationInMillis
+        ? options.durationInMillis
+        : options.duration
+            ? options.duration.map(e => 1000 * e)
+            : [5000]
+    if (!duration[1]) {
+      duration[1] = duration[0]
+    }
+    for (let i = 0; i < content.length; i++) {
+      if (this.counter > counter) {
+        break
+      }
+      let wait = i ? duration[1] : duration[0]
+      await this.writeAndWait(content[i], wait, counter)
+      if (i < content.length - 1) {
+        if (!options.noBeep) {
+          beep()
+        }
+      }
+    }
+  }
+
+  async writeAndWait(content, wait, counter) {
+    let previousContent = await clipboardy.read()
+    await clipboardy.write(content)
+    await sleep(wait)
+    if (this.counter === counter && content === (await clipboardy.read())) {
+      await clipboardy.write(previousContent)
     }
   }
 

@@ -60,10 +60,12 @@ describe('#Copy', function () {
       path: '/folder'
     }))
 
+    let previousContent = await clipboardy.read()
+
     inspect = stdout.inspect()
     await C.copy.exec({
       path: 'file',
-      duration: 1
+      durationInMillis: [200]
     })
     inspect.restore()
     assertConsole(inspect, ['Copied to clipboard:', 'file'])
@@ -71,14 +73,19 @@ describe('#Copy', function () {
     await sleep(100)
     assert.equal(await clipboardy.read(), content)
 
-    await sleep(1000)
-    assert.isFalse(!!await clipboardy.read())
+    await sleep(200)
+    assert.equal(await clipboardy.read(), previousContent)
 
   })
 
   it('should copy a card to the clipboard', async function () {
 
-    let content = 'password: s7s7s7s7s\npin: 3625\nnickname: geoge'
+    let content = [
+      'password: s7s7s7s7s',
+      'pin: 3625',
+      'nickname: geoge'
+    ].join('\n')
+
     let p = 'card.yml'
     await noPrint(C.touch.exec({
       path: p,
@@ -88,7 +95,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      duration: 1,
+      duration: [1],
       json: true
     })
     inspect.restore()
@@ -97,14 +104,13 @@ describe('#Copy', function () {
     await sleep(100)
     assert.equal(await clipboardy.read(), JSON.stringify(yamlParse(content), null, 2))
 
-    await sleep(1000)
-    assert.isFalse(!!await clipboardy.read())
+    await sleep(200)
 
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      duration: 1,
-      field: 'password'
+      durationInMillis: [200],
+      field: ['password']
     })
     inspect.restore()
     assertConsole(inspect, ['Copied to clipboard:', 'card.yml'])
@@ -115,8 +121,25 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      duration: 1,
-      field: 'none'
+      durationInMillis: [200],
+      noBeep: true,
+      field: ['pin', 'password']
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Copied to clipboard:', 'card.yml'])
+
+    await sleep(100)
+    assert.equal(await clipboardy.read(), '3625')
+
+    await sleep(200)
+    assert.equal(await clipboardy.read(), 's7s7s7s7s')
+
+
+    inspect = stdout.inspect()
+    await C.copy.exec({
+      path: p,
+      durationInMillis: [10],
+      field: ['none']
     })
     inspect.restore()
     assertConsole(inspect, ['Field "none" not found in "card.yml"'])
@@ -129,14 +152,15 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      duration: 1,
-      field: 'password'
+      duration: [1],
+      field: ['password']
     })
     inspect.restore()
     assertConsole(inspect, ['The yml is malformed. To copy the entire content, do not use th options -j or -f'])
 
 
   })
+
 
   it('should return an error if the file does not exist or is a folder', async function () {
 
