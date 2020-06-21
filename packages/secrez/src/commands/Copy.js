@@ -161,14 +161,13 @@ class Copy extends require('../Command') {
       duration[1] = duration[0]
     }
     for (let i = 0; i < content.length; i++) {
-      if (this.counter > counter) {
-        break
-      }
-      let wait = i ? duration[1] : duration[0]
-      await this.writeAndWait(content[i], wait, counter)
-      if (i < content.length - 1) {
-        if (!options.noBeep) {
-          beep()
+      if (this.counter === counter) {
+        let wait = i ? duration[1] : duration[0]
+        await this.writeAndWait(content[i], wait, counter)
+        if (i < content.length - 1) {
+          if (this.counter === counter && !options.noBeep) {
+            beep()
+          }
         }
       }
     }
