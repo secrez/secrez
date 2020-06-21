@@ -197,13 +197,13 @@ This is one of my favorite commands. In fact, let's say that you have just downl
 Suppose that you have a card for your bank and like to login to your bank. You could copy email and password to the clipboard to paste them in the browser. Suppose that you expect to be able in 4 seconds to move from the terminal to the browser, you could run the command:    
 
 ```
-copy bank.yml -f email password -t 4 3
+copy bank.yml -f email password -d 4 3
 ```
 This will copy the email field and give you 4 seconds to paste it in the browser. After it will emit a beep and you have 3 seconds to paste the password. It sounds quite useful, but **it can be better.**
 
 If you use that login often, you could like to create an alias for it with:
 ```
-alias b -c "copy bank.yml -f email password -t 4 3"
+alias b -c "copy bank.yml -f email password -d 4 3"
 ```
 Next time, you can just type
 ```
