@@ -336,6 +336,12 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__0.6.4__
+* add `alias` to generate alias of any command
+
+__0.6.3__
+* Minor bug fix
+
 __0.6.2__
 * `copy` can put many fields in the clipboard, scheduling them
 
