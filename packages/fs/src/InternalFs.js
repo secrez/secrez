@@ -173,9 +173,11 @@ class InternalFs {
       return node
     }
     entry.preserveContent = true
-    if (entry.parent && (!node.parent || entry.parent.id !== node.parent.id)) {
+
+    if (entry.parent && (!node.parent || entry.parent.id !== node.parent.id || cross)) {
       entry.name = await treeTo.getVersionedBasename(path.join(entry.parent.getPath(), entry.name), entry.parent)
     }
+
     if (entry.name !== node.getName() || entry.content !== node.getContent()) {
       entry = this.secrez.encryptEntry(entry)
       await treeFrom.saveEntry(entry)
@@ -183,7 +185,7 @@ class InternalFs {
 
     if (cross || fromTrash) {
 
-      await this.moveOrUnlink(node, indexFrom, indexTo, fromTrash)
+      await this.moveOrUnlink(node, indexFrom, indexTo, fromTrash, entry)
       let originalParent = treeFrom.root.findChildById(originalParentId, true)
       originalParent.removeChild(node)
       if (cross) {
@@ -203,7 +205,11 @@ class InternalFs {
     return node
   }
 
-  async moveOrUnlink(node, indexFrom, indexTo, unlink) {
+  async moveOrUnlink(node, indexFrom, indexTo, unlink, entry) {
+    if (entry && node.getName() !== entry.name) {
+      node.move(entry)
+      await this.trees[indexFrom].save()
+    }
     let allFiles = await this.trees[indexFrom].getAllDataFiles(node)
     let fromDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexFrom)
     let toDatapath = ConfigUtils.getDatasetPath(this.secrez.config, indexTo)

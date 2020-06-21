@@ -76,7 +76,11 @@ const utils = {
     return process.env.NODE_ENV === 'test' ? 80 : (process.stdout.columns || 80)
   },
 
-  TRUE: () => true
+  TRUE: () => true,
+
+  sleep: async millis => {
+    return new Promise(resolve => setTimeout(resolve, millis))
+  }
 
 }
 

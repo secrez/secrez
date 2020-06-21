@@ -336,15 +336,25 @@ class Tree {
     let dir = path.dirname(p)
     let fn = path.basename(p)
     let ext = path.extname(p)
+    let num = ''
     if (ext) {
       fn = fn.replace(RegExp(ext.replace(/\./, '\\.') + '$'), '')
     }
-    let name = fn + ext
-    let v = 1
+    if (/^\.\d+$/.test(ext)) {
+      num = parseInt(ext.substring(1))
+      ext = ''
+    } else if (/\.\d+$/.test(fn)) {
+      fn = fn.split('.')
+      num = parseInt(fn[1])
+      fn = fn[0]
+    }
+    fn = fn.split(/\.\d+$/)
+    let name = fn + (num ? '.' + num : '') + ext
+    let v = num || 2
     for (; ;) {
       try {
         node.getChildFromPath(path.join(dir, name))
-        name = fn + '.' + (++v) + ext
+        name = fn + '.' + (v++) + ext
       } catch (e) {
         return name
       }
