@@ -211,6 +211,10 @@ b
 ```
 and press enter to execute that command. It's fantastic, isn't it?
 
+Notice that the command above works in you are using the `main` dataset, if you moved to another one, it would fail. When you create an alias, it is better to use absolute paths so that it works everywhere, like:
+```
+copy main:/bank.yml -f email password -d 4 3
+```
 
 #### Importing from other password/secret managers
 
