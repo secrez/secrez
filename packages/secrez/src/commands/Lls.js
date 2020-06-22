@@ -57,16 +57,21 @@ class Lls extends require('../Command') {
     }
   }
 
+  async lls(options) {
+    options.returnIsDir = true
+    let [isDir, list] = await this.externalFs.fileCompletion(options)
+    if (!isDir) {
+      list = await FsUtils.filterLs(options, list)
+    }
+    return list
+  }
+
   async exec(options = {}) {
     if (options.help) {
       return this.showHelp()
     }
     try {
-      options.returnIsDir = true
-      let [isDir, list] = await this.externalFs.fileCompletion(options)
-      if (!isDir) {
-        list = await FsUtils.filterLs(options, list)
-      }
+      let list = await this.lls(options)
       if (list) {
         if (list.length) {
           this.Logger.reset(options.list

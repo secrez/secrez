@@ -211,6 +211,10 @@ b
 ```
 and press enter to execute that command. It's fantastic, isn't it?
 
+Notice that the command above works in you are using the `main` dataset, if you moved to another one, it would fail. When you create an alias, it is better to use absolute paths so that it works everywhere, like:
+```
+copy main:/bank.yml -f email password -d 4 3
+```
 
 #### Importing from other password/secret managers
 
@@ -335,6 +339,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ### History
+
+__0.6.5__
+* add `duration` to `export` to delete the exported file after the duration (in seconds)
 
 __0.6.4__
 * add `alias` to generate alias of any command

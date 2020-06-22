@@ -5,7 +5,7 @@ const fs = require('fs-extra')
 const path = require('path')
 
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint, decolorize} = require('../helpers')
+const {assertConsole, noPrint, decolorize, sleep} = require('../helpers')
 
 const {
   password,
@@ -78,6 +78,35 @@ describe('#Export', function () {
 
     content2 = await C.lcat.lcat({path: path.join(await C.lpwd.lpwd(), 'file.2')})
     assert.equal(content2, content)
+
+  })
+
+  it('should export a file and delete it after 1 second', async function () {
+
+    let content = 'Some secret'
+    let p = '/folder/file'
+
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    await noPrint(C.cd.exec({
+      path: '/folder'
+    }))
+
+    await noPrint(C.export.exec({
+      path: 'file',
+      duration: 1
+    }))
+
+    let list = await C.lls.lls({path: await C.lpwd.lpwd()})
+    assert.equal(list.length, 1)
+
+    await sleep(1200)
+
+    list = await C.lls.lls({path: await C.lpwd.lpwd()})
+    assert.equal(list.length, 0)
 
   })
 
