@@ -340,6 +340,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__0.6.5__
+* add `duration` to `export` to delete the exported file after the duration (in seconds)
+
 __0.6.4__
 * add `alias` to generate alias of any command
 

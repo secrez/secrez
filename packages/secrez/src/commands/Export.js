@@ -1,6 +1,8 @@
 const fs = require('fs-extra')
 const path = require('path')
 
+const {sleep} = require('../utils')
+
 const {Node} = require('@secrez/fs')
 
 class Export extends require('../Command') {
@@ -27,6 +29,11 @@ class Export extends require('../Command') {
         name: 'version',
         alias: 'v',
         type: Boolean
+      },
+      {
+        name: 'duration',
+        alias: 'd',
+        type: Number
       }
     ]
   }
@@ -39,6 +46,7 @@ class Export extends require('../Command') {
       ],
       examples: [
         ['export seed.json', 'decrypts and copies seed.json to the disk'],
+        ['export seed.json -d 30', 'export seed.json and remove it from disk after 30 seconds'],
         ['export ethKeys -v 8uW3', 'exports version 8uW3 of the file']
       ]
     }
@@ -63,10 +71,21 @@ class Export extends require('../Command') {
       let dir = await lpwd.lpwd()
       let newPath = path.join(dir, path.basename(p))
       let name = await efs.getVersionedBasename(newPath)
-      await fs.writeFile(path.join(dir, name), entry.content, Node.isBinary(entry) ? 'base64' : undefined)
+      options.filePath = path.join(dir, name)
+      await fs.writeFile(options.filePath, entry.content, Node.isBinary(entry) ? 'base64' : undefined)
+      if (options.duration) {
+        this.deleteFromDisk(options)
+      }
       return name
     } else {
       throw new Error('Cannot export a folder')
+    }
+  }
+
+  async deleteFromDisk(options) {
+    await sleep(1000 * options.duration)
+    if (await fs.pathExists(options.filePath)) {
+      fs.unlink(options.filePath)
     }
   }
 
