@@ -69,6 +69,7 @@ class Touch extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       this.checkPath(options)
       /* istanbul ignore if  */
       if (options.notVisibleContent) {

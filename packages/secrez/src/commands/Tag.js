@@ -182,6 +182,7 @@ class Tag extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       let result = await this.tag(options)
       if (options.list) {
         if (options.global) {

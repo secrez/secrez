@@ -30,6 +30,7 @@ class Pwd extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       this.Logger.reset(await this.pwd())
     } catch (e) {
       this.Logger.red(e.message)

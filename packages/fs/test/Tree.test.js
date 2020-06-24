@@ -239,12 +239,21 @@ describe('#Tree', function () {
         content: 'some b'
       })
 
+      // jlog(Object.keys(tree.root.flat()))
+
       let files1 = await fs.readdir(`${rootDir}/data`)
       assert.equal(files1.length, 7)
 
       await sleep(100)
 
       await startTree()
+
+      await internalFs.change({
+        path: '/B/b',
+        newPath: '/B/b',
+        content: 'some new B'
+      })
+
 
       await internalFs.make({
         path: '/B/D/g',
@@ -264,7 +273,7 @@ describe('#Tree', function () {
       })
 
       let files2 = await fs.readdir(`${rootDir}/data`)
-      assert.equal(files2.length, 14)
+      assert.equal(files2.length, 15)
 
       let files3 = []
 
@@ -274,6 +283,8 @@ describe('#Tree', function () {
           await fs.move(`${rootDir}/data/${f}`, `${backup}/${f}`)
         }
       }
+
+      // jlog(Object.keys(tree.root.flat()))
 
       await sleep(100)
 
@@ -301,22 +312,24 @@ describe('#Tree', function () {
         await fs.move(`${backup}/${f}`, `${rootDir}/data/${f}`)
       }
 
+      // jlog(Object.keys(tree.root.flat()))
+
       await sleep(300)
 
       await startTree()
-      // jlog(tree.alerts)
 
-      assert.equal(tree.alerts.length, 4)
+      assert.equal(tree.alerts.length, 5)
       assert.equal(tree.alerts[1], '/B/D/g')
-      assert.equal(tree.alerts[2], '/E/L')
+      assert.equal(tree.alerts[2], '/B/b')
       assert.equal(tree.alerts[3], '/E/L/N')
-      assert.equal(tree.alerts[4], undefined)
+      assert.equal(tree.alerts[4], '/E/c')
 
-      // jlog(internalFs.trees[1].root)
+      // jlog(Object.keys(tree.root.flat()))
+
 
       await internalFs.mountTrash()
       const deleteds = internalFs.trees[1].root.children
-      assert.equal(Object.keys(deleteds).length, 3)
+      assert.equal(Object.keys(deleteds).length, 1)
 
     })
 

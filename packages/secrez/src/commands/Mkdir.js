@@ -46,6 +46,7 @@ class Mkdir extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       this.checkPath(options)
       let data = await this.internalFs.getTreeIndexAndPath(options.path)
       let sanitizedPath = Entry.sanitizePath(data.path)

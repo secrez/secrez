@@ -54,6 +54,7 @@ class Lcat extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       let data = await this.lcat(options)
       this.Logger.reset(data)
     } catch (e) {

@@ -117,8 +117,10 @@ class Mv extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       if (options.find) {
         options.newPath = options.destination
+        options.path = options.find
       } else {
         if (options.destination) {
           options.newPath = options.destination
@@ -187,7 +189,6 @@ class Mv extends require('../Command') {
         }
       }
     } catch (e) {
-      console.error(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

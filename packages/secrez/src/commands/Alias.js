@@ -173,6 +173,7 @@ class Alias extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       let result = await this.alias(options)
       if (!Array.isArray(result)) {
         result = [result]

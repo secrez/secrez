@@ -3,7 +3,7 @@ const Logger = require('./utils/Logger')
 const cliConfig = require('./cliConfig')
 const PreCommand = require('./PreCommand')
 
-class Command extends PreCommand{
+class Command extends PreCommand {
 
   constructor(prompt) {
     super()
@@ -50,6 +50,12 @@ class Command extends PreCommand{
   checkPath(options) {
     if (typeof options.path !== 'string' || !options.path) {
       throw new Error('A valid path is required')
+    }
+  }
+
+  validate(options) {
+    if (options._unknown) {
+      throw new Error(`Unknown option: ${options._unknown} `+ chalk.grey(`(run "${this.constructor.name.toLowerCase()} -h" for help)`))
     }
   }
 

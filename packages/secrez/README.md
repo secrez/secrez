@@ -341,6 +341,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.1__
+* Fix issue moving duplicates
+* Adds to `mv` an explicit destination field
+
 __0.7.0__
 * Introduce a more secure derivation process, using the iterations number in the salt. During the upgrade existing second factors of authentication will be removed
 * Allow to change password and number of iterations in `conf`. BE CAREFUl, any change in `conf` can cause conflicts in a remote repo. Don't do the same changes parallelly
@@ -430,38 +434,40 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
+  117 passing (8s)
+
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.22 |    82.26 |     100 |   95.12 |                                 
- src              |   94.92 |    79.17 |     100 |   94.92 |                                 
-  AliasManager.js |    87.5 |       75 |     100 |    87.5 | 27,46,66                        
-  Command.js      |     100 |     87.5 |     100 |     100 | 47                              
+All files         |   95.31 |    82.31 |     100 |   95.22 |                                 
+ src              |   98.28 |    83.33 |     100 |   98.28 |                                 
+  AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
+  Command.js      |   96.43 |       80 |     100 |   96.43 | 58                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   95.05 |    82.67 |     100 |   94.95 |                                 
-  Alias.js        |   91.78 |    79.25 |     100 |   91.67 | 87,98,120,148,153,163           
-  Bash.js         |   92.86 |    66.67 |     100 |   92.86 | 47                              
-  Cat.js          |   98.88 |    88.89 |     100 |   98.88 | 142                             
-  Cd.js           |    96.3 |    86.67 |     100 |    96.3 | 44                              
-  Copy.js         |    97.1 |    78.72 |     100 |   97.06 | 125,168                         
+ src/commands     |   94.99 |    82.57 |     100 |   94.89 |                                 
+  Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 87,98,120,148,153,163           
+  Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
+  Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
+  Cd.js           |   96.43 |    86.67 |     100 |   96.43 | 44                              
+  Copy.js         |   97.14 |    78.72 |     100 |    97.1 | 125,168                         
   Exit.js         |      90 |       50 |     100 |      90 | 30                              
-  Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,98                  
-  Find.js         |   93.55 |       85 |     100 |   93.33 | 84,132,161-165                  
+  Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,99                  
+  Find.js         |   92.31 |       85 |     100 |   92.06 | 84,132,163-167,173              
   Help.js         |   92.13 |    83.58 |     100 |      92 | 49,142-143,160-165,184          
-  Import.js       |   94.81 |    85.11 |     100 |   94.74 | 169,227,229,242,248,290,316-320 
+  Import.js       |   94.84 |    85.11 |     100 |   94.77 | 169,227,229,242,248,290,317-321 
   Lcat.js         |     100 |    85.71 |     100 |     100 | 52                              
-  Lcd.js          |   95.45 |    81.82 |     100 |   95.45 | 47                              
-  Lls.js          |   95.24 |    72.73 |     100 |   95.24 | 86                              
-  Lpwd.js         |   91.67 |      100 |     100 |   91.67 | 37                              
-  Ls.js           |   88.46 |    68.75 |     100 |   86.96 | 65,69,89                        
+  Lcd.js          |   95.65 |    81.82 |     100 |   95.65 | 47                              
+  Lls.js          |   95.45 |    72.73 |     100 |   95.45 | 87                              
+  Lpwd.js         |   92.31 |      100 |     100 |   92.31 | 38                              
+  Ls.js           |   88.89 |    68.75 |     100 |    87.5 | 65,69,90                        
   Mkdir.js        |     100 |    66.67 |     100 |     100 | 38-44                           
-  Mv.js           |   91.76 |    79.17 |     100 |   91.57 | 99,127-133                      
-  Paste.js        |   90.48 |       75 |     100 |   90.48 | 65,69,77,113                    
-  Pwd.js          |   91.67 |      100 |     100 |   91.67 | 35                              
-  Rm.js           |    96.3 |       90 |     100 |   96.15 | 71                              
-  Tag.js          |   98.99 |    93.75 |     100 |   98.94 | 160                             
+  Mv.js           |   90.91 |       78 |     100 |    90.7 | 103,126,137-143                 
+  Paste.js        |    90.7 |       75 |     100 |    90.7 | 65,69,77,114                    
+  Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
+  Rm.js           |   96.43 |       90 |     100 |    96.3 | 72                              
+  Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
   Touch.js        |     100 |    71.43 |     100 |     100 | 56,67                           
-  Use.js          |   98.04 |     93.1 |     100 |   97.92 | 105                             
+  Use.js          |   98.08 |     93.1 |     100 |   97.96 | 105                             
   Ver.js          |      90 |    66.67 |     100 |      90 | 27                              
   index.js        |   94.44 |    57.14 |     100 |   94.12 | 18                              
  src/utils        |     100 |    66.67 |     100 |     100 |                                 

@@ -59,6 +59,7 @@ class Lcd extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       options.all = true
       options.dironly = true
       await this.lcd(options)

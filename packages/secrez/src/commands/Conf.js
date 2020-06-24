@@ -423,6 +423,7 @@ class Conf extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       if (options.fido2 && options.recoveryCode) {
         throw new Error('Conflicting params. Launch "conf -h" for examples.')
       }

@@ -61,6 +61,7 @@ class Rm extends require('../Command') {
       this.Logger.red('File path not specified.')
     } else {
       try {
+        this.validate(options)
         let deleted = await this.rm(options)
         if (deleted.length === 0) {
           this.Logger.green('No files have been deleted.')

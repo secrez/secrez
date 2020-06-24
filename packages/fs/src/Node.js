@@ -489,7 +489,7 @@ class Node {
     return typeof obj === 'object' && obj.constructor.name === 'Node'
   }
 
-  findDirectChildByName(name) {
+  findDirectChildByName(name, id) {
     if (Node.isFile(this)) {
       throw new Error('A file does not have children')
     }
@@ -499,6 +499,9 @@ class Node {
     for (let c in this.children) {
       let child = this.children[c]
       if (child.getName() === name) {
+        if (id && child.id !== id) {
+          break
+        }
         return child
       }
     }
