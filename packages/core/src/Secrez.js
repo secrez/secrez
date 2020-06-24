@@ -5,7 +5,6 @@ const config = require('./config')
 const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
 const utils = require('./utils')
-const bs58 = require('bs58')
 const _Secrez = require('./_Secrez')
 
 let _secrez
@@ -23,13 +22,9 @@ class Secrez {
     this.config = await ConfigUtils.setSecrez(config, container, localWorkingDir)
   }
 
-  async derivePassword(password, iterations) {
-    password = Crypto.SHA3(password)
-    const salt = Crypto.SHA3(password)
-    return bs58.encode(Crypto.deriveKey(password, salt, iterations, 32))
-  }
-
-  async signup(password, iterations) {
+  async signup(password, iterations,
+               testDerivationVersion // to test the upgrade from 1 to 2
+  ) {
     if (!this.config || !this.config.keysPath) {
       throw new Error('Secrez not initiated')
     }
@@ -37,7 +32,13 @@ class Secrez {
 
       let id = Crypto.b58Hash(Crypto.generateKey())
       _secrez = new _Secrez
-      await _secrez.init(password, iterations)
+
+      let derivationVersion = _Secrez.derivationVersion.TWO
+      if (process.env.NODE_ENV === 'test' && testDerivationVersion) {
+        derivationVersion = testDerivationVersion
+      }
+
+      await _secrez.init(password, iterations, derivationVersion)
 
       let {key, hash} = await _secrez.signup()
       this.masterKeyHash = hash
@@ -66,10 +67,17 @@ class Secrez {
         hash,
         when: utils.intToBase58(Date.now())
       }
+      if (derivationVersion === _Secrez.derivationVersion.TWO) {
+        data.derivationVersion = derivationVersion
+      }
       _secrez.setConf(await this.signAndSave(data), true)
     } else {
       throw new Error('An account already exists. Please, sign in or chose a different container directory')
     }
+  }
+
+  async derivePassword(password, iterations, derivationVersion) {
+    return await _Secrez.derivePassword(password, iterations, derivationVersion)
   }
 
   async signAndSave(data) {
@@ -152,6 +160,15 @@ class Secrez {
     }
   }
 
+  async upgradeAccount(password, iterations) {
+    let data = await _secrez.changePassword(password, iterations)
+    _secrez.setConf(await this.signAndSave(data), true)
+  }
+
+  verifyPassword(password) {
+    return _secrez.isItRight(password)
+  }
+
   async signin(password, iterations) {
     if (!this.config || !this.config.keysPath) {
       throw new Error('Secrez not initiated')
@@ -167,7 +184,7 @@ class Secrez {
     const conf = await this.readConf()
     const data = conf.data
     _secrez = new _Secrez
-    await _secrez.init(password, iterations)
+    await _secrez.init(password, iterations, data.derivationVersion)
     /* istanbul ignore if  */
     if (!data.key && !data.keys) {
       throw new Error('No valid data found')
@@ -175,9 +192,14 @@ class Secrez {
     if (data.key) {
       let masterKeyHash = await _secrez.signin(data)
       this.setMasterKeyHash(conf, masterKeyHash)
+      if (!data.derivationVersion) {
+        await this.upgradeAccount()
+        return 1
+      }
     } else {
       throw new Error('A second factor is required')
     }
+    return 0
   }
 
   async getSecondFactorData(authenticator) {
@@ -208,6 +230,11 @@ class Secrez {
     }
     let masterKeyHash = await _secrez.sharedSignin(data, authenticator, secret)
     this.setMasterKeyHash(conf, masterKeyHash)
+    if (!data.derivationVersion) {
+      await this.upgradeAccount()
+      return 1
+    }
+    return 0
   }
 
   setMasterKeyHash(conf, masterKeyHash) {

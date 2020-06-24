@@ -1,16 +1,16 @@
 {
   "name": "@secrez/fs",
-  "version": "0.6.7",
+  "version": "0.7.0",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
-    "test-only": "./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
+    "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
     "posttest": "nyc check-coverage --statements 85 --branches 80 --functions 85 --lines 85"
   },
   "dependencies": {
-    "@secrez/core": "^0.6.0",
+    "@secrez/core": "^0.7.0",
     "base58": "^2.0.1",
     "bs58": "^4.0.1",
     "command-line-args": "^5.1.1",
