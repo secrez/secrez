@@ -3,12 +3,16 @@ const utils = require('./utils')
 const bs58 = require('bs58')
 
 let _masterKey
+let _password
+let _iterations
 let _derivedPassword
 
 class _Secrez {
 
-  async init(password, iterations) {
-    _derivedPassword = await this.derivePassword(password, iterations)
+  async init(password, iterations, derivationVersion) {
+    _password = password
+    _iterations = iterations
+    _derivedPassword = await _Secrez.derivePassword(password, iterations, derivationVersion)
   }
 
   async isInitiated() {
@@ -23,6 +27,23 @@ class _Secrez {
       key,
       hash
     }
+  }
+
+  isItRight(password) {
+    // to allow to change it
+    return password === _password
+  }
+
+  async changePassword(password = _password, iterations = _iterations) {
+    let data = this.conf.data
+    let dv = _Secrez.derivationVersion.TWO
+    _password = password
+    _iterations = iterations
+    _derivedPassword = await _Secrez.derivePassword(password, iterations, dv)
+    delete data.keys
+    data.key = this.preEncrypt(_masterKey)
+    data.derivationVersion = dv
+    return data
   }
 
   async restoreKey() {
@@ -77,9 +98,15 @@ class _Secrez {
     }
   }
 
-  async derivePassword(password, iterations) {
+  static async derivePassword(
+      password = _password,
+      iterations,
+      derivationVersion
+  ) {
     password = Crypto.SHA3(password)
-    const salt = Crypto.SHA3(password)
+    let salt = derivationVersion === _Secrez.derivationVersion.TWO
+        ? Crypto.SHA3(password + iterations.toString())
+        : Crypto.SHA3(password)
     return bs58.encode(Crypto.deriveKey(password, salt, iterations, 32))
   }
 
@@ -145,5 +172,9 @@ class _Secrez {
 
 }
 
+_Secrez.derivationVersion = {
+  ONE: '1',
+  TWO: '2'
+}
 
 module.exports = _Secrez

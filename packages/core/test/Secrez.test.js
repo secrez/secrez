@@ -13,8 +13,10 @@ const jlog = require('./helpers/jlog')
 
 const {
   password,
+  newPassword,
   iterations,
   hash23456iterationsNoSalt,
+  hash23456iterationsNoSaltVersionTwo,
   secondFactor
 } = require('./fixtures')
 
@@ -61,6 +63,11 @@ describe('#Secrez', function () {
         assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterationsNoSalt)
       })
 
+      it('should derive a password and obtain a predeterminded hash with version two', async function () {
+        let derivedPassword = await secrez.derivePassword(password, iterations, '2')
+        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterationsNoSaltVersionTwo)
+      })
+
     })
 
     describe('signup and signin', async function () {
@@ -91,6 +98,54 @@ describe('#Secrez', function () {
         secrez.signout()
         assert.isUndefined(secrez.masterKeyHash)
         await secrez.signin(password)
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
+
+      })
+
+      it('should signup with version one, and signin and upgrade to version two', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations, '1')
+        await secrez.saveIterations(iterations)
+        masterKeyHash = secrez.masterKeyHash
+        secrez.signout()
+        await secrez.signin(password)
+        secrez.signout()
+        await secrez.signin(password)
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
+      })
+
+      it('should signup the user, change password and signin', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+        await secrez.saveIterations(iterations)
+        masterKeyHash = secrez.masterKeyHash
+        await secrez.upgradeAccount(newPassword)
+        secrez.signout()
+        assert.isUndefined(secrez.masterKeyHash)
+        await secrez.signin(newPassword)
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
+      })
+
+      it('should signup the user, change iterations and signin', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+        masterKeyHash = secrez.masterKeyHash
+        await secrez.upgradeAccount(undefined, iterations + 100)
+        secrez.signout()
+        assert.isUndefined(secrez.masterKeyHash)
+        await secrez.signin(password, iterations + 100)
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
+      })
+
+      it('should signup the user, change password and iterations and signin', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+        masterKeyHash = secrez.masterKeyHash
+        assert.isTrue(secrez.verifyPassword(password))
+        await secrez.upgradeAccount(newPassword, iterations + 100)
+        secrez.signout()
+        assert.isUndefined(secrez.masterKeyHash)
+        await secrez.signin(newPassword, iterations + 100)
         assert.equal(masterKeyHash, secrez.masterKeyHash)
 
       })
@@ -494,6 +549,37 @@ describe('#Secrez', function () {
         secrez.signout()
 
         await secrez.signin(password, iterations)
+        assert.isDefined(secrez.masterKeyHash)
+
+      })
+
+      it('should set up a second factor and then upgrade from derivationVersion 1 to 2', async function () {
+        await secrez.signup(password, iterations, '1')
+
+        let parts = secrez.generateSharedSecrets(secret)
+        let sharedData = {
+          parts,
+          type: config.sharedKeys.FIDO2_KEY,
+          authenticator,
+          secret,
+          id,
+          salt,
+          credential
+        }
+        await secrez.saveSharedSecrets(sharedData)
+
+        let authData = await secrez.getSecondFactorData(authenticator)
+        assert.equal(Object.keys(authData).sort().join(' '), 'credential id parts salt secret type')
+
+        secrez.signout()
+        try {
+          await secrez.signin(password, iterations)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'A second factor is required')
+        }
+
+        await secrez.sharedSignin(authenticator, secret)
         assert.isDefined(secrez.masterKeyHash)
 
       })

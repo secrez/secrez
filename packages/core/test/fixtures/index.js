@@ -1,5 +1,6 @@
 module.exports = {
   password: 'unaSTRANA342',
+  newPassword: 'sa7sau3h33y2hhes',
   b58Hash: 'J5JDehfYiYFyRcySdHQNiCJdVrsrUyVtpCEXU7fBQ6q3',
   passwordSHA3Hex: 'fdb07834d77b30a750f3b14ab06b000730ee2f2bb52a842fc78d72d88c82038e',
   passwordB64: 'dW5hU1RSQU5BMzQy',
@@ -8,6 +9,7 @@ module.exports = {
   iterationsB58: '7Yq',
   hash23456iterations: 'GCF7ytpi9DyMPbuDhLj6vW1oSe99nBTLzABcb1qvTeLY',
   hash23456iterationsNoSalt: 'ErQE64oXPPs7QqbirznqzCap3KNyMKDZZZBexRfhS7Pb',
+  hash23456iterationsNoSaltVersionTwo: '621vXeh5P96cRCjRvEtiquBjQ9nDv5vWqpzENyMoWia5',
   secondFactor: {
     authenticator: 'yubo',
     id: '7sheywt3rfse',

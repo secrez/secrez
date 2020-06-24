@@ -1,3 +1,4 @@
+const chalk = require('chalk')
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
 const cliConfig = require('./cliConfig')
@@ -131,9 +132,14 @@ class Welcome {
             }
             secret = p.recoveryCode
           }
-          await secrez.sharedSignin(authenticator, secret)
+          let resCode = await secrez.sharedSignin(authenticator, secret)
           if (secrez.masterKeyHash) {
             await this.saveIterations(secrez)
+          }
+          if (resCode === 1) {
+            Logger.bold(chalk.red('Your data has been upgraded.'))
+            Logger.red('To avoid conflicts, any registered second factor has been removed.')
+            Logger.grey('Please, register them again, thanks.')
           }
           return
         } catch (e) {

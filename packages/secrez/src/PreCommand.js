@@ -1,6 +1,7 @@
 const {chalk} = require('./utils/Logger')
 const {Crypto} = require('@secrez/core')
 
+
 class PreCommand {
 
   async useEditor(options) {
@@ -77,22 +78,20 @@ class PreCommand {
         default: options.content,
         validate: val => {
           if (val) {
-            if (options.validate) {
-              if (options.validate(val)) {
-                return chalk.red(options.onValidate)
-              }
-            } else {
+            if (val === exitCode) {
+              return true
+            } else if (options.validate) {
+              return options.validate(val, exitCode)
+            } else if (val.length) {
               return true
             }
           }
-          return chalk.grey(`Please, type the ${options.name}, or cancel typing ${exitCode}`)
+          return chalk.grey(`Please, type the ${options.name}, or cancel typing ${chalk.bold(exitCode)}`)
         }
       }
     ])
     if (result !== exitCode) {
       return result
-    } else {
-      return options.content
     }
   }
 

@@ -106,7 +106,8 @@ secrez -si 876352
 where the `-s` option saves the number locally in a git-ignored `env.json` file. This way you don't have to retype it all the time to launch Secrez (typing a wrong number of iterations, of course, will produce an error).
 
 If you don't explicitly set up the number of iterations, a value for that is asked during the set up, before your password, and, if you passed the options `-s`, is saved in `env.json`.
-If starting your account, you put a large number and you think that it's too slow for your computer, delete the Secrez folder (by default `rm -rf ~/.secrez`) and restart.
+
+Starting from version 0.7.0, you can change the number of iterations using, as well as the password, using `conf`.
 
 Other options are:
 
@@ -340,11 +341,15 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__0.7.0__
+* Introduce a more secure derivation process, using the iterations number in the salt. During the upgrade existing second factors of authentication will be removed
+* Allow to change password and number of iterations in `conf`. BE CAREFUl, any change in `conf` can cause conflicts in a remote repo. Don't do the same changes parallelly
+
 __0.6.5__
-* add `duration` to `export` to delete the exported file after the duration (in seconds)
+* Add `duration` to `export` to delete the exported file after the duration (in seconds)
 
 __0.6.4__
-* add `alias` to generate alias of any command
+* Add `alias` to generate alias of any command
 
 __0.6.3__
 * Minor bug fix
@@ -355,12 +360,12 @@ __0.6.2__
 __0.6.1__
 * Add support for U2F keys (Yubikey, Solokeys, etc.)
 * `ls` now returns sorted results
-* fixed bug with `mv` and `rm` when using wildcards
-* dynamic format for help, managing large examples
+* Fixed bug with `mv` and `rm` when using wildcards
+* Dynamic format for help, managing large examples
 
 __0.6.0__
 * Allow multiple datasets; `main` and `trash` exists by default
-* at start, purges old trees after successfully loading a dataset
+* At start, purges old trees after successfully loading a dataset
 * `use` allows to use and create new dataset
 * `mv` supports `-d, --destination` for the destination
 * `mv` allows to move files among datasets with a syntax like `mv somefile archive:/` or `mv archive:somefile main:/some/`
@@ -368,8 +373,8 @@ __0.6.0__
 * `mv`, if no destination set, asks if like to use the active directory in the target dataset
 * `ls -o d` and `ls -o f` to limit the listing only to folders or files
 * `copy` allows to select the field to copy in yaml files
-* improve autocomplete to handle datasets
-* fix autocomplete in `lcat`, which was wrongly using the internal files
+* Improve autocomplete to handle datasets
+* Fix autocomplete in `lcat`, which was wrongly using the internal files
 * `tag` is able to list and show tags along all the datasets, anche can use `--find` like `mv`
 
 __0.5.13__

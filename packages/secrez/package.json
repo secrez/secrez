@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.6.5",
+  "version": "0.7.0",
   "license": "MIT",
   "scripts": {
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -20,8 +20,8 @@
     ]
   },
   "dependencies": {
-    "@secrez/core": "^0.6.0",
-    "@secrez/fs": "^0.6.7",
+    "@secrez/core": "^0.7.0",
+    "@secrez/fs": "^0.7.0",
     "beepbeep": "^1.3.0",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
@@ -34,6 +34,7 @@
     "inquirer": "^7.1.0",
     "inquirer-command-prompt": "^0.0.27",
     "lodash": "^4.17.15",
+    "secrez": "^0.6.5",
     "tiny-cli-editor": "^0.1.1",
     "yaml": "^1.9.2"
   },
