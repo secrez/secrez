@@ -65,6 +65,7 @@ class Cd extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       await this.cd(options)
     } catch (e) {
       this.Logger.red(e.message)

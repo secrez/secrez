@@ -430,14 +430,16 @@ describe('#Mv', function () {
     })
 
     await noPrint(C.mv.exec({
-      find: ['car', '/destination'],
+      find: 'car',
+      destination: '/destination',
       span: true
     }))
 
     assert.equal(Object.keys(destination.children).length, 2)
 
     await noPrint(C.mv.exec({
-      find: ['joke', '/destination'],
+      find: 'joke',
+      destination: '/destination',
       contentToo: true,
       span: true
     }))
@@ -456,7 +458,8 @@ describe('#Mv', function () {
     })
 
     await noPrint(C.mv.exec({
-      find: ['vello', '/destination'],
+      find: 'vello',
+      destination: '/destination',
       contentToo: true
     }))
 
@@ -474,7 +477,8 @@ describe('#Mv', function () {
     })
 
     await noPrint(C.mv.exec({
-      find: ['vello', '/destination'],
+      find: 'vello',
+      destination: '/destination',
       contentToo: true,
       span: true
     }))

@@ -71,6 +71,7 @@ class Lls extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       let list = await this.lls(options)
       if (list) {
         if (list.length) {

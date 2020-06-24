@@ -187,6 +187,7 @@ class Copy extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       let name = await this.copy(options)
       this.Logger.green('Copied to clipboard:')
       this.Logger.reset(name)

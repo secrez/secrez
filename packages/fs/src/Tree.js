@@ -165,10 +165,20 @@ class Tree {
           if (filesNotOnTree.length || recoveredEntries.length) {
             this.alerts = ['Some files/versions have been recovered:']
             if (recoveredEntries.length) {
-              this.alerts = this.alerts.concat(recoveredEntries)
+
+              for (let i=0;i<recoveredEntries.length;i++) {
+                if (!i) {
+                  continue
+                }
+                if (recoveredEntries[i-1].substring(0, recoveredEntries[i].length) === recoveredEntries[i]) {
+                  recoveredEntries.splice(i--,1)
+                }
+              }
+
+              this.alerts = this.alerts.concat(this.optimizeResults(recoveredEntries))
             }
             if (filesNotOnTree.length) {
-              this.alerts = this.alerts.concat(await this.recoverUnlisted(filesNotOnTree))
+              this.alerts = this.alerts.concat(this.optimizeResults(await this.recoverUnlisted(filesNotOnTree)))
             }
             await this.save()
           }
@@ -207,6 +217,19 @@ class Tree {
       await this.loadTags()
     }
     this.status = Tree.statutes.LOADED
+  }
+
+  optimizeResults(entries) {
+    entries.reverse()
+    for (let i=0;i<entries.length;i++) {
+      if (!i) {
+        continue
+      }
+      if (entries[i-1].substring(0, entries[i].length) === entries[i]) {
+        entries.splice(i--,1)
+      }
+    }
+    return entries.reverse()
   }
 
   datedName(prefix) {
@@ -250,7 +273,7 @@ class Tree {
     // console.log(parent.getPath(), entry.name)
     let done = false
     let name = entry.name
-    let existentChild = parent.findDirectChildByName(name)
+    let existentChild = parent.findDirectChildByName(name, entry.id)
     if (existentChild) {
       if (existentChild.type === entry.type) {
 
@@ -261,7 +284,7 @@ class Tree {
           let tempDetails = await this.getEntryDetails(temporaryNode)
           if (details.content !== tempDetails.content) {
             entry.content = tempDetails.content
-            existentChild.update(entry)
+            existentChild.move(entry)
             done = true
           }
         }

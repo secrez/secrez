@@ -77,6 +77,7 @@ class Ls extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       let list = await this.ls(options)
       list = list.filter(e => !/^\./.test(e) || options.all).sort()
       if (list.length) {

@@ -297,6 +297,7 @@ class Import extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       if (options.expand) {
         await this.expand(options)
       } else {

@@ -105,6 +105,7 @@ class Use extends require('../Command') {
       return this.showHelp()
     }
     try {
+      this.validate(options)
       let result = await this.use(options)
       if (result) {
         this.Logger.reset(result)

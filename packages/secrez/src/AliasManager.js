@@ -14,15 +14,12 @@ class AliasManager {
     return cache
   }
 
-  // list() {
-  //   return cache.list('alias')
-  // }
-  //
   get(alias) {
     return cache.get('alias', alias)
   }
 
   validateCommand(line, regularCmds) {
+    /* istanbul ignore if  */
     if (!line) {
       return 'No previous command'
     }
@@ -42,6 +39,7 @@ class AliasManager {
   }
 
   async create(options) {
+    /* istanbul ignore if  */
     if (this.get(options.name)) {
       throw new Error(`An alias named "${options.name}" already exists`)
     }
@@ -63,7 +61,6 @@ class AliasManager {
         commandLine: old.content
       })
     }
-    return false
   }
 
 }
