@@ -342,6 +342,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 ### History
 
 __7.0.1__
+* Calling a command with unknown options will generate an error
 * Fix issue moving duplicates
 * Adds to `mv` an explicit destination field
 
