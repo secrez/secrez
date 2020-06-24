@@ -65,7 +65,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: 'file',
-      durationInMillis: [200]
+      duration: [0.2]
     })
     inspect.restore()
     assertConsole(inspect, ['Copied to clipboard:', 'file'])
@@ -75,6 +75,21 @@ describe('#Copy', function () {
 
     await sleep(200)
     assert.equal(await clipboardy.read(), previousContent)
+
+  })
+
+  it('should copy a string to the clipboard', async function () {
+
+    inspect = stdout.inspect()
+    await C.copy.exec({
+      thisString: 'caruso',
+      duration: [0.2]
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Copied to clipboard:', '"caruso"'])
+
+    await sleep(100)
+    assert.equal(await clipboardy.read(), 'caruso')
 
   })
 
@@ -109,7 +124,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      durationInMillis: [200],
+      duration: [0.2],
       field: ['password']
     })
     inspect.restore()
@@ -121,7 +136,7 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: p,
-      durationInMillis: [200],
+      duration: [0.2],
       noBeep: true,
       field: ['pin', 'password']
     })
@@ -156,7 +171,7 @@ describe('#Copy', function () {
       field: ['password']
     })
     inspect.restore()
-    assertConsole(inspect, ['The yml is malformed. To copy the entire content, do not use th options -j or -f'])
+    assertConsole(inspect, ['The yml is malformed. To copy the entire content, do not use the options -j or -f'])
 
 
   })

@@ -31,11 +31,6 @@ class Copy extends require('../Command') {
         type: Number
       },
       {
-        name: 'durationInMillis',
-        multiple: true,
-        type: Number
-      },
-      {
         name: 'json',
         alias: 'j',
         type: Boolean
@@ -59,6 +54,10 @@ class Copy extends require('../Command') {
       {
         name: 'no-beep',
         type: Boolean
+      },
+      {
+        name: 'this-string',
+        type: String
       }
     ]
   }
@@ -83,6 +82,14 @@ class Copy extends require('../Command') {
   }
 
   async copy(options = {}) {
+    if (!this.counter) {
+      this.counter = 0
+    }
+    if (options.thisString) {
+      this.counter++
+      this.write([options.thisString], options, 0 + this.counter)
+      return `"${options.thisString}"`
+    }
     let cat = this.prompt.commands.cat
     let currentIndex = this.internalFs.treeIndex
     let data = await this.internalFs.getTreeIndexAndPath(options.path)
@@ -107,7 +114,7 @@ class Copy extends require('../Command') {
           try {
             parsed = yamlParse(content)
           } catch (e) {
-            throw new Error('The yml is malformed. To copy the entire content, do not use th options -j or -f')
+            throw new Error('The yml is malformed. To copy the entire content, do not use the options -j or -f')
           }
           if (options.json) {
             content = JSON.stringify(parsed, null, 2)
@@ -137,9 +144,6 @@ class Copy extends require('../Command') {
         if (!Array.isArray(content)) {
           content = [content]
         }
-        if (!this.counter) {
-          this.counter = 0
-        }
         this.counter++
         this.write(content, options, 0 + this.counter)
         return name
@@ -152,9 +156,7 @@ class Copy extends require('../Command') {
   }
 
   async write(content, options, counter) {
-    let duration = options.durationInMillis
-        ? options.durationInMillis
-        : options.duration
+    let duration = options.duration
             ? options.duration.map(e => 1000 * e)
             : [5000]
     if (!duration[1]) {
@@ -189,7 +191,7 @@ class Copy extends require('../Command') {
     try {
       this.validate(options)
       let name = await this.copy(options)
-      this.Logger.green('Copied to clipboard:')
+      this.Logger.grey('Copied to clipboard:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

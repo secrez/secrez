@@ -96,7 +96,7 @@ class Export extends require('../Command') {
     try {
       this.validate(options)
       let name = await this.export(options)
-      this.Logger.green(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
+      this.Logger.grey(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

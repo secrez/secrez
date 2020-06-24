@@ -57,7 +57,7 @@ class Conf extends require('../Command') {
 
   help() {
     return {
-      description: ['Configure a second factor using an Fido2 key'],
+      description: ['Configure security data (2FA, password, number of iterations).'],
       examples: [
         ['conf --fido2 -r solo',
           'registers a new key saving it as "solo"; if there are registered keys, it will checks if the new one is one of them before adding it.'],
@@ -170,7 +170,7 @@ class Conf extends require('../Command') {
     await this.secrez.saveSharedSecrets(sharedData)
     await client.updateConf()
     this.Logger.reset('Your recover code is:')
-    this.Logger.green(recoveryCode)
+    this.Logger.bold(recoveryCode)
     await this.saveAndOverwrite(`main:/.RECOVERY_CODE_${authenticator}`, 'recovery code', recoveryCode, 'it')
     this.Logger.reset('When possible, "cat" it and save it in a safe place.')
   }

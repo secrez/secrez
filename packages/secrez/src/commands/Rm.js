@@ -64,9 +64,12 @@ class Rm extends require('../Command') {
         this.validate(options)
         let deleted = await this.rm(options)
         if (deleted.length === 0) {
-          this.Logger.green('No files have been deleted.')
+          this.Logger.grey('No files have been deleted.')
         } else {
-          this.Logger.green('Deleted entries:\n' + deleted.join('\n'))
+          this.Logger.grey('Deleted entries:')
+          for (let d of deleted) {
+            this.Logger.reset(d)
+          }
         }
       } catch (e) {
         this.Logger.red(e.message)

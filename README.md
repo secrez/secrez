@@ -341,6 +341,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.2__
+* `totp` allows to generate TOTP codes (like Google Authenticator)
+
 __7.0.1__
 * Calling a command with unknown options will generate an error
 * Fix issue moving duplicates
@@ -435,22 +438,22 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  117 passing (8s)
+  120 passing (9s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.31 |    82.31 |     100 |   95.22 |                                 
- src              |   98.28 |    83.33 |     100 |   98.28 |                                 
+All files         |   95.25 |    81.54 |     100 |   95.15 |                                 
+ src              |   98.31 |    83.33 |     100 |   98.31 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
-  Command.js      |   96.43 |       80 |     100 |   96.43 | 58                              
+  Command.js      |   96.55 |       80 |     100 |   96.55 | 59                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   94.99 |    82.57 |     100 |   94.89 |                                 
+ src/commands     |   94.93 |    81.75 |     100 |   94.83 |                                 
   Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 87,98,120,148,153,163           
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
   Cd.js           |   96.43 |    86.67 |     100 |   96.43 | 44                              
-  Copy.js         |   97.14 |    78.72 |     100 |    97.1 | 125,168                         
+  Copy.js         |    97.3 |    78.72 |     100 |   97.26 | 132,170                         
   Exit.js         |      90 |       50 |     100 |      90 | 30                              
   Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,99                  
   Find.js         |   92.31 |       85 |     100 |   92.06 | 84,132,163-167,173              
@@ -465,8 +468,9 @@ All files         |   95.31 |    82.31 |     100 |   95.22 |
   Mv.js           |   90.91 |       78 |     100 |    90.7 | 103,126,137-143                 
   Paste.js        |    90.7 |       75 |     100 |    90.7 | 65,69,77,114                    
   Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
-  Rm.js           |   96.43 |       90 |     100 |    96.3 | 72                              
+  Rm.js           |   96.67 |       90 |     100 |   96.55 | 75                              
   Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
+  Totp.js         |   92.31 |    57.14 |     100 |   92.31 | 70,84,97                        
   Touch.js        |     100 |    71.43 |     100 |     100 | 56,67                           
   Use.js          |   98.08 |     93.1 |     100 |   97.96 | 105                             
   Ver.js          |      90 |    66.67 |     100 |      90 | 27                              

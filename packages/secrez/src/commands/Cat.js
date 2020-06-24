@@ -182,7 +182,7 @@ class Cat extends require('../Command') {
         for (let d of data) {
           let {content, ts, type, name} = d
           if (extra) {
-            this.Logger.green(`${this.formatTs(ts, fn === name ? undefined : name)}`)
+            this.Logger.grey(`${this.formatTs(ts, fn === name ? undefined : name)}`)
           }
           if (type === config.types.TEXT) {
             if (_.trim(content)) {

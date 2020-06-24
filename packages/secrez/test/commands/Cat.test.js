@@ -174,7 +174,7 @@ describe('#Cat', function () {
     await C.cat.exec({path: 'file.yml', field: 'password'})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
-    assert.equal(output[0], 'password: 93939393848484\n')
+    assert.equal(output[0], 'password: 93939393848484')
 
     inspect = stdout.inspect()
     await C.cat.exec({path: 'file.yml'})
@@ -187,9 +187,9 @@ describe('#Cat', function () {
     inspect.restore()
     output = inspect.output.map(e => decolorize(e))
 
-    assert.equal(output[1],  'expose: 6379\n')
-    assert.equal(output[3],  '-- empty field --\n')
-    assert.equal(output[5],  'expose: 6378\n')
+    assert.equal(output[1],  'expose: 6379')
+    assert.equal(output[3],  '-- empty field --')
+    assert.equal(output[5],  'expose: 6378')
 
     inspect = stdout.inspect()
     await C.cat.exec({path: 'file.yml', all: true})
