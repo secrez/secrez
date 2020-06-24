@@ -34,11 +34,6 @@ class Edit extends require('../Command') {
         type: Boolean
       },
       {
-        name: 'create',
-        alias: 'c',
-        type: Boolean
-      },
-      {
         name: 'field',
         alias: 'f',
         type: String
@@ -47,7 +42,7 @@ class Edit extends require('../Command') {
         name: 'unformatted',
         alias: 'u',
         type: Boolean,
-        hint: 'If a Yaml file, it edit it without parsing the file'
+        hint: 'If a Yaml file, it edits it without parsing the file'
       }
     ]
   }
@@ -64,10 +59,9 @@ class Edit extends require('../Command') {
       ],
       examples: [
         ['edit ../coins/ether2-pwd', 'uses the OS default editor'],
-        ['edit ../bitcoin/seed -i', 'uses the minimalistic internalZ editor'],
+        ['edit ../bitcoin/seed -i', 'uses the minimalistic internal editor'],
         ['edit ../bitcoin/seed -e nano', 'choses the editor, in this case nano'],
         ['edit ../bitcoin/seed -e vim', 'uses vim'],
-        ['edit babyFile -c', 'creates and edits a new file'],
         ['edit gmail.yml -f password', 'edits only the field password of the yaml file. If the field does not exist, a new field is added'],
         ['edit damaged.yaml -u', 'edits damaged.yaml without parsing it']
       ]
@@ -82,13 +76,12 @@ class Edit extends require('../Command') {
       fileData = await this.prompt.commands.cat.cat({path: file}, true)
       exists = true
     } catch (e) {
-      if (options.create) {
-        await this.prompt.commands.touch.touch({path: file})
-        fileData = await this.prompt.commands.cat.cat({path: file}, true)
-      } else {
-        throw e
+      if (options.field) {
+        throw new Error('Field can be specified only for existent files')
       }
+      fileData = [{content: ''}]
     }
+
     let fields = {}
     if (exists && !options.unformatted && isYaml(file)) {
       fields = fileData[0].content ? yamlParse(fileData[0].content) : {}
@@ -108,20 +101,26 @@ class Edit extends require('../Command') {
     } else if (!isYaml(file)) {
       delete options.field
     }
-    let node = this.internalFs.tree.workingNode.getChildFromPath(file)
     let content = options.field ? fields[options.field] || '' : fileData[0].content
-
     let newContent = await this.useEditor(Object.assign(options, {content}))
 
     if (newContent && newContent !== content) {
-      let entry = node.getEntry()
-      if (options.field) {
-        fields[options.field] = _.trim(newContent)
-        entry.content = yamlStringify(fields)
+      if (exists) {
+        let node = this.internalFs.tree.workingNode.getChildFromPath(file)
+        let entry = node.getEntry()
+        if (options.field) {
+          fields[options.field] = _.trim(newContent)
+          entry.content = yamlStringify(fields)
+        } else {
+          entry.content = newContent
+        }
+        await this.internalFs.tree.update(node, entry)
       } else {
-        entry.content = newContent
+        await this.prompt.commands.touch.touch({
+          path: file,
+        content: newContent
+        })
       }
-      await this.internalFs.tree.update(node, entry)
       this.Logger.reset('File saved.')
     } else {
       this.Logger.reset('Changes aborted or file not changed')

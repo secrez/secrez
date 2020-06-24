@@ -93,6 +93,7 @@ class Find extends require('../Command') {
       }
       return results
     } else {
+      console.log(options.name)
       let data = await this.internalFs.getTreeIndexAndPath(options.name)
       if (withDataset) {
         options.dataset = data.name

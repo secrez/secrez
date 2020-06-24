@@ -24,8 +24,12 @@ class Mv extends require('../Command') {
       },
       {
         name: 'find',
-        type: String,
-        multiple: true
+        type: String
+      },
+      {
+        name: 'destination',
+        alias: 'd',
+        type: String
       },
       {
         name: 'content-too',
@@ -55,9 +59,9 @@ class Mv extends require('../Command') {
           'moves all the files starting from email contained in /old/email',
           'in the "archive" dataset to the folder "/old-email" in the current dataset'
         ],
-        ['mv --find email /emails', 'moves all the files found searching email to /emails;'],
-        ['mv --find email /emails --content-too', 'moves all the files found searching email in paths and contents'],
-        ['mv --find email archive:/emails --span ', 'moves all the files flattening the results']
+        ['mv --find email -d /emails', 'moves all the files found searching email to /emails;'],
+        ['mv --find email -d /emails --content-too', 'moves all the files found searching email in paths and contents'],
+        ['mv --find email -d archive:/emails --span ', 'moves all the files flattening the results']
       ]
     }
   }
@@ -114,10 +118,14 @@ class Mv extends require('../Command') {
     }
     try {
       if (options.find) {
-        options.newPath = options.find[1]
-        options.find = options.find[0]
+        options.newPath = options.destination
       } else {
-        options.newPath = options.path[1]
+        if (options.destination) {
+          options.newPath = options.destination
+
+        } else {
+          options.newPath = options.path[1]
+        }
         options.path = options.path[0]
       }
       if (!options.path && !options.find) {
@@ -179,6 +187,7 @@ class Mv extends require('../Command') {
         }
       }
     } catch (e) {
+      console.error(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()
