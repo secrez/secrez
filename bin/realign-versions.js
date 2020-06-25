@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs')
 const {execSync} = require('child_process')
-const _ = require('../packages/secrez/node_modules/lodash')
 const pc = path.resolve(__dirname, '../packages/core/package.json')
 const pf = path.resolve(__dirname, '../packages/fs/package.json')
 const ps = path.resolve(__dirname, '../packages/secrez/package.json')
@@ -9,10 +8,19 @@ const pkgc = require(pc)
 const pkgf = require(pf)
 const pkgs = require(ps)
 
-let [a,b,c,f,s] = process.argv
-c = c.split(' ')[1]
-f = f.split(' ')[1]
-s = s.split(' ')[1]
+const branch=execSync('git rev-parse --abbrev-ref HEAD').toString().replace(/(v|\n)/g, '')
+
+function getDiff(dir, pkg) {
+  if (execSync(`git diff master..$BRANCH packages/${dir}`).toString().split('\n')[0]) {
+    let ver = execSync(`npm view ${pkg || dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
+    return ver
+  }
+  return '0'
+}
+
+let c = getDiff('core', '@secrez/core')
+let f = getDiff('fs', '@secrez/fs')
+let s = getDiff('secrez')
 
 let c2 = pkgc.version
 let f2 = pkgf.version
@@ -26,7 +34,7 @@ let cf = cs = 0
 let changes = false
 
 function getVersion(pkg) {
-  return _.trim(execSync(`cd ${path.resolve(__dirname, `../packages/${pkg}`)} && npm version patch`).toString().replace(/v/, ''))
+  return execSync(`cd ${path.resolve(__dirname, `../packages/${pkg}`)} && npm version patch`).toString().replace(/(v|\n)/g, '')
 }
 
 if (c && c === c2) {

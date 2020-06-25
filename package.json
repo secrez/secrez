@@ -10,6 +10,7 @@
     "test-only": "lerna run test-only --stream -- --colors",
     "lint": "lerna run lint",
     "reset": "bin/clean-all-modules.sh && lerna bootstrap",
+    "realign": "node bin/realign-versions.js",
     "push": "npm run lint && bin/pre-push.sh && gamp.sh $1"
   },
   "license": "MIT",
