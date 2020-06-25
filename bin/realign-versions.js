@@ -36,7 +36,7 @@ function incVersion(v) {
 }
 
 if (c && c === c2) {
-  c2 = incVersion('core')
+  c2 = incVersion(c2)
   console.log(`Updating @secrez/core to ${c2}`)
   pkgc.version = c2
   pkgf.dependencies['@secrez/core'] = `^${c2}`
@@ -46,7 +46,7 @@ if (c && c === c2) {
 }
 
 if (f && f === f2) {
-  f2 = incVersion('fs')
+  f2 = incVersion(f2)
   console.log(`Updating @secrez/fs to ${f2}`)
   pkgf.version = f2
   pkgs.dependencies['@secrez/fs'] = `^${f2}`.substring(1)
@@ -55,7 +55,7 @@ if (f && f === f2) {
 }
 
 if (s && s === s2) {
-  s2 = incVersion('secrez')
+  s2 = incVersion(s2)
   console.log(`Updating secrez to ${s2}`)
   pkgs.version = s2
   cs = 1
@@ -74,4 +74,6 @@ if (cs) {
 
 if (changes) {
   execSync('npm run reset')
+} else {
+  console.log('No change required')
 }
