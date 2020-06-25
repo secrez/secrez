@@ -18,5 +18,7 @@ if [[ "$DIFF" != "" ]]; then
   VERSECREZ=$(npm view secrez | grep latest)
 fi
 
-node bin/align-versions.js "$VERCORE" "$VERFS" "$VERSECREZ"
+CHANGES=$(node bin/align-versions.js "$VERCORE" "$VERFS" "$VERSECREZ")
+
+
 
