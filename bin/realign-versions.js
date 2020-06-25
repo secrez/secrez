@@ -26,37 +26,45 @@ let c2 = pkgc.version
 let f2 = pkgf.version
 let s2 = pkgs.version
 
-console.log(c, c2)
-console.log(f, f2)
-console.log(s, s2)
-
-let cf = cs = 0
+let cf = cs = cc = 0
 let changes = false
 
-function getVersion(pkg) {
-  return execSync(`cd ${path.resolve(__dirname, `../packages/${pkg}`)} && npm version patch`).toString().replace(/(v|\n)/g, '')
+function incVersion(v) {
+  v = v.split('.')
+  v[2] = parseInt(v[2]) + 1
+  return v.join('.')
 }
 
 if (c && c === c2) {
-  c2 = getVersion('core')
+  c2 = incVersion('core')
+  console.log(`Updating @secrez/core to ${c2}`)
+  pkgc.version = c2
   pkgf.dependencies['@secrez/core'] = `^${c2}`
   pkgs.dependencies['@secrez/core'] = `^${c2}`
-  cf = cs = 1
+  cc = cf = cs = 1
   changes = true
 }
 
 if (f && f === f2) {
-  f2 = getVersion('fs')
+  f2 = incVersion('fs')
+  console.log(`Updating @secrez/fs to ${f2}`)
+  pkgf.version = f2
   pkgs.dependencies['@secrez/fs'] = `^${f2}`.substring(1)
-  cs = 1
+  cf = cs = 1
   changes = true
 }
 
 if (s && s === s2) {
-  s2 = getVersion('secrez')
+  s2 = incVersion('secrez')
+  console.log(`Updating secrez to ${s2}`)
+  pkgs.version = s2
+  cs = 1
   changes = true
 }
 
+if (cc) {
+  fs.writeFileSync(pf, JSON.stringify(pkgc, null, 2))
+}
 if (cf) {
   fs.writeFileSync(pf, JSON.stringify(pkgf, null, 2))
 }
@@ -64,17 +72,6 @@ if (cs) {
   fs.writeFileSync(ps, JSON.stringify(pkgs, null, 2))
 }
 
-console.log(c, c2)
-console.log(f, f2)
-console.log(s, s2)
-
-// let version = (process.argv[3] || ' ').split(' ')[1]
-// let pkg = require(`../packages/${target}/package.json`)
-//
-// if (pkg.version === version) {
-//   return 1
-// }
-//
-// return 0
-
-return changes ? 1 : 0
+if (changes) {
+  execSync('npm run reset')
+}
