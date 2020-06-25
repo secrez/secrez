@@ -108,7 +108,7 @@ class Paste extends require('../Command') {
     try {
       this.validate(options)
       let name = await this.paste(options)
-      this.Logger.green('Pasted the clipboard to:')
+      this.Logger.grey('Pasted the clipboard to:')
       this.Logger.reset(name)
     } catch (e) {
       this.Logger.red(e.message)

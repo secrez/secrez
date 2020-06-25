@@ -11,9 +11,10 @@ class Command extends PreCommand {
     this.secrez = prompt.secrez
     this.optionDefinitions = []
     this.cliConfig = cliConfig
-    this.Logger = Logger
     this.internalFs = prompt.internalFs
     this.externalFs = prompt.externalFs
+    this.Logger = Logger
+    this.chalk = chalk
   }
 
   help() {

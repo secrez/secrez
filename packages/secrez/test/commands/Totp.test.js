@@ -1,11 +1,12 @@
 const chai = require('chai')
 const assert = chai.assert
 const stdout = require('test-console').stdout
-
+const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
+
 const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize} = require('../helpers')
+const {sleep, noPrint, decolorize} = require('../helpers')
 
 const {
   password,
@@ -15,16 +16,15 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Help', function () {
+describe('#Totp', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
   let inspect, C
 
-
   let options = {
     container: rootDir,
-    localDir: path.resolve(__dirname, '../fixtures/files')
+    localDir: path.resolve(__dirname, '../../tmp/test')
   }
 
   beforeEach(async function () {
@@ -39,48 +39,41 @@ describe('#Help', function () {
   it('should return the help', async function () {
 
     inspect = stdout.inspect()
-    await C.help.exec({help: true})
+    await C.totp.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
-    assert.isTrue(/Available command/.test(output[1]))
+    assert.isTrue(/-h, --help/.test(output[4]))
 
   })
 
-  it('#exec and format', async function () {
+  it('should totp a file to the clipboard', async function () {
+
+    let content = 'totp: sheurytwrefd'
+    let p = '/card.yml'
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    let previousContent = await clipboardy.read()
 
     inspect = stdout.inspect()
-    await C.help.exec({command: 'pwd' })
+    await C.totp.exec({
+      path: 'card.yml',
+      duration: [0.2]
+    })
     inspect.restore()
-    let str = decolorize(inspect.output.join('\n'))
-    assert.isTrue(/Examples:[^p]+pwd/.test(str))
+    let output = inspect.output.map(e => decolorize(e))
+    assert.isTrue(/TOTP token: \d{6}/.test(output[0]))
+    let token = output[0].split('TOTP token: ')[1]
 
-    inspect = stdout.inspect()
-    await C.help.exec({command: 'cat' })
-    inspect.restore()
-    str = decolorize(inspect.output.join('\n'))
-    assert.isTrue(/Available options/.test(str))
+    await sleep(100)
+    assert.equal(await clipboardy.read(), token)
 
+    await sleep(200)
+    assert.equal(await clipboardy.read(), previousContent)
 
   })
-
-  it('should throw if wrong command', async function () {
-
-    inspect = stdout.inspect()
-    await C.help.exec({command: 'wrong' })
-    inspect.restore()
-    assertConsole(inspect, 'Invalid command.')
-
-  })
-
-
-  it('-- to complete coverage', async function () {
-
-    for (let cmd in C) {
-      await C[cmd].help()
-    }
-
-  })
-
 
 
 })

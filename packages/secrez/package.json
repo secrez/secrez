@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "license": "MIT",
   "scripts": {
     "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -33,7 +33,10 @@
     "homedir": "^0.6.0",
     "inquirer": "^7.1.0",
     "inquirer-command-prompt": "^0.0.27",
+    "jimp": "^0.13.0",
     "lodash": "^4.17.15",
+    "otplib": "^12.0.1",
+    "qrcode-reader": "^1.0.4",
     "secrez": "^0.6.5",
     "tiny-cli-editor": "^0.1.1",
     "yaml": "^1.9.2"

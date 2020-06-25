@@ -134,11 +134,12 @@ From the output of `help`:
 
 Secrez main:/ $ help
 
-Available options:
+Available commands:
+  alias   Create aliases of other commands.
   bash    Execute a bash command in the current disk folder.
   cat     Shows the content of a file.
   cd      Changes the working directory.
-  conf    Configure a second factor using an Fido2 key
+  conf    Configure security data (2FA, password, number of iterations).
   copy    Copy a text file to the clipboard.
   edit    Edits a file containing a secret.
   exit    Exits Secrez.
@@ -157,6 +158,7 @@ Available options:
   pwd     Shows the path of the working directory.
   rm      Removes one or more files and folders.
   tag     Tags a file and shows existent tags.
+  totp    Generate a TOTP code if a totp field exists in the card.
   touch   Creates a file.
   use     Uses a specific dataset.
   ver     Shows the version of Secrez.
@@ -341,6 +343,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.2__
+* `totp` allows to generate TOTP codes (like Google Authenticator)
+* add option `--wait` to `copy` to force it to wait the end of the execution
+* `alias` handles chains of commands, like `copy coinbase.yml -f email password -d 3 2 --wait && totp coinbase.yml`
+
 __7.0.1__
 * Calling a command with unknown options will generate an error
 * Fix issue moving duplicates
@@ -435,22 +442,22 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  117 passing (8s)
+  120 passing (8s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.31 |    82.31 |     100 |   95.22 |                                 
- src              |   98.28 |    83.33 |     100 |   98.28 |                                 
+All files         |   95.19 |    81.48 |     100 |   95.09 |                                 
+ src              |   98.31 |    83.33 |     100 |   98.31 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
-  Command.js      |   96.43 |       80 |     100 |   96.43 | 58                              
+  Command.js      |   96.55 |       80 |     100 |   96.55 | 59                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   94.99 |    82.57 |     100 |   94.89 |                                 
-  Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 87,98,120,148,153,163           
+ src/commands     |   94.86 |    81.68 |     100 |   94.76 |                                 
+  Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 88,99,121,149,154,164           
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
   Cd.js           |   96.43 |    86.67 |     100 |   96.43 | 44                              
-  Copy.js         |   97.14 |    78.72 |     100 |    97.1 | 125,168                         
+  Copy.js         |   96.15 |       78 |     100 |    96.1 | 96,141,158                      
   Exit.js         |      90 |       50 |     100 |      90 | 30                              
   Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,99                  
   Find.js         |   92.31 |       85 |     100 |   92.06 | 84,132,163-167,173              
@@ -465,8 +472,9 @@ All files         |   95.31 |    82.31 |     100 |   95.22 |
   Mv.js           |   90.91 |       78 |     100 |    90.7 | 103,126,137-143                 
   Paste.js        |    90.7 |       75 |     100 |    90.7 | 65,69,77,114                    
   Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
-  Rm.js           |   96.43 |       90 |     100 |    96.3 | 72                              
+  Rm.js           |   96.67 |       90 |     100 |   96.55 | 75                              
   Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
+  Totp.js         |   92.31 |    57.14 |     100 |   92.31 | 70,84,97                        
   Touch.js        |     100 |    71.43 |     100 |     100 | 56,67                           
   Use.js          |   98.08 |     93.1 |     100 |   97.96 | 105                             
   Ver.js          |      90 |    66.67 |     100 |      90 | 27                              
@@ -474,7 +482,6 @@ All files         |   95.31 |    82.31 |     100 |   95.22 |
  src/utils        |     100 |    66.67 |     100 |     100 |                                 
   index.js        |     100 |    66.67 |     100 |     100 | 52,76                           
 ------------------|---------|----------|---------|---------|---------------------------------
-
 ```
 
 
@@ -483,6 +490,27 @@ All files         |   95.31 |    82.31 |     100 |   95.22 |
 Secrez has been created by [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>). Any opinion, help, suggestion, critic is very welcome.
 
 #### Licence
+```
+MIT License
 
-[MIT](https://github.com/expressjs/express/blob/master/LICENSE)
+Copyright (c) 2017-present, Francesco Sullo <francesco@sullo.co>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 

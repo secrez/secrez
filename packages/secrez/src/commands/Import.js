@@ -228,7 +228,7 @@ class Import extends require('../Command') {
     } else if (options.move) {
       extra = ' (moved)'
     }
-    this.Logger.green(`Imported files${extra}:`)
+    this.Logger.grey(`Imported files${extra}:`)
 
     let parentFolderPath = this.internalFs.tree.getNormalizedPath(options.expand)
     let parentFolder
@@ -309,7 +309,7 @@ class Import extends require('../Command') {
           } else if (options.move) {
             extra = ' (moved)'
           }
-          this.Logger.green(`Imported files${extra}:`)
+          this.Logger.grey(`Imported files${extra}:`)
           for (let f of files) {
             this.Logger.reset(f)
           }

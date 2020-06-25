@@ -80,7 +80,7 @@ class Lls extends require('../Command') {
               : this.prompt.commandPrompt.formatList(list, 26, true, this.threeRedDots())
           )
         } else {
-          this.Logger.cyan('-- no files found --')
+          this.Logger.yellow('-- no files found --')
         }
       }
     } catch (e) {

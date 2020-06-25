@@ -118,7 +118,16 @@ class DataCache {
         value = this.secrez.encryptData(value)
         content = content ? this.secrez.encryptData(content) : ''
       }
-      await fs.writeFile(path.join(this.dataPath, key, value), content)
+      let p = path.join(this.dataPath, key, value)
+      let changed = true
+      if (await fs.pathExists(p)) {
+        if (await fs.readFile(p, 'utf8') === content) {
+          changed = false
+        }
+      }
+      if (changed) {
+        await fs.writeFile(p, content)
+      }
       data.encryptedValue = value
       return data
     }
@@ -128,7 +137,10 @@ class DataCache {
   async remove(key, value) {
     let data = this.get(key, value)
     if (data) {
-      await fs.unlink(path.join(this.dataPath, key, data.encryptedValue || data.value))
+      let p = path.join(this.dataPath, key, data.encryptedValue || data.value)
+      if (await fs.pathExists(p)) {
+        await fs.unlink(p)
+      }
       delete this.cache[key][value]
       return true
     } else {

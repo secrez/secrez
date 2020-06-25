@@ -43,7 +43,7 @@ const helpers = {
       console.info(inspect.output.map(e => helpers.decolorize(e)))
     } else {
       // eslint-disable-next-line no-control-regex
-      return str.replace(/\x1b\[[0-9;]*m/g, '')
+      return _.trim(str.replace(/\x1b\[[0-9;]*m/g, ''))
     }
   },
 

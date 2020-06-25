@@ -115,7 +115,7 @@ class Cat extends require('../Command') {
             if (/\n/.test(val)) {
               val = '\n' + val
             }
-            return [chalk.cyan(field + ':'), val].join(' ')
+            return [chalk.grey(field + ':'), val].join(' ')
           }
           if (typeof fields === 'object') {
             if (field) {
@@ -182,16 +182,16 @@ class Cat extends require('../Command') {
         for (let d of data) {
           let {content, ts, type, name} = d
           if (extra) {
-            this.Logger.green(`${this.formatTs(ts, fn === name ? undefined : name)}`)
+            this.Logger.grey(`${this.formatTs(ts, fn === name ? undefined : name)}`)
           }
           if (type === config.types.TEXT) {
             if (_.trim(content)) {
               this.Logger.reset(_.trim(content))
             } else {
-              this.Logger.cyan('-- this version is empty --')
+              this.Logger.yellow('-- this version is empty --')
             }
           } else {
-            this.Logger.cyan('-- this is a binary file --')
+            this.Logger.yellow('-- this is a binary file --')
           }
         }
         if (options.notFound && options.notFound.length) {
