@@ -24,16 +24,18 @@ for (let row of coverage) {
 
 }
 
+let text = '#### Test coverage'
+
 coverage = result.join('\n')
 
 let p = path.resolve(__dirname, '../packages', target, 'README.md')
 
-let README = fs.readFileSync(p, 'utf8').split('### COVERAGE')
+let README = fs.readFileSync(p, 'utf8').split(text)
 
 let coverageSection = README[1].split('```')
 
 coverageSection[1] = `\n${coverage}\n`
 
-let readme = `${README[0]}### COVERAGE${coverageSection.join('```')}`
+let readme = `${README[0]}${text}${coverageSection.join('```')}`
 
 fs.writeFileSync(p, readme)

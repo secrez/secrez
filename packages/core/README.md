@@ -7,7 +7,7 @@ This is the basic library.
 A documentation will come soon. For now, for info, look at https://github.com/secrez/secrez
 
 
-### COVERAGE
+#### Test coverage
 
 ```
   105 passing (2s)

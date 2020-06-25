@@ -442,7 +442,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  120 passing (9s)
+  120 passing (8s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
@@ -482,7 +482,6 @@ All files         |   95.19 |    81.48 |     100 |   95.09 |
  src/utils        |     100 |    66.67 |     100 |     100 |                                 
   index.js        |     100 |    66.67 |     100 |     100 | 52,76                           
 ------------------|---------|----------|---------|---------|---------------------------------
-
 ```
 
 
