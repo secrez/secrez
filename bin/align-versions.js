@@ -50,12 +50,11 @@ if (s && s === s2) {
 }
 
 if (cf) {
-  // fs.writeFileSync(pf, JSON.stringify(pkgf, null, 2))
+  fs.writeFileSync(pf, JSON.stringify(pkgf, null, 2))
 }
 if (cs) {
-  // fs.writeFileSync(ps, JSON.stringify(pkgs, null, 2))
+  fs.writeFileSync(ps, JSON.stringify(pkgs, null, 2))
 }
-
 
 console.log(c, c2)
 console.log(f, f2)
