@@ -70,6 +70,10 @@ class Edit extends require('../Command') {
 
   async edit(options) {
     let file = options.path
+    if (/:/.test(file)) {
+      // TODO Fix this
+      throw new Error('Edit works only on the current dataset. Remove the dataset from the path, please')
+    }
     let exists = false
     let fileData
     try {
