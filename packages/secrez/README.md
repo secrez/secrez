@@ -343,6 +343,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 __7.0.2__
 * `totp` allows to generate TOTP codes (like Google Authenticator)
+* add option `--wait` to `copy` to force it to wait the end of the execution
 * `alias` handles chains of commands, like `copy coinbase.yml -f email password -d 3 2 --wait && totp coinbase.yml`
 
 __7.0.1__
