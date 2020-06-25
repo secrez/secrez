@@ -3,6 +3,7 @@ const fs = require('fs')
 const _ = require('../packages/secrez/node_modules/lodash')
 
 let target = process.argv[2]
+
 if (!['core', 'fs', 'secrez'].includes(target)) {
   console.error(`Wrong target: ${target}`)
   process.exit(1)
@@ -44,3 +45,4 @@ coverageSection[1] = `\n${coverage}\n`
 let readme = `${README[0]}${text}${coverageSection.join('```')}`
 
 fs.writeFileSync(p, readme)
+

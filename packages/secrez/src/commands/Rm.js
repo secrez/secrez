@@ -41,7 +41,7 @@ class Rm extends require('../Command') {
     options.newPath = 'trash:/'
     options.removing = true
 
-    let nodes = await this.internalFs.pseudoFileCompletion(options, null, true)
+    let nodes = await this.internalFs.fileList(options, null, true)
     let deleted = nodes.map(n => n.getPath())
     if (deleted.length) {
       await this.prompt.commands.mv.mv(options, nodes)

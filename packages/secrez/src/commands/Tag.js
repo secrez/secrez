@@ -125,7 +125,7 @@ class Tag extends require('../Command') {
           options.content = options.contentToo
           nodes = (await this.prompt.commands.find.find(options)).filter(n => Node.isFile(n))
         } else {
-          nodes = await this.internalFs.pseudoFileCompletion(options.path, null, true)
+          nodes = await this.internalFs.fileList(options.path, null, true)
         }
       }
       let isSaveEnabled = {}

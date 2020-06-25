@@ -15,6 +15,14 @@ class ExternalFs {
   }
 
   async fileCompletion(options = {}) {
+    try {
+      return await this.fileList(options)
+    } catch(e) {
+      return []
+    }
+  }
+
+  async fileList(options = {}) {
     if (typeof options === 'string') {
       options = {path: options}
     }

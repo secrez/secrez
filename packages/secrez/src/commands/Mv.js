@@ -162,7 +162,7 @@ class Mv extends require('../Command') {
             }
           }
         } else {
-          nodes = await this.internalFs.pseudoFileCompletion({
+          nodes = await this.internalFs.fileList({
             path: options.path,
             asIs: true
           }, null, true)
