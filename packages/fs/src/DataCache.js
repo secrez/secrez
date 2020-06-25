@@ -118,7 +118,16 @@ class DataCache {
         value = this.secrez.encryptData(value)
         content = content ? this.secrez.encryptData(content) : ''
       }
-      await fs.writeFile(path.join(this.dataPath, key, value), content)
+      let p = path.join(this.dataPath, key, value)
+      let changed = true
+      if (await fs.pathExists(p)) {
+        if (await fs.readFile(p, 'utf8') === content) {
+          changed = false
+        }
+      }
+      if (changed) {
+        await fs.writeFile(p, content)
+      }
       data.encryptedValue = value
       return data
     }

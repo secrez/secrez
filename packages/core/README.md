@@ -10,7 +10,7 @@ A documentation will come soon. For now, for info, look at https://github.com/se
 ### COVERAGE
 
 ```
-  105 passing (3s)
+  105 passing (2s)
 
 -----------------|---------|----------|---------|---------|-------------------
 File             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
@@ -27,5 +27,4 @@ All files        |     100 |    97.35 |     100 |     100 |
   Crypto.js      |     100 |     97.5 |     100 |     100 | 28                
   index.js       |     100 |      100 |     100 |     100 |                   
 -----------------|---------|----------|---------|---------|-------------------
-
 ```
