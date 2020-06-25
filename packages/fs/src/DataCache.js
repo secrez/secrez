@@ -57,7 +57,7 @@ class DataCache {
     return false
   }
 
-  async puts(key, data, dontSave, dontWait) {
+  async puts(key, data, dontSave) {
     if (!this.cache[key]) {
       this.cache[key] = {}
     }
@@ -72,11 +72,7 @@ class DataCache {
         }
       }
       if (!dontSave) {
-        if (dontWait && !this.encrypted[key]) {
-          this.save(key, v)
-        } else {
-          v = await this.save(key, v)
-        }
+        v = await this.save(key, v)
       }
       let value = v.value
       delete v.value
@@ -137,9 +133,11 @@ class DataCache {
   async remove(key, value) {
     let data = this.get(key, value)
     if (data) {
-      let p = path.join(this.dataPath, key, data.encryptedValue || data.value)
-      if (await fs.pathExists(p)) {
-        await fs.unlink(p)
+      if (this.dataPath) {
+        let p = path.join(this.dataPath, key, data.encryptedValue || value)
+        if (await fs.pathExists(p)) {
+          await fs.unlink(p)
+        }
       }
       delete this.cache[key][value]
       return true

@@ -402,7 +402,7 @@ class Tree {
       throw new Error('A new entry cannot have a pre-existent id')
     }
     if (!entry.id) {
-      entry.set({id: Crypto.getRandomId(global.allIds)})
+      entry.set({id: Crypto.getRandomId(Node.getCache().list('id'))})
     }
     entry.preserveContent = true
     entry = this.secrez.encryptEntry(entry)

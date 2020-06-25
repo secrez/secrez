@@ -50,6 +50,12 @@ class Find extends require('../Command') {
         alias: 'g',
         type: Boolean,
         hint: 'Search in all the datasets'
+      },
+      {
+        name: 'trash-too',
+        alias: 't',
+        type: Boolean,
+        hint: 'If global, search also in trash'
       }
     ]
   }
@@ -86,6 +92,9 @@ class Find extends require('../Command') {
       let datasetInfo = await this.internalFs.getDatasetsInfo()
       let results = []
       for (let dataset of datasetInfo) {
+        if (options.global && !options.trashToo && dataset.index === 1) {
+          continue
+        }
         await this.internalFs.mountTree(dataset.index)
         options.tree = this.internalFs.trees[dataset.index]
         options.dataset = dataset.name
