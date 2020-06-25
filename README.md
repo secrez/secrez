@@ -134,11 +134,12 @@ From the output of `help`:
 
 Secrez main:/ $ help
 
-Available options:
+Available commands:
+  alias   Create aliases of other commands.
   bash    Execute a bash command in the current disk folder.
   cat     Shows the content of a file.
   cd      Changes the working directory.
-  conf    Configure a second factor using an Fido2 key
+  conf    Configure security data (2FA, password, number of iterations).
   copy    Copy a text file to the clipboard.
   edit    Edits a file containing a secret.
   exit    Exits Secrez.
@@ -157,6 +158,7 @@ Available options:
   pwd     Shows the path of the working directory.
   rm      Removes one or more files and folders.
   tag     Tags a file and shows existent tags.
+  totp    Generate a TOTP code if a totp field exists in the card.
   touch   Creates a file.
   use     Uses a specific dataset.
   ver     Shows the version of Secrez.
@@ -440,7 +442,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  120 passing (8s)
+  120 passing (9s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               

@@ -42,7 +42,7 @@ describe('#Help', function () {
     await C.help.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
-    assert.isTrue(/Available options/.test(output[1]))
+    assert.isTrue(/Available command/.test(output[1]))
 
   })
 
