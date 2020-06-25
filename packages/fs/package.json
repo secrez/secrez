@@ -1,6 +1,6 @@
 {
   "name": "@secrez/fs",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",

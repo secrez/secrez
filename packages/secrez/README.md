@@ -343,6 +343,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.3__
+* `find` ignores `trash` during global searches if not using `--trash-too`
+* update to `@secrez/fs 0.7.2`, which fixes a bug in the `DataCache` class
+
 __7.0.2__
 * `totp` allows to generate TOTP codes (like Google Authenticator)
 * add option `--wait` to `copy` to force it to wait the end of the execution
@@ -442,17 +446,17 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  120 passing (8s)
+  120 passing (7s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.19 |    81.48 |     100 |   95.09 |                                 
+All files         |    95.2 |    81.61 |     100 |    95.1 |                                 
  src              |   98.31 |    83.33 |     100 |   98.31 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
   Command.js      |   96.55 |       80 |     100 |   96.55 | 59                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   94.86 |    81.68 |     100 |   94.76 |                                 
+ src/commands     |   94.87 |    81.82 |     100 |   94.77 |                                 
   Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 88,99,121,149,154,164           
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
@@ -460,7 +464,7 @@ All files         |   95.19 |    81.48 |     100 |   95.09 |
   Copy.js         |   96.15 |       78 |     100 |    96.1 | 96,141,158                      
   Exit.js         |      90 |       50 |     100 |      90 | 30                              
   Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,99                  
-  Find.js         |   92.31 |       85 |     100 |   92.06 | 84,132,163-167,173              
+  Find.js         |   92.54 |    86.67 |     100 |   92.31 | 90,141,172-176,182              
   Help.js         |   92.13 |    83.58 |     100 |      92 | 49,142-143,160-165,184          
   Import.js       |   94.84 |    85.11 |     100 |   94.77 | 169,227,229,242,248,290,317-321 
   Lcat.js         |     100 |    85.71 |     100 |     100 | 52                              

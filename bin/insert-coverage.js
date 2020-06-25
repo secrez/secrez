@@ -12,6 +12,11 @@ let coverage = fs.readFileSync(path.resolve(__dirname, '../packages', target, 'c
 
 let result = []
 for (let row of coverage) {
+
+  if (/  \d+ failing/.test(row)) {
+    process.exit(1)
+  }
+
   if (result[0]) {
     if (result[2] && !row) {
       break

@@ -40,8 +40,8 @@ class Node {
         this.id = entry.id
       } else {
         this.id = Crypto.getRandomId(cache ? cache.list('id') : null)
-        cache.puts('id', this.id)
       }
+      cache.puts('id', this.id)
     }
 
     if (Node.isDir(entry)) {
