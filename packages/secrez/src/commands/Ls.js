@@ -68,7 +68,7 @@ class Ls extends require('../Command') {
       if (datasetInfo.map(e => e.name).includes(options.path)) {
         options.path += ':'
       }
-      return await this.internalFs.pseudoFileCompletion(options, true)
+      return await this.internalFs.fileList(options, true)
     }
   }
 

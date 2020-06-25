@@ -343,6 +343,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.4__
+* fix bug in autocomplete showing the error stack
+* add script to upgrade the versions of any changed packages
+
 __7.0.3__
 * `find` ignores `trash` during global searches if not using `--trash-too`
 * update to `@secrez/fs 0.7.2`, which fixes a bug in the `DataCache` class
@@ -446,7 +450,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  120 passing (7s)
+  120 passing (8s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               

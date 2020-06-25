@@ -59,7 +59,7 @@ class Lls extends require('../Command') {
 
   async lls(options) {
     options.returnIsDir = true
-    let [isDir, list] = await this.externalFs.fileCompletion(options)
+    let [isDir, list] = await this.externalFs.fileList(options)
     if (!isDir) {
       list = await FsUtils.filterLs(options, list)
     }

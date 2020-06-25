@@ -259,6 +259,14 @@ class InternalFs {
   }
 
   async pseudoFileCompletion(options = {}, addSlashIfDir, returnNodes) {
+    try {
+      return await this.fileList(options, addSlashIfDir, returnNodes)
+    } catch(e) {
+      return []
+    }
+  }
+
+  async fileList(options = {}, addSlashIfDir, returnNodes) {
     if (typeof options === 'string') {
       options = {path: options}
     }
