@@ -58,6 +58,10 @@ class Copy extends require('../Command') {
       {
         name: 'this-string',
         type: String
+      },
+      {
+        name: 'wait',
+        type: Boolean
       }
     ]
   }
@@ -72,6 +76,7 @@ class Copy extends require('../Command') {
         ['copy google.yml -j', 'copies the google card as a JSON'],
         ['copy google.yml -a', 'copies the google card as is'],
         ['copy google.yml', 'it will ask to chose the field to copy'],
+        ['copy google.yml -f user --wait', 'it copies the user and wait for the duration'],
         ['copy myKey -v UY5d', 'copies version UY5d of myKey'],
         ['copy google.yml -d 10 -f password', 'copies the password in the google card and keeps it in the clipboard for 10 seconds; default is 5 seconds'],
         ['copy google.yml -f email password -d 3 2', 'copies email and keeps it in the clipboard for 3 seconds, after copies password and keeps it for 2 seconds; a bip will sound when a new data is copied'],
@@ -87,7 +92,11 @@ class Copy extends require('../Command') {
     }
     if (options.thisString) {
       this.counter++
-      this.write([options.thisString], options, 0 + this.counter)
+      if (options.wait) {
+        await this.write([options.thisString], options, 0 + this.counter)
+      } else {
+        this.write([options.thisString], options, 0 + this.counter)
+      }
       return `"${options.thisString}"`
     }
     let cat = this.prompt.commands.cat
@@ -145,7 +154,11 @@ class Copy extends require('../Command') {
           content = [content]
         }
         this.counter++
-        this.write(content, options, 0 + this.counter)
+        if (options.wait) {
+          await this.write(content, options, 0 + this.counter)
+        } else {
+          this.write(content, options, 0 + this.counter)
+        }
         return name
       } else {
         throw new Error('You can copy to clipboard only text files.')
@@ -166,7 +179,7 @@ class Copy extends require('../Command') {
       if (this.counter === counter) {
         let wait = i ? duration[1] : duration[0]
         await this.writeAndWait(content[i], wait, counter)
-        if (i < content.length - 1 && this.counter === counter && !options.noBeep) {
+        if (this.counter === counter && !options.noBeep) {
           beep()
         }
       }

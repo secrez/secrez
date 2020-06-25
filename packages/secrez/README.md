@@ -343,6 +343,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 __7.0.2__
 * `totp` allows to generate TOTP codes (like Google Authenticator)
+* `alias` handles chains of commands, like `copy coinbase.yml -f email password -d 3 2 --wait && totp coinbase.yml`
 
 __7.0.1__
 * Calling a command with unknown options will generate an error
@@ -438,22 +439,22 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  120 passing (9s)
+  120 passing (8s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.25 |    81.54 |     100 |   95.15 |                                 
+All files         |   95.19 |    81.48 |     100 |   95.09 |                                 
  src              |   98.31 |    83.33 |     100 |   98.31 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
   Command.js      |   96.55 |       80 |     100 |   96.55 | 59                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   94.93 |    81.75 |     100 |   94.83 |                                 
-  Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 87,98,120,148,153,163           
+ src/commands     |   94.86 |    81.68 |     100 |   94.76 |                                 
+  Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 88,99,121,149,154,164           
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
   Cd.js           |   96.43 |    86.67 |     100 |   96.43 | 44                              
-  Copy.js         |    97.3 |    78.72 |     100 |   97.26 | 132,170                         
+  Copy.js         |   96.15 |       78 |     100 |    96.1 | 96,141,158                      
   Exit.js         |      90 |       50 |     100 |      90 | 30                              
   Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,99                  
   Find.js         |   92.31 |       85 |     100 |   92.06 | 84,132,163-167,173              
@@ -487,6 +488,27 @@ All files         |   95.25 |    81.54 |     100 |   95.15 |
 Secrez has been created by [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>). Any opinion, help, suggestion, critic is very welcome.
 
 #### Licence
+```
+MIT License
 
-[MIT](https://github.com/expressjs/express/blob/master/LICENSE)
+Copyright (c) 2017-present, Francesco Sullo <francesco@sullo.co>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 

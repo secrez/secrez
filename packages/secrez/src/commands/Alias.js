@@ -67,6 +67,7 @@ class Alias extends require('../Command') {
       examples: [
         ['alias f -c "copy facebook.yml -f email password -t 4"', 'creates an alias "f" that executes "copy facebook.yml -f email password -t 4"'],
         ['alias g --previous-command', 'creates the alias "g" using the previous command; this allows you to test something, and when ready generate an alias for it'],
+        ['alias C -c "copy coinbase.yml -f email password -t 4 && totp coinbase.yml"', 'creates an alias "C" that copies email and password, and when the comand is executed, runs "totp coinbase.yml" '],
         ['alias -l', 'lists all the created aliases'],
         ['alias -l -f copy', 'lists the aliases filtering the ones that execute a "copy" command'],
         ['alias -r f fb', 'renames the alias "f" to "fb"'],
@@ -108,7 +109,7 @@ class Alias extends require('../Command') {
       /* istanbul ignore if  */
       if (!yes) {
         yes = await this.useConfirm({
-          message: `Are you sure you want to create the alias ${chalk.green(options.name)} for ${chalk.green(options.commandLine)}?`,
+          message: `Are you sure you want to create the alias ${chalk.cyan(options.name)} for: \n${chalk.grey(options.commandLine)}\n?`,
           default: false
         })
       }

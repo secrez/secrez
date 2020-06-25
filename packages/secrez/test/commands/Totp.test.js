@@ -16,7 +16,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Otp', function () {
+describe('#Totp', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')

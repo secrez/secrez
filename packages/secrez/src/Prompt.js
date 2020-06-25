@@ -188,6 +188,9 @@ class Prompt {
       AliasManager.setCache(this.secrez.cache)
       this.aliasManager = new AliasManager()
     }
+    if (this.disableRun) {
+      return
+    }
     try {
       let pre = chalk.reset(`Secrez ${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()}`)
       let {cmd} = await inquirer.prompt([
@@ -215,12 +218,19 @@ class Prompt {
       ])
       cmd = _.trim(cmd)
       let command = cmd.split(' ')[0]
+      /* istanbul ignore if  */
       if (!this.basicCommands.includes(command)) {
         command = command.replace(/^\$/, '')
         let data = this.aliasManager.get(command)
         if (data) {
-          cmd = data.content
-          Logger.grey('Executing: ' + chalk.bold(cmd))
+          let cmds = data.content.split('&&').map(e => _.trim(e))
+          for (let i=0; i< cmds.length;i++) {
+            let c = cmds[i]
+            Logger.green('>>  ' + chalk.bold.grey(c))
+            this.disableRun = i !== cmds.length -1
+            await this.exec([c])
+          }
+          return
         }
       }
       await this.exec([cmd])

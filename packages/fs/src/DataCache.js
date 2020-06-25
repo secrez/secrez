@@ -128,7 +128,10 @@ class DataCache {
   async remove(key, value) {
     let data = this.get(key, value)
     if (data) {
-      await fs.unlink(path.join(this.dataPath, key, data.encryptedValue || data.value))
+      let p = path.join(this.dataPath, key, data.encryptedValue || data.value)
+      if (await fs.pathExists(p)) {
+        await fs.unlink(p)
+      }
       delete this.cache[key][value]
       return true
     } else {
