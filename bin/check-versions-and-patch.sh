@@ -20,5 +20,5 @@ fi
 
 CHANGES=$(node bin/align-versions.js "$VERCORE" "$VERFS" "$VERSECREZ")
 
-
+echo $CHANGES
 
