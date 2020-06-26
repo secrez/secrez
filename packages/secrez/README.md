@@ -331,6 +331,10 @@ Adding or removing a second factor changes the keys.json file. So, if you are us
 
 As a rule of thumb, if you use a git repo, always pull before running Secrez, and always commit and push after exiting.
 
+#### A quick demo
+
+If you like to watch a quick demo, [you can take a look at this video on Youtube](https://www.youtube.com/watch?v=qGoBTpG0Fj0).
+
 #### Some thoughts
 
 Secrez does not want to compete with password managers. So, don't expect in the future to have "form filling" and staff like that. The idea behind Secrez was born in 2017, when I was participating in many ICO and I had so many files to save and any password manager I used was very bad for that. Still, Secrez, for its nature, is file oriented and I guess will remain this way. However, it is open source, and someone is welcome to built a GUI or a mobile app built on it.
