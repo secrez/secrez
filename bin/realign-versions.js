@@ -10,8 +10,17 @@ const pkgs = require(ps)
 
 const branch=execSync('git rev-parse --abbrev-ref HEAD').toString().replace(/(v|\n)/g, '')
 
+let packages = {}
+let gitDiff = execSync(`git diff master..$BRANCH --name-only`).toString().split('\n').map(e => {
+  let m = e.split('/')
+  if (m[0] === 'packages') {
+    packages[m[1]] = true
+  }
+  return e
+})
+
 function getDiff(dir, pkg) {
-  if (execSync(`git diff master..$BRANCH packages/${dir}`).toString().split('\n')[0]) {
+  if (packages[dir]) {
     let ver = execSync(`npm view ${pkg || dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
     return ver
   }
