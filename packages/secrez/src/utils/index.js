@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const YAML = require('yaml')
 const path = require('path')
+const {spawn} = require('child_process')
 const parse = require('csv-parse/lib/sync')
 const Case = require('case')
 
@@ -80,6 +81,26 @@ const utils = {
 
   sleep: async millis => {
     return new Promise(resolve => setTimeout(resolve, millis))
+  },
+
+  execAsync: async (cmd, cwd, params) => {
+    return new Promise(resolve => {
+      let json = {}
+      const child = spawn(cmd, params, {
+        cwd,
+        shell: true
+      })
+      child.stdout.on('data', data => {
+        json.message = _.trim(Buffer.from(data).toString('utf8'))
+      })
+      child.stderr.on('data', data => {
+        json.error = _.trim(Buffer.from(data).toString('utf8'))
+      })
+      child.on('exit', code => {
+        json.code = code
+        resolve(json)
+      })
+    })
   }
 
 }

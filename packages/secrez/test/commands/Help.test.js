@@ -46,7 +46,7 @@ describe('#Help', function () {
 
   })
 
-  it('#exec and format', async function () {
+  it('#execAsync and format', async function () {
 
     inspect = stdout.inspect()
     await C.help.exec({command: 'pwd' })

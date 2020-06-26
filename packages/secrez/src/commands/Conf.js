@@ -170,9 +170,8 @@ class Conf extends require('../Command') {
     await this.secrez.saveSharedSecrets(sharedData)
     await client.updateConf()
     this.Logger.reset('Your recover code is:')
-    this.Logger.bold(recoveryCode)
+    this.Logger.yellow(recoveryCode)
     await this.saveAndOverwrite(`main:/.RECOVERY_CODE_${authenticator}`, 'recovery code', recoveryCode, 'it')
-    this.Logger.reset('When possible, "cat" it and save it in a safe place.')
   }
 
   async saveAndOverwrite(p, spec, content, message) {
@@ -326,6 +325,10 @@ class Conf extends require('../Command') {
     if (pw && it) {
       throw new Error('Changing password and number of iterations in the same operation not allowed')
     }
+    let haveSomeFactors = false
+    if (Object.keys(await this.getAllFactors()).length) {
+      haveSomeFactors = true
+    }
     let message = 'Are you sure you want to upgrade your '
         + (pw ? 'password' : 'number of iterations') + '?'
     let yes = await this.useConfirm({
@@ -363,6 +366,9 @@ class Conf extends require('../Command') {
               await this.secrez.upgradeAccount(password)
               await this.saveAndOverwrite('main:/.NEW_PASSWORD', 'password', password, 'the new password')
               this.Logger.reset('In case you have doubts about it, please, "cat" the file and take a look before exiting.')
+              if (haveSomeFactors) {
+                this.Logger.yellow('All the second factors have been unregistered.')
+              }
               return
             }
           }

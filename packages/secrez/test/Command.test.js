@@ -4,7 +4,7 @@ const Command = require('../src/Command')
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('./mocks/PromptMock')
-const {noPrint} = require('./helpers')
+const {noPrint, decolorize} = require('./helpers')
 
 const {
   password,
@@ -87,6 +87,28 @@ describe('#Command', function () {
 
       assert.isUndefined(command.help())
       assert.isUndefined(command.setHelpAndCompletion())
+    })
+
+  })
+
+  describe('#validate', async function () {
+
+    it('should validate the options', async function () {
+
+      const options = {
+        path: '/file'
+      }
+
+      assert.equal(command.validate(options), undefined)
+
+      options._unknown = '-w'
+
+      try {
+        command.validate(options)
+        assert.isTrue(false)
+      } catch(e) {
+        assert.equal(decolorize(e.message), `Unknown option: ${options._unknown} (run "command -h" for help)`)
+      }
     })
 
   })
