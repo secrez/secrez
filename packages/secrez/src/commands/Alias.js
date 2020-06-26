@@ -65,9 +65,10 @@ class Alias extends require('../Command') {
         'Aliases\' name are case sensitive. They can be any combination of letters, numerals, underscores and hiphens',
         'If an alias conflicts with a command, you can disambiguate it prefixing it with a $. Like calling the alias "mv" as "$mv".'],
       examples: [
-        ['alias f -c "copy facebook.yml -f email password -t 4"', 'creates an alias "f" that executes "copy facebook.yml -f email password -t 4"'],
+        ['alias f -c "copy facebook.yml -f email password"', 'creates an alias "f" that executes "copy facebook.yml -f email password"'],
         ['alias g --previous-command', 'creates the alias "g" using the previous command; this allows you to test something, and when ready generate an alias for it'],
-        ['alias C -c "copy coinbase.yml -f email password -t 4 && totp coinbase.yml"', 'creates an alias "C" that copies email and password, and when the comand is executed, runs "totp coinbase.yml" '],
+        ['alias C -c "copy coinbase.yml -f email password -d 4 && totp coinbase.yml"', 'creates an alias "C" that copies email and password, and when the comand is executed, runs "totp coinbase.yml" '],
+        ['alias m -c "copy $1 -f email password -d4 2 && totp $1"', 'creates a macro callable like "m coinbase.yml" '],
         ['alias -l', 'lists all the created aliases'],
         ['alias -l -f copy', 'lists the aliases filtering the ones that execute a "copy" command'],
         ['alias -r f fb', 'renames the alias "f" to "fb"'],

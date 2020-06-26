@@ -10,7 +10,7 @@ A documentation will come soon. For now, for info, look at https://github.com/se
 #### Test coverage
 
 ```
-  105 passing (3s)
+  105 passing (2s)
 
 -----------------|---------|----------|---------|---------|-------------------
 File             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 

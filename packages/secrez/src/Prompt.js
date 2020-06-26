@@ -217,21 +217,44 @@ class Prompt {
         }
       ])
       cmd = _.trim(cmd)
-      let command = cmd.split(' ')[0]
+      let components = cmd.split(' ')
+      let command = components[0]
       /* istanbul ignore if  */
       if (!this.basicCommands.includes(command)) {
         command = command.replace(/^\$/, '')
         let data = this.aliasManager.get(command)
         if (data) {
           let cmds = data.content.split('&&').map(e => _.trim(e))
+          let max = 0
+          let missing = false
           for (let i=0; i< cmds.length;i++) {
             let c = cmds[i]
-            Logger.green('>>  ' + chalk.bold.grey(c))
-            this.disableRun = i !== cmds.length -1
-            await this.exec([c])
+            let params = c.match(/\$\w{1}/g)
+            if (params) {
+              for (let p of params) {
+                let num = parseInt(p.substring(1))
+                max = Math.max(max, num)
+                let option = components[num]
+                if (!option) {
+                  missing = true
+                }
+                c = c.replace(RegExp('\\$' + num), option)
+              }
+            }
+            if (!missing) {
+              Logger.green('>>  ' + chalk.bold.grey(c))
+              this.disableRun = i !== cmds.length - 1
+              await this.exec([c])
+            }
+          }
+          if (missing) {
+            Logger.red(`The alias "${command}" requires ${max} parameter${max > 1 ? 's': ''}`)
+            this.disableRun = false
           }
           return
         }
+        Logger.red('Command not found')
+        return
       }
       await this.exec([cmd])
       this.previousCommandLine = cmd

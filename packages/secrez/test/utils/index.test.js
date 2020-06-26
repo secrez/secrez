@@ -118,16 +118,8 @@ describe  ('#utils', function () {
       let result = await execAsync('cat', dir, ['file4.txt'])
       assert.equal(result.error, 'cat: file4.txt: No such file or directory')
 
-
-      result = await execAsync('cat', dir, ['file4.txt'])
-      assert.equal(result.error, 'cat: file4.txt: No such file or directory')
     })
 
   })
-
-
-
-
-
 
 })
