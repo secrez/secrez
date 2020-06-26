@@ -170,9 +170,8 @@ class Conf extends require('../Command') {
     await this.secrez.saveSharedSecrets(sharedData)
     await client.updateConf()
     this.Logger.reset('Your recover code is:')
-    this.Logger.bold(recoveryCode)
+    this.Logger.yellow(recoveryCode)
     await this.saveAndOverwrite(`main:/.RECOVERY_CODE_${authenticator}`, 'recovery code', recoveryCode, 'it')
-    this.Logger.reset('When possible, "cat" it and save it in a safe place.')
   }
 
   async saveAndOverwrite(p, spec, content, message) {
