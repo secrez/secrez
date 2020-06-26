@@ -1,7 +1,6 @@
 const path = require('path')
-const fs = require('fs-extra')
-const {spawn} = require('child_process')
 const {Crypto} = require('@secrez/core')
+const {execAsync} = require('./utils')
 const _ = require('lodash')
 
 class Fido2Client {
@@ -56,55 +55,27 @@ class Fido2Client {
     return params
   }
 
-  async exec(cmd, cwd, params) {
-    return new Promise(resolve => {
-      let json = {}
-      const child = spawn(cmd, params, {
-        cwd,
-        shell: true
-      })
-      child.stdout.on('data', data => {
-        json.message = _.trim(Buffer.from(data).toString('utf8'))
-      })
-      child.stderr.on('data', data => {
-        json.error = _.trim(Buffer.from(data).toString('utf8'))
-      })
-      child.on('exit', code => {
-        json.code = code
-        if (fs.existsSync(this.jsonPath)) {
-          let jsonData = fs.readFileSync(this.jsonPath, 'utf8')
-          if (jsonData) {
-            json.data = JSON.parse(jsonData)
-            fs.unlinkSync(this.jsonPath)
-          }
-        }
-        resolve(json)
-      })
-    })
-  }
-
   async checkIfReady() {
-    let result = await this.exec('which', __dirname, ['python'])
+    let result = await execAsync('which', __dirname, ['python'])
     if (typeof result.message === 'undefined') {
       throw new Error('The Fido2 module requires Python. Please install it on your computer.')
     }
-    // result = await this.exec('python', __dirname, ['--version'])
+    // result = await execAsync('python', __dirname, ['--version'])
     // if (!/Python 3/.test(result.message)) {
     //   throw new Error(`${result.message} found. The Fido2 module requires Python 3. Please install it on your computer.`)
     // }
-    result =  await this.exec('python', this.scriptsPath, ['is_fido2_ready.py'])
+    result =  await execAsync('python', this.scriptsPath, ['is_fido2_ready.py'])
     if (result.message !== 'Ready') {
       throw new Error('Python-fido2 is required. Install it with "pip install fido2"')
     }
   }
 
-
   async setCredential(options) {
-    return await this.exec('python', this.scriptsPath, this.setParams(options))
+    return await execAsync('python', this.scriptsPath, this.setParams(options))
   }
 
   async getSecret(options) {
-    return await this.exec('python', this.scriptsPath, this.setParams(options))
+    return await execAsync('python', this.scriptsPath, this.setParams(options))
   }
 
   async verifySecret(authenticator) {

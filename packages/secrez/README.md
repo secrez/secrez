@@ -343,6 +343,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.5__
+* `totp` can read an image to scan a qrcode and recover its secret
+* on MacOs, `totp` can also read the image from the clipboard to recover its secret; it requires `pngpaste`
+
+
 __7.0.4__
 * fix bug in autocomplete showing the error stack
 * add script to upgrade the versions of any changed packages
@@ -450,17 +455,17 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  120 passing (8s)
+  129 passing (8s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |    95.2 |    81.61 |     100 |    95.1 |                                 
- src              |   98.31 |    83.33 |     100 |   98.31 |                                 
+All files         |    95.5 |    82.35 |   98.91 |   95.42 |                                 
+ src              |     100 |     87.5 |     100 |     100 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
-  Command.js      |   96.55 |       80 |     100 |   96.55 | 59                              
+  Command.js      |     100 |       90 |     100 |     100 | 48                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   94.87 |    81.82 |     100 |   94.77 |                                 
+ src/commands     |   95.09 |    82.45 |   98.64 |      95 |                                 
   Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 88,99,121,149,154,164           
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
@@ -482,13 +487,13 @@ All files         |    95.2 |    81.61 |     100 |    95.1 |
   Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
   Rm.js           |   96.67 |       90 |     100 |   96.55 | 75                              
   Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
-  Totp.js         |   92.31 |    57.14 |     100 |   92.31 | 70,84,97                        
+  Totp.js         |   97.33 |    79.49 |      80 |   97.33 | 63-82                           
   Touch.js        |     100 |    71.43 |     100 |     100 | 56,67                           
   Use.js          |   98.08 |     93.1 |     100 |   97.96 | 105                             
   Ver.js          |      90 |    66.67 |     100 |      90 | 27                              
   index.js        |   94.44 |    57.14 |     100 |   94.12 | 18                              
  src/utils        |     100 |    66.67 |     100 |     100 |                                 
-  index.js        |     100 |    66.67 |     100 |     100 | 52,76                           
+  index.js        |     100 |    66.67 |     100 |     100 | 53,77                           
 ------------------|---------|----------|---------|---------|---------------------------------
 ```
 

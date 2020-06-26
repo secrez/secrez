@@ -110,12 +110,12 @@ describe('#Alias', function () {
   //       'totp: sheurytwrefd'
   //   ].join('\n')
   //   let p = '/card.yml'
-  //   await noPrint(C.touch.exec({
+  //   await noPrint(C.touch.execAsync({
   //     path: p,
   //     content
   //   }))
   //
-  //   await noPrint(C.alias.exec({
+  //   await noPrint(C.alias.execAsync({
   //     name: 'c',
   //     skipConfirm: true,
   //     commandLine: 'copy card.yml -f user --wait -d 0.2 && totp card.yml'

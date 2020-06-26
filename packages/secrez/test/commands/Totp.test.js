@@ -4,9 +4,10 @@ const stdout = require('test-console').stdout
 const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
+const {yamlParse} = require('../../src/utils')
 
 const Prompt = require('../mocks/PromptMock')
-const {sleep, noPrint, decolorize} = require('../helpers')
+const {sleep, noPrint, decolorize, assertConsole} = require('../helpers')
 
 const {
   password,
@@ -75,6 +76,120 @@ describe('#Totp', function () {
 
   })
 
+  it('should read a totp secret from an image and add the totp field to the card', async function () {
+
+    let content = 'user: john'
+    let p = '/card.yml'
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    inspect = stdout.inspect()
+    await C.totp.exec({
+      path: p,
+      fromImage: path.resolve(__dirname, '../fixtures/qrcode.png')
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+        'A totp field has been successfully created.',
+        'Try it, running "totp /card.yml"'])
+    let newContent = yamlParse(prompt.internalFs.tree.root.getChildFromPath(p).getContent())
+    assert.equal(newContent.totp, 'ueiwureiruee')
+  })
+
+  it('should read a totp secret from an image and return the secret', async function () {
+
+    inspect = stdout.inspect()
+    await C.totp.exec({
+      fromImage: path.resolve(__dirname, '../fixtures/qrcode.png')
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'The secret in the QR Code is "ueiwureiruee"'
+    ])
+  })
+
+  it('should throw if bad image', async function () {
+
+    let content = 'user: john'
+    let p = '/card.yml'
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    inspect = stdout.inspect()
+    await C.totp.exec({
+      path: p,
+      fromImage: path.resolve(__dirname, '../fixtures/some.csv')
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'The file does not look like a valid 2FA QR code'
+    ])
+
+  })
+
+  it('should throw if missing parameters', async function () {
+
+    let content = 'john'
+    let p = '/card.yml'
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    inspect = stdout.inspect()
+    await C.totp.exec({
+      path: p
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'The file is not a card with a totp field'
+    ])
+
+  })
+
+  it('should throw if missing parameters', async function () {
+
+    let content = 'john'
+    let p = 'text'
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    inspect = stdout.inspect()
+    await C.totp.exec({
+      path: p
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'The file is not a card with a totp field'
+    ])
+
+  })
+
+  it('should throw if the yaml is malformed', async function () {
+
+    let content = 'user: user: john'
+    let p = '/card.yml'
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    inspect = stdout.inspect()
+    await C.totp.exec({
+      path: p,
+      fromImage: path.resolve(__dirname, '../fixtures/qrcode.png')
+    })
+    inspect.restore()
+    assertConsole(inspect, [
+      'The yml is malformed'
+    ])
+  })
 
 })
 

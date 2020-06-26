@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const {isYaml, yamlParse, yamlStringify, fromCsvToJson, TRUE} = require('../../src/utils')
+const {isYaml, yamlParse, yamlStringify, fromCsvToJson, TRUE, execAsync} = require('../../src/utils')
 
 const {yml, yml2} = require('../fixtures')
 
@@ -103,6 +103,29 @@ describe  ('#utils', function () {
     })
 
   })
+
+
+  describe('exec', async function () {
+
+    it('should execute a command', async function () {
+      let dir = path.resolve(__dirname, '../fixtures/files')
+      let result = await execAsync('cat', dir, ['file0.txt'])
+      assert.equal(result.message, 'Three secrets')
+    })
+
+    it('should throw if errors', async function () {
+      let dir = path.resolve(__dirname, '../fixtures/files')
+      let result = await execAsync('cat', dir, ['file4.txt'])
+      assert.equal(result.error, 'cat: file4.txt: No such file or directory')
+
+
+      result = await execAsync('cat', dir, ['file4.txt'])
+      assert.equal(result.error, 'cat: file4.txt: No such file or directory')
+    })
+
+  })
+
+
 
 
 
