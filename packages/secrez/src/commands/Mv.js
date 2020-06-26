@@ -72,6 +72,16 @@ class Mv extends require('../Command') {
     let dataTo = await this.internalFs.getTreeIndexAndPath(options.newPath)
     if (dataFrom.index !== dataTo.index) {
       await this.internalFs.mountTree(dataTo.index)
+    } else
+        /* istanbul ignore if  */
+    if (dataFrom.index === 1 && options.removing) {
+      let yes = await this.useConfirm({
+        message: 'Are you sure you want to definitely remove those file from Secrez?',
+        default: false
+      })
+      if (!yes) {
+        throw new Error('Operation canceled')
+      }
     }
     if (nodes) {
       this.internalFs.trees[dataFrom.index].disableSave()

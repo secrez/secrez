@@ -61,7 +61,8 @@ describe('#Totp', function () {
     inspect = stdout.inspect()
     await C.totp.exec({
       path: 'card.yml',
-      duration: [0.2]
+      duration: [0.2],
+      noBeep: true
     })
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
@@ -88,7 +89,8 @@ describe('#Totp', function () {
     inspect = stdout.inspect()
     await C.totp.exec({
       path: p,
-      fromImage: path.resolve(__dirname, '../fixtures/qrcode.png')
+      fromImage: path.resolve(__dirname, '../fixtures/qrcode.png'),
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, [
@@ -102,7 +104,8 @@ describe('#Totp', function () {
 
     inspect = stdout.inspect()
     await C.totp.exec({
-      fromImage: path.resolve(__dirname, '../fixtures/qrcode.png')
+      fromImage: path.resolve(__dirname, '../fixtures/qrcode.png'),
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, [
@@ -122,7 +125,8 @@ describe('#Totp', function () {
     inspect = stdout.inspect()
     await C.totp.exec({
       path: p,
-      fromImage: path.resolve(__dirname, '../fixtures/some.csv')
+      fromImage: path.resolve(__dirname, '../fixtures/some.csv'),
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, [

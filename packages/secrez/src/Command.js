@@ -54,9 +54,21 @@ class Command extends PreCommand {
     }
   }
 
-  validate(options) {
+  validate(options, mandatoryOptions) {
     if (options._unknown) {
       throw new Error(`Unknown option: ${options._unknown} `+ chalk.grey(`(run "${this.constructor.name.toLowerCase()} -h" for help)`))
+    }
+    if (mandatoryOptions) {
+      let err = ''
+      let prefix = 'Missing options: '
+      for (let o in mandatoryOptions) {
+        if (!options[o]) {
+          err += (err ? ', ' : '') + o
+        }
+      }
+      if (err) {
+        throw new Error(prefix + err)
+      }
     }
   }
 

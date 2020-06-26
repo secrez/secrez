@@ -151,7 +151,9 @@ class Edit extends require('../Command') {
     }
     let currentEditor
     try {
-      this.validate(options)
+      this.validate(options, {
+        path: true
+      })
       currentEditor = process.env.EDITOR
       if (options.internal) {
         process.env.EDITOR = this.getTinyCliEditorBinPath()

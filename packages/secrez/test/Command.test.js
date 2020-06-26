@@ -100,6 +100,19 @@ describe('#Command', function () {
       }
 
       assert.equal(command.validate(options), undefined)
+      assert.equal(command.validate(options,{
+        path: true
+      }), undefined)
+
+      try {
+        command.validate(options, {
+          file: true,
+          destination: true
+        })
+        assert.isTrue(false)
+      } catch(e) {
+        assert.equal(decolorize(e.message), 'Missing options: file, destination')
+      }
 
       options._unknown = '-w'
 
@@ -109,6 +122,7 @@ describe('#Command', function () {
       } catch(e) {
         assert.equal(decolorize(e.message), `Unknown option: ${options._unknown} (run "command -h" for help)`)
       }
+
     })
 
   })

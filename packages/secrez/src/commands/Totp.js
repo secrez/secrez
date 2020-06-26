@@ -32,6 +32,10 @@ class Totp extends require('../Command') {
         type: Number
       },
       {
+        name: 'no-beep',
+        type: Boolean
+      },
+      {
         name: 'from-clipboard',
         alias: 'c',
         type: Boolean
@@ -173,7 +177,8 @@ class Totp extends require('../Command') {
               const token = authenticator.generate(totp)
               this.prompt.commands.copy.copy({
                 thisString: token,
-                duration: [options.duration || 5]
+                duration: [options.duration || 5],
+                noBeep: options.noBeep
               })
               return token
             }

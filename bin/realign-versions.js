@@ -8,12 +8,10 @@ const pkgc = require(pc)
 const pkgf = require(pf)
 const pkgs = require(ps)
 
-const branch=execSync('git rev-parse --abbrev-ref HEAD').toString().replace(/(v|\n)/g, '')
-
 let packages = {}
-let gitDiff = execSync(`git diff master..$BRANCH --name-only`).toString().split('\n').map(e => {
+let gitDiff = execSync(`git diff master --name-only`).toString().split('\n').map(e => {
   let m = e.split('/')
-  if (m[0] === 'packages') {
+  if (m[0] === 'packages' && m[2] !== 'README.md') {
     packages[m[1]] = true
   }
   return e

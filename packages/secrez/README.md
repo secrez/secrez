@@ -343,6 +343,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.6__
+* `rm` ask confirmation before delete forever from the `trash` dataset
+* `edit` does not crash if no path is passed
+
 __7.0.5__
 * `totp` can read an image to scan a qrcode and recover its secret
 * on MacOs, `totp` can also read the image from the clipboard to recover its secret; it requires `pngpaste`
@@ -455,22 +459,22 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  129 passing (8s)
+  129 passing (9s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |    95.5 |    82.35 |   98.91 |   95.42 |                                 
- src              |     100 |     87.5 |     100 |     100 |                                 
+All files         |   95.46 |    82.34 |   98.91 |   95.37 |                                 
+ src              |     100 |    90.63 |     100 |     100 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
-  Command.js      |     100 |       90 |     100 |     100 | 48                              
+  Command.js      |     100 |    94.44 |     100 |     100 | 48                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   95.09 |    82.45 |   98.64 |      95 |                                 
+ src/commands     |   95.02 |    82.23 |   98.64 |   94.93 |                                 
   Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 88,99,121,149,154,164           
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
   Cd.js           |   96.43 |    86.67 |     100 |   96.43 | 44                              
-  Copy.js         |   96.15 |       78 |     100 |    96.1 | 96,141,158                      
+  Copy.js         |   94.87 |       76 |     100 |   94.81 | 96,141,158,183                  
   Exit.js         |      90 |       50 |     100 |      90 | 30                              
   Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,99                  
   Find.js         |   92.54 |    86.67 |     100 |   92.31 | 90,141,172-176,182              
@@ -482,12 +486,12 @@ All files         |    95.5 |    82.35 |   98.91 |   95.42 |
   Lpwd.js         |   92.31 |      100 |     100 |   92.31 | 38                              
   Ls.js           |   88.89 |    68.75 |     100 |    87.5 | 65,69,90                        
   Mkdir.js        |     100 |    66.67 |     100 |     100 | 38-44                           
-  Mv.js           |   90.91 |       78 |     100 |    90.7 | 103,126,137-143                 
+  Mv.js           |   91.01 |    77.36 |     100 |    90.8 | 113,136,147-153                 
   Paste.js        |    90.7 |       75 |     100 |    90.7 | 65,69,77,114                    
   Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
   Rm.js           |   96.67 |       90 |     100 |   96.55 | 75                              
   Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
-  Totp.js         |   97.33 |    79.49 |      80 |   97.33 | 63-82                           
+  Totp.js         |   97.33 |    79.49 |      80 |   97.33 | 67-86                           
   Touch.js        |     100 |    71.43 |     100 |     100 | 56,67                           
   Use.js          |   98.08 |     93.1 |     100 |   97.96 | 105                             
   Ver.js          |      90 |    66.67 |     100 |      90 | 27                              

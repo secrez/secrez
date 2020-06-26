@@ -174,7 +174,9 @@ class Cat extends require('../Command') {
       return this.showHelp()
     }
     try {
-      this.validate(options)
+      this.validate(options, {
+        path: true
+      })
       let fn = path.basename(options.path)
       let data = await this.cat(options)
       let extra = options.all || options.metadata || options.versions
