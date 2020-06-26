@@ -343,6 +343,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.7__
+* aliases now accept params (ex. `alias x -c 'copy $1 && ls $2 $1')
+
 __7.0.6__
 * `rm` ask confirmation before delete forever from the `trash` dataset
 * `edit` does not crash if no path is passed
@@ -459,7 +462,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  129 passing (9s)
+  129 passing (8s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
