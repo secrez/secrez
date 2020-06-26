@@ -65,7 +65,8 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       path: 'file',
-      duration: [0.2]
+      duration: [0.2],
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['Copied to clipboard:', 'file'])
@@ -83,7 +84,8 @@ describe('#Copy', function () {
     inspect = stdout.inspect()
     await C.copy.exec({
       thisString: 'caruso',
-      duration: [0.2]
+      duration: [0.2],
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['Copied to clipboard:', '"caruso"'])
@@ -111,7 +113,8 @@ describe('#Copy', function () {
     await C.copy.exec({
       path: p,
       duration: [1],
-      json: true
+      json: true,
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['Copied to clipboard:', 'card.yml'])
@@ -125,7 +128,8 @@ describe('#Copy', function () {
     await C.copy.exec({
       path: p,
       duration: [0.2],
-      field: ['password']
+      field: ['password'],
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['Copied to clipboard:', 'card.yml'])
@@ -154,7 +158,8 @@ describe('#Copy', function () {
     await C.copy.exec({
       path: p,
       durationInMillis: [10],
-      field: ['none']
+      field: ['none'],
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['Field "none" not found in "card.yml"'])
@@ -168,7 +173,8 @@ describe('#Copy', function () {
     await C.copy.exec({
       path: p,
       duration: [1],
-      field: ['password']
+      field: ['password'],
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['The yml is malformed. To copy the entire content, do not use the options -j or -f'])
@@ -185,14 +191,16 @@ describe('#Copy', function () {
 
     inspect = stdout.inspect()
     await C.copy.exec({
-      path: '/folder'
+      path: '/folder',
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['Cannot copy a folder'])
 
     inspect = stdout.inspect()
     await C.copy.exec({
-      path: '/some'
+      path: '/some',
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['Path does not exist'])
@@ -221,7 +229,8 @@ describe('#Copy', function () {
 
     inspect = stdout.inspect()
     await C.copy.exec({
-      path: 'file1.tar.gz'
+      path: 'file1.tar.gz',
+      noBeep: true
     })
     inspect.restore()
     assertConsole(inspect, ['You can copy to clipboard only text files.'])
