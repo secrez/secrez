@@ -187,13 +187,17 @@ class Copy extends require('../Command') {
   }
 
   async writeAndWait(content, wait, counter) {
-    let previousContent = await clipboardy.read()
-    if (this.counter === counter) {
-      await clipboardy.write(content)
-      await sleep(wait)
-      if (this.counter === counter && content === (await clipboardy.read())) {
-        await clipboardy.write(previousContent)
+    try {
+      let previousContent = await clipboardy.read()
+      if (this.counter === counter) {
+        await clipboardy.write(content)
+        await sleep(wait)
+        if (this.counter === counter && content === (await clipboardy.read())) {
+          await clipboardy.write(previousContent)
+        }
       }
+    } catch(e) {
+      throw new Error(e.message)
     }
   }
 
