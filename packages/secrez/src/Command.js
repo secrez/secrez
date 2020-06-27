@@ -28,16 +28,16 @@ class Command extends PreCommand {
   setHelpAndCompletion() {
   }
 
-  pseudoFileCompletion(self, extraOptions = {}) {
-    return async options => {
+  pseudoFileCompletion(self) {
+    return async (options, extraOptions = {}, defaultDef) => {
       options = Object.assign(extraOptions, options)
       options.forAutoComplete = true
       return await self.prompt.internalFs.pseudoFileCompletion(options, true)
     }
   }
 
-  fileCompletion(self, extraOptions = {}) {
-    return async options => {
+  fileCompletion(self) {
+    return async (options, extraOptions = {}, defaultDef) => {
       options = Object.assign(extraOptions, options)
       options.forAutoComplete = true
       return await self.prompt.externalFs.fileCompletion(options)

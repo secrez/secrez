@@ -34,11 +34,15 @@ class _Completion {
       if (c._func) {
         let commandLine = _.trim(line).split(' ').slice(1).join(' ')
         const definitions = c._self.optionDefinitions
+        const defaultDef = definitions.filter(e => e.defaultOption === true)[0]
         options = FsUtils.parseCommandLine(definitions, commandLine)
         if (options._unknown) {
-          options = {path: '.'}
+          delete  options._unknown
+          if (defaultDef && defaultDef.name === 'path') {
+            options.path = '.'
+          }
         }
-        let files = await c._func(options, originalLine)
+        let files = await c._func(options, originalLine, defaultDef)
         commands = files
       } else {
         commands = _.filter(
