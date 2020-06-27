@@ -251,9 +251,11 @@ class Prompt {
             Logger.red(`The alias "${command}" requires ${max} parameter${max > 1 ? 's': ''}`)
             this.disableRun = false
           }
+          this.run()
           return
         }
         Logger.red('Command not found')
+        this.run()
         return
       }
       await this.exec([cmd])
