@@ -68,7 +68,7 @@ if (secrezChange) {
 
 if (coreChange) {
   // console.log(corePackage)
-  fs.writeFileSync(fsPath, JSON.stringify(corePackage, null, 2))
+  fs.writeFileSync(corePath, JSON.stringify(corePackage, null, 2))
 }
 if (fsChange) {
   // console.log(fsPackage)

@@ -347,6 +347,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.8__
+* upgrade `@secrez/core` to `0.7.1` which fixes an error if `env.json` does not exists
+
 __7.0.7__
 * aliases now accept params (ex. `alias x -c 'copy $1 && ls $2 $1')
 
@@ -466,7 +469,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 #### Test coverage
 
 ```
-  129 passing (8s)
+  129 passing (9s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
