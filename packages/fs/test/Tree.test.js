@@ -447,7 +447,7 @@ describe('#Tree', function () {
         type: secrez.config.types.DIR
       })
 
-      let files = (await internalFs.pseudoFileCompletion()).sort()
+      let files = (await internalFs.getFileList()).sort()
       assert.equal(files.length, 5)
       assert.equal(files[0], 'archive')
       assert.equal(files[1], 'd')
@@ -457,7 +457,7 @@ describe('#Tree', function () {
 
       await internalFs.mountTree(0, true)
 
-      files = (await internalFs.pseudoFileCompletion()).sort()
+      files = (await internalFs.getFileList()).sort()
       assert.equal(files.length, 5)
       assert.equal(files[0], 'a')
       assert.equal(files[1], 'archive')

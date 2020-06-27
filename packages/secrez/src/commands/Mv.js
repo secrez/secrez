@@ -5,7 +5,7 @@ class Mv extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.mv = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.mv = true

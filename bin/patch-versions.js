@@ -32,10 +32,6 @@ let coreVersion = corePackage.version
 let fsVersion = fsPackage.version
 let secrezVersion = secrezPackage.version
 
-console.log(corePublished, fsPublished, secrezPublished, coreVersion, fsVersion, secrezVersion)
-
-
-
 function incVersion(v) {
   v = v.split('.')
   v[2] = parseInt(v[2]) + 1

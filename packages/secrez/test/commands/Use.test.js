@@ -140,10 +140,9 @@ describe('#Use', function () {
 
   it('#completion should return the list of the datasets', async function () {
 
-    let completion = C.use.completion()
-    let result = (await completion({})).sort()
+    let result = (await C.use.customCompletion({})).sort()
     assert.equal(result.join(' '), 'main trash')
-    result = (await completion({
+    result = (await C.use.customCompletion({
       dataset: 'ma'
     })).sort()
     assert.equal(result.join(' '), 'main')

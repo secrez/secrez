@@ -36,9 +36,18 @@ class _Completion {
         const definitions = c._self.optionDefinitions
         options = FsUtils.parseCommandLine(definitions, commandLine)
         if (options._unknown) {
-          options = {path: '.'}
+          options = {}
         }
-        let files = await c._func(options, originalLine)
+        let optionsKeys = Object.keys(options)
+        let currentOption = optionsKeys.pop()
+        if (currentOption === undefined) {
+          let defaultOption = definitions.filter(e => e.defaultOption === true)[0]
+          if (defaultOption) {
+            defaultOption = defaultOption.name
+          }
+          currentOption = defaultOption
+        }
+        let files = await c._func(options, originalLine, currentOption)
         commands = files
       } else {
         commands = _.filter(

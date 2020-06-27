@@ -47,7 +47,7 @@ describe('#Command', function () {
 
   })
 
-  describe('#pseudoFileCompletion', async function () {
+  describe('#getFileList', async function () {
 
     it('should get the current internal folder dir', async function () {
 
@@ -57,23 +57,19 @@ describe('#Command', function () {
       await noPrint(C.touch.exec({path: '/file1'}))
       await noPrint(C.touch.exec({path: '/file2'}))
 
-      let pseudoFileCompletion = command.pseudoFileCompletion(C.ls, {})
-      let dir = await pseudoFileCompletion({path: '.'})
+      let pseudoFileCompletion = command.selfCompletion(C.ls, {})
+      let dir = await pseudoFileCompletion({path: '.'}, '', 'path')
       assert.equal(dir.sort().join(' '),'dir1/ dir2/ dir3/ file1 file2 main trash')
 
-      dir = await pseudoFileCompletion({path: '/dir3'})
+      dir = await pseudoFileCompletion({path: '/dir3'}, '', 'path')
       assert.equal(dir.sort().join(' '),'file3')
 
     })
 
-  })
-
-  describe('#fileCompletion', async function () {
-
     it('should get the current external folder dir', async function () {
 
-      let fileCompletion = command.fileCompletion(C.lls, {})
-      let dir = await fileCompletion({path: 'folder1'})
+      let fileCompletion = command.selfCompletion(C.lls, {external: true})
+      let dir = await fileCompletion({path: 'folder1'}, '', 'path')
       for (let p of ['file$2', 'file1', 'file1.tar.gz', 'folder2/', 'folder3/']) {
         assert.isTrue(dir.includes(p))
       }

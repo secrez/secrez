@@ -9,7 +9,7 @@ class Export extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.export = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.export = true

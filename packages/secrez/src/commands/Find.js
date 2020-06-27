@@ -5,7 +5,7 @@ class Find extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.find = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.find = true

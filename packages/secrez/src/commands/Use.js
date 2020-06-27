@@ -2,7 +2,7 @@ class Use extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.use = {
-      _func: this.completion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.use = true
@@ -31,15 +31,13 @@ class Use extends require('../Command') {
     ]
   }
 
-  completion(self) {
-    return async options => {
-      let datasetsInfo = await this.internalFs.getDatasetsInfo()
-      options.forAutoComplete = true
-      if (options.dataset) {
-        return datasetsInfo.map(e => e.name).filter(e => RegExp('^' + options.dataset).test(e))
-      } else {
-        return datasetsInfo.map(e => e.name)
-      }
+  async customCompletion(options, originalLine, defaultOption) {
+    let datasetsInfo = await this.internalFs.getDatasetsInfo()
+    options.forAutoComplete = true
+    if (options.dataset) {
+      return datasetsInfo.map(e => e.name).filter(e => RegExp('^' + options.dataset).test(e))
+    } else {
+      return datasetsInfo.map(e => e.name)
     }
   }
 

@@ -4,7 +4,7 @@ class Mkdir extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.mkdir = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.mkdir = true

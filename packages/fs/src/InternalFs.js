@@ -258,7 +258,7 @@ class InternalFs {
     return data
   }
 
-  async pseudoFileCompletion(options = {}, addSlashIfDir, returnNodes) {
+  async getFileList(options = {}, addSlashIfDir, returnNodes) {
     try {
       return await this.fileList(options, addSlashIfDir, returnNodes)
     } catch(e) {

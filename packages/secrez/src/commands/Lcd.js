@@ -2,7 +2,8 @@ class Lcd extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.lcd = {
-      _func: this.fileCompletion(this, {
+      _func: this.selfCompletion(this, {
+        external: true,
         all: true,
         dironly: true
       }),
