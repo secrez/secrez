@@ -476,7 +476,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 
 ## Contribute
 
-After taking a look at the [Code of Conduct]('CODE_OF_CONDUCT.md'), do this:
+After taking a look at the [Code of Conduct]('https://github.com/secrez/secrez/blob/master/CODE_OF_CONDUCT.md'), do this:
 
 #### Fork this repo
 
