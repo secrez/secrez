@@ -1,17 +1,17 @@
 # Secrez
 A secrets manager as an encrypted file system.
 
-### This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
+# This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
 
 
-#### Intro
+## Intro
 
 Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `mkdir`, `ls`, `mv`, etc.
 
 The idea is to interact with encrypted virtual files as if they are just files in a standard file system.
 
 
-#### Why Secrez?
+## Why Secrez?
 
 There are two primary approaches to secrets and password management:
 
@@ -36,7 +36,7 @@ You can either create a private repo on GitHub, BitBucket, etc. or — much bett
 
 For now, this is a manual approach. In a future version, the git repo will be manageable from inside Secrez.
 
-#### The structure
+## The structure
 
 Secrez simulates an operating system. When you load the environment, you can execute commands like `ls`, `mv`, etc. similarly to what you normally to in a Unix terminal.
 
@@ -45,7 +45,7 @@ Starting from version `0.6.0`, the data are organized in datasets. Think of them
 By default, Secrez generates two datasets: `main` and `trash`. You can create more with, for example, `use -c archive`. The advantage of multiple datasets is mostly for people who have a lot of secrets to manage. If you have 2,000, if they are all in the primary dataset, the system will probably become quite slow. The solution is to move data to separate datasets (`archive`, `backup`, `twitter`, `cryptos`, etc.)
 
 
-#### Secrez never lose secrets
+## Secrez never lose secrets
 
 One of the primary goal of a secrets manager is that you will never lose any data.
 
@@ -72,7 +72,7 @@ In any case, all the contents are kept.
 
 To avoid to repeat the same process on the other computer (which will generate files with different IDs and more deleted items), Alice should align the repo on A before doing anything there. But, if she does not, nothing will be lost anyway.
 
-#### The name convention
+## The name convention
 
 A file name in Secrez looks like
 ```
@@ -85,11 +85,11 @@ This implies that, at bootstrap, Secrez must read all the files' names and build
 
 To mitigate this risk, you can create a new Git repo, save everything as the first commit, and delete the previously used repo. This way, you lose the repo's history, but you also lose info about timestamps and versions in case someone gains access to the repo.
 
-#### The tree
+## The tree
 
 Secrez manages trees as single immutable files. During a session, temporary files are deleted to keep their number low, but at the exit, the last file remains in the repo.
 
-#### Security details
+## Security details
 
 When you initially create a secrez database (stored, by default, in `~/.secrez`) you should indicate the number of iterations.
 
@@ -118,7 +118,7 @@ Both are your homedir (`~`) by default.
 Basically, running Secrez with different containers (`-c` option) you can set up multiple independent encrypted databases.
 
 
-#### Install
+## Install
 
 ```
 npm install -g secrez
@@ -126,7 +126,7 @@ npm install -g secrez
 
 At first run, secrez will ask you for the number of iterations (suggested between 500000 and 1000000, but the more the better) and a master password — ideally a phrase hard to guess, but easy to remember and type, something like, for example "heavy march with 2 eggs" or "grace was a glad president".
 
-#### The commands
+## The commands
 
 From the output of `help`:
 
@@ -171,7 +171,7 @@ Examples:
   
 ```
 
-#### Some example
+## Some example
 
 ```
 cat myPrivateKey
@@ -195,7 +195,7 @@ This command takes the standard file myWallet.json, contained in the Desktop fol
 
 This is one of my favorite commands. In fact, let's say that you have just downloaded the private key to access your crypto wallet, you want to encrypt it as soon as possible. With Secrez, you can import the file and delete the cleartext version in one command.
 
-#### Aliases — where the fun comes :-)
+## Aliases — where the fun comes :-)
 
 Suppose that you have a card for your bank and like to login to your bank. You could copy email and password to the clipboard to paste them in the browser. Suppose that you expect to be able in 4 seconds to move from the terminal to the browser, you could run the command:    
 
@@ -219,7 +219,7 @@ Notice that the command above works in you are using the `main` dataset, if you 
 copy main:/bank.yml -f email password -d 4 3
 ```
 
-#### Importing from other password/secret managers
+## Importing from other password/secret managers
 
 From version 0.5.2, Secrez supports import of backups from other softwares.
 
@@ -285,7 +285,7 @@ You can also simulate the process to see which files will be created with the op
 If in the CSV file there is also the field `tags`, you can tag automatically any entries with the options `-t, --tags`. If you don't use the option, instead, they will be saved in the yaml file like any other field.
 
 
-#### Second factor authentication
+## Second factor authentication
 
 Since version 0.6.1, Secrez supports 2FA. It uses external scripts in Python, based on  Python-Fido2 by Yubiko, and it's compatible with any Fido2 authenticator device implementing the hmac-secret extension.
 
@@ -331,21 +331,24 @@ Adding or removing a second factor changes the keys.json file. So, if you are us
 
 As a rule of thumb, if you use a git repo, always pull before running Secrez, and always commit and push after exiting.
 
-#### A quick demo
+## A quick demo
 
 If you like to watch a quick demo, [you can take a look at this video on Youtube](https://www.youtube.com/watch?v=qGoBTpG0Fj0).
 
-#### Some thoughts
+## Some thoughts
 
 Secrez does not want to compete with password managers. So, don't expect in the future to have "form filling" and staff like that. The idea behind Secrez was born in 2017, when I was participating in many ICO and I had so many files to save and any password manager I used was very bad for that. Still, Secrez, for its nature, is file oriented and I guess will remain this way. However, it is open source, and someone is welcome to built a GUI or a mobile app built on it.
 
-#### TODO
+## TODO
 
 - Documentation
 - More commands, included a Git command to manage the repo
 - Plugin architecture to allow others to add their own commands
 
-### History
+# History
+
+__7.0.11__
+* returns an alert if `clipboardy` does not find the required libraries
 
 __7.0.10__
 * fixes the autocomplete loading the data only when needed
@@ -366,7 +369,6 @@ __7.0.6__
 __7.0.5__
 * `totp` can read an image to scan a qrcode and recover its secret
 * on MacOs, `totp` can also read the image from the clipboard to recover its secret; it requires `pngpaste`
-
 
 __7.0.4__
 * fix bug in autocomplete showing the error stack
@@ -472,7 +474,83 @@ __0.5.0__
 
 Versions < 0.5.0 are deprecated because the format was sligtly different and they are incompatible.
 
-#### Test coverage
+## Contribute
+
+After taking a look at the [Code of Conduct]('CODE_OF_CONDUCT.md'), do this:
+
+#### Fork this repo
+
+#### Clone it
+
+In my case, it would be:
+
+```
+git clone git@github.com:sullof/secrez.git
+```
+
+#### Install the requirements
+
+```
+npm i -g lerna
+```
+
+#### Bootstrap the monorepo
+```
+lerna bootstrap
+```
+#### Install OS requirements
+To complete the tests, you must install some tool, depending on you operating system.
+
+The `copy` command does not work on Linux is `xsel` is not installed. So, if you, for example, are working on Ubuntu, install it with
+```
+sudo apt install xsel
+```
+The `totp` command requires, on MacOS, `pngpaste`. You can install it with
+```
+brew install pngpaste
+```
+The `conf` command, requires `Python-fido2`. If you don't have Python, install it. After you can install `fido2` running:
+```
+pip install fido2
+```
+Notice that during the execution of Secrez, an error is generated if those tools have not been found. But, nothing happens, during testing. So, please, install them.
+
+#### Testing
+Run
+```
+npm run test
+```
+This depends where you run it. If you run from the root it executes all the tests, if you run from inside a package, it runs only its specific tests.
+You can also run
+```
+npm run test-only
+```
+to skip the coverage. This is very helpful during the development.
+
+#### Debugging
+
+To see if it works, you can execute your version of Secrez running, from inside `packages/secrez`
+```
+npm run dev
+```
+and create a dev account for you playing.
+
+#### Pull Requests
+
+To prepare the code for a PR, you should realign the versions. You can do this, from the root, calling
+```
+npm run patch-versions
+```
+Then, you can prepare the README inserting the coverage. To do it, run
+```
+npm run pre-push
+```
+Finally, you can push to GitHub.
+
+Thanks a lot for any contribution 😉
+
+
+## Test coverage
 
 ```
   129 passing (8s)
@@ -480,17 +558,17 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.11 |    81.88 |   98.89 |   95.02 |                                 
- src              |   92.96 |    80.49 |     100 |   92.96 |                                 
+All files         |   95.33 |    82.38 |   98.89 |   95.25 |                                 
+ src              |     100 |    92.11 |     100 |     100 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
-  Command.js      |    87.8 |    77.78 |     100 |    87.8 | 36-38,44,48                     
+  Command.js      |     100 |    95.83 |     100 |     100 | 55                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   95.02 |    82.23 |   98.63 |   94.92 |                                 
+ src/commands     |   94.88 |    82.11 |   98.63 |   94.78 |                                 
   Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 89,100,122,150,155,165          
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
   Cd.js           |   96.43 |    86.67 |     100 |   96.43 | 44                              
-  Copy.js         |   94.87 |       76 |     100 |   94.81 | 96,141,158,183                  
+  Copy.js         |   94.94 |    74.51 |     100 |   94.87 | 96,141,158,183                  
   Exit.js         |      90 |       50 |     100 |      90 | 30                              
   Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,99                  
   Find.js         |   92.54 |    86.67 |     100 |   92.31 | 90,141,172-176,182              
@@ -503,7 +581,7 @@ All files         |   95.11 |    81.88 |   98.89 |   95.02 |
   Ls.js           |   88.89 |    68.75 |     100 |    87.5 | 65,69,90                        
   Mkdir.js        |     100 |    66.67 |     100 |     100 | 38-44                           
   Mv.js           |   91.01 |    77.36 |     100 |    90.8 | 113,136,147-153                 
-  Paste.js        |    90.7 |       75 |     100 |    90.7 | 65,69,77,114                    
+  Paste.js        |   87.23 |       75 |     100 |   87.23 | 65,71,74,82,106,123             
   Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
   Rm.js           |   96.67 |       90 |     100 |   96.55 | 75                              
   Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
@@ -518,11 +596,11 @@ All files         |   95.11 |    81.88 |   98.89 |   95.02 |
 ```
 
 
-#### Copyright
+## Copyright
 
 Secrez has been created by [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>). Any opinion, help, suggestion, critic is very welcome.
 
-#### Licence
+## Licence
 ```
 MIT License
 

@@ -61,8 +61,14 @@ describe('#Command', function () {
       let dir = await pseudoFileCompletion({path: '.'}, '', 'path')
       assert.equal(dir.sort().join(' '),'dir1/ dir2/ dir3/ file1 file2 main trash')
 
+      dir = await pseudoFileCompletion({path: null}, '', 'path')
+      assert.equal(dir.sort().join(' '),'dir1/ dir2/ dir3/ file1 file2 main trash')
+
       dir = await pseudoFileCompletion({path: '/dir3'}, '', 'path')
       assert.equal(dir.sort().join(' '),'file3')
+
+      dir = await pseudoFileCompletion({path: '/dir3'}, '', 'dest')
+      assert.equal(dir.sort().join(' '),'')
 
     })
 
@@ -73,6 +79,7 @@ describe('#Command', function () {
       for (let p of ['file$2', 'file1', 'file1.tar.gz', 'folder2/', 'folder3/']) {
         assert.isTrue(dir.includes(p))
       }
+
     })
 
   })

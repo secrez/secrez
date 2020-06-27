@@ -30,7 +30,7 @@ for (let row of coverage) {
 
 }
 
-let text = '#### Test coverage'
+let text = '## Test coverage'
 
 coverage = result.join('\n')
 

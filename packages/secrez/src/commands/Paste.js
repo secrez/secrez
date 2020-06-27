@@ -64,7 +64,12 @@ class Paste extends require('../Command') {
     if (file && !Node.isFile(file)) {
       throw new Error('Cannot paste to a folder or a binary file')
     }
-    let content = await clipboardy.read()
+    let content
+    try {
+      content = await clipboardy.read()
+    } catch (e) {
+      throw new Error(e.message)
+    }
     if (!content) {
       throw new Error('The clipboard does not contain any text')
     }
@@ -95,7 +100,11 @@ class Paste extends require('../Command') {
         content
       })
     }
-    await clipboardy.write('')
+    try {
+      await clipboardy.write('')
+    } catch (e) {
+      throw new Error(e.message)
+    }
 
     return options.path
 
