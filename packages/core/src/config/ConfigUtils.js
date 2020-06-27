@@ -82,7 +82,11 @@ history
   }
 
   static async getEnv() {
-    return JSON.parse(await fs.readFile(config.envPath, 'utf8'))
+    if (await fs.pathExists(config.envPath)) {
+      return JSON.parse(await fs.readFile(config.envPath, 'utf8'))
+    } else {
+      return {}
+    }
   }
 
   static async putEnv(env) {
