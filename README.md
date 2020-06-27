@@ -347,6 +347,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ### History
 
+__7.0.9__
+* fix bug in Prompt.js which caused an exit if command not found
+
 __7.0.8__
 * upgrade `@secrez/core` to `0.7.1` which fixes an error if `env.json` does not exists
 
