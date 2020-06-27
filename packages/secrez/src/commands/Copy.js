@@ -170,8 +170,8 @@ class Copy extends require('../Command') {
 
   async write(content, options, counter) {
     let duration = options.duration
-            ? options.duration.map(e => 1000 * e)
-            : [5000]
+        ? options.duration.map(e => 1000 * e)
+        : [5000]
     if (!duration[1]) {
       duration[1] = duration[0]
     }
@@ -187,17 +187,13 @@ class Copy extends require('../Command') {
   }
 
   async writeAndWait(content, wait, counter) {
-    try {
-      let previousContent = await clipboardy.read()
-      if (this.counter === counter) {
-        await clipboardy.write(content)
-        await sleep(wait)
-        if (this.counter === counter && content === (await clipboardy.read())) {
-          await clipboardy.write(previousContent)
-        }
+    let previousContent = await clipboardy.read()
+    if (this.counter === counter) {
+      await clipboardy.write(content)
+      await sleep(wait)
+      if (this.counter === counter && content === (await clipboardy.read())) {
+        await clipboardy.write(previousContent)
       }
-    } catch(e) {
-      throw new Error(e.message)
     }
   }
 
@@ -206,6 +202,10 @@ class Copy extends require('../Command') {
       return this.showHelp()
     }
     try {
+      /* istanbul ignore if  */
+      if (!this.clipboardyVerified) {
+        await clipboardy.read()
+      }
       this.validate(options)
       let name = await this.copy(options)
       this.Logger.grey('Copied to clipboard:')

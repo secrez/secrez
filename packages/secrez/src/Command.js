@@ -32,13 +32,13 @@ class Command extends PreCommand {
     return async (options, originalLine, currentOption) => {
       options = Object.assign(options, extraOptions)
       options.forAutoComplete = true
+      /* istanbul ignore if  */
       if (this.customCompletion) {
         let extra = await this.customCompletion(options, originalLine, currentOption)
         if (extra) {
           return extra
         }
       }
-      // console.log(options, currentOption)
       if (currentOption === 'path') {
         if (options.path === null) {
           delete options.path
