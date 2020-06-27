@@ -1,15 +1,17 @@
 const path = require('path')
 const fs = require('fs')
 const {execSync} = require('child_process')
-const pc = path.resolve(__dirname, '../packages/core/package.json')
-const pf = path.resolve(__dirname, '../packages/fs/package.json')
-const ps = path.resolve(__dirname, '../packages/secrez/package.json')
-const pkgc = require(pc)
-const pkgf = require(pf)
-const pkgs = require(ps)
+
+const corePath = path.resolve(__dirname, '../packages/core/package.json')
+const fsPath = path.resolve(__dirname, '../packages/fs/package.json')
+const secrezPath = path.resolve(__dirname, '../packages/secrez/package.json')
+
+const corePackage = require(corePath)
+const fsPackage = require(fsPath)
+const secrezPackage = require(secrezPath)
 
 let packages = {}
-let gitDiff = execSync(`git diff master --name-only`).toString().split('\n').map(e => {
+execSync(`git diff master --name-only`).toString().split('\n').map(e => {
   let m = e.split('/')
   if (m[0] === 'packages' && m[2] !== 'README.md') {
     packages[m[1]] = true
@@ -18,23 +20,21 @@ let gitDiff = execSync(`git diff master --name-only`).toString().split('\n').map
 })
 
 function getDiff(dir, pkg) {
-  if (packages[dir]) {
-    let ver = execSync(`npm view ${pkg || dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
-    return ver
-  }
-  return '0'
+  let ver = execSync(`npm view ${pkg || dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
+  return [ver, packages[dir]]
 }
 
-let c = getDiff('core', '@secrez/core')
-let f = getDiff('fs', '@secrez/fs')
-let s = getDiff('secrez')
+let [corePublished, coreChange] = getDiff('core', '@secrez/core')
+let [fsPublished, fsChange] = getDiff('fs', '@secrez/fs')
+let [secrezPublished, secrezChange] = getDiff('secrez')
 
-let c2 = pkgc.version
-let f2 = pkgf.version
-let s2 = pkgs.version
+let coreVersion = corePackage.version
+let fsVersion = fsPackage.version
+let secrezVersion = secrezPackage.version
 
-let cf = cs = cc = 0
-let changes = false
+console.log(corePublished, fsPublished, secrezPublished, coreVersion, fsVersion, secrezVersion)
+
+
 
 function incVersion(v) {
   v = v.split('.')
@@ -42,44 +42,46 @@ function incVersion(v) {
   return v.join('.')
 }
 
-if (c && c === c2) {
-  c2 = incVersion(c2)
-  console.log(`Updating @secrez/core to ${c2}`)
-  pkgc.version = c2
-  pkgf.dependencies['@secrez/core'] = `^${c2}`
-  pkgs.dependencies['@secrez/core'] = `^${c2}`
-  cc = cf = cs = 1
-  changes = true
+if (coreChange) {
+  coreVersion = incVersion(corePublished)
+  console.log(`Updating @secrez/core to ${coreVersion}`)
+  corePackage.version = coreVersion
+  fsPackage.dependencies['@secrez/core'] = `^${coreVersion}`
+  secrezPackage.dependencies['@secrez/core'] = `^${coreVersion}`
+  coreChange = fsChange = secrezChange = true
 }
 
-if (f && f === f2) {
-  f2 = incVersion(f2)
-  console.log(`Updating @secrez/fs to ${f2}`)
-  pkgf.version = f2
-  pkgs.dependencies['@secrez/fs'] = `^${f2}`.substring(1)
-  cf = cs = 1
-  changes = true
+if (fsChange) {
+  fsVersion = incVersion(fsPublished)
+  console.log(`Updating @secrez/fs to ${fsVersion}`)
+  fsPackage.version = fsVersion
+  secrezPackage.dependencies['@secrez/fs'] = `^${fsVersion}`.substring(1)
+  fsChange = secrezChange = true
 }
 
-if (s && s === s2) {
-  s2 = incVersion(s2)
-  console.log(`Updating secrez to ${s2}`)
-  pkgs.version = s2
-  cs = 1
-  changes = true
+if (secrezChange) {
+  secrezVersion = incVersion(secrezPublished)
+  console.log(`Updating secrez to ${secrezVersion}`)
+  secrezPackage.version = secrezVersion
+  secrezChange = true
 }
 
-if (cc) {
-  fs.writeFileSync(pf, JSON.stringify(pkgc, null, 2))
+if (coreChange) {
+  // console.log(corePackage)
+  fs.writeFileSync(corePath, JSON.stringify(corePackage, null, 2))
 }
-if (cf) {
-  fs.writeFileSync(pf, JSON.stringify(pkgf, null, 2))
+if (fsChange) {
+  // console.log(fsPackage)
+  fs.writeFileSync(fsPath, JSON.stringify(fsPackage, null, 2))
 }
-if (cs) {
-  fs.writeFileSync(ps, JSON.stringify(pkgs, null, 2))
+if (secrezChange) {
+  // console.log(secrezPackage)
+  fs.writeFileSync(secrezPath, JSON.stringify(secrezPackage, null, 2))
 }
 
-if (changes) {
+
+
+if (coreChange || fsChange || secrezChange) {
   execSync('npm run reset')
 } else {
   console.log('No change required')
