@@ -14,7 +14,7 @@ class ExternalFs {
     return path.normalize(resolvedFile)
   }
 
-  async fileCompletion(options = {}) {
+  async getFileList(options = {}) {
     try {
       return await this.fileList(options)
     } catch(e) {

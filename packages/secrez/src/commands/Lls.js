@@ -4,7 +4,9 @@ class Lls extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.lls = {
-      _func: this.fileCompletion(this),
+      _func: this.selfCompletion(this, {
+        external: true
+      }),
       _self: this
     }
     this.cliConfig.completion.help.lls = true

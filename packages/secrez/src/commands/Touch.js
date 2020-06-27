@@ -4,7 +4,7 @@ class Touch extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.touch = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.touch = true

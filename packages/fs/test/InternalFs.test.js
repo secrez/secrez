@@ -570,7 +570,7 @@ describe('#InternalFs', function () {
 
   })
 
-  describe('#pseudoFileCompletion', async function () {
+  describe('#getFileList', async function () {
 
     beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
@@ -597,18 +597,18 @@ describe('#InternalFs', function () {
         type: config.types.TEXT
       })
 
-      let res = await internalFs.pseudoFileCompletion({}, true)
+      let res = await internalFs.getFileList({}, true)
       assert.equal(res.join(' '), 'main trash dir/')
 
-      res = await internalFs.pseudoFileCompletion('/dir')
+      res = await internalFs.getFileList('/dir')
       assert.equal(res.join(' '), 'file1 file2')
 
-      res = await internalFs.pseudoFileCompletion('/dir/file1')
+      res = await internalFs.getFileList('/dir/file1')
       assert.equal(res.join(' '), 'file1')
 
       internalFs.tree.workingNode = dir
 
-      res = await internalFs.pseudoFileCompletion('fi*')
+      res = await internalFs.getFileList('fi*')
       assert.equal(res.join(' '), 'file1 file2')
 
     })

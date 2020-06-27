@@ -28,21 +28,28 @@ class Command extends PreCommand {
   setHelpAndCompletion() {
   }
 
-  pseudoFileCompletion(self) {
-    return async (options, extraOptions = {}, defaultDef) => {
-      options = Object.assign(extraOptions, options)
+  selfCompletion(self, extraOptions = {}) {
+    return async (options, originalLine, currentOption) => {
+      options = Object.assign(options, extraOptions)
       options.forAutoComplete = true
-      return await self.prompt.internalFs.pseudoFileCompletion(options, true)
+      if (this.customCompletion) {
+        let extra = await this.customCompletion(options, originalLine, currentOption)
+        if (extra) {
+          return extra
+        }
+      }
+      // console.log(options, currentOption)
+      if (currentOption === 'path') {
+        if (options.path === null) {
+          delete options.path
+        }
+        return await self.prompt[extraOptions.external ? 'externalFs' : 'internalFs'].getFileList(options, true)
+      } else {
+        return []
+      }
     }
   }
 
-  fileCompletion(self) {
-    return async (options, extraOptions = {}, defaultDef) => {
-      options = Object.assign(extraOptions, options)
-      options.forAutoComplete = true
-      return await self.prompt.externalFs.fileCompletion(options)
-    }
-  }
 
   threeRedDots(large) {
     return chalk.cyan(large ? '•••' : '···')

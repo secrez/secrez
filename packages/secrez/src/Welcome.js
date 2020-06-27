@@ -117,8 +117,8 @@ class Welcome {
             let exitCode = Crypto.getRandomBase58String(2)
             let p = await inquirer.prompt([{
               name: 'recoveryCode',
-              type: 'password',
-              message: 'Paste your recovery code:',
+              type: 'input',
+              message: 'Type or paste your recovery code:',
               validate: value => {
                 if (value.length) {
                   return true

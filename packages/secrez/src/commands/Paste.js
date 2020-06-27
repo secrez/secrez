@@ -7,7 +7,7 @@ class Paste extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.paste = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.paste = true

@@ -10,7 +10,7 @@ class Totp extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.totp = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.totp = true

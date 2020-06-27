@@ -53,28 +53,28 @@ describe('#ExternalFs', function () {
 
     it('should return a list of files', async function () {
       files = './fixtures/tree'
-      results = await externalFs.fileCompletion({path: files})
+      results = await externalFs.getFileList({path: files})
       assert.equal(results.length, 4)
 
     })
 
     it('should return a list of only directories', async function () {
       files = './fixtures/tree'
-      results = await externalFs.fileCompletion({path: files, dironly: true})
+      results = await externalFs.getFileList({path: files, dironly: true})
       assert.equal(results.length, 1)
 
     })
 
     it('should return a list of only files', async function () {
       files = './fixtures/tree'
-      results = await externalFs.fileCompletion({path: files, fileonly: true})
+      results = await externalFs.getFileList({path: files, fileonly: true})
       assert.equal(results.length, 3)
 
     })
 
     it('should return the file itself, if it is not a directory', async function () {
       files = './fixtures/tree/a'
-      results = await externalFs.fileCompletion({path: files})
+      results = await externalFs.getFileList({path: files})
       assert.equal(results.length, 1)
       assert.equal(results[0], 'a')
 
@@ -82,26 +82,26 @@ describe('#ExternalFs', function () {
 
     it('should return the list of the files satisfying wildcards', async function () {
       files = './fixtures/tree/d/a1*'
-      results = await externalFs.fileCompletion({path: files})
+      results = await externalFs.getFileList({path: files})
       assert.equal(results.length, 2)
 
       files = './fixtures/tree/d/a*'
-      results = await externalFs.fileCompletion({path: files})
+      results = await externalFs.getFileList({path: files})
       assert.equal(results.length, 3)
 
       files = './fixtures/tree/d/?1*'
-      results = await externalFs.fileCompletion({path: files})
+      results = await externalFs.getFileList({path: files})
       assert.equal(results.length, 3)
 
       files = './fixtures/tree/d/*b?'
-      results = await externalFs.fileCompletion({path: files})
+      results = await externalFs.getFileList({path: files})
       assert.equal(results.length, 3)
 
     })
 
     it('should return an empty list if the files does not exist', async function () {
       files = 'somefile.txt'
-      results = await externalFs.fileCompletion({path: files})
+      results = await externalFs.getFileList({path: files})
       assert.equal(results.length, 0)
 
     })

@@ -158,7 +158,7 @@ class Prompt {
           if (m[i] !== l) {
             m[i] = m[i].replace(RegExp('^' + r), '')
             if (m[i]) {
-              res.push(m[i])
+              res.push(m[i].replace(/^(-[a-zA-Z]{1} |--\w+(=| ))/, ''))
             }
           }
         } catch (e) {
@@ -281,7 +281,7 @@ class Prompt {
             const options = FsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
             await this.commands[command].exec(options)
           } catch (e) {
-            console.error(e)
+            // console.error(e)
             Logger.red(e.message)
             this.run()
           }

@@ -8,7 +8,7 @@ class Copy extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.copy = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.copy = true
@@ -74,9 +74,9 @@ class Copy extends require('../Command') {
       examples: [
         ['copy ethKeys', 'copies to the clipboard for 10 seconds (the default)'],
         ['copy google.yml -j', 'copies the google card as a JSON'],
-        ['copy google.yml -a', 'copies the google card as is'],
+        ['copy -ap google.yml', 'copies the google card as is'],
         ['copy google.yml', 'it will ask to chose the field to copy'],
-        ['copy google.yml -f user --wait', 'it copies the user and wait for the duration'],
+        ['copy -f user --wait -p google.yml', 'it copies the user from google.yml and wait for the full duration'],
         ['copy myKey -v UY5d', 'copies version UY5d of myKey'],
         ['copy google.yml -d 10 -f password', 'copies the password in the google card and keeps it in the clipboard for 10 seconds; default is 5 seconds'],
         ['copy google.yml -f email password -d 3 2', 'copies email and keeps it in the clipboard for 3 seconds, after copies password and keeps it for 2 seconds; a bip will sound when a new data is copied'],

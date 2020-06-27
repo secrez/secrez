@@ -2,7 +2,7 @@ class Ls extends require('../Command') {
 
   setHelpAndCompletion() {
     this.cliConfig.completion.ls = {
-      _func: this.pseudoFileCompletion(this),
+      _func: this.selfCompletion(this),
       _self: this
     }
     this.cliConfig.completion.help.ls = true
