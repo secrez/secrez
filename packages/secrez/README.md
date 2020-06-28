@@ -93,7 +93,7 @@ Secrez manages trees as single immutable files. During a session, temporary file
 
 When you initially create a secrez database (stored, by default, in `~/.secrez`) you should indicate the number of iterations.
 
-Since Secrez derives a master key from your password using `crypto.pbkdf2`, the number of iterations is a significant addition to the general security. Even if you use a not-very-hard-to-guess password, if the attacker does not know the number of iterations, he has to try all the possible ones. Considering that 2,000,000 iterations require a second or so, customizable iterations increases enormously the overall security.
+Since Secrez derives a master key from your password using `crypto.pbkdf2`, the number of iterations is a significant addition to the general security because the number of iterations is part of the salt used for the derivation. Even if you use a not-very-hard-to-guess password, if the attacker does not know the number of iterations, he has to try all the possible ones. Considering that 2,000,000 iterations require a second or so, customizable iterations increases enormously the overall security.
 
 You can set up the number of iterations calling
 ```
@@ -197,27 +197,47 @@ This is one of my favorite commands. In fact, let's say that you have just downl
 
 ## Aliases — where the fun comes :-)
 
-Suppose that you have a card for your bank and like to login to your bank. You could copy email and password to the clipboard to paste them in the browser. Suppose that you expect to be able in 4 seconds to move from the terminal to the browser, you could run the command:    
-
+Suppose that you have a card for your bank and want to log into it. You could copy email and password to the clipboard to paste them in the browser. Suppose that you expect to be able in 4 seconds to move from the terminal to the browser, you could run the command:
 ```
-copy bank.yml -f email password -d 4 3
+copy bank.yml -f email password -d 4 2
 ```
-This will copy the email field and give you 4 seconds to paste it in the browser. After it will emit a beep and you have 3 seconds to paste the password. It sounds quite useful, but **it can be better.**
+This will copy the email field and give you 4 seconds to paste it in the browser. Then, it will emit a beep and you have 2 seconds to paste the password. It sounds quite useful, but it can be better.
 
 If you use that login often, you could like to create an alias for it with:
 ```
-alias b -c "copy bank.yml -f email password -d 4 3"
+alias b -c "copy bank.yml -f email password -d 4 2
 ```
 Next time, you can just type
 ```
 b
 ```
-and press enter to execute that command. It's fantastic, isn't it?
+It looks great, right? Well, it can be even better.
 
-Notice that the command above works in you are using the `main` dataset, if you moved to another one, it would fail. When you create an alias, it is better to use absolute paths so that it works everywhere, like:
+Let’s say that you are using a 2FA app (like Google Authenticator) to connect to a website, for example, GitHub. Suppose that you have a file github.yml with a field totp which is the secret that GitHub gave you when you activated the 2FA. You could execute
 ```
-copy main:/bank.yml -f email password -d 4 3
+totp github.yml
 ```
+to generate a TOTP token for GitHub. The token will be shown and copied in the clipboard. Now, you can create an alias like this
+```
+alias G -c "copy github.yml -f username password -d 4 2 --wait && totp github.yml"
+```
+Can you guess what this will do?
+
+* It copies the username in the clipboard;
+* it waits 5 seconds, emits a beep and copies the password;
+* it waits 3 seconds, emits a beep and copies the TOTP token and keep it in the clipboard.
+
+You can also use parameters in aliases and create a macro like
+```
+alias M -c "copy $1 -f username password -d 4 2 --wait && totp $1"
+```
+and call it with
+```
+M github.yml
+```
+It is fantastic, isn’t it?
+
+_Btw, using a TOTP factor in Secrez is a bit of a contradiction, because you are converting a second factor (something that you have) in a first factor (something that you know). So, use this feature only when it makes sense._ 
 
 ## Importing from other password/secret managers
 
@@ -556,7 +576,7 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  129 passing (9s)
+  129 passing (8s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
