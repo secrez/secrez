@@ -23,6 +23,7 @@ class Commands {
           instance.setHelpAndCompletion()
           this.commands[command.toLowerCase()] = instance
         } catch (e) {
+          /* istanbul ignore if  */
           if (process.env.NODE_ENV === 'dev') {
             console.debug(`${file} is not a command`)
           }

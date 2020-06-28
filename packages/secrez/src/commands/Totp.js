@@ -70,7 +70,7 @@ class Totp extends require('../Command') {
       switch (process.platform) {
         case 'darwin':
           result = await execAsync('which', __dirname, ['pngpaste'])
-          if (!result || result.code === 1) {
+          if (!result.message || result.code === 1) {
             throw new Error('pngpaste is required. Run "brew install pngpaste" in another terminal to install it')
           }
           break
@@ -78,7 +78,7 @@ class Totp extends require('../Command') {
           throw new Error('Operation not supported on Windows')
         default:
           result = await execAsync('which', __dirname, ['xclip'])
-          if (!result || result.code === 1) {
+          if (!result.message || result.code === 1) {
             throw new Error('xclip is required. On Debian/Ubuntu you can install it with "sudo apt install xclip"')
           }
       }
