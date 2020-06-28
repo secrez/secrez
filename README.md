@@ -347,6 +347,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 # History
 
+__7.0.12__
+* adds support for Linux to `totp --from-clipboard`, using `xclip`
+
 __7.0.11__
 * returns an alert if `clipboardy` does not find the required libraries
 
@@ -553,17 +556,17 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  129 passing (8s)
+  129 passing (9s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.33 |    82.38 |   98.89 |   95.25 |                                 
+All files         |    95.2 |    82.15 |   98.89 |   95.11 |                                 
  src              |     100 |    92.11 |     100 |     100 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
   Command.js      |     100 |    95.83 |     100 |     100 | 55                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   94.88 |    82.11 |   98.63 |   94.78 |                                 
+ src/commands     |   94.74 |    81.87 |   98.63 |   94.64 |                                 
   Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 89,100,122,150,155,165          
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
@@ -585,11 +588,11 @@ All files         |   95.33 |    82.38 |   98.89 |   95.25 |
   Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
   Rm.js           |   96.67 |       90 |     100 |   96.55 | 75                              
   Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
-  Totp.js         |   97.33 |    79.49 |      80 |   97.33 | 67-86                           
+  Totp.js         |   97.37 |    79.49 |      80 |   97.37 | 68-90                           
   Touch.js        |     100 |    71.43 |     100 |     100 | 56,67                           
   Use.js          |   98.04 |     93.1 |     100 |   97.92 | 103                             
   Ver.js          |      90 |    66.67 |     100 |      90 | 27                              
-  index.js        |   94.44 |    57.14 |     100 |   94.12 | 18                              
+  index.js        |   85.71 |    44.44 |     100 |      85 | 18,26-27                        
  src/utils        |     100 |    66.67 |     100 |     100 |                                 
   index.js        |     100 |    66.67 |     100 |     100 | 53,77                           
 ------------------|---------|----------|---------|---------|---------------------------------

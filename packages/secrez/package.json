@@ -1,9 +1,9 @@
 {
   "name": "secrez",
-  "version": "0.7.11",
+  "version": "0.7.12",
   "license": "MIT",
   "scripts": {
-    "dev": "node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
+    "dev": "cross-env NODE_ENV=dev node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
