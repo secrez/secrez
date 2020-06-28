@@ -556,7 +556,7 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  129 passing (8s)
+  129 passing (9s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
