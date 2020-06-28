@@ -12,7 +12,7 @@
     "reset": "bin/clean-all-modules.sh && lerna bootstrap",
     "patch-versions": "node bin/patch-versions.js",
     "pre-push": "npm run lint && bin/pre-push.sh",
-    "publish": "lerna run test --stream -- --colors && node bin/publish-changed-packages.js"
+    "publish": "npm run test && node bin/publish-changed-packages.js"
   },
   "license": "MIT",
   "dependencies": {
