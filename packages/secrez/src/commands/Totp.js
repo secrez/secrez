@@ -1,6 +1,7 @@
 const {authenticator} = require('otplib')
 const path = require('path')
 const fs = require('fs-extra')
+const {execSync} = require('child_process')
 const {isYaml, yamlParse, yamlStringify, execAsync, TRUE} = require('../utils')
 const {Node} = require('@secrez/fs')
 const QrCode = require('qrcode-reader')
@@ -69,14 +70,17 @@ class Totp extends require('../Command') {
       switch (process.platform) {
         case 'darwin':
           result = await execAsync('which', __dirname, ['pngpaste'])
-          if (!result) {
+          if (!result.message || result.code === 1) {
             throw new Error('pngpaste is required. Run "brew install pngpaste" in another terminal to install it')
           }
           break
         case 'win32':
           throw new Error('Operation not supported on Windows')
         default:
-          throw new Error('Operation not supported on this OS')
+          result = await execAsync('which', __dirname, ['xclip'])
+          if (!result.message || result.code === 1) {
+            throw new Error('xclip is required. On Debian/Ubuntu you can install it with "sudo apt install xclip"')
+          }
       }
     }
   }
@@ -86,9 +90,23 @@ class Totp extends require('../Command') {
     if (TRUE()) {
       await this.isImagePasteSupported()
       let p = path.resolve(this.secrez.config.tmpPath, 'image.png')
-      let result = await execAsync('pngpaste', __dirname, [p])
-      if (result.error) {
-        throw new Error(result.error)
+      let result
+      switch (process.platform) {
+        case 'darwin':
+          result = await execAsync('pngpaste', __dirname, [p])
+          if (result.error) {
+            if (/target image\/png not available/.test(result.error)) {
+              throw new Error('The clipboard does not contain an image')
+            }
+            throw new Error(result.error)
+          }
+          break
+        default:
+          try {
+            result = execSync(`xclip -selection clipboard -t image/png -o > ${p}`).toString()
+          } catch (e) {
+            throw new Error('Wrong content in the clipboard')
+          }
       }
       return p
     }
@@ -123,11 +141,11 @@ class Totp extends require('../Command') {
     let secret
     let originalPath = options.path
     if (options.fromImage || options.fromClipboard) {
+      /* istanbul ignore if  */
+      if (options.fromClipboard) {
+        options.fromImage = await this.readFromClipboard(options)
+      }
       try {
-        /* istanbul ignore if  */
-        if (options.fromClipboard) {
-          options.fromImage = await this.readFromClipboard(options)
-        }
         let result = await this.readFromImage(options)
         secret = result.split('secret=')[1].split('&')[0]
       } catch (e) {
