@@ -156,7 +156,9 @@ class Prompt {
       for (let i = 0; i < m.length; i++) {
         try {
           if (m[i] !== l) {
-            m[i] = m[i].replace(RegExp('^' + r), '')
+            if (r !== l) {
+              m[i] = m[i].replace(RegExp('^' + r), '')
+            }
             if (m[i]) {
               res.push(m[i].replace(/^(-[a-zA-Z]{1} |--\w+(=| ))/, ''))
             }
