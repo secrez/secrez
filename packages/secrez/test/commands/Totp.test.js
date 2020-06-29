@@ -3,11 +3,12 @@ const assert = chai.assert
 const stdout = require('test-console').stdout
 const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
+const chalk = require('chalk')
 const path = require('path')
 const {yamlParse} = require('../../src/utils')
 
 const Prompt = require('../mocks/PromptMock')
-const {sleep, noPrint, decolorize, assertConsole} = require('../helpers')
+const {sleep, noPrint, decolorize, assertConsole, copyImageToClipboard} = require('../helpers')
 
 const {
   password,
@@ -194,6 +195,27 @@ describe('#Totp', function () {
       'The yml is malformed'
     ])
   })
+
+  it('should read a totp secret from the clipboard', async function () {
+    try {
+      await copyImageToClipboard(path.resolve(__dirname, '../fixtures/qrcode.png'))
+      inspect = stdout.inspect()
+      await C.totp.exec({
+        fromClipboard: true,
+        noBeep: true
+      })
+      inspect.restore()
+      assertConsole(inspect, [
+        'The secret in the QR Code is "ueiwureiruee"'
+      ])
+    } catch(e) {
+      console.info(chalk.bold.red(e.message))
+      assert.isTrue(false)
+    }
+
+  })
+
+
 
 })
 

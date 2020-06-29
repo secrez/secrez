@@ -1,10 +1,10 @@
 const chai = require('chai')
 const assert = chai.assert
 const _ = require('lodash')
+const path = require('path')
+const fs = require('fs-extra')
 const stdout = require('test-console').stdout
-
-// const {Crypto, config, Entry} = require('@secrez/core')
-// const {Node} = require('@secrez/fs')
+const {execAsync} = require('../../src/utils')
 
 const helpers = {
 
@@ -81,8 +81,36 @@ const helpers = {
     let ret = await func
     inspect.restore()
     return ret
-  }
+  },
 
+  async copyImageToClipboard(image) {
+    let result
+    let p
+    switch (process.platform) {
+      case 'darwin':
+        p = path.resolve(__dirname, 'os/build/impbcopy')
+        if (!(await fs.pathExists(p))) {
+          throw new Error('Please build the helpers, running "npm run build-helpers')
+        }
+        result = await execAsync(p, __dirname, [image])
+        if (result.error) {
+          throw new Error(result.error)
+        }
+
+        break
+      case 'win32':
+        throw new Error('Operation not supported on Windows')
+      default:
+        result = await execAsync('which', __dirname, ['xclip'])
+        if (result.code === 1) {
+          throw new Error('xclip is required. On Debian/Ubuntu you can install it with "sudo apt install xclip"')
+        }
+        result = await execAsync('xclip', __dirname, ['-selection', ' clipboard', '-t', 'image/png', '-i', image])
+        if (result.error) {
+          throw new Error(result.error)
+        }
+    }
+  }
 
 }
 
