@@ -365,7 +365,13 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - More commands, included a Git command to manage the repo
 - Plugin architecture to allow others to add their own commands
 
-# History
+## History
+
+__7.0.14__
+* fix chained aliases generating prompt duplications
+
+__7.0.13__
+* fix autocomplete when single command
 
 __7.0.12__
 * adds support for Linux to `totp --from-clipboard`, using `xclip`
@@ -501,6 +507,8 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 
 Firs off, take a look at Secrez's [Code of conduct](https://github.com/secrez/secrez/blob/master/CODE_OF_CONDUCT.md)
 
+Second, join the brand-new [Secrez's Discord group](https://discord.gg/whsgXj) 
+
 #### Fork this repo
 
 #### Clone it
@@ -576,17 +584,17 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  129 passing (8s)
+  130 passing (9s)
 
 ------------------|---------|----------|---------|---------|---------------------------------
 File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
 ------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.27 |    82.26 |   98.89 |   95.18 |                                 
+All files         |   95.42 |    82.26 |     100 |   95.33 |                                 
  src              |     100 |    92.11 |     100 |     100 |                                 
   AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
   Command.js      |     100 |    95.83 |     100 |     100 | 55                              
   cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   94.81 |    81.99 |   98.63 |   94.72 |                                 
+ src/commands     |   94.97 |    81.99 |     100 |   94.88 |                                 
   Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 89,100,122,150,155,165          
   Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
   Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
@@ -608,7 +616,7 @@ All files         |   95.27 |    82.26 |   98.89 |   95.18 |
   Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
   Rm.js           |   96.67 |       90 |     100 |   96.55 | 75                              
   Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
-  Totp.js         |   97.37 |    79.49 |      80 |   97.37 | 68-90                           
+  Totp.js         |     100 |    79.49 |     100 |     100 | 68-90,140,169-174,198-210,221   
   Touch.js        |     100 |    71.43 |     100 |     100 | 56,67                           
   Use.js          |   98.04 |     93.1 |     100 |   97.92 | 103                             
   Ver.js          |      90 |    66.67 |     100 |      90 | 27                              

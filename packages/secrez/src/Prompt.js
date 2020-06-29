@@ -247,6 +247,9 @@ class Prompt {
               Logger.green('>>  ' + chalk.bold.grey(c))
               this.disableRun = i !== cmds.length - 1
               await this.exec([c])
+              if (i === cmds.length - 1) {
+                return
+              }
             }
           }
           if (missing) {
