@@ -1,9 +1,12 @@
 const chai = require('chai')
 const assert = chai.assert
-const utils = require('../../src/utils')
+const utils = require('../src')
 const path = require('path')
+const fs = require('fs-extra')
 
-describe('#utils', function () {
+const {yml, yml2} = require('./fixtures')
+
+describe('#utils from core', function () {
 
 
   describe('capitalize', async function () {
@@ -325,8 +328,8 @@ describe('#utils', function () {
   describe('#isBinary', async function () {
 
     it('should check if a file is binary', async function () {
-      let fp = path.resolve(__dirname, '../fixtures/files/file1.tar.gz')
-      let dir = path.resolve(__dirname, '../fixtures')
+      let fp = path.resolve(__dirname, './fixtures/qrcode.png')
+      let dir = path.resolve(__dirname, './fixtures')
       assert.equal(await utils.isBinary(fp), true)
       assert.equal(await utils.isBinary(23), false)
       assert.equal(await utils.isBinary('somedir/'), false)
@@ -335,5 +338,144 @@ describe('#utils', function () {
 
   })
 
+  describe('fromCsvToJson', async function () {
+
+    let csvSample
+    let jsonSample
+
+    before(async function () {
+      csvSample = await fs.readFile(path.resolve(__dirname, './fixtures/some.csv'), 'utf8')
+      jsonSample = require('./fixtures/some.json')
+    })
+
+    it('should convert a CSV file to an importable JSON file', async function () {
+
+      const result = utils.fromCsvToJson(csvSample)
+      assert.equal(result.length, 5)
+      assert.equal(Object.keys(result[0]).length, 6)
+      assert.equal(result[0].login_name, 'Greg')
+      assert.equal(result[1].comments.split('\n').length, 7)
+      assert.equal(result[2].password, 'öäüÖÄÜß€@<>µ©®')
+
+      for (let key in result[1]) {
+        assert.equal(result[1][key], jsonSample[1][key])
+      }
+
+    })
+
+    it('should throw if the CSV is bad', async function () {
+
+      try {
+        utils.fromCsvToJson('path,"öäü",password\nssas,sasas,sasasa')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'The header of the CSV looks wrong')
+      }
+
+
+      try {
+        utils.fromCsvToJson('path,"url{"sasa":3}",password\nssas,sasas,sasasa')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'The CSV is malformed')
+      }
+    })
+
+  })
+
+  describe('isYaml', async function () {
+
+    it('should return true if the file is a Yaml file', async function () {
+      assert.isTrue(utils.isYaml('fule.yml'))
+      assert.isTrue(utils.isYaml('fule.yaml'))
+      assert.isTrue(utils.isYaml('fule.YAML'))
+      assert.isTrue(utils.isYaml('fule.YmL'))
+      assert.isFalse(utils.isYaml('fule.txt'))
+
+      assert.isFalse(utils.isYaml(345))
+    })
+
+  })
+
+  describe('yamlParse', async function () {
+
+    it('should parse a Yaml string', async function () {
+      assert.equal(utils.yamlParse(yml2).pass, 'PASS')
+      assert.isTrue(/-----END OPENSSH PRIVATE KEY-----/.test(utils.yamlParse(yml).key))
+    })
+
+    it('should throw if the file is malformed', async function () {
+      try {
+        utils.yamlParse('key:\nsasasasa\nsasas')
+        assert.isFalse(true)
+      } catch (e) {
+        assert.equal(e.message, 'Cannot parse a malformed yaml')
+      }
+    })
+
+  })
+
+  describe('yamlStringify', async function () {
+
+    it('should stringify a Javascript object to a Yaml string', async function () {
+      assert.equal(utils.yamlStringify({
+        pass: 'PASS'
+      }), 'pass: PASS\n')
+    })
+
+  })
+
+  describe('TRUE', async function () {
+
+    it('should return true', async function () {
+      assert.equal(utils.TRUE(), true)
+    })
+
+  })
+
+  describe('removeNotPrintableChars', async function () {
+
+    it('should remove unprintable chars', async function () {
+      assert.equal(utils.removeNotPrintableChars('hello\x00 world\x08'), 'hello world')
+    })
+
+  })
+
+
+  describe('getCols', async function () {
+
+    it('should return 80', async function () {
+      assert.equal(utils.getCols(), 80)
+    })
+
+  })
+
+  describe('fromSimpleYamlToJson', async function () {
+
+    it('should convert a simple yml file to json', async function () {
+      let json = utils.fromSimpleYamlToJson(`user: ciccio
+password: s8s8s8s
+email: some@example.com`)
+      assert.equal(json.password, 's8s8s8s')
+    })
+
+  })
+
+  describe('execAsync', async function () {
+
+    it('should execute a command', async function () {
+      let dir = path.resolve(__dirname, './fixtures/files')
+      let result = await utils.execAsync('cat', dir, ['file0.txt'])
+      assert.equal(result.message, 'Three secrets')
+    })
+
+    it('should throw if errors', async function () {
+      let dir = path.resolve(__dirname, './fixtures/files')
+      let result = await utils.execAsync('cat', dir, ['file4.txt'])
+      assert.equal(result.error, 'cat: file4.txt: No such file or directory')
+
+    })
+
+  })
 
 })

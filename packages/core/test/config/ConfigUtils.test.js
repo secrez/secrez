@@ -14,7 +14,7 @@ const {
 
 describe('#ConfigUtils', function () {
 
-  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 
   before(async function () {
     await fs.emptyDir(rootDir)

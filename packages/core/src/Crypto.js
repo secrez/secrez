@@ -85,16 +85,6 @@ class Crypto {
     return crypto.pbkdf2Sync(key, salt, iterations, size, digest)
   }
 
-  static randomCharNotInBase58() {
-    return Crypto.notBase58Alphabet[Math.floor(Math.random() * Crypto.notBase58Alphabet.length)]
-  }
-
-  static isCharNotInBase58(char) {
-    return !Crypto.base58Alphabet.includes(char)
-    // let z = 122
-    // return (char.charCodeAt(0) > z)
-  }
-
   static getTimestampWithMicroseconds() {
     let tmp = microtime.nowDouble().toString().split('.')
     for (; ;) {
@@ -151,6 +141,11 @@ class Crypto {
   static generateKey(noEncode) {
     let key = randomBytes(secretbox.keyLength)
     return noEncode ? key : bs58.encode(Buffer.from(key))
+  }
+
+  static isBase58String(str) {
+    let re = RegExp(`[^${Crypto.base58Alphabet}]+`)
+    return !re.test(str)
   }
 
   static isUint8Array(key) {
@@ -293,6 +288,5 @@ class Crypto {
 
 Crypto.base58Alphabet = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
 Crypto.randomBytes = randomBytes
-Crypto.notBase58Alphabet = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþ'
 
 module.exports = Crypto

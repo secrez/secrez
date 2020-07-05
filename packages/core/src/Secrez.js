@@ -1,10 +1,10 @@
 const homedir = require('homedir')
 const fs = require('fs-extra')
-const Crypto = require('./utils/Crypto')
+const Crypto = require('./Crypto')
 const config = require('./config')
 const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
-const utils = require('./utils')
+const utils = require('@secrez/utils')
 const _Secrez = require('./_Secrez')
 
 let _secrez
@@ -19,6 +19,9 @@ class Secrez {
       container = `${homedir()}/.secrez`,
       localWorkingDir = homedir()
   ) {
+    if (process.env.NODE_ENV === 'test' && container === `${homedir()}/.secrez`) {
+      throw new Error('You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data.')
+    }
     this.config = await ConfigUtils.setSecrez(config, container, localWorkingDir)
   }
 

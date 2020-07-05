@@ -1,6 +1,6 @@
 const path = require('path')
 const {Crypto} = require('@secrez/core')
-const {execAsync} = require('./utils')
+const {execAsync} = require('@secrez/utils')
 const _ = require('lodash')
 
 class Fido2Client {
@@ -60,10 +60,6 @@ class Fido2Client {
     if (typeof result.message === 'undefined') {
       throw new Error('The Fido2 module requires Python. Please install it on your computer.')
     }
-    // result = await execAsync('python', __dirname, ['--version'])
-    // if (!/Python 3/.test(result.message)) {
-    //   throw new Error(`${result.message} found. The Fido2 module requires Python 3. Please install it on your computer.`)
-    // }
     result =  await execAsync('python', this.scriptsPath, ['is_fido2_ready.py'])
     if (result.message !== 'Ready') {
       throw new Error('Python-fido2 is required. Install it with "pip install fido2"')

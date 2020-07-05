@@ -4,7 +4,7 @@ const _ = require('lodash')
 const path = require('path')
 const fs = require('fs-extra')
 const stdout = require('test-console').stdout
-const {execAsync} = require('../../src/utils')
+const {execAsync} = require('@secrez/utils')
 
 const helpers = {
 

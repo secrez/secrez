@@ -9,7 +9,8 @@ const inquirer = require('inquirer')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
-const {Secrez, Utils} = require('@secrez/core')
+const utils = require('@secrez/utils')
+const {Secrez} = require('@secrez/core')
 const {FsUtils, InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
 
 const Logger = require('./utils/Logger')
@@ -66,7 +67,7 @@ class Prompt {
       let result = []
       for (let key in params) {
         if (key !== '_unknown') {
-          result.push(Utils.getKeyValue(params, key))
+          result.push(utils.getKeyValue(params, key))
         }
       }
       result.sort((a, b) => {
@@ -125,12 +126,12 @@ class Prompt {
   async loading() {
     this.loadingIndex = 0
     this.showLoading = true
-    await Utils.sleep(100)
+    await utils.sleep(100)
     while (this.showLoading) {
       const loader = ['\\', '|', '/', '-']
       this.loadingIndex = (this.loadingIndex + 1) % 4
       process.stdout.write(loader[this.loadingIndex] + ' ' + this.loadingMessage)
-      await Utils.sleep(100)
+      await utils.sleep(100)
       process.stdout.clearLine()
       process.stdout.cursorTo(0)
     }

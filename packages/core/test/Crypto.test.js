@@ -1,9 +1,9 @@
 const chai = require('chai')
 const assert = chai.assert
-const Crypto = require('../../src/utils/Crypto')
-const utils = require('../../src/utils')
+const Crypto = require('../src/Crypto')
+const utils = require('@secrez/utils')
 const bs58 = require('bs58')
-const {sleep} = require('../helpers')
+const {sleep} = require('./helpers')
 
 const {
   box,
@@ -19,12 +19,12 @@ const {
   salt,
   iterations,
   hash23456iterations
-} = require('../fixtures')
+} = require('./fixtures')
 
 describe('#Crypto', function () {
 
 
-  describe('#utils', async function () {
+  describe('utils', async function () {
 
     it('should encode a string as base64', async function () {
       let coded = Crypto.toBase64(password)
@@ -36,20 +36,20 @@ describe('#Crypto', function () {
       assert.equal(decoded, password)
     })
 
+    it('should verify a string is a base58 one', async function () {
+      assert.isTrue(Crypto.isBase58String('arde'))
+      assert.isTrue(Crypto.isBase58String('AA99'))
+      assert.isFalse(Crypto.isBase58String('ardl'))
+      assert.isFalse(Crypto.isBase58String('Idaf'))
+      assert.isFalse(Crypto.isBase58String('as0s'))
+    })
+
     it('should SHA3 a string', async function () {
       assert.isTrue(utils.secureCompare(Crypto.SHA3(password), Buffer.from(passwordSHA3Hex, 'hex')))
     })
 
     it('should convert from Base58 to array', async function () {
       assert.equal(Crypto.fromBase58('5Q').toString('utf8'), Buffer.from([255]))
-    })
-
-    it('should get random not base58 chars', async function () {
-      assert.isTrue(Crypto.notBase58Alphabet.includes(Crypto.randomCharNotInBase58()))
-    })
-
-    it('should verify a char is over base58 chars', async function () {
-      assert.isTrue(Crypto.isCharNotInBase58('Ü'))
     })
 
     it('should verify that the random id is random enough', async function () {
@@ -130,19 +130,8 @@ describe('#Crypto', function () {
     it('should get a random base58 string', async function () {
       let rnd = Crypto.getRandomBase58String(3)
       assert.equal(rnd.length, 3)
-      assert.isTrue(Crypto.base58Alphabet.indexOf(rnd[1]) !== -1)
+      assert.isTrue('123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'.indexOf(rnd[1]) !== -1)
     })
-
-    // it('should get scrambled timestamp with pseudo-microseconds in b58 format', async function () {
-    //   let ts = Date.now()
-    //   let [timestamp, microseconds] = await Crypto.scrambledTimestamp()
-    //   // console.log(timestamp, microseconds)
-    //   for (let i=0;i<20;i++) {
-    //     let original = Crypto.unscrambleTimestamp(timestamp, microseconds)
-    //     assert.isTrue(parseInt(original.split('.')[0]) - Math.round(ts / 1000) <= 2)
-    //     sleep(1)
-    //   }
-    // })
 
     it('should generate a sha3 in b58 format', async function () {
       assert.equal(Crypto.b58Hash(password), b58Hash)

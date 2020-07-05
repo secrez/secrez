@@ -5,7 +5,7 @@ const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const chalk = require('chalk')
 const path = require('path')
-const {yamlParse} = require('../../src/utils')
+const {yamlParse} = require('@secrez/utils')
 
 const Prompt = require('../mocks/PromptMock')
 const {sleep, noPrint, decolorize, assertConsole, copyImageToClipboard} = require('../helpers')

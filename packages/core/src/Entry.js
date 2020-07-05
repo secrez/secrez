@@ -1,4 +1,4 @@
-const {removeNotPrintableChars} = require('./utils')
+const {removeNotPrintableChars} = require('@secrez/utils')
 
 class Entry {
 

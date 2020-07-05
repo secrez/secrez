@@ -3,7 +3,7 @@ const assert = chai.assert
 const path = require('path')
 const homedir = require('homedir')
 const Secrez = require('../src/Secrez')
-const Crypto = require('../src/utils/Crypto')
+const Crypto = require('../src/Crypto')
 const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')
@@ -33,16 +33,15 @@ describe('#Secrez', function () {
 
   describe('default secrez dir', function () {
 
-    before(async function () {
-      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
-      secrez = new Secrez()
-      await secrez.init()
-    })
+    it('should throw trying to test in the default ~/.secrez folder', async function () {
 
-    it('should use the default ~/.secrez folder', async function () {
-
-      assert.equal(secrez.config.dataPath, homedir() + '/.secrez/data')
-      assert.equal(secrez.config.localWorkingDir, homedir())
+      try {
+        secrez = new Secrez()
+        await secrez.init()
+        assert.isTrue(false)
+      } catch(e) {
+assert.equal(e.message, 'You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data.')
+      }
     })
 
   })

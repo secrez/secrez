@@ -1,0 +1,45 @@
+{
+  "name": "@secrez/tunnel",
+  "description": "Expose localhost for secure messaging",
+  "version": "3.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/secrez/secrez.git"
+  },
+  "author": "Roman Shtylman <shtylman@gmail.com>",
+  "contributors": [
+    "Roman Shtylman <shtylman@gmail.com>",
+    "Gert Hengeveld <gert@hichroma.com>",
+    "Tom Coleman <tom@hichroma.com>",
+    "Francesco Sullo <francesco@sullo.co>"
+  ],
+  "main": "./index.js",
+  "bin": {
+    "secrez-tunnel": "bin/secrez-tunnel"
+  },
+
+  "scripts": {
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js' 'bin/*.js' './*.js'",
+    "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
+    "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
+    "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
+    "posttest": "nyc check-coverage --statements 80 --branches 50 --functions 80 --lines 80"
+  },
+  "dependencies": {
+    "@secrez/core": "^0.7.2",
+    "axios": "0.19.0",
+    "debug": "4.1.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-node": "^11.0.0",
+    "mocha": "^7.1.1",
+    "nyc": "^15.1.0"
+  },
+  "engines": {
+    "node": ">=10.0.0"
+  }
+}

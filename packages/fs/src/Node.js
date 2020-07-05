@@ -486,7 +486,7 @@ class Node {
   }
 
   static isNode(obj) {
-    return typeof obj === 'object' && obj.constructor.name === 'Node'
+    return obj instanceof Node
   }
 
   findDirectChildByName(name, id) {
