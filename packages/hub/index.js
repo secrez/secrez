@@ -40,5 +40,5 @@ const startServer = options => {
 module.exports = {
     version: require('./package').version,
     createServer,
-    startSever: startServer
+    startServer
 }
