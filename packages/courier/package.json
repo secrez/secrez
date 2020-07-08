@@ -3,19 +3,19 @@
   "version": "0.1.0",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/**/*.js'",
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
     "posttest": "nyc check-coverage --statements 85 --branches 80 --functions 85 --lines 85"
   },
   "bin": {
-    "secrez-courier": "bin/secrez-courier"
+    "secrez-courier": "bin/secrez-courier.js"
   },
   "dependencies": {
     "@secrez/utils": "^0.1.0",
-    "@secrez/core": "^0.7.2",
-    "@secrez/tunnel": "^3.0.0",
+    "@secrez/core": "^0.7.3-beta.1",
+    "@secrez/tunnel": "3.0.0-beta.1",
     "chalk": "^3.0.0",
     "command-line-args": "^5.1.1",
     "cross-env": "^7.0.2",

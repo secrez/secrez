@@ -19,6 +19,7 @@ const cliConfig = require('./cliConfig')
 const Commands = require('./commands')
 const welcome = require('./Welcome')
 const AliasManager = require('./AliasManager')
+const UserManager = require('./UserManager')
 
 inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('multiEditor', multiEditorPrompt)
@@ -34,6 +35,7 @@ class Prompt {
     this.secrez = new Secrez
     await this.secrez.init(options.container, options.localDir)
     this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'), this.secrez)
+    this.secrez.cache.initEncryption('alias', 'user')
     await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
@@ -187,9 +189,12 @@ class Prompt {
         Logger.red(alerts[0])
         Logger.cyan(alerts.slice(1).join('\n'))
       }
-      await this.secrez.cache.load('alias', true)
+      await this.secrez.cache.load('alias')
+      await this.secrez.cache.load('user')
       AliasManager.setCache(this.secrez.cache)
       this.aliasManager = new AliasManager()
+      UserManager.setCache(this.secrez.cache)
+      this.userManager = new UserManager()
     }
     if (this.disableRun) {
       return
@@ -227,7 +232,7 @@ class Prompt {
         command = command.replace(/^\$/, '')
         let data = this.aliasManager.get(command)
         if (data) {
-          let cmds = data.content.split('&&').map(e => _.trim(e))
+          let cmds = data.commandLine.split('&&').map(e => _.trim(e))
           let max = 0
           let missing = false
           for (let i=0; i< cmds.length;i++) {

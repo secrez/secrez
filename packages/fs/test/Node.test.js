@@ -235,9 +235,9 @@ describe('#Node', function () {
         name: 'dir'
       })
       assert.equal(found[0][1], '/_inDirRoot')
-      assert.equal(found[1][1], '/dir1')
+      assert.equal(found[1][1], '/dir1/')
       assert.equal(found[2][1], '/dir1/beInDir1')
-      assert.equal(found[3][1], '/dir1/dir2')
+      assert.equal(found[3][1], '/dir1/dir2/')
 
 
       found = await root.find({})

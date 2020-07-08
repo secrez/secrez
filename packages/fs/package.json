@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@secrez/utils": "^0.1.0",
-    "@secrez/core": "^0.7.2",
+    "@secrez/core": "^0.7.3-beta.1",
     "command-line-args": "^5.1.1",
     "fs-extra": "^8.1.0",
     "lodash": "^4.17.15"

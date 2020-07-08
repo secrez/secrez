@@ -1,8 +1,9 @@
 /* eslint-disable consistent-return, no-underscore-dangle */
 
-const { EventEmitter } = require('events')
-const axios = require('axios')
-const debug = require('debug')('localtunnel:client')
+const {EventEmitter} = require('events')
+const request = require('superagent')
+const {Debug} = require('@secrez/utils')
+const debug = Debug('lt:client')
 
 const TunnelCluster = require('./TunnelCluster')
 
@@ -18,9 +19,9 @@ module.exports = class Tunnel extends EventEmitter {
 
   _getInfo(body) {
     /* eslint-disable camelcase */
-    const { id, ip, port, url, cached_url, max_conn_count } = body
-    const { host, port: local_port, local_host } = this.opts
-    const { local_https, local_cert, local_key, local_ca, allow_invalid_cert } = this.opts
+    const {id, ip, port, url, cached_url, max_conn_count} = body
+    const {host, port: local_port, local_host, payload, signature} = this.opts
+    const {local_https, local_cert, local_key, local_ca, allow_invalid_cert} = this.opts
     return {
       name: id,
       url,
@@ -36,6 +37,8 @@ module.exports = class Tunnel extends EventEmitter {
       local_key,
       local_ca,
       allow_invalid_cert,
+      payload,
+      signature
     }
     /* eslint-enable camelcase */
   }
@@ -46,34 +49,37 @@ module.exports = class Tunnel extends EventEmitter {
     const opt = this.opts
     const getInfo = this._getInfo.bind(this)
 
-    const params = {
-      responseType: 'json'
-    }
+    // const params = {
+    //   responseType: 'json'
+    // }
 
-    let uri =`${opt.host}/api/v1/tunnel/new`
-    if (opt.subdomain) {
-      uri += `?id=${opt.subdomain}`
-    }
+    let uri = `${opt.host}/api/v1/tunnel/new`
 
     function getUrl() {
-      axios
-        .get(uri, params)
-        .then(res => {
-          const body = res.data
-          debug('got tunnel information', res.data)
-          if (res.status !== 200) {
-            const err = new Error(
-              (body && body.message) || 'localtunnel server returned an error, please try again'
-            )
-            return cb(err)
-          }
-          cb(null, getInfo(body))
-        })
-        .catch(err => {
-          debug(`tunnel server offline: ${err.message}, retry 1s`)
-          return setTimeout(getUrl, 1000)
-        })
+      request
+          .get(uri)
+          .query({
+            payload: opt.payload,
+            signature: opt.signature
+          })
+          .set('Accept', 'application/json')
+          .then(res => {
+            const body = JSON.parse(res.text)
+            debug('got tunnel information %s', body.url)
+            if (res.status !== 200) {
+              const err = new Error(
+                  (body && body.message) || 'localtunnel server returned an error, please try again'
+              )
+              return cb(err)
+            }
+            cb(null, getInfo(body))
+          })
+          .catch(err => {
+            debug(`tunnel server offline: ${err.message}, retry 1s`)
+            return setTimeout(getUrl, 1000)
+          })
     }
+
     getUrl()
   }
 

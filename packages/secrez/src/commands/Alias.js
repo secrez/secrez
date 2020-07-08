@@ -145,6 +145,9 @@ class Alias extends require('../Command') {
       if (!this.aliasManager.get(existentName)) {
         throw new Error(`An alias named "${existentName}" does not exist`)
       }
+      if (this.aliasManager.get(newName)) {
+        throw new Error(`An alias named "${newName}" already exists`)
+      }
       let error = this.aliasManager.validateName(newName)
       if (error) {
         throw new Error(error)

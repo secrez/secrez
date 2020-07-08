@@ -192,6 +192,12 @@ describe('#Crypto', function () {
 
     let pairA = Crypto.generateBoxKeyPair()
     let pairB = Crypto.generateBoxKeyPair()
+
+    assert.isTrue(Crypto.isValidPublicKey(pairA.publicKey))
+
+    assert.isFalse(Crypto.isValidPublicKey(Buffer.from('Some fake one')))
+    assert.isFalse(Crypto.isValidPublicKey())
+
     let sharedA = Crypto.getSharedSecret(pairB.publicKey, pairA.secretKey)
     let sharedB = Crypto.getSharedSecret(pairA.publicKey, pairB.secretKey)
 
@@ -229,6 +235,7 @@ describe('#Crypto', function () {
   describe('sign a message with a secretKey', function () {
 
     let pair = Crypto.generateSignatureKeyPair()
+    assert.isTrue(Crypto.isValidPublicKey(pair.publicKey))
 
     it('should sign a string', async function () {
       const msg = 'Some message'

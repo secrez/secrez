@@ -48,19 +48,19 @@ class Secrez {
 
       // x25519-xsalsa20-poly1305
       const boxPair = Crypto.generateBoxKeyPair()
-      _secrez.boxKey = boxPair.secretKey
       const box = {
-        secretKey: _secrez.encrypt(Crypto.toBase58(_secrez.boxKey)),
+        secretKey: _secrez.encrypt(Crypto.toBase58(boxPair.secretKey)),
         publicKey: Crypto.toBase58(boxPair.publicKey)
       }
 
       // ed25519
       const ed25519Pair = Crypto.generateSignatureKeyPair()
-      _secrez.signKey = ed25519Pair.secretKey
       const sign = {
-        secretKey: _secrez.encrypt(Crypto.toBase58(_secrez.signKey)),
+        secretKey: _secrez.encrypt(Crypto.toBase58(ed25519Pair.secretKey)),
         publicKey: Crypto.toBase58(ed25519Pair.publicKey)
       }
+
+      _secrez.initPrivateKeys(boxPair.secretKey, ed25519Pair.secretKey)
 
       const data = {
         id,
@@ -152,6 +152,33 @@ class Secrez {
     return _secrez.conf
   }
 
+  getPublicKey() {
+    return _secrez.conf.data.box.publicKey + '0' + _secrez.conf.data.sign.publicKey
+  }
+
+  static getSignPublicKey(publicKey) {
+    return Crypto.fromBase58(publicKey.split('0')[1])
+  }
+
+  static getBoxPublicKey(publicKey) {
+    return Crypto.fromBase58(publicKey.split('0')[0])
+  }
+
+  static isValidPublicKey(pk) {
+    if (typeof pk === 'string') {
+      const [boxPublicKey, signPublicKey] = pk.split('0').map(e => {
+        e = Crypto.fromBase58(e)
+        if (Crypto.isValidPublicKey(e)) {
+          return e
+        }
+      })
+      if (boxPublicKey && signPublicKey) {
+        return true
+      }
+    }
+    return false
+  }
+
   async readConf() {
     if (!this.config || !this.config.keysPath) {
       throw new Error('Secrez not initiated')
@@ -170,6 +197,14 @@ class Secrez {
 
   verifyPassword(password) {
     return _secrez.isItRight(password)
+  }
+
+  signMessage(message) {
+    return _secrez.signMessage(message)
+  }
+
+  verifySignedMessage(message, signature, publicKey) {
+    return Crypto.verifySignature(message, signature, Crypto.fromBase58(publicKey || this.getConf().data.sign.publicKey))
   }
 
   async signin(password, iterations) {

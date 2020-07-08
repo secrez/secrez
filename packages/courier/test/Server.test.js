@@ -26,7 +26,7 @@ describe.skip('#Command', function () {
     it('should setup the environment', async function () {
 
       let Courier = new Courier(prompt)
-      assert.isTrue(Array.isArray(command.optionDefinitions))
+      assert.isTrue(Array.isArray([]))
     })
 
   })

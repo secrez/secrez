@@ -342,8 +342,9 @@ class Node {
             } else {
               list.push([
                 Node.hashVersion(ts),
-                p,
-                name
+                p + (Node.isDir(this) ? '/' : ''),
+                name,
+                undefined
               ])
             }
           } else

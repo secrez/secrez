@@ -1,7 +1,6 @@
 const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
-const homedir = require('homedir')
 const Secrez = require('../src/Secrez')
 const Crypto = require('../src/Crypto')
 const Entry = require('../src/Entry')
@@ -39,8 +38,8 @@ describe('#Secrez', function () {
         secrez = new Secrez()
         await secrez.init()
         assert.isTrue(false)
-      } catch(e) {
-assert.equal(e.message, 'You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data.')
+      } catch (e) {
+        assert.equal(e.message, 'You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data.')
       }
     })
 
@@ -134,6 +133,10 @@ assert.equal(e.message, 'You are not supposed to test Secrez in the default fold
         assert.isUndefined(secrez.masterKeyHash)
         await secrez.signin(password, iterations + 100)
         assert.equal(masterKeyHash, secrez.masterKeyHash)
+
+        let publicKey = secrez.getPublicKey()
+        assert.isTrue(Secrez.isValidPublicKey(publicKey))
+        assert.isFalse(Secrez.isValidPublicKey([1, 2, 3, 4]))
       })
 
       it('should signup the user, change password and iterations and signin', async function () {
@@ -810,6 +813,28 @@ assert.equal(e.message, 'You are not supposed to test Secrez in the default fold
         }
       })
 
+    })
+    describe('#signMessage', async function () {
+
+      beforeEach(async function () {
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        // await secrez.init(rootDir)
+      })
+
+      it('should sign a message and verify it', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+        assert.isTrue(await fs.pathExists(secrez.config.keysPath))
+        masterKeyHash = secrez.masterKeyHash
+        secrez.signout()
+        assert.isUndefined(secrez.masterKeyHash)
+        await secrez.signin(password, iterations)
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
+
+        let signature = secrez.signMessage('message')
+        assert.isTrue(secrez.verifySignedMessage('message', signature))
+      })
     })
 
   })

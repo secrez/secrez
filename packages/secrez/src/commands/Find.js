@@ -130,27 +130,41 @@ class Find extends require('../Command') {
     }
   }
 
+  formatIndex(len, i) {
+    return ' '.repeat(len.toString().length - i.toString().length) + i
+  }
+
   formatList(list, options) {
     let re = Node.getFindRe(options)
+    let i = 0
     return list.map(e => {
+      i++
+      let k = this.formatIndex(list.length, i)
       if (options.all) {
         let p = e[1].split('/')
-        if (e[2] && e[2] !== p[p.length - 1]) {
+        let l = p.length
+        let c = p[l - 1] ? p[l - 1] : p[l - 2]
+        if (e[2] && e[2] !== c) {
           e[2] = this.formatResult(e[2], re, options.name)
         } else {
           e[2] = undefined
         }
         return [
+          k,
+          '  ',
           chalk.yellow(e[0]),
           '  ',
           this.formatResult(e[1], re, options.name),
           '  ',
-          e[2],
-          chalk.rgb(40, 210, 160).dim(e[3] ? '(in content)' : '')
+          e[2]
         ].join('')
 
       } else {
-        return this.formatResult(e[1], re, options.name)
+        return [
+          k,
+          '  ',
+          this.formatResult(e[1], re, options.name)
+        ].join('')
       }
     })
   }
@@ -164,7 +178,8 @@ class Find extends require('../Command') {
       options.name = options.keywords
       if (options.name) {
         try {
-          let list = this.formatList(await this.find(options), options)
+          this.lastResult = await this.find(options)
+          let list = this.formatList(this.lastResult, options)
           if (list && list.length) {
             this.Logger.grey(`${list.length} result${list.length > 1 ? 's' : ''} found:`)
             for (let l of list) this.Logger.reset(l)

@@ -1,6 +1,6 @@
 {
   "name": "@secrez/core",
-  "version": "0.7.2",
+  "version": "0.7.3-beta.1",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",

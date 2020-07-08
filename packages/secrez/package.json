@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=dev bin/secrez.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
-    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/**/*.js'",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
     "posttest": "nyc check-coverage --statements 95 --branches 75 --functions 95 --lines 95",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@secrez/utils": "^0.1.0",
-    "@secrez/core": "^0.7.2",
+    "@secrez/core": "^0.7.3-beta.1",
     "@secrez/fs": "0.7.6",
     "@secrez/courier": "0.1.0",
     "beepbeep": "^1.3.0",

@@ -201,6 +201,13 @@ class Crypto {
     return pair
   }
 
+  static isValidPublicKey(pk) {
+    if (pk instanceof Uint8Array) {
+      return pk.length === box.publicKeyLength
+    }
+    return false
+  }
+
   static getSharedSecret(theirPublicKey, mySecretKey) {
     return box.before(theirPublicKey, mySecretKey)
   }

@@ -39,10 +39,8 @@ describe.only('#Courier', function () {
       await courier.init()
       assert.equal(await courier.server.fastify.server.address().address, '127.0.0.1')
       assert.equal(await courier.server.fastify.server.address().port, 4433)
-
       await courier.server.fastify.close()
       assert.isNull(await courier.server.fastify.server.address())
-
 
     })
 

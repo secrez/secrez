@@ -1,5 +1,6 @@
 const { EventEmitter } = require('events')
-const debug = require('debug')('localtunnel:client')
+const {Debug} = require('@secrez/utils')
+const debug = Debug('lt:client')
 const fs = require('fs')
 const net = require('net')
 const tls = require('tls')
