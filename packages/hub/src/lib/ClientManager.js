@@ -68,7 +68,6 @@ class ClientManager {
         max_conn_count: maxSockets,
       }
     } catch (err) {
-      console.error(err)
       this.removeClient(id)
       // rethrow error for upstream to handle
       throw err

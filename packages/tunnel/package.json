@@ -30,7 +30,6 @@
     "@secrez/core": "^0.7.3-beta.1",
     "@secrez/utils": "^0.1.0",
     "axios": "0.19.0",
-    "chai": "^4.2.0",
     "chalk": "^3.0.0",
     "command-line-args": "^5.1.1",
     "openurl": "^1.1.1",
@@ -38,6 +37,8 @@
   },
   "devDependencies": {
     "@secrez/hub": "^0.1.0",
+    "@secrez/tls": "^0.1.0",
+    "chai": "^4.2.0",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-plugin-node": "^11.0.0",

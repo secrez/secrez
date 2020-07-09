@@ -1,7 +1,7 @@
 const crypto = require('crypto')
 const util = require('util')
 const {Keccak} = require('sha3')
-const bs58 = require('bs58')
+const basex = require('base-x')
 const microtime = require('microtime')
 const shamir = require('shamir')
 const bip39 = require('bip39')
@@ -28,7 +28,14 @@ class Crypto {
     if (!Buffer.isBuffer(data)) {
       data = Buffer.from(data)
     }
-    return bs58.encode(data)
+    return Crypto.bs58.encode(data)
+  }
+
+  static toBase32(data) {
+    if (!Buffer.isBuffer(data)) {
+      data = Buffer.from(data)
+    }
+    return Crypto.bs32.encode(data)
   }
 
   static fromBase64(data) {
@@ -36,13 +43,23 @@ class Crypto {
   }
 
   static fromBase58(data) {
-    return bs58.decode(data)
+    return Crypto.bs58.decode(data)
+  }
+
+  static fromBase32(data) {
+    return Crypto.bs32.decode(data)
   }
 
   static getRandomBase58String(size) {
     let i = Math.round(size / 2)
     let j = i + size
-    return bs58.encode(Buffer.from(randomBytes(2 * size))).substring(i, j)
+    return Crypto.bs58.encode(Buffer.from(randomBytes(2 * size))).substring(i, j)
+  }
+
+  static getRandomBase32String(size) {
+    let i = Math.round(size / 2)
+    let j = i + size
+    return Crypto.bs32.encode(Buffer.from(randomBytes(2 * size))).substring(i, j)
   }
 
   static getRandomId(allIds) {
@@ -108,7 +125,23 @@ class Crypto {
     if (!Buffer.isBuffer(data)) {
       data = Buffer.from(data)
     }
-    return bs58.encode(Crypto.SHA3(data))
+    return Crypto.bs58.encode(Crypto.SHA3(data))
+  }
+
+  static b32Hash(data) {
+    // this is a lower case base58
+    if (!Buffer.isBuffer(data)) {
+      data = Buffer.from(data)
+    }
+    return Crypto.bs32.encode(Crypto.SHA3(data))
+  }
+
+  static isValidB58Hash(hash) {
+    return Crypto.bs58.decode(hash).length === 32
+  }
+
+  static isValidB32Hash(hash) {
+    return Crypto.bs32.decode(hash).length === 32
   }
 
   static hexToUint8Array(hexStr) {
@@ -140,11 +173,16 @@ class Crypto {
 
   static generateKey(noEncode) {
     let key = randomBytes(secretbox.keyLength)
-    return noEncode ? key : bs58.encode(Buffer.from(key))
+    return noEncode ? key : Crypto.bs58.encode(Buffer.from(key))
   }
 
   static isBase58String(str) {
     let re = RegExp(`[^${Crypto.base58Alphabet}]+`)
+    return !re.test(str)
+  }
+
+  static isBase32String(str) {
+    let re = RegExp(`[^${Crypto.zBase32Alphabet}]+`)
     return !re.test(str)
   }
 
@@ -153,7 +191,7 @@ class Crypto {
   }
 
   static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce) {
-    const keyUint8Array = bs58.decode(key)
+    const keyUint8Array = Crypto.bs58.decode(key)
 
     const messageUint8 = decodeUTF8(message)
     const box = secretbox(messageUint8, nonce, keyUint8Array)
@@ -161,7 +199,7 @@ class Crypto {
     const fullMessage = new Uint8Array(nonce.length + box.length)
     fullMessage.set(nonce)
     fullMessage.set(box, nonce.length)
-    const encoded = bs58.encode(Buffer.from(fullMessage))
+    const encoded = Crypto.bs58.encode(Buffer.from(fullMessage))
 
     if (getNonce) {
       return [nonce, encoded]
@@ -171,8 +209,8 @@ class Crypto {
   }
 
   static decrypt(messageWithNonce, key) {
-    const keyUint8Array = bs58.decode(key)
-    const messageWithNonceAsUint8Array = bs58.decode(messageWithNonce)
+    const keyUint8Array = Crypto.bs58.decode(key)
+    const messageWithNonceAsUint8Array = Crypto.bs58.decode(messageWithNonce)
     const nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
     const message = messageWithNonceAsUint8Array.slice(
         secretbox.nonceLength,
@@ -186,7 +224,7 @@ class Crypto {
   }
 
   static getNonceFromMessage(messageWithNonce) {
-    const messageWithNonceAsUint8Array = bs58.decode(messageWithNonce)
+    const messageWithNonceAsUint8Array = Crypto.bs58.decode(messageWithNonce)
     let nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
     return Crypto.hexToUint8Array(nonce.toString('hex'))
   }
@@ -221,7 +259,7 @@ class Crypto {
     const fullMessage = new Uint8Array(nonce.length + encrypted.length)
     fullMessage.set(nonce)
     fullMessage.set(encrypted, nonce.length)
-    const encoded = bs58.encode(Buffer.from(fullMessage))
+    const encoded = Crypto.bs58.encode(Buffer.from(fullMessage))
 
     if (getNonce) {
       return [nonce, encoded]
@@ -231,7 +269,7 @@ class Crypto {
   }
 
   static boxDecrypt(secretOrSharedKey, messageWithNonce, key) {
-    const messageWithNonceAsUint8Array = bs58.decode(messageWithNonce)
+    const messageWithNonceAsUint8Array = Crypto.bs58.decode(messageWithNonce)
     const nonce = messageWithNonceAsUint8Array.slice(0, box.nonceLength)
     const message = messageWithNonceAsUint8Array.slice(
         box.nonceLength,
@@ -249,11 +287,11 @@ class Crypto {
 
   static getSignature(message, secretKey) {
     let signature = sign.detached(decodeUTF8(message), secretKey)
-    return bs58.encode(Buffer.from(signature))
+    return Crypto.bs58.encode(Buffer.from(signature))
   }
 
   static verifySignature(message, signature, publicKey) {
-    let verified = sign.detached.verify(decodeUTF8(message), bs58.decode(signature), publicKey)
+    let verified = sign.detached.verify(decodeUTF8(message), Crypto.bs58.decode(signature), publicKey)
     return verified
   }
 
@@ -280,12 +318,12 @@ class Crypto {
     let cipher = crypto.createCipheriv('aes-256-cbc', password, iv)
     let encrypted = cipher.update(data)
     encrypted = Buffer.concat([encrypted, cipher.final()])
-    return [iv, encrypted].map(e => bs58.encode(e)).join('0')
+    return [iv, encrypted].map(e => Crypto.bs58.encode(e)).join('0')
   }
 
   // @deprecated
   static fromAES(data, password) {
-    const [iv, encrypted] = data.split('0').map(e => bs58.decode(e))
+    const [iv, encrypted] = data.split('0').map(e => Crypto.bs58.decode(e))
     let decipher = crypto.createDecipheriv('aes-256-cbc', password, iv)
     let decrypted = decipher.update(encrypted)
     return Buffer.concat([decrypted, decipher.final()])
@@ -293,7 +331,12 @@ class Crypto {
 
 }
 
-Crypto.base58Alphabet = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
+Crypto.base58Alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+Crypto.bs58 = basex(Crypto.base58Alphabet)
+
+Crypto.zBase32Alphabet = 'ybndrfg8ejkmcpqxot1uwisza345h769'
+Crypto.bs32 = basex(Crypto.zBase32Alphabet)
+
 Crypto.randomBytes = randomBytes
 
 module.exports = Crypto

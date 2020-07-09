@@ -105,7 +105,6 @@ Options:
   -h, --help              This help.
   -p, --port              Internal HTTP server port; default 443/SSL
   -H, --host              Upstream server providing forwarding.
-  -s, --subdomain         Request a specific subdomain.
   -l, --local-host        Tunnel traffic to this host instead of localhost, 
                           override Host header to this host               
   --local-https           Tunnel traffic to a local HTTPS server
@@ -127,7 +126,6 @@ async function start(argv) {
   const tunnel = await localtunnel({
     port: argv.port,
     host: argv.host,
-    subdomain: argv.subdomain,
     local_host: argv.localHost,
     local_https: argv.localHttps,
     local_cert: argv.localCert,

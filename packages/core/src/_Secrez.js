@@ -1,6 +1,6 @@
 const Crypto = require('./Crypto')
 const utils = require('@secrez/utils')
-const bs58 = require('bs58')
+const bs58 = Crypto.bs58
 
 let _masterKey
 let _password

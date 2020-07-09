@@ -57,7 +57,7 @@ class Fido2Client {
 
   async checkIfReady() {
     let result = await execAsync('which', __dirname, ['python'])
-    if (typeof result.message === 'undefined') {
+    if (result.code !== 0 || typeof result.message === 'undefined') {
       throw new Error('The Fido2 module requires Python. Please install it on your computer.')
     }
     result =  await execAsync('python', this.scriptsPath, ['is_fido2_ready.py'])

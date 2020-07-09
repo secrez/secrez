@@ -9,22 +9,9 @@ const {Crypto, Secrez} = require('@secrez/core')
 
 const ClientManager = require('./lib/ClientManager')
 const debug = Debug('hub:server')
+const {getRandomId, isValidRandomId} = require('./utils')
 
 const allIds = {}
-
-function getRandomId(publicKey) {
-  let id
-  let prefix = Crypto.b58Hash(publicKey).substring(0, 4)
-  for (; ;) {
-    id = (prefix + Crypto.getRandomId()).toLowerCase()
-    if (allIds) {
-      if (allIds[id]) {
-        continue
-      }
-    }
-    return id
-  }
-}
 
 module.exports = function (opt) {
   opt = opt || {}
@@ -44,6 +31,16 @@ module.exports = function (opt) {
   const app = new Koa()
   const router = new Router()
 
+  function error(ctx, code, message) {
+    debug('Error %s "%s"', code, message)
+    const result = {
+      status_code: code,
+      message: message
+    }
+    ctx.status = code
+    ctx.body = result
+  }
+
   router.get('/api/v1/status', async (ctx, next) => {
     const stats = manager.stats
     ctx.body = {
@@ -56,12 +53,7 @@ module.exports = function (opt) {
     const clientId = ctx.params.id
     const client = manager.getClient(clientId)
     if (!client) {
-      const result = {
-        status_code: 404,
-        message: 'Not found'
-      }
-      ctx.status = 404
-      ctx.body = result
+      error(ctx, 404, 'Not found')
       return
     }
 
@@ -73,7 +65,6 @@ module.exports = function (opt) {
 
   router.get('/api/v1/tunnel/new', async (ctx, next) => {
     let payload, signature, id, publicKey, reqId
-
     try {
       let q = ctx.request.query
       payload = q.payload
@@ -83,51 +74,36 @@ module.exports = function (opt) {
       publicKey = parsedPayload.publicKey
       reqId = id !== 0 ? id : undefined
     } catch(e) {
-      const result = {
-        status_code: 400,
-        message: 'Wrong parameters'
-      }
-      ctx.status = 400
-      ctx.body = result
+      error(ctx, 400, 'Wrong parameters')
       return
     }
-
     if (!Secrez.isValidPublicKey(publicKey)) {
-      const result = {
-        status_code: 400,
-        message: 'Wrong public key'
-      }
-      ctx.status = 400
-      ctx.body = result
+      error(ctx, 400, 'Wrong public key')
       return
     }
     let signPublicKey = Secrez.getSignPublicKey(publicKey)
     if (!Crypto.verifySignature(payload, signature, signPublicKey)) {
-      const result = {
-        status_code: 400,
-        message: 'Wrong signature'
-      }
-      ctx.status = 400
-      ctx.body = result
+      error(ctx, 400, 'Wrong signature')
       return
     }
     if (reqId) {
-      if (!Crypto.isBase58String(reqId) || reqId.length !== 8 || allIds[reqId]) {
-        const result = {
-          status_code: 400,
-          message: 'Wrong requested id'
-        }
-        ctx.status = 400
-        ctx.body = result
+      if (!isValidRandomId(reqId, publicKey)) {
+        error(ctx, 400, 'Wrong requested id')
         return
       }
     }
     if (!reqId) {
-      reqId = getRandomId(publicKey)
+      reqId = getRandomId(publicKey, allIds)
+    }
+
+    if (manager.hasClient(reqId)) {
+      debug('returning existed client with id %s', reqId)
+      ctx.body = manager.getClient(reqId)
+      return
     }
     debug('making new client with id %s', reqId)
-
     const info = await manager.newClient(reqId, debug)
+
     const url = schema + '://' + info.id + '.' + ctx.request.host
     info.url = url
     ctx.body = info
@@ -215,7 +191,7 @@ module.exports = function (opt) {
 
     let clientId = GetClientIdFromHostname(hostname)
 
-    debug('clientId %s', clientId)
+    debug('clientId %s', clientId, hostname)
 
     // if (!clientId && req.query) {
     //   clientId = req.query.clientId
@@ -242,6 +218,7 @@ module.exports = function (opt) {
   })
 
   server.on('upgrade', (req, socket, head) => {
+
     const hostname = req.headers.host
     if (!hostname) {
       socket.destroy()

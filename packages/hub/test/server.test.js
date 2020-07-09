@@ -7,6 +7,7 @@ const {Server} = require('ws')
 const WebSocketServer = Server
 const WebSocket = require('ws')
 const net = require('net')
+const {getRandomId} = require('../src/utils')
 const {Secrez, Crypto} = require('@secrez/core')
 
 const createServer = require('../src/createServer')
@@ -101,6 +102,7 @@ describe.only('Server', () => {
     })
     const signature = secrez.signMessage(payload)
 
+    // console.log({payload, signature})
     res = await request(server).get('/api/v1/tunnel/new').query({
       payload,
       signature
@@ -108,6 +110,45 @@ describe.only('Server', () => {
 
     let {id} = res.body
     assert.equal(id.substring(0, 4), Crypto.b58Hash(secrez.getPublicKey()).substring(0, 4).toLowerCase())
+
+    res = await request(server).get(`/api/v1/tunnels/${id}/status`)
+    assert.equal(res.statusCode, 200)
+    assert.deepEqual(res.body, {
+      connected_sockets: 0,
+    })
+
+    await new Promise(resolve => server.close(resolve))
+  })
+
+  it('should support the /api/v1/tunnels/:id/status endpoint with fixed reqId', async () => {
+    const server = createServer()
+    await new Promise(resolve => server.listen(resolve))
+
+    // no such tunnel yet
+    let res = await request(server).get('/api/v1/tunnels/foobar-test/status')
+    assert.equal(res.statusCode, 404)
+
+    // request a new client called foobar-test
+    const publicKey = secrez.getPublicKey()
+    let publicKeyId = getRandomId(publicKey)
+
+        // Crypto.b58Hash(publicKey).substring(0, 4).toLowerCase() + Crypto.getRandomId()
+
+    const payload = JSON.stringify({
+      id: publicKeyId,
+      publicKey,
+      salt: Crypto.getRandomBase58String(16)
+    })
+    const signature = secrez.signMessage(payload)
+
+    // console.log({payload, signature})
+
+    res = await request(server).get('/api/v1/tunnel/new').query({
+      payload,
+      signature
+    })
+    let {id} = res.body
+    assert.equal(id, publicKeyId)
 
     res = await request(server).get(`/api/v1/tunnels/${id}/status`)
     assert.equal(res.statusCode, 200)

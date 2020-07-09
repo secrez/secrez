@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const Crypto = require('../src/Crypto')
 const utils = require('@secrez/utils')
-const bs58 = require('bs58')
+const bs58 = Crypto.bs58
 const {sleep} = require('./helpers')
 
 const {
@@ -14,6 +14,7 @@ const {
 const {
   password,
   b58Hash,
+  b32Hash,
   passwordSHA3Hex,
   passwordB64,
   salt,
@@ -44,12 +45,26 @@ describe('#Crypto', function () {
       assert.isFalse(Crypto.isBase58String('as0s'))
     })
 
+    it('should verify a string is a base32 one', async function () {
+      assert.isTrue(Crypto.isBase32String('arde'))
+      assert.isTrue(Crypto.isBase32String('aa99'))
+      assert.isFalse(Crypto.isBase32String('ardl'))
+      assert.isFalse(Crypto.isBase32String('Idaf'))
+      assert.isFalse(Crypto.isBase32String('as0s'))
+    })
+
     it('should SHA3 a string', async function () {
       assert.isTrue(utils.secureCompare(Crypto.SHA3(password), Buffer.from(passwordSHA3Hex, 'hex')))
     })
 
-    it('should convert from Base58 to array', async function () {
+    it('should convert from Base58 to array and viceversa', async function () {
       assert.equal(Crypto.fromBase58('5Q').toString('utf8'), Buffer.from([255]))
+      assert.equal(Crypto.toBase58([255]), '5Q')
+    })
+
+    it('should convert from Base32 to array and viceversa', async function () {
+      assert.equal(Crypto.fromBase32('89').toString('utf8'), Buffer.from([255]))
+      assert.equal(Crypto.toBase32([255]), '89')
     })
 
     it('should verify that the random id is random enough', async function () {
@@ -130,11 +145,24 @@ describe('#Crypto', function () {
     it('should get a random base58 string', async function () {
       let rnd = Crypto.getRandomBase58String(3)
       assert.equal(rnd.length, 3)
-      assert.isTrue('123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'.indexOf(rnd[1]) !== -1)
+      assert.isTrue(Crypto.base58Alphabet.indexOf(rnd[1]) !== -1)
+    })
+
+    it('should get a random base32 string', async function () {
+      let rnd = Crypto.getRandomBase32String(3)
+      assert.equal(rnd.length, 3)
+      assert.isTrue(Crypto.zBase32Alphabet.indexOf(rnd[1]) !== -1)
     })
 
     it('should generate a sha3 in b58 format', async function () {
       assert.equal(Crypto.b58Hash(password), b58Hash)
+      assert.isTrue(Crypto.isValidB58Hash(b58Hash))
+    })
+
+    it('should generate a sha3 in b32 format', async function () {
+      this.timeout(20000)
+      assert.equal(Crypto.b32Hash(password), b32Hash)
+      assert.isTrue(Crypto.isValidB32Hash(b32Hash))
     })
 
   })

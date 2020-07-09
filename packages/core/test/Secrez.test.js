@@ -133,10 +133,6 @@ describe('#Secrez', function () {
         assert.isUndefined(secrez.masterKeyHash)
         await secrez.signin(password, iterations + 100)
         assert.equal(masterKeyHash, secrez.masterKeyHash)
-
-        let publicKey = secrez.getPublicKey()
-        assert.isTrue(Secrez.isValidPublicKey(publicKey))
-        assert.isFalse(Secrez.isValidPublicKey([1, 2, 3, 4]))
       })
 
       it('should signup the user, change password and iterations and signin', async function () {
@@ -774,7 +770,6 @@ describe('#Secrez', function () {
           assert.equal(e.message, 'No second factor registered with the authenticator billy')
         }
 
-
       })
 
     })
@@ -814,6 +809,7 @@ describe('#Secrez', function () {
       })
 
     })
+
     describe('#signMessage', async function () {
 
       beforeEach(async function () {
@@ -834,6 +830,38 @@ describe('#Secrez', function () {
 
         let signature = secrez.signMessage('message')
         assert.isTrue(secrez.verifySignedMessage('message', signature))
+      })
+    })
+
+    describe('#getPublicKey', async function () {
+
+      beforeEach(async function () {
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        // await secrez.init(rootDir)
+      })
+
+      it('should sign a message and verify it', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+        assert.isTrue(await fs.pathExists(secrez.config.keysPath))
+        masterKeyHash = secrez.masterKeyHash
+        secrez.signout()
+        assert.isUndefined(secrez.masterKeyHash)
+        await secrez.signin(password, iterations)
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
+
+        let publicKey = secrez.getPublicKey()
+        assert.isTrue(Secrez.isValidPublicKey(publicKey))
+        assert.isFalse(Secrez.isValidPublicKey([1, 2, 3, 4]))
+
+        let signPublicKey = Secrez.getSignPublicKey(publicKey)
+        let boxPublicKey = Secrez.getBoxPublicKey(publicKey)
+
+        publicKey = publicKey.split('0').map(e => Crypto.fromBase58(e))
+        assert.equal(publicKey[0].toString(), boxPublicKey.toString())
+        assert.equal(publicKey[1].toString(), signPublicKey.toString())
+
       })
     })
 

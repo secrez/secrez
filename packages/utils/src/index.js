@@ -227,12 +227,11 @@ const utils = {
 
   Debug(prefix) {
     return (...content) => {
-      if (!process.env.DO_NOT_DEBUG && /^(dev|test)/i.test(process.env.NODE_ENV)) {
+      if (process.env.AS_DEV || /dev/i.test(process.env.NODE_ENV)) {
         console.info(prefix, '>>', util.format(...content))
       }
     }
   }
-
 
 }
 

@@ -49,10 +49,6 @@ module.exports = class Tunnel extends EventEmitter {
     const opt = this.opts
     const getInfo = this._getInfo.bind(this)
 
-    // const params = {
-    //   responseType: 'json'
-    // }
-
     let uri = `${opt.host}/api/v1/tunnel/new`
 
     function getUrl() {
@@ -84,11 +80,12 @@ module.exports = class Tunnel extends EventEmitter {
   }
 
   _establish(info) {
+
     // increase max event listeners so that localtunnel consumers don't get
     // warning messages as soon as they setup even one listener. See #71
     this.setMaxListeners(info.max_conn + (EventEmitter.defaultMaxListeners || 10))
 
-    this.tunnelCluster = new TunnelCluster(info)
+    this.tunnelCluster = new TunnelCluster(info, this)
 
     // only emit the url the first time
     this.tunnelCluster.once('open', () => {

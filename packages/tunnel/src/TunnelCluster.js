@@ -9,9 +9,14 @@ const HeaderHostTransformer = require('./HeaderHostTransformer')
 
 // manages groups of tunnels
 module.exports = class TunnelCluster extends EventEmitter {
-  constructor(opts = {}) {
+  constructor(opts = {}, tunnel) {
     super(opts)
     this.opts = opts
+    this.tunnel = tunnel
+  }
+
+  destroy() {
+
   }
 
   open() {
@@ -60,7 +65,8 @@ module.exports = class TunnelCluster extends EventEmitter {
     })
 
     const connLocal = () => {
-      if (remote.destroyed) {
+
+      if (remote.destroyed || this.tunnel.closed) {
         debug('remote destroyed')
         this.emit('dead')
         return
