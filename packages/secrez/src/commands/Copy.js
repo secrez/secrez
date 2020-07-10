@@ -1,6 +1,6 @@
 const path = require('path')
 const clipboardy = require('clipboardy')
-const {isYaml, yamlParse, TRUE, sleep} = require('../utils')
+const {isYaml, yamlParse, TRUE, sleep} = require('@secrez/utils')
 const beep = require('beepbeep')
 const {Node} = require('@secrez/fs')
 

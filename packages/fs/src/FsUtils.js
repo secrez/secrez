@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const path = require('path')
-const {Utils} = require('@secrez/core')
+const utils = require('@secrez/utils')
 
 // eslint-disable-next-line node/no-unpublished-require
 // const commandLineArgs = require('../../../../../../Repos/command-line-args/dist')
@@ -20,12 +20,12 @@ class FsUtils {
       } else if (sep && c === sep) {
         sep = null
       } else if (!sep && c === '\\' && commandLine[i + 1] && commandLine[i + 1] !== '\\') {
-        Utils.addTo(argv, k, commandLine[i + 1])
+        utils.addTo(argv, k, commandLine[i + 1])
         i++
       } else if (!sep && c === ' ') {
         k++
       } else {
-        Utils.addTo(argv, k, c)
+        utils.addTo(argv, k, c)
       }
     }
     return argv

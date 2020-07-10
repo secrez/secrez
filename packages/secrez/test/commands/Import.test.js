@@ -5,7 +5,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const Prompt = require('../mocks/PromptMock')
-const {fromSimpleYamlToJson} = require('../../src/utils')
+const {fromSimpleYamlToJson} = require('@secrez/utils')
 const {assertConsole, noPrint, decolorize} = require('../helpers')
 
 const {
@@ -119,13 +119,13 @@ describe('#Import', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['7 results found:',
-      '/file0.txt',
-      '/file3',
-      '/folder1',
-      '/folder1/file-2',
-      '/folder1/file1',
-      '/folder1/folder3',
-      '/folder1/folder3/file4'
+      '1  /file0.txt',
+      '2  /file3',
+      '3  /folder1/',
+      '4  /folder1/file-2',
+      '5  /folder1/file1',
+      '6  /folder1/folder3/',
+      '7  /folder1/folder3/file4'
 
     ])
 

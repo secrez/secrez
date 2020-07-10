@@ -1,0 +1,56 @@
+{
+  "name": "@secrez/courier",
+  "version": "0.1.0",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/**/*.js'",
+    "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
+    "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
+    "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
+    "posttest": "nyc check-coverage --statements 85 --branches 80 --functions 85 --lines 85"
+  },
+  "bin": {
+    "secrez-courier": "bin/secrez-courier.js"
+  },
+  "dependencies": {
+    "@secrez/utils": "^0.1.0",
+    "@secrez/core": "^0.7.3-beta.1",
+    "@secrez/tunnel": "3.0.0-beta.1",
+    "chalk": "^3.0.0",
+    "command-line-args": "^5.1.1",
+    "cross-env": "^7.0.2",
+    "eslint-plugin-node": "^11.1.0",
+    "fastify": "^2.15.1",
+    "fastify-graceful-shutdown": "^2.0.1",
+    "fastify-websocket": "^1.1.2",
+    "fastify-ws": "^1.0.3",
+    "fs-extra": "^8.1.0",
+    "homedir": "^0.6.0",
+    "lodash": "^4.17.15",
+    "nyc": "^15.1.0",
+    "pino": "^6.3.2",
+    "pino-pretty": "^4.0.0",
+    "ws": "^7.3.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-node": "^11.0.0",
+    "mocha": "^7.1.1",
+    "nyc": "^15.1.0"
+  },
+  "description": "A listener for Secrez.",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/secrez/secrez.git"
+  },
+  "author": {
+    "name": "Francesco Sullo",
+    "email": "francesco@sullo.co"
+  },
+  "engines": {
+    "node": ">=10.0.0"
+  }
+}

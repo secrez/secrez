@@ -1,5 +1,5 @@
 const chalk = require('chalk')
-const utils = require('../utils')
+const utils = require('@secrez/utils')
 
 class Help extends require('../Command') {
 

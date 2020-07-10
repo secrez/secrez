@@ -342,8 +342,9 @@ class Node {
             } else {
               list.push([
                 Node.hashVersion(ts),
-                p,
-                name
+                p + (Node.isDir(this) ? '/' : ''),
+                name,
+                undefined
               ])
             }
           } else
@@ -486,7 +487,7 @@ class Node {
   }
 
   static isNode(obj) {
-    return typeof obj === 'object' && obj.constructor.name === 'Node'
+    return obj instanceof Node
   }
 
   findDirectChildByName(name, id) {
