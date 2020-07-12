@@ -44,9 +44,9 @@ describe('#TLS', function () {
       assert.isTrue(await tls.generateCertificates())
 
       assert.isTrue(await tls.certificatesExist())
-      const localhostCrt = await tls.getLocalhostCrt()
-      const localhostKey = await tls.getLocalhostKey()
-      const rootCAKey = await tls.getRootCACrt()
+      const localhostCrt = await tls.getCert()
+      const localhostKey = await tls.getKey()
+      const rootCAKey = await tls.getCa()
 
       let server = startHttpsServer(localhostKey, localhostCrt)
       let local = await verifyTlsConnection(localhostKey, localhostCrt, rootCAKey)

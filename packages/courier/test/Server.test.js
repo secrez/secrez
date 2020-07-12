@@ -1,33 +1,78 @@
-const chai = require('chai')
-const assert = chai.assert
-const fs = require('fs-extra')
+const http = require('http')
+const https = require('https')
 const path = require('path')
-// const Fastify = require('fastify')
-// const fastifyWebsocket = require('fastify-websocket')
-// const WebSocket = require('ws')
-// const get = require('http').get
+const chai = require('chai')
+const fs = require('fs-extra')
+const assert = chai.assert
+const request = require('superagent')
+const {TLS} = require('@secrez/tls')
+const {sleep} = require('@secrez/utils')
+const {createServer, utils} = require('@secrez/hub')
+const {isValidRandomId} = utils
+const Config = require('../src/Config')
+const Server = require('../src/Server')
+const pkg = require('../package.json')
 
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
+const fixtures = require('./fixtures')
 
-describe.skip('#Command', function () {
 
-  let prompt
-  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez-courier')
+describe.only('Server', async function () {
+
+  let localDomain = 'localhost'
+  let root = path.resolve(__dirname, '../tmp/test/config')
+  let config
+
+  let hubServer
+
+  process.env.AS_DEV = true
+
+  const startHub = async () => {
+    hubServer = createServer({
+      secure: false,
+      domain: localDomain,
+      max_tcp_sockets: 4,
+      port: 9494
+    })
+    await new Promise(resolve => {
+      hubServer.listen(9494, () => {
+        resolve()
+      })
+    })
+  }
 
   beforeEach(async function () {
-    await fs.emptyDir(rootDir)
+    await fs.emptyDir(root)
+    await startHub()
+    config = new Config({root})
+  })
+
+  afterEach(async function () {
+    await new Promise(resolve => hubServer.close(resolve))
+    await sleep(10)
+  })
+
+  it('should build an instance and start the server', async function () {
+
+    let server = new Server(config)
+    await server.start()
+    const authCode = server.authCode
+    const res = await request.get(`https://${localDomain}:${server.port}`)
+        .set('auth-code', authCode)
+        .ca(await server.tls.getCa())
+    console.log(res.body.welcome_to, 'Secrez Courier v' + pkg.version)
 
   })
 
-  describe('#constructor', async function () {
+  it('should accept authorized requests', async function () {
 
-
-    it('should setup the environment', async function () {
-
-      let Courier = new Courier(prompt)
-      assert.isTrue(Array.isArray([]))
-    })
+    let server = new Server(config)
+    await server.start()
+    const authCode = server.authCode
+    const res = await request.get(`https://${localDomain}:${server.port}`)
+        .set('auth-code', authCode)
+        .ca(await server.tls.getCa())
+    console.log(res.body.welcome_to, 'Secrez Courier v' + pkg.version)
 
   })
+
 })

@@ -228,7 +228,7 @@ const utils = {
   Debug(prefix) {
     return (...content) => {
       if (process.env.AS_DEV || /dev/i.test(process.env.NODE_ENV)) {
-        console.info(prefix, '>>', util.format(...content))
+        console.debug(prefix, '>>', util.format(...content))
       }
     }
   }

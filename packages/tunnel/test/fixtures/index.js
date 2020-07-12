@@ -6,7 +6,6 @@ module.exports = {
   fixedId: {
     payload: '{"id":"uzcmscmbx5y9j61k94r66akycscjbepzwyz9aam7dn4gqmwkyi60c3uc","publicKey":"DZyw5ecKBKrUj3MdLmBjMGcJBSJtUY2Ga8HvvthRS96m0A6poENXbxxNwpvTqBZnpbUVsbrdjuchbNWm7ohDTHdEv","salt":"APkvRUf8DFtNBPTp"}',
     signature: '64GWSdhGoTZr7B7itbVWqwjoAwMsC4oJxkHRKaP3UK1rbKTjnUAKJa4hjXxC9Fe6YHguofxornzzppENKX7Knu6f'
-  },
-  localhostDomain: '127zero0one.com'
+  }
 }
 

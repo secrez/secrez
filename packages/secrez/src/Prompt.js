@@ -3,9 +3,10 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const inquirer = require('inquirer')
+const clear = require('clear')
 
 // eslint-disable-next-line node/no-unpublished-require
-// const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
+// const inquirerCommandPrompt = require('../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
@@ -49,7 +50,6 @@ class Prompt {
       onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd
     })
     this.commands = (new Commands(this, cliConfig)).getCommands()
-
   }
 
   reorderCommandLineWithDefaultAtEnd(line) {
@@ -173,7 +173,23 @@ class Prompt {
     return res
   }
 
+  async clearScreen() {
+    this.clearIsRunning = true
+    if (Date.now() - this.lastCommandAt > 1000 * cliConfig.clearScreenAfter) {
+      clear()
+      console.info(chalk.grey(`Terminal has been cleared after ${cliConfig.clearScreenAfter} seconds of inactivity.`))
+      process.stdout.write(this.lastpre + ' ')
+      this.clearIsRunning = false
+    } else {
+      await utils.sleep(100 * cliConfig.clearScreenAfter)
+      this.clearScreen()
+    }
+  }
+
   async run(options) {
+    if (!this.clearIsRunning) {
+      this.clearScreen()
+    }
     if (!this.loggedIn) {
       this.getCommands = Completion(cliConfig.completion)
       this.basicCommands = await this.getCommands()
@@ -201,6 +217,7 @@ class Prompt {
     }
     try {
       let pre = chalk.reset(`Secrez ${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()}`)
+      this.lastpre = `${pre} ${chalk.bold('$')}`
       let {cmd} = await inquirer.prompt([
         {
           type: 'command',
@@ -214,6 +231,7 @@ class Prompt {
           context: 0,
           ellipsize: true,
           autocompletePrompt: chalk.grey('Available options:'),
+          onBeforeKeyPress: () => this.lastCommandAt = Date.now(),
           onClose: () => {
             fs.emptyDirSync(cliConfig.tmpPath)
           },
@@ -235,7 +253,7 @@ class Prompt {
           let cmds = data.commandLine.split('&&').map(e => _.trim(e))
           let max = 0
           let missing = false
-          for (let i=0; i< cmds.length;i++) {
+          for (let i = 0; i < cmds.length; i++) {
             let c = cmds[i]
             let params = c.match(/\$\w{1}/g)
             if (params) {
@@ -259,7 +277,7 @@ class Prompt {
             }
           }
           if (missing) {
-            Logger.red(`The alias "${command}" requires ${max} parameter${max > 1 ? 's': ''}`)
+            Logger.red(`The alias "${command}" requires ${max} parameter${max > 1 ? 's' : ''}`)
             this.disableRun = false
           }
           this.run()

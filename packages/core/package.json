@@ -1,6 +1,6 @@
 {
   "name": "@secrez/core",
-  "version": "0.7.3-beta.1",
+  "version": "0.8.0",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
@@ -10,7 +10,7 @@
     "posttest": "nyc check-coverage --statements 99 --branches 95 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/utils": "^0.1.0",
+    "@secrez/utils": "workspace:^*",
     "base-x": "^3.0.8",
     "bip39": "^3.0.2",
     "fs-extra": "^8.1.0",

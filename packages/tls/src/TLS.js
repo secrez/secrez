@@ -133,15 +133,15 @@ class TLS {
     return fs.readFile(path.join(this.options.destination, crt), 'utf8')
   }
 
-  async getLocalhostCrt() {
+  async getCert() {
     return this.getFile(`${this.options.name}.crt`)
   }
 
-  async getLocalhostKey() {
+  async getKey() {
     return this.getFile(`${this.options.name}.key`)
   }
 
-  async getRootCACrt() {
+  async getCa() {
     return this.getFile(`${this.options.ca}.crt`)
   }
 

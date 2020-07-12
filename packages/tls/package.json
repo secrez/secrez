@@ -10,7 +10,7 @@
     "posttest": "nyc check-coverage --statements 99 --branches 90 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/utils": "^0.1.0",
+    "@secrez/utils": "workspace:^*",
     "cross-env": "^7.0.2",
     "eslint-plugin-node": "^11.1.0",
     "fs-extra": "^8.1.0",
@@ -24,8 +24,11 @@
     "mocha": "^7.1.1",
     "nyc": "^15.1.0"
   },
-  "description": "A certificate generator for Secrez.",
+  "description": "A self-signed certificate generator",
   "main": "src/index.js",
+  "bin": {
+    "secrez-tls": "bin/secrez-tls.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/secrez/secrez.git"

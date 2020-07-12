@@ -1,14 +1,13 @@
 const { EventEmitter } = require('events')
 const {Debug} = require('@secrez/utils')
-const debug = Debug('lt:client')
-const fs = require('fs')
+const debug = Debug('ltc:client')
 const net = require('net')
 const tls = require('tls')
 
 const HeaderHostTransformer = require('./HeaderHostTransformer')
 
 // manages groups of tunnels
-module.exports = class TunnelCluster extends EventEmitter {
+class TunnelCluster extends EventEmitter {
   constructor(opts = {}, tunnel) {
     super(opts)
     this.opts = opts
@@ -83,9 +82,9 @@ module.exports = class TunnelCluster extends EventEmitter {
         allowInvalidCert
           ? { rejectUnauthorized: false }
           : {
-              cert: fs.readFileSync(opt.local_cert),
-              key: fs.readFileSync(opt.local_key),
-              ca: opt.local_ca ? [fs.readFileSync(opt.local_ca)] : undefined,
+              cert: opt.local_cert,
+              key: opt.local_key,
+              ca: opt.local_ca,
             }
 
       // connection to local http server
@@ -157,3 +156,6 @@ module.exports = class TunnelCluster extends EventEmitter {
     })
   }
 }
+
+
+module.exports = TunnelCluster
