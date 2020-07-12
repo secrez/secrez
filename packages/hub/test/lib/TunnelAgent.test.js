@@ -3,10 +3,10 @@ const net = require('net')
 const chai = require('chai')
 const assert = chai.assert
 
-
 const TunnelAgent = require('../../src/lib/TunnelAgent')
 
 describe('TunnelAgent', () => {
+
   it('should create an empty agent', async () => {
     const agent = new TunnelAgent()
     assert.equal(agent.started, false)

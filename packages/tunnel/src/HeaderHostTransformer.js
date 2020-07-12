@@ -8,16 +8,15 @@ class HeaderHostTransformer extends Transform {
   }
 
   _transform(data, encoding, callback) {
-    console.log('---------->>>>>>>>>>>>', data.toString())
-
-    callback(
-      null,
-      this.replaced // after replacing the first instance of the Host header we just become a regular passthrough
+    data = this.replaced // after replacing the first instance of the Host header we just become a regular passthrough
         ? data
         : data.toString().replace(/(\r\n[Hh]ost: )\S+/, (match, $1) => {
-            this.replaced = true
-            return $1 + this.host
-          })
+          this.replaced = true
+          return $1 + this.host
+        })
+    callback(
+      null,
+      data
     )
   }
 }

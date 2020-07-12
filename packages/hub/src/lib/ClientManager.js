@@ -1,7 +1,5 @@
-const {Crypto} = require('@secrez/core')
-
+const utils = require('../utils')
 const {Debug} = require('@secrez/utils')
-
 const Client = require('./Client')
 const TunnelAgent = require('./TunnelAgent')
 
@@ -22,7 +20,7 @@ class ClientManager {
 
     this.debug = Debug('lt:ClientManager')
 
-    // This is totally wrong :facepalm: this needs to be per-client...
+    // TODO (sullo) This is totally wrong :facepalm: this needs to be per-client...
     this.graceTimeout = null
   }
 
@@ -32,14 +30,20 @@ class ClientManager {
   async newClient(id) {
     const clients = this.clients
     const stats = this.stats
+    const maxSockets = this.opt.max_tcp_sockets
 
-    // can't ask for id already is use
-    if (clients[id]) {
-      // TODO remove this
-      id = Crypto.getRandomId(Object.keys(clients))
+    if (!id && process.env.NODE_ENV === 'test') {
+      id = utils.getRandomId('facePublicKey')
     }
 
-    const maxSockets = this.opt.max_tcp_sockets
+    if (clients[id]) {
+      return {
+        id,
+        port: clients[id].port,
+        max_conn_count: maxSockets,
+      }
+    }
+
     const agent = new TunnelAgent({
       clientId: id,
       maxSockets: 10,

@@ -88,8 +88,8 @@ Examples:
 
 (async () => {
   const courier = new Courier(options)
-  await courier.init()
-  console.info(`Listening to: http://127.0.0.1:${courier.server.options.port}`)
+  await courier.start()
+  console.info(`Listening to: ${courier.server.host}`)
   console.info(`Auth code: ${courier.server.authCode}`)
 })()
 

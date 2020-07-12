@@ -5,7 +5,12 @@ const net = require('net')
 
 const ClientManager = require('../../src/lib/ClientManager')
 
+
+
 describe('ClientManager', () => {
+
+  let someClientId = '3mqxy5mz917dnhzj4yep1fteu1m1et8zz96n3ce5jzs1a17c7oj044ci'
+
   it('should construct with no tunnels', () => {
     const manager = new ClientManager()
     assert.equal(manager.stats.tunnels, 0)
@@ -14,32 +19,32 @@ describe('ClientManager', () => {
   it('should create a new client with random id', async () => {
     const manager = new ClientManager()
     const client = await manager.newClient()
-    assert(manager.hasClient(client.id))
+    assert.isTrue(manager.hasClient(client.id))
     manager.removeClient(client.id)
   })
 
   it('should create a new client with id', async () => {
     const manager = new ClientManager()
-    const client = await manager.newClient('foobar')
-    assert(!!client)
-    assert(manager.hasClient('foobar'))
-    manager.removeClient('foobar')
+    const client = await manager.newClient(someClientId)
+    assert.isTrue(!!client)
+    assert.isTrue(manager.hasClient(someClientId))
+    manager.removeClient(someClientId)
   })
 
-  it('should create a new client with random id if previous exists', async () => {
+  it('should return a previous client if exists', async () => {
     const manager = new ClientManager()
-    const clientA = await manager.newClient('foobar')
-    const clientB = await manager.newClient('foobar')
-    assert(clientA.id, 'foobar')
-    assert(manager.hasClient(clientB.id))
-    assert(clientB.id !== clientA.id)
+    const clientA = await manager.newClient(someClientId)
+    const clientB = await manager.newClient(someClientId)
+    assert.equal(clientA.id, someClientId)
+    assert.isTrue(manager.hasClient(clientB.id))
+    assert.equal(clientB.id, clientA.id)
     manager.removeClient(clientB.id)
-    manager.removeClient('foobar')
+    manager.removeClient(someClientId)
   })
 
   it('should remove client once it goes offline', async () => {
     const manager = new ClientManager()
-    const client = await manager.newClient('foobar')
+    const client = await manager.newClient(someClientId)
 
     const socket = await new Promise((resolve) => {
       const netClient = net.createConnection({port: client.port}, () => {
@@ -51,11 +56,11 @@ describe('ClientManager', () => {
     await closePromise
 
     // should still have client - grace period has not expired
-    assert(manager.hasClient('foobar'))
+    assert.isTrue(manager.hasClient(someClientId))
 
     // wait past grace period (1s)
     await new Promise(resolve => setTimeout(resolve, 1500))
-    assert(!manager.hasClient('foobar'))
+    assert.isTrue(!manager.hasClient(someClientId))
   }).timeout(5000)
 
   it('should remove correct client once it goes offline', async () => {
@@ -73,10 +78,10 @@ describe('ClientManager', () => {
     await new Promise(resolve => setTimeout(resolve, 1500))
 
     // foo should still be ok
-    assert(manager.hasClient('foo'))
+    assert.isTrue(manager.hasClient('foo'))
 
     // clientBar shound be removed - nothing connected to it
-    assert(!manager.hasClient('bar'))
+    assert.isTrue(!manager.hasClient('bar'))
 
     manager.removeClient('foo')
     socket.end()
@@ -86,10 +91,10 @@ describe('ClientManager', () => {
     const manager = new ClientManager()
     // const clientFoo =
     await manager.newClient('foo')
-    assert(manager.hasClient('foo'))
+    assert.isTrue(manager.hasClient('foo'))
 
     // wait past grace period (1s)
     await new Promise(resolve => setTimeout(resolve, 1500))
-    assert(!manager.hasClient('foo'))
+    assert.isTrue(!manager.hasClient('foo'))
   }).timeout(5000)
 })

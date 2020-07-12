@@ -1,4 +1,5 @@
 const {Agent} = require('http')
+const utils = require('../utils')
 
 const net = require('net')
 const log = require('book')
@@ -25,7 +26,7 @@ class TunnelAgent extends Agent {
     // once a socket is available it is handed out to the next callback
     this.waitingCreateConn = []
 
-    this.debug = Debug(`lt:TunnelAgent[${options.clientId}]`)
+    this.debug = Debug(`lt:TunnelAgent[${utils.shortId(options.clientId)}]`)
 
     // track maximum allowed sockets
     this.connectedSockets = 0

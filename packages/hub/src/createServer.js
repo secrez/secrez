@@ -87,7 +87,7 @@ module.exports = function (opt) {
       return
     }
     if (reqId) {
-      if (!isValidRandomId(reqId, publicKey)) {
+      if (!isValidRandomId(reqId)) {
         error(ctx, 400, 'Wrong requested id')
         return
       }
@@ -95,7 +95,6 @@ module.exports = function (opt) {
     if (!reqId) {
       reqId = getRandomId(publicKey, allIds)
     }
-
     if (manager.hasClient(reqId)) {
       debug('returning existed client with id %s', reqId)
       ctx.body = manager.getClient(reqId)
@@ -168,6 +167,36 @@ module.exports = function (opt) {
     }
   })
 
+  // anything after the / path is a request for a specific client name
+  // This is a backwards compat feature
+  // TODO (sullo) extend this for servers that cannot handle subdomains
+  app.use(async (ctx, next) => {
+    const parts = ctx.request.path.split('/')
+
+    // any request with several layers of paths is not allowed
+    // rejects /foo/bar
+    // allow /foo
+    if (parts.length !== 2) {
+      await next()
+      return
+    }
+
+    const reqId = parts[1]
+
+    if (!isValidRandomId(reqId)) {
+      error(ctx, 400, 'Wrong requested id')
+      return
+    }
+
+    debug('making new client with id %s', reqId)
+    const info = await manager.newClient(reqId)
+
+    const url = schema + '://' + info.id + '.' + ctx.request.host
+    info.url = url
+    ctx.body = info
+    return
+  })
+
   const server = http.createServer()
 
   const appCallback = app.callback()
@@ -192,10 +221,6 @@ module.exports = function (opt) {
     let clientId = GetClientIdFromHostname(hostname)
 
     debug('clientId %s', clientId, hostname)
-
-    // if (!clientId && req.query) {
-    //   clientId = req.query.clientId
-    // }
 
     if (!clientId) {
       appCallback(req, res)

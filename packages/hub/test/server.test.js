@@ -14,7 +14,6 @@ const createServer = require('../src/createServer')
 
 describe.only('Server', () => {
 
-
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
   let secrez = new Secrez()
 
@@ -38,13 +37,18 @@ describe.only('Server', () => {
   })
 
   it('should upgrade websocket requests', async () => {
-    const hostname = 'websocket-test'
+
+    // process.env.AS_DEV = true
+
+    const hostname = 'uzcmscmbx5y9j61k94r66akycscjbepzwyz9aam7dn4gqmwkyi60c3uc'
+        // 'websocket-test'
     const server = createServer({
       domain: 'example.com',
     })
     await new Promise(resolve => server.listen(resolve))
 
-    const res = await request(server).get('/websocket-test')
+    const res = await request(server).get(`/${hostname}`)
+
     const localTunnelPort = res.body.port
 
     const wss = await new Promise((resolve) => {
@@ -109,7 +113,7 @@ describe.only('Server', () => {
     })
 
     let {id} = res.body
-    assert.equal(id.substring(0, 4), Crypto.b58Hash(secrez.getPublicKey()).substring(0, 4).toLowerCase())
+    assert.equal(id.substring(0, 4), Crypto.b32Hash(secrez.getPublicKey()).substring(0, 4))
 
     res = await request(server).get(`/api/v1/tunnels/${id}/status`)
     assert.equal(res.statusCode, 200)
@@ -140,8 +144,6 @@ describe.only('Server', () => {
       salt: Crypto.getRandomBase58String(16)
     })
     const signature = secrez.signMessage(payload)
-
-    // console.log({payload, signature})
 
     res = await request(server).get('/api/v1/tunnel/new').query({
       payload,

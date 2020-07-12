@@ -14,8 +14,16 @@ module.exports = {
     }
   },
 
-  isValidRandomId(id, publicKey) {
+  isValidRandomId(id) {
     id = id.split('0')
-    return Crypto.isBase32String(id[0]) && Crypto.isBase32String(id[1]) && id[0] === Crypto.b32Hash(publicKey)
+    return Crypto.isBase32String(id[0]) && Crypto.isBase32String(id[1]) && Crypto.fromBase32(id[0]).length === 32
+  },
+
+  shortId(id) {
+    if (typeof id !== 'string' || !id.length) {
+      return ''
+    }
+    id = id.split('0')
+    return id[0].substring(0, 4) + (id[1] ? '...' + id[1] : '')
   }
 }

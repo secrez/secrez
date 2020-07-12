@@ -6,6 +6,5 @@ module.exports = {
   Server: require('./Server'),
   Courier: require('./Courier'),
   Config: require('./Config'),
-  TLS: require('./TLS'),
   version: require('../package').version
 }

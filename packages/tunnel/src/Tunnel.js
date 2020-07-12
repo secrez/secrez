@@ -7,14 +7,11 @@ const debug = Debug('lt:client')
 
 const TunnelCluster = require('./TunnelCluster')
 
-module.exports = class Tunnel extends EventEmitter {
+class Tunnel extends EventEmitter {
   constructor(opts = {}) {
     super(opts)
     this.opts = opts
     this.closed = false
-    if (!this.opts.host) {
-      this.opts.host = 'https://secrez.cc'
-    }
   }
 
   _getInfo(body) {
@@ -163,3 +160,6 @@ module.exports = class Tunnel extends EventEmitter {
     this.emit('close')
   }
 }
+
+
+module.exports = Tunnel
