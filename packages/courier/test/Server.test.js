@@ -16,7 +16,7 @@ const pkg = require('../package.json')
 const fixtures = require('./fixtures')
 
 
-describe.only('Server', async function () {
+describe('Server', async function () {
 
   let localDomain = 'localhost'
   let root = path.resolve(__dirname, '../tmp/test/config')
@@ -59,19 +59,43 @@ describe.only('Server', async function () {
     const res = await request.get(`https://${localDomain}:${server.port}`)
         .set('auth-code', authCode)
         .ca(await server.tls.getCa())
-    console.log(res.body.welcome_to, 'Secrez Courier v' + pkg.version)
+    assert.equal(res.body.welcome_to, 'Secrez Courier v' + pkg.version)
 
   })
 
-  it('should accept authorized requests', async function () {
+  it('should accept /admin requests with auth-code', async function () {
 
     let server = new Server(config)
     await server.start()
     const authCode = server.authCode
-    const res = await request.get(`https://${localDomain}:${server.port}`)
+    const res = await request.get(`https://${localDomain}:${server.port}/admin`)
         .set('auth-code', authCode)
+        .query({payload: '{}'})
         .ca(await server.tls.getCa())
-    console.log(res.body.welcome_to, 'Secrez Courier v' + pkg.version)
+    assert.isTrue(res.body.success)
+
+  })
+
+  it('should throw if calling /admin with missing or wrong auth-code', async function () {
+
+    let server = new Server(config)
+    await server.start()
+    try {
+      const res = await request.get(`https://${localDomain}:${server.port}/admin`)
+          .ca(await server.tls.getCa())
+      assert.isTrue(false)
+    } catch(e) {
+      assert.equal(e.message, 'Unauthorized')
+    }
+
+    try {
+      const res = await request.get(`https://${localDomain}:${server.port}/admin`)
+          .set('auth-code', 'somecode')
+          .ca(await server.tls.getCa())
+      assert.isTrue(false)
+    } catch(e) {
+      assert.equal(e.message, 'Unauthorized')
+    }
 
   })
 

@@ -6,6 +6,7 @@ const {sleep, Debug} = require('@secrez/utils')
 const {Crypto} = require('@secrez/core')
 const {TLS} = require('@secrez/tls')
 const Config = require('./Config')
+const PublicKeyManager = require('./PublicKeyManager')
 
 const debug = Debug('courier:server')
 const app = require('./app')
@@ -34,26 +35,24 @@ class Server {
     })
   }
 
-  async publish(options) {
+  async publish(payload, signature) {
 
+    let ssl = await this.getCertificates()
 
-    // const tunnel = await localtunnel({
-    //   port: argv.port,
-    //   host: argv.host,
-    //   subdomain: argv.subdomain,
-    //   local_host: argv.localHost,
-    //   local_https: argv.localHttps,
-    //   local_cert: argv.localCert,
-    //   local_key: argv.localKey,
-    //   local_ca: argv.localCa,
-    //   allow_invalid_cert: argv.allowInvalidCert,
-    // })
+    let opts = {
+      host: this.options.hub,
+      port: this.port,
+      payload,
+      signature,
+      local_host: this.localhost,
+      local_https: true,
+      local_cert: ssl.cert,
+      local_key: ssl.key,
+      local_ca: ssl.ca,
+      allow_invalid_cert: false
+    }
 
-    this.tunnel = await localtunnel(options)
-    //     {
-    //   port: this.options.port,
-    //   host: this.options.host
-    // })
+    this.tunnel = await localtunnel(opts)
     this.tunnel.on('close', () => {
       this.onTunnelClose()
     })
@@ -71,7 +70,20 @@ class Server {
     }
   }
 
+  async setUpCache() {
+    this.cache = new DataCache(path.join(this.options.root, 'cache'))
+    this.cache.initEncryption('publickey', 'message')
+    await this.cache.load('publickey')
+    PublicKeyManager.setCache(this.cache)
+    this.publicKeyManager = new PublicKeyManager()
+    await this.cache.load('message')
+    PublicKeyManager.setCache(this.cache)
+    this.publicKeyManager = new PublicKeyManager()
+  }
+
   async start(prefix) {
+
+    await this.setUpCache()
 
     const options = await this.getCertificates()
     const server = https.createServer(options, app(this.authCode))
@@ -82,7 +94,7 @@ class Server {
       })
     })
 
-    this.host = 'https://localhost:' + this.port
+    this.localhost = `https://${this.localHostname || 'localhost'}:${this.port}`
 
     server.on('error', error => {
       if (error.syscall !== 'listen') {

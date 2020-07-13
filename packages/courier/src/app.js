@@ -1,30 +1,35 @@
 const express = require('express')
 const expressWs = require('express-ws')
+const {Crypto, Secrez} = require('@secrez/core')
 const {Debug} = require('@secrez/utils')
 const {DataCache} = require('@secrez/fs')
 const debug = Debug('courier:app')
 const pkg = require('../package.json')
+const Utils = require('Utils')
+const {utils: hubUtils} = require('@secrez/hub')
+const {verifyPayload} = hubUtils
 
 module.exports = authCode => {
 
   const authMiddleware = (req, res, next) => {
     if (req.headers['auth-code'] !== authCode) {
-      res.status(403)
-      res.json({
-        code: 403,
-        message: 'Not authorized'
-      })
+      res.status(401)
+      res.end('Unauthorized')
+    } else {
+      next()
     }
-    next()
   }
 
   const app = express()
   expressWs(app)
 
   app.get('/admin', authMiddleware, function (req, res, next) {
-    if (req.query.authorizedPublicKey) {
+    let {payload, signature} = req.query
+    if (payload && signature && Utils.verifyPayload(payload, signature)) {
+      payload = JSON.parse(payload)
+      // do something
       res.json({
-        ok: true
+        success: true
       })
     } else {
       res.status(400)

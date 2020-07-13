@@ -9,7 +9,7 @@ const {Crypto, Secrez} = require('@secrez/core')
 
 const ClientManager = require('./lib/ClientManager')
 const debug = Debug('hub:server')
-const {getRandomId, isValidRandomId} = require('./utils')
+const {getRandomId, isValidRandomId, verifyPayload} = require('./utils')
 
 const allIds = {}
 
@@ -81,8 +81,7 @@ module.exports = function (opt) {
       error(ctx, 400, 'Wrong public key')
       return
     }
-    let signPublicKey = Secrez.getSignPublicKey(publicKey)
-    if (!Crypto.verifySignature(payload, signature, signPublicKey)) {
+    if (!verifyPayload(payload, signature)) {
       error(ctx, 400, 'Wrong signature')
       return
     }

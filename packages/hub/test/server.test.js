@@ -40,8 +40,7 @@ describe.only('Server', () => {
 
     // process.env.AS_DEV = true
 
-    const hostname = 'uzcmscmbx5y9j61k94r66akycscjbepzwyz9aam7dn4gqmwkyi60c3uc'
-        // 'websocket-test'
+    const hostname = 'uzcmscmbx5y9j61k94r66akycscjbepzwyz9aam7dn4gqmwkyi60c3uc9urw'
     const server = createServer({
       domain: 'example.com',
     })
@@ -113,7 +112,8 @@ describe.only('Server', () => {
     })
 
     let {id} = res.body
-    assert.equal(id.substring(0, 4), Crypto.b32Hash(secrez.getPublicKey()).substring(0, 4))
+
+    assert.equal(id.substring(0, 4), Crypto.b32Hash(Secrez.getSignPublicKey(secrez.getPublicKey())).substring(0, 4))
 
     res = await request(server).get(`/api/v1/tunnels/${id}/status`)
     assert.equal(res.statusCode, 200)
@@ -136,15 +136,13 @@ describe.only('Server', () => {
     const publicKey = secrez.getPublicKey()
     let publicKeyId = getRandomId(publicKey)
 
-        // Crypto.b58Hash(publicKey).substring(0, 4).toLowerCase() + Crypto.getRandomId()
-
     const payload = JSON.stringify({
       id: publicKeyId,
       publicKey,
       salt: Crypto.getRandomBase58String(16)
     })
     const signature = secrez.signMessage(payload)
-
+    // console.log({payload, signature})
     res = await request(server).get('/api/v1/tunnel/new').query({
       payload,
       signature

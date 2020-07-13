@@ -149,7 +149,6 @@ describe('tunnel', async function () {
     tunnel = await localtunnel({
       host,
       port: localPort,
-      // local_host,
       payload,
       signature,
       local_https: true,

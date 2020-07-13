@@ -1,12 +1,12 @@
-const {Crypto} = require('@secrez/core')
+const {Crypto, Secrez} = require('@secrez/core')
 
 module.exports = {
 
   getRandomId(publicKey, allIds = {}) {
     let id
-    let prefix = Crypto.b32Hash(publicKey)
+    let prefix = Crypto.b32Hash(Secrez.getSignPublicKey(publicKey))
     for (; ;) {
-      id = [prefix, Crypto.getRandomBase32String(4)].join('0')
+      id = [prefix, Crypto.getRandomBase32String(8)].join('0')
       if (allIds[id]) {
         continue
       }
@@ -16,7 +16,12 @@ module.exports = {
 
   isValidRandomId(id) {
     id = id.split('0')
-    return Crypto.isBase32String(id[0]) && Crypto.isBase32String(id[1]) && Crypto.fromBase32(id[0]).length === 32
+    return (
+        Crypto.isBase32String(id[0]) &&
+        id[1].length === 8 &&
+        Crypto.isBase32String(id[1]) &&
+        Crypto.fromBase32(id[0]).length === 32
+    )
   },
 
   shortId(id) {
@@ -25,5 +30,11 @@ module.exports = {
     }
     id = id.split('0')
     return id[0].substring(0, 4) + (id[1] ? '...' + id[1] : '')
+  },
+
+  verifyPayload(payload, signature) {
+    let {publicKey} = JSON.parse(payload)
+    let signPublicKey = Secrez.getSignPublicKey(publicKey)
+    return Crypto.verifySignature(payload, signature, signPublicKey)
   }
 }

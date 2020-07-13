@@ -9,10 +9,10 @@
     "test": "lerna run test --stream -- --colors",
     "test-only": "lerna run test-only --stream -- --colors",
     "lint": "lerna run lint",
-    "reset": "bin/clean-all-modules.sh && lerna bootstrap",
+    "reset": "bin/clean-all-modules.sh && pnpm install",
     "patch-versions": "node bin/patch-versions.js",
-    "pre-push": "npm run lint && bin/pre-push.sh",
-    "publish": "npm run test && node bin/publish-changed-packages.js",
+    "pre-push": "pnpm run lint && bin/pre-push.sh",
+    "publish": "pnpm run test && node bin/publish-changed-packages.js",
     "check-unused": "bin/check-unused.sh"
   },
   "license": "MIT",

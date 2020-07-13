@@ -9,6 +9,7 @@ importers:
       '@secrez/utils': 'link:../utils'
       base-x: 3.0.8
       bip39: 3.0.2
+      blake3: 2.1.4
       fs-extra: 8.1.0
       homedir: 0.6.0
       microtime: 3.0.0
@@ -28,6 +29,7 @@ importers:
       '@secrez/utils': 'workspace:^*'
       base-x: ^3.0.8
       bip39: ^3.0.2
+      blake3: ^2.1.4
       chai: ^4.2.0
       chalk: ^3.0.0
       cross-env: ^7.0.2
@@ -1108,6 +1110,11 @@ packages:
     dev: false
     resolution:
       integrity: sha512-J4E1r2N0tUylTKt07ibXvhpT2c5pyAFgvuA5q1H9uDy6dEGpjV8jmymh3MTYJDLCNbIVClSB9FbND49I6N24MQ==
+  /blake3/2.1.4:
+    dev: false
+    requiresBuild: true
+    resolution:
+      integrity: sha512-70hmx0lPd6zmtNwxPT4/1P0pqaEUlTJ0noUBvCXPLfMpN0o8PPaK3q7ZlpRIyhrqcXxeMAJSowNm/L9oi/x1XA==
   /bluebird/3.7.2:
     dev: false
     resolution:

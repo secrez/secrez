@@ -30,17 +30,13 @@ describe('#Courier', function () {
 
   })
 
-  describe('#init', async function () {
+  describe.skip('#init', async function () {
 
     it('should setup the environment', async function () {
 
       let courier = new Courier({root})
 
-      await courier.init()
-      assert.equal(await courier.server.fastify.server.address().address, '127.0.0.1')
-      assert.equal(await courier.server.fastify.server.address().port, 4433)
-      await courier.server.fastify.close()
-      assert.isNull(await courier.server.fastify.server.address())
+      // await courier.init()
 
     })
 
