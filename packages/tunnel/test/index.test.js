@@ -20,7 +20,7 @@ describe('tunnel', async function () {
   let destination = path.resolve(__dirname, '../tmp/test/certs')
   let localPort
   let expected = 'Hello'
-  let host = `http://${localDomain}:9494`
+  let host = `http://${localDomain}:4433`
 
   let localServer
   let localHttpsServer
@@ -32,10 +32,10 @@ describe('tunnel', async function () {
       secure: false,
       domain: localDomain,
       max_tcp_sockets: 4,
-      port: 9494
+      port: 4433
     })
     await new Promise(resolve => {
-      hubServer.listen(9494, () => {
+      hubServer.listen(4433, () => {
         resolve()
       })
     })
@@ -149,7 +149,6 @@ describe('tunnel', async function () {
     tunnel = await localtunnel({
       host,
       port: localPort,
-      // local_host,
       payload,
       signature,
       local_https: true,

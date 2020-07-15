@@ -9,6 +9,7 @@ let _derivedPassword
 // eslint-disable-next-line no-unused-vars
 let _boxPrivateKey
 let _signPrivateKey
+let _sharedKeys = {}
 
 class _Secrez {
 
@@ -142,6 +143,21 @@ class _Secrez {
     return data
   }
 
+  getSharedKey(publicKey) {
+    if (!_sharedKeys[publicKey]) {
+      let publicKeyArr = Crypto.fromBase58(publicKey.split('0')[0])
+      _sharedKeys[publicKey] = Crypto.getSharedSecret(publicKeyArr, _boxPrivateKey)
+    }
+    return _sharedKeys[publicKey]
+  }
+
+  encryptShared(data, publicKey) {
+    return Crypto.boxEncrypt(this.getSharedKey(publicKey), data)
+  }
+
+  decryptShared(encryptedData, publicKey) {
+    return Crypto.boxDecrypt(this.getSharedKey(publicKey), encryptedData)
+  }
   encodeSignature(secret) {
     const encoded = bs58.encode(Buffer.from(Crypto.SHA3(secret)))
     return encoded

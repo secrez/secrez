@@ -309,6 +309,16 @@ class Secrez {
     return _secrez.preDecrypt(encryptedData)
   }
 
+  encryptSharedData(data, publicKey) {
+    return _secrez.encryptShared(data, publicKey)
+  }
+
+  decryptSharedData(encryptedData, publicKey) {
+    return _secrez.decryptShared(encryptedData, publicKey)
+  }
+
+
+
   encryptEntry(entry) {
 
     if (!entry || entry.constructor.name !== 'Entry') {

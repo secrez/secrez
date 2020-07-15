@@ -127,7 +127,9 @@ class DataCache {
       if (changed) {
         await fs.writeFile(p, content)
       }
-      data.encryptedValue = value
+      if (this.encrypted[key]) {
+        data.encryptedValue = value
+      }
       return data
     }
     return data

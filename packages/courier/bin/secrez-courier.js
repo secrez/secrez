@@ -12,12 +12,13 @@ const optionDefinitions = [
     type: Boolean
   },
   {
-    name: 'port',
-    alias: 'p',
-    type: Number
+    name: 'hub',
+    alias: 'H',
+    type: String
   },
   {
-    name: 'host',
+    name: 'local',
+    alias: 'l',
     type: String
   },
   {
@@ -26,11 +27,8 @@ const optionDefinitions = [
     type: String
   },
   {
-    name: 'print-log',
-    type: Boolean
-  },
-  {
-    name: 'log-to-file',
+    name: 'do-not-log',
+    alias: 'd',
     type: Boolean
   }
 ]
@@ -67,20 +65,17 @@ if (options.help) {
 
 Options:
   -h, --help            This help.
-  -p, --port            The port where to listen (default is 4433)
-  -h, --host            The host. By default it is https://secrez.cc
-  -r, --root            Root folder (by default ~/.secrez-listener)
-  --print-log           Show the log on screen
-  --log-to-file         The absolute path of the folder where to log 
+  -H, --hub             The remote host (by default https://secrez.cc)
+  -l, --local           The local hostname (by default localhost)
+  -r, --root            Root folder (by default ~/.secrez-courier)
+  -d, --do-not-log      Does not log on screen
                           
 By default, if not otherwise specified, it does not produce any log
                       
 Examples:
-  $ secrez-listener                         Listen on default port 4433+ 
-  $ secrez-listener --port 8800             Listen on default port 8800
-  $ secrez-listener --port 8800             Listen on default port 8800
-  $ secrez-listener -r \`pwd\`/data           Listen to 9393 and uses ./data as root
-  $ secrez-listener -p 8000 --print-log     Listen to 8000 and log in the terminal 
+  $ secrez-listener
+  $ secrez-listener -r \`pwd\`/data     Uses ./data as root
+  $ secrez-listener -d                Does not log in the terminal 
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)
@@ -89,7 +84,8 @@ Examples:
 (async () => {
   const courier = new Courier(options)
   await courier.start()
-  console.info(`Listening to: ${courier.server.host}`)
-  console.info(`Auth code: ${courier.server.authCode}`)
+  console.info('Listening...')
+  console.info('Auth code: ', chalk.bold(`${courier.server.authCode}-${courier.server.port}`))
+  console.info(chalk.grey('You can copy the auth code and paste it in Secrez to connect the chat with the courier.'))
 })()
 

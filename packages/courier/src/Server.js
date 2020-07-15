@@ -2,13 +2,14 @@ const fs = require('fs-extra')
 const path = require('path')
 const https = require('https')
 const localtunnel = require('@secrez/tunnel')
-const {sleep, Debug} = require('@secrez/utils')
-const {Crypto} = require('@secrez/core')
+const {sleep, Debug, intToBase58} = require('@secrez/utils')
+const {Crypto, Secrez} = require('@secrez/core')
+const {DataCache} = require('@secrez/fs')
 const {TLS} = require('@secrez/tls')
 const Config = require('./Config')
 
 const debug = Debug('courier:server')
-const app = require('./app')
+const App = require('./App')
 
 class Server {
 
@@ -28,36 +29,33 @@ class Server {
     this.options = config.options
     this.messages = []
     this.latest = -1
-    this.authCode = Crypto.getRandomBase58String(8)
+    process.env.AUTH_CODE = this.authCode = Crypto.getRandomBase58String(8)
     this.tls = new TLS({
       destination: this.options.certsPath
     })
   }
+  async publish(payload, signature) {
 
-  async publish(options) {
+    let ssl = await this.getCertificates()
 
-
-    // const tunnel = await localtunnel({
-    //   port: argv.port,
-    //   host: argv.host,
-    //   subdomain: argv.subdomain,
-    //   local_host: argv.localHost,
-    //   local_https: argv.localHttps,
-    //   local_cert: argv.localCert,
-    //   local_key: argv.localKey,
-    //   local_ca: argv.localCa,
-    //   allow_invalid_cert: argv.allowInvalidCert,
-    // })
-
-    this.tunnel = await localtunnel(options)
-    //     {
-    //   port: this.options.port,
-    //   host: this.options.host
-    // })
+    let opts = {
+      host: this.options.hub,
+      port: this.port,
+      payload,
+      signature,
+      local_host: this.localhost,
+      local_https: true,
+      local_cert: ssl.cert,
+      local_key: ssl.key,
+      local_ca: ssl.ca,
+      allow_invalid_cert: false
+    }
+    this.tunnel = await localtunnel(opts)
     this.tunnel.on('close', () => {
       this.onTunnelClose()
     })
 
+    return this.tunnel.url
   }
 
   async getCertificates() {
@@ -71,20 +69,34 @@ class Server {
     }
   }
 
+  async initCache() {
+    this.cache = new DataCache(path.join(this.options.root, 'cache'))
+    await this.cache.load('conf')
+    await this.cache.load('publickey')
+    await this.cache.load('message')
+  }
+
   async start(prefix) {
 
+    await this.initCache()
+
     const options = await this.getCertificates()
-    const server = https.createServer(options, app(this.authCode))
+    const app = new App(this)
+
+    this.httpsServer = https.createServer(options, app.app)
     this.port = await new Promise(resolve => {
-      server.listen(() => {
-        const {port} = server.address()
+      this.httpsServer.listen(() => {
+        const {port} = this.httpsServer.address()
         resolve(port)
       })
     })
 
-    this.host = 'https://localhost:' + this.port
+    // await app.configureWs()
 
-    server.on('error', error => {
+    this.localhost = `https://${this.options.local || 'localhost'}:${this.port}`
+    // this.wsLocalhost = `ws://${this.options.local || 'localhost'}:${this.port}`
+
+    this.httpsServer.on('error', error => {
       if (error.syscall !== 'listen') {
         throw error
       }
@@ -105,14 +117,18 @@ class Server {
       }
     })
 
-    server.on('listening', () => {
-      const addr = server.address()
+    this.httpsServer.on('listening', () => {
+      const addr = this.httpsServer.address()
       const bind = typeof addr === 'string'
           ? 'pipe ' + addr
           : 'port ' + addr.port
       debug('Listening on ' + bind)
     })
 
+  }
+
+  async close() {
+    await new Promise(resolve => this.httpsServer.close(resolve))
   }
 
 }
