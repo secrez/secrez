@@ -71,7 +71,7 @@ if (options.help) {
 
 Options:
   -h, --help              This help.
-  -p, --port              Listen on this port for outside requests; default: 9494.
+  -p, --port              Listen on this port for outside requests; default: 4433.
   -s, --secure            Use this flag to indicate proxy over https.
   -l, --landing           The url of the landing page, if any.               
   -a, --address           IP address to bind to.

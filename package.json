@@ -6,8 +6,8 @@
     ]
   },
   "scripts": {
-    "test": "lerna run test --stream -- --colors",
-    "test-only": "lerna run test-only --stream -- --colors",
+    "test": "pnpm run test -r",
+    "test-only": "pnpm run test-only -r",
     "lint": "lerna run lint",
     "reset": "bin/clean-all-modules.sh && pnpm install",
     "patch-versions": "node bin/patch-versions.js",

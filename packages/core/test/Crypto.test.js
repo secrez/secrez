@@ -157,12 +157,14 @@ describe('#Crypto', function () {
 
     it('should generate a sha3 in b58 format', async function () {
       assert.equal(Crypto.b58Hash(password), b58Hash)
+      assert.equal(Crypto.b58Hash(password, 10), b58Hash.substring(0,10))
       assert.isTrue(Crypto.isValidB58Hash(b58Hash))
     })
 
     it('should generate a sha3 in b32 format', async function () {
       this.timeout(20000)
       assert.equal(Crypto.b32Hash(password), b32Hash)
+      assert.equal(Crypto.b32Hash(password, 10), b32Hash.substring(0,10))
       assert.isTrue(Crypto.isValidB32Hash(b32Hash))
     })
 

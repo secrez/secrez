@@ -2,14 +2,14 @@ const fs = require('fs-extra')
 const path = require('path')
 const https = require('https')
 const localtunnel = require('@secrez/tunnel')
-const {sleep, Debug} = require('@secrez/utils')
-const {Crypto} = require('@secrez/core')
+const {sleep, Debug, intToBase58} = require('@secrez/utils')
+const {Crypto, Secrez} = require('@secrez/core')
+const {DataCache} = require('@secrez/fs')
 const {TLS} = require('@secrez/tls')
 const Config = require('./Config')
-const PublicKeyManager = require('./PublicKeyManager')
 
 const debug = Debug('courier:server')
-const app = require('./app')
+const App = require('./App')
 
 class Server {
 
@@ -29,12 +29,11 @@ class Server {
     this.options = config.options
     this.messages = []
     this.latest = -1
-    this.authCode = Crypto.getRandomBase58String(8)
+    process.env.AUTH_CODE = this.authCode = Crypto.getRandomBase58String(8)
     this.tls = new TLS({
       destination: this.options.certsPath
     })
   }
-
   async publish(payload, signature) {
 
     let ssl = await this.getCertificates()
@@ -51,12 +50,12 @@ class Server {
       local_ca: ssl.ca,
       allow_invalid_cert: false
     }
-
     this.tunnel = await localtunnel(opts)
     this.tunnel.on('close', () => {
       this.onTunnelClose()
     })
 
+    return this.tunnel.url
   }
 
   async getCertificates() {
@@ -70,33 +69,34 @@ class Server {
     }
   }
 
-  async setUpCache() {
+  async initCache() {
     this.cache = new DataCache(path.join(this.options.root, 'cache'))
-    this.cache.initEncryption('publickey', 'message')
+    await this.cache.load('conf')
     await this.cache.load('publickey')
-    PublicKeyManager.setCache(this.cache)
-    this.publicKeyManager = new PublicKeyManager()
     await this.cache.load('message')
-    PublicKeyManager.setCache(this.cache)
-    this.publicKeyManager = new PublicKeyManager()
   }
 
   async start(prefix) {
 
-    await this.setUpCache()
+    await this.initCache()
 
     const options = await this.getCertificates()
-    const server = https.createServer(options, app(this.authCode))
+    const app = new App(this)
+
+    this.httpsServer = https.createServer(options, app.app)
     this.port = await new Promise(resolve => {
-      server.listen(() => {
-        const {port} = server.address()
+      this.httpsServer.listen(() => {
+        const {port} = this.httpsServer.address()
         resolve(port)
       })
     })
 
-    this.localhost = `https://${this.localHostname || 'localhost'}:${this.port}`
+    // await app.configureWs()
 
-    server.on('error', error => {
+    this.localhost = `https://${this.options.local || 'localhost'}:${this.port}`
+    // this.wsLocalhost = `ws://${this.options.local || 'localhost'}:${this.port}`
+
+    this.httpsServer.on('error', error => {
       if (error.syscall !== 'listen') {
         throw error
       }
@@ -117,14 +117,18 @@ class Server {
       }
     })
 
-    server.on('listening', () => {
-      const addr = server.address()
+    this.httpsServer.on('listening', () => {
+      const addr = this.httpsServer.address()
       const bind = typeof addr === 'string'
           ? 'pipe ' + addr
           : 'port ' + addr.port
       debug('Listening on ' + bind)
     })
 
+  }
+
+  async close() {
+    await new Promise(resolve => this.httpsServer.close(resolve))
   }
 
 }

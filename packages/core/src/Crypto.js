@@ -126,19 +126,18 @@ class Crypto {
     return [(new Date(timestamp)).toISOString(), parseInt(microseconds.substring(3))]
   }
 
-  static b58Hash(data) {
+  static b58Hash(data, size) {
     if (!Buffer.isBuffer(data)) {
       data = Buffer.from(data)
     }
-    return Crypto.bs58.encode(Crypto.SHA3(data))
+    return Crypto.bs58.encode(Crypto.SHA3(data)).substring(0, size)
   }
 
-  static b32Hash(data) {
-    // this is a lower case base58
+  static b32Hash(data, size) {
     if (!Buffer.isBuffer(data)) {
       data = Buffer.from(data)
     }
-    return Crypto.bs32.encode(Crypto.SHA3(data))
+    return Crypto.bs32.encode(Crypto.SHA3(data)).substring(0, size)
   }
 
   static isValidB58Hash(hash) {
