@@ -93,7 +93,7 @@ importers:
       fs-extra: ^8.1.0
       homedir: ^0.6.0
       knex: ^0.21.2
-      lodash: ^4.17.15
+      lodash: ^4.17.19
       mocha: ^7.1.1
       nyc: ^15.1.0
       sqlite3: ^5.0.0
@@ -125,7 +125,7 @@ importers:
       eslint: ^6.8.0
       eslint-plugin-node: ^11.0.0
       fs-extra: ^8.1.0
-      lodash: ^4.17.15
+      lodash: ^4.17.19
       mocha: ^7.1.1
       nyc: ^15.1.0
   packages/hub:
@@ -140,6 +140,7 @@ importers:
       homedir: 0.6.0
       koa: 2.13.0
       koa-router: 9.1.0
+      lodash: 4.17.19
       optimist: 0.6.1
       pump: 3.0.0
       tldjs: 2.3.1
@@ -168,6 +169,7 @@ importers:
       homedir: ^0.6.0
       koa: 2.13.0
       koa-router: 9.1.0
+      lodash: 4.17.19
       mocha: 8.0.1
       node-dev: 4.1.0
       nyc: ^15.1.0
@@ -226,7 +228,7 @@ importers:
       inquirer: ^7.1.0
       inquirer-command-prompt: ^0.0.28
       jimp: ^0.13.0
-      lodash: ^4.17.15
+      lodash: ^4.17.19
       mocha: ^7.1.1
       nyc: ^15.1.0
       otplib: ^12.0.1
@@ -315,7 +317,7 @@ importers:
       eslint-plugin-node: ^11.0.0
       fs-extra: ^8.1.0
       isbinaryfile: ^4.0.5
-      lodash: ^4.17.15
+      lodash: ^4.17.19
       mocha: ^7.1.2
       nyc: ^15.1.0
       play-sound: ^1.1.3
