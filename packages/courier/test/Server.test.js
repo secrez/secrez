@@ -15,7 +15,7 @@ const Server = require('../src/Server')
 const pkg = require('../package.json')
 const WebSocket = require('ws')
 
-const {publicKey1, publicKey2} = require('./fixtures')
+const {publicKey1, publicKey2, sendMessage} = require('./fixtures')
 
 describe.only('Server', async function () {
 
@@ -88,13 +88,15 @@ describe.only('Server', async function () {
     })
     const signature = secrez1.signMessage(payload)
 
-    const res = await superagent.get(`${server.localhost}/admin`)
-        .set('Accept', 'application/json')
-        .set('auth-code', authCode)
-        .query({payload, signature})
-        .ca(await server.tls.getCa())
-    assert.isFalse(res.body.success)
-    assert.equal(res.body.message, 'Wrong action')
+    try {
+      await superagent.get(`${server.localhost}/admin`)
+          .set('Accept', 'application/json')
+          .set('auth-code', authCode)
+          .query({payload, signature})
+          .ca(await server.tls.getCa())
+    } catch(e) {
+      assert.equal(e.message, 'Bad Request')
+    }
 
   })
 
@@ -147,7 +149,7 @@ describe.only('Server', async function () {
     assert.isTrue(res.body.success)
   })
 
-  it('should receive a message from a public key in the trusted circle', async function () {
+  it.only('should receive a message from a public key in the trusted circle', async function () {
 
     const authCode = server.authCode
     const publicKey1 = secrez1.getPublicKey()
@@ -172,36 +174,15 @@ describe.only('Server', async function () {
         .ca(await server.tls.getCa())
 
     let message = 'Hello, my friend.'
-    let encryptedMessage = secrez2.encryptSharedData(message, publicKey1)
 
-    payload = JSON.stringify({
-      message: {
-        sentAt: Date.now(),
-        content: encryptedMessage
-      },
-      publicKey: secrez2.getPublicKey(),
-      salt: Crypto.getRandomBase58String(16)
-    })
-    signature = secrez2.signMessage(payload)
-
-    const params = {
-      payload,
-      signature
-    }
-
-    let res = await superagent.post(`${server.localhost}/`)
-        .set('Accept', 'application/json')
-        .query({cc: 44})
-        .send(params)
-        .ca(await server.tls.getCa())
-
+    let res = await sendMessage(message, publicKey1, secrez2, server)
     assert.isTrue(res.body.success)
-    let ts = parseInt(res.body.value.substring(20))
-    assert.isTrue(Date.now() - ts < 200)
+
+    await sendMessage('Ciao bello', publicKey1, secrez2, server)
+    await sendMessage('How is it going?', publicKey1, secrez2, server)
 
     payload = JSON.stringify({
-      since: 0,
-      from: [publicKey2],
+      from: publicKey2,
       publicKey: publicKey1,
       salt: Crypto.getRandomBase58String(16)
     })
@@ -212,13 +193,13 @@ describe.only('Server', async function () {
         .set('auth-code', authCode)
         .query({payload, signature})
         .ca(await server.tls.getCa())
-    encryptedMessage = JSON.parse(res.body.result[0].content).message.content
+
+    encryptedMessage = res.body.result[0].message.content
 
     assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
 
     payload = JSON.stringify({
-      since: 0,
-      from: [publicKey2],
+      from: publicKey2,
       publicKey: publicKey1,
       salt: Crypto.getRandomBase58String(16)
     })
@@ -229,13 +210,13 @@ describe.only('Server', async function () {
         .set('auth-code', authCode)
         .query({payload, signature})
         .ca(await server.tls.getCa())
-    encryptedMessage = JSON.parse(res.body.result[0].content).message.content
+    encryptedMessage = res.body.result[0].message.content
 
+    assert.equal(res.body.result.length, 3)
     assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
 
     payload = JSON.stringify({
-      since: Date.now() - 1000,
-      from: 0,
+      minTimestamp: parseInt((Date.now() - 1000)/1000),
       publicKey: publicKey1,
       salt: Crypto.getRandomBase58String(16)
     })
@@ -246,8 +227,30 @@ describe.only('Server', async function () {
         .set('auth-code', authCode)
         .query({payload, signature})
         .ca(await server.tls.getCa())
-    encryptedMessage = JSON.parse(res.body.result[0].content).message.content
+    encryptedMessage = res.body.result[0].message.content
 
+    assert.equal(res.body.result.length, 3)
+    assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
+
+    await sleep(1000)
+
+    await sendMessage('And what?', publicKey1, secrez2, server)
+
+    payload = JSON.stringify({
+      maxTimestamp: parseInt(Date.now()/1000) - 1,
+      publicKey: publicKey1,
+      salt: Crypto.getRandomBase58String(16)
+    })
+    signature = secrez1.signMessage(payload)
+
+    res = await superagent.get(`${server.localhost}/`)
+        .set('Accept', 'application/json')
+        .set('auth-code', authCode)
+        .query({payload, signature})
+        .ca(await server.tls.getCa())
+    encryptedMessage = res.body.result[0].message.content
+
+    assert.equal(res.body.result.length, 3)
     assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
 
   })

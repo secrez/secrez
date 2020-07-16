@@ -23,9 +23,11 @@ function verifyPayloadAndSignature(req, prop) {
 class App {
 
   constructor(server) {
+
     this.server = server
     const app = express()
     authCode = server.authCode
+    this.db = this.server.db
 
     app.use(bodyParser.json({limit: '100mb'}))
 
@@ -33,8 +35,13 @@ class App {
         this.authMiddleware,
         this.wellSignedGet,
         async (req, res) => {
-          let {action} = req.parsedPayload
-          if (action && action.name) {
+          let {action, publicKey} = req.parsedPayload
+          if (!this.owner) {
+            await this.setOwner(publicKey)
+          }
+          if (this.owner !== publicKey) {
+            return res.status(403).end()
+          } else if (action && action.name) {
             switch (action.name) {
 
               case 'publish':
@@ -56,9 +63,7 @@ class App {
                     wrongKeys.push(pk)
                     continue
                   }
-                  await this.server.cache.puts('publickey', {
-                    value: pk
-                  })
+                  await this.db.trustPublicKey(publicKey)
                 }
                 res.json({
                   success: true,
@@ -66,82 +71,76 @@ class App {
                 })
             }
           } else {
-            res.json({
-              success: false,
-              message: 'Wrong action'
-            })
+            res.status(400).end()
           }
-        }
-    )
+        })
 
     app.get('/',
         this.authMiddleware,
         this.wellSignedGet,
         async (req, res, next) => {
-          let {since, from} = req.parsedPayload
-          let allMessages = this.server.cache.get('message')
-          let keys = Object.keys(allMessages).filter(key => {
-            if (from !== 0) {
-              let ok = false
-              for (let pk of from) {
-                if (this.messageKeyFrom(key, pk)) {
-                  ok = true
-                  break
-                }
-              }
-              if (!ok) {
-                return false
-              }
-            }
-            if (since !== 0 && !this.messageKeySince(key, since)) {
-              return false
-            }
-            return true
-          })
-          keys.sort((a, b) => {
-            let A = base58ToInt(a.subtring(20))
-            let B = base58ToInt(b.subtring(20))
-            return A > B ? 1 : A < B ? -1 : 0
-          })
+          let {minTimestamp, maxTimestamp, from, publicKey} = req.parsedPayload
+          if (this.owner !== publicKey) {
+            res.status(403).end()
+          } else {
 
-          let result = []
-          for (let key of keys) {
-            result.push(allMessages[key])
+            let result = await this.db.getMessages(minTimestamp, maxTimestamp, from)
+            //
+            // // let query =
+            //
+            //
+            // // let allMessages = this.server.cache.get('message')
+            //
+            //
+            // let keys = Object.keys(allMessages).filter(key => {
+            //   if (from !== 0) {
+            //     let ok = false
+            //     for (let pk of from) {
+            //       if (this.messageKeyFrom(key, pk)) {
+            //         ok = true
+            //         break
+            //       }
+            //     }
+            //     if (!ok) {
+            //       return false
+            //     }
+            //   }
+            //   if (since !== 0 && !this.messageKeySince(key, since)) {
+            //     return false
+            //   }
+            //   return true
+            // })
+            // keys.sort((a, b) => {
+            //   let A = base58ToInt(a.substring(20))
+            //   let B = base58ToInt(b.substring(20))
+            //   return A > B ? 1 : A < B ? -1 : 0
+            // })
+            //
+            // let result = []
+            // let latestByKey = {}
+            // for (let key of keys) {
+            //   result.push(allMessages[key])
+            // }
+            res.json({
+              success: true,
+              result
+            })
           }
-          res.json({
-            success: true,
-            result
-          })
-        }
-    )
+        })
 
     app.post('/',
         this.wellSignedPost,
         async (req, res, next) => {
           const {message, publicKey} = req.parsedPayload
-          if (this.server.cache.get('publickey', publicKey)) {
-            const now = Date.now()
-            const content = JSON.stringify({
-              receivedAt: now,
-              message,
-              publicKey
-            })
-            let value = this.messageKey(publicKey, content, now)
-            await this.server.cache.puts('message', {
-              value,
-              content
-            })
+          if (this.db.isTrustedPublicKey(publicKey)) {
+            let result = await this.db.saveMessage(message, publicKey)
             res.json({
-              success: true,
-              value
+              success: true
             })
           } else {
-            res.status(400).json({
-              error: 'Untrusted public key'
-            })
+            res.status(400).end()
           }
-        }
-    )
+        })
 
     app.use((req, res, next) => {
       const err = new Error('Not Found')
@@ -168,6 +167,18 @@ class App {
     })
 
     this.app = app
+  }
+
+  async setOwner(publicKey) {
+    let owner = await this.db.getValueFromConfig('owner')
+    if (owner[0] && owner[0].value) {
+      if (owner[0].value !== publicKey) {
+        throw new Error('This courier has been set up by another user')
+      }
+    } else {
+      await this.db.saveKeyValueToConfig('owner', publicKey)
+    }
+    this.owner = publicKey
   }
 
   messageKey(publicKey, content, now) {

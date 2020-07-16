@@ -8,6 +8,7 @@ const parse = require('csv-parse/lib/sync')
 const Case = require('case')
 const util = require('util')
 const Base58 = require('base58')
+const player = require('play-sound')()
 
 const utils = {
 
@@ -231,6 +232,17 @@ const utils = {
         console.debug(prefix, '>>', util.format(...content))
       }
     }
+  },
+
+  async playMp3(mp3AbsolutePath) {
+    return new Promise((resolve, reject) => {
+      player.play(mp3AbsolutePath, function(err){
+        if (err) {
+          reject(err)
+        }
+        resolve()
+      })
+    })
   }
 
 }

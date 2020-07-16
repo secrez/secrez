@@ -7,19 +7,20 @@ const {Crypto, Secrez} = require('@secrez/core')
 const {DataCache} = require('@secrez/fs')
 const {TLS} = require('@secrez/tls')
 const Config = require('./Config')
+const Db = require('./Db')
 
 const debug = Debug('courier:server')
 const App = require('./App')
 
 class Server {
 
-  async onTunnelClose() {
-    try {
-      console.info('Tunnel closed')
-    } catch (e) {
-    }
-  }
-
+  // async onTunnelClose() {
+  //   try {
+  //     console.info('Tunnel closed')
+  //   } catch (e) {
+  //   }
+  // }
+  //
   constructor(config) {
     if (config instanceof Config) {
       this.config = config
@@ -33,6 +34,7 @@ class Server {
     this.tls = new TLS({
       destination: this.options.certsPath
     })
+    this.db = new Db(this.options.dbPath)
   }
   async publish(payload, signature) {
 
@@ -71,14 +73,15 @@ class Server {
 
   async initCache() {
     this.cache = new DataCache(path.join(this.options.root, 'cache'))
-    await this.cache.load('conf')
+    await this.cache.load('latest')
     await this.cache.load('publickey')
     await this.cache.load('message')
+    await this.cache.load('archive')
   }
 
   async start(prefix) {
 
-    await this.initCache()
+    await this.db.init()
 
     const options = await this.getCertificates()
     const app = new App(this)
@@ -91,10 +94,7 @@ class Server {
       })
     })
 
-    // await app.configureWs()
-
     this.localhost = `https://${this.options.local || 'localhost'}:${this.port}`
-    // this.wsLocalhost = `ws://${this.options.local || 'localhost'}:${this.port}`
 
     this.httpsServer.on('error', error => {
       if (error.syscall !== 'listen') {
@@ -125,6 +125,27 @@ class Server {
       debug('Listening on ' + bind)
     })
 
+    process.on('SIGINT', () => {
+      debug('SIGINT signal received.')
+
+      server.close(async function (err) {
+        if(err) {
+          debug('ERROR', err)
+          // eslint-disable-next-line no-process-exit
+          process.exit(1)
+        }
+        await sleep(100)
+        // eslint-disable-next-line no-process-exit
+        process.exit(0)
+      })
+    })
+
+    process.on("exit", () => {
+      debug('Closing connections...')
+      // this.db.db.close()
+      this.httpsServer.close()
+      debug('Closed.')
+    })
   }
 
   async close() {
