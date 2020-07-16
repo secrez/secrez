@@ -1,14 +1,14 @@
 const fs = require('fs-extra')
 const path = require('path')
 const Node = require('./Node')
-const {config, Entry, Crypto, ConfigUtils, Secrez} = require('@secrez/core')
+const {config, Entry, Crypto, ConfigUtils} = require('@secrez/core')
 
 class Tree {
 
   constructor(secrez, datasetIndex = 0) {
 
     this.alerts = []
-    if (secrez instanceof Secrez) {
+    if (secrez && secrez.constructor.name === 'Secrez') {
       let dataPath = secrez.config.dataPath
       if (datasetIndex) {
         dataPath = ConfigUtils.setAndGetDataset(config, datasetIndex)

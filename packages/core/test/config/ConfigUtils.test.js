@@ -5,7 +5,6 @@ const ConfigUtils = require('../../src/config/ConfigUtils')
 const Secrez = require('../../src/Secrez')
 const fs = require('fs-extra')
 const path = require('path')
-const {execAsync} = require('@secrez/utils')
 
 const {
   password,
@@ -15,7 +14,7 @@ const {
 
 describe('#ConfigUtils', function () {
 
-  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
 
   before(async function () {
     await fs.emptyDir(rootDir)
@@ -77,10 +76,6 @@ describe('#ConfigUtils', function () {
 
     let env = await ConfigUtils.getEnv()
     assert.equal(env.iterations, iterations)
-
-    await execAsync('rm', rootDir, ['env.json'])
-    env = await ConfigUtils.getEnv()
-    assert.equal(Object.keys(env).length, 0)
 
   })
 

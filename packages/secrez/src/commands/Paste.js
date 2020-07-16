@@ -1,5 +1,5 @@
 const clipboardy = require('clipboardy')
-const {isYaml, yamlParse, yamlStringify} = require('@secrez/utils')
+const {isYaml, yamlParse, yamlStringify} = require('../utils')
 
 const {Node} = require('@secrez/fs')
 

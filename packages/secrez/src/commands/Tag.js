@@ -2,7 +2,7 @@ const _ = require('lodash')
 const {chalk} = require('../utils/Logger')
 const Case = require('case')
 const {Node} = require('@secrez/fs')
-const utils = require('@secrez/utils')
+const utils = require('../utils')
 
 class Tag extends require('../Command') {
 
