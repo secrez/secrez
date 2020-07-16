@@ -7,12 +7,7 @@ function get_coverage() {
 }
 
 get_coverage core @secrez/core
-get_coverage courier @secrez/courier
 get_coverage fs @secrez/fs
-get_coverage hub @secrez/hub
 get_coverage secrez secrez
-get_coverage tls @secrez/tls
-get_coverage tunnel @secrez/tunnel
-get_coverage utils @secrez/utils
 
 cp packages/secrez/README.md .

@@ -1,15 +1,11 @@
-const Crypto = require('./Crypto')
-const utils = require('@secrez/utils')
-const bs58 = Crypto.bs58
+const Crypto = require('./utils/Crypto')
+const utils = require('./utils')
+const bs58 = require('bs58')
 
 let _masterKey
 let _password
 let _iterations
 let _derivedPassword
-// eslint-disable-next-line no-unused-vars
-let _boxPrivateKey
-let _signPrivateKey
-let _sharedKeys = {}
 
 class _Secrez {
 
@@ -31,15 +27,6 @@ class _Secrez {
       key,
       hash
     }
-  }
-
-  initPrivateKeys(box, sign) {
-    _boxPrivateKey = box
-    _signPrivateKey = sign
-  }
-
-  signMessage(message) {
-    return Crypto.getSignature(message, _signPrivateKey)
   }
 
   isItRight(password) {
@@ -82,8 +69,8 @@ class _Secrez {
   async signin(data) {
     try {
       _masterKey = await this.preDecrypt(data.key, true)
-      _boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
-      _signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
+      this.boxKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
+      this.signKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
     } catch (e) {
       throw new Error('Wrong password or wrong number of iterations')
     }
@@ -103,8 +90,8 @@ class _Secrez {
         throw new Error('Hash on file does not match the master key')
       }
       _masterKey = masterKey
-      _boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
-      _signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
+      this.boxKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
+      this.signKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
       return data.hash
     } catch (e) {
       throw new Error('Wrong data/secret')
@@ -143,21 +130,6 @@ class _Secrez {
     return data
   }
 
-  getSharedKey(publicKey) {
-    if (!_sharedKeys[publicKey]) {
-      let publicKeyArr = Crypto.fromBase58(publicKey.split('0')[0])
-      _sharedKeys[publicKey] = Crypto.getSharedSecret(publicKeyArr, _boxPrivateKey)
-    }
-    return _sharedKeys[publicKey]
-  }
-
-  encryptShared(data, publicKey) {
-    return Crypto.boxEncrypt(this.getSharedKey(publicKey), data)
-  }
-
-  decryptShared(encryptedData, publicKey) {
-    return Crypto.boxDecrypt(this.getSharedKey(publicKey), encryptedData)
-  }
   encodeSignature(secret) {
     const encoded = bs58.encode(Buffer.from(Crypto.SHA3(secret)))
     return encoded
@@ -179,7 +151,7 @@ class _Secrez {
   }
 
   signData(data) {
-    const signature = this.signMessage(JSON.stringify(this.sortObj(data)))
+    const signature = Crypto.getSignature(JSON.stringify(this.sortObj(data)), this.signKey)
     const conf = {
       data,
       signature

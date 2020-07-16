@@ -13,7 +13,7 @@ const secrezPackage = require(secrezPath)
 let packages = {}
 execSync(`git diff master --name-only`).toString().split('\n').map(e => {
   let m = e.split('/')
-  if (m[0] === 'packages' && m[2] === 'src') {
+  if (m[0] === 'packages' && m[2] !== 'README.md') {
     packages[m[1]] = true
   }
   return e

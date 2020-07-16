@@ -1,4 +1,4 @@
-const utils = require('@secrez/utils')
+const {Utils} = require('@secrez/core')
 const fs = require('fs-extra')
 
 class Lcat extends require('../Command') {
@@ -44,7 +44,7 @@ class Lcat extends require('../Command') {
   async lcat(options) {
     let efs = this.externalFs
     let p = efs.getNormalizedPath(options.path)
-    if (!options.force && await utils.isBinary(p)) {
+    if (!options.force && await Utils.isBinary(p)) {
       throw new Error('The file looks as a binary file')
     } else {
       return await fs.readFile(p, 'utf8')

@@ -1,9 +1,9 @@
 const fs = require('fs-extra')
 const path = require('path')
-const utils = require('@secrez/utils')
-const {config, Entry} = require('@secrez/core')
+
+const {Utils, config, Entry} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
-const {fromCsvToJson, yamlStringify, isYaml} = require('@secrez/utils')
+const {fromCsvToJson, yamlStringify, isYaml} = require('../utils')
 
 class Import extends require('../Command') {
 
@@ -132,7 +132,7 @@ class Import extends require('../Command') {
         if (/\/$/.test(fn)) {
           continue
         }
-        let isBinary = await utils.isBinary(fn)
+        let isBinary = await Utils.isBinary(fn)
 
         if (isBinary && !options.binaryToo) {
           continue
