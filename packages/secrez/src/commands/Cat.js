@@ -3,7 +3,7 @@ const {chalk} = require('../utils/Logger')
 const path = require('path')
 const {Crypto, config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
-const {isYaml, yamlParse} = require('@secrez/utils')
+const {isYaml, yamlParse} = require('../utils')
 
 class Cat extends require('../Command') {
 

@@ -87,9 +87,9 @@ describe('#Find', function () {
     inspect.restore()
     assertConsole(inspect, [
       '3 results found:',
-      '1  /folder1/File2',
-      '2  /folder2/file3',
-      '3  /folder3/folder4/FOLDER5/File3'
+      '/folder1/File2',
+      '/folder2/file3',
+      '/folder3/folder4/FOLDER5/File3'
     ])
 
     inspect = stdout.inspect()
@@ -99,12 +99,12 @@ describe('#Find', function () {
     inspect.restore()
     assertConsole(inspect, [
       '6 results found:',
-      '1  /folder1/',
-      '2  /folder2/',
-      '3  /folder3/',
-      '4  /folder3/folder4/',
-      '5  /folder3/folder4/FOLDER5/',
-      '6  /folder4/'
+      '/folder1',
+      '/folder2',
+      '/folder3',
+      '/folder3/folder4',
+      '/folder3/folder4/FOLDER5',
+      '/folder4'
     ])
 
     inspect = stdout.inspect()
@@ -113,9 +113,9 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['3 results found:',
-      '1  /folder2/file3',
-      '2  /folder3/',
-      '3  /folder3/folder4/FOLDER5/File3'
+      '/folder2/file3',
+      '/folder3',
+      '/folder3/folder4/FOLDER5/File3'
     ])
 
     let nodes = await C.find.find({
@@ -131,11 +131,10 @@ describe('#Find', function () {
       all: true
     })
     inspect.restore()
-    let output = inspect.output.map(e => decolorize(e))[1].split(/ +/)
-    assert.equal(output[0], 1)
-    assert.equal(output[1].length, 4)
-    assert.equal(output[2], '/folder1/File2')
-    assert.equal(output[3], 'file1')
+    assertConsole(inspect, [
+      '1 result found:',
+      'file1'
+    ], true)
 
     inspect = stdout.inspect()
     await C.find.exec({
@@ -144,7 +143,7 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['1 result found:',
-      '1  /folder1/File2'
+      '/folder1/File2'
     ])
 
 
@@ -155,7 +154,7 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['1 result found:',
-      '1  main:/folder1/File2'
+      'main:/folder1/File2'
     ])
 
     await noPrint(C.use.exec({
@@ -177,8 +176,8 @@ describe('#Find', function () {
     inspect.restore()
     assertConsole(inspect, [
       '2 results found:',
-      '1  main:/folder1/File2',
-      '2  archive:/password'
+      'main:/folder1/File2',
+      'archive:/password'
     ])
 
 
@@ -214,8 +213,8 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['2 results found:',
-      '1  /folder/file-2',
-      '2  /folder/file1'
+      '/folder/file-2',
+      '/folder/file1'
     ])
 
   })

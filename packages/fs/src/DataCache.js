@@ -6,11 +6,11 @@ class DataCache {
   constructor(dataPath, secrez) {
     this.secrez = secrez
     this.cache = {}
-    this.encrypted = {}
     if (dataPath) {
       this.dataPath = dataPath
       fs.ensureDirSync(dataPath)
       this.ensured = {}
+      this.encrypted = {}
     }
   }
 
@@ -25,20 +25,17 @@ class DataCache {
     }
   }
 
-  initEncryption(...keys) {
-    for (let key of keys) {
-      this.encrypted[key] = true
-    }
-  }
-
-  async load(key) {
+  async load(key, isEncrypted) {
     if (this.dataPath) {
       this.ensure(key)
       let p = path.join(this.dataPath, key)
       let files = await fs.readdir(p)
+      if (isEncrypted) {
+        this.encrypted[key] = true
+      }
       for (let i = 0; i < files.length; i++) {
         let content = await fs.readFile(path.join(p, files[i]), 'utf8')
-        if (this.encrypted[key]) {
+        if (isEncrypted) {
           files[i] = {
             encryptedValue: files[i],
             value: this.secrez.decryptData(files[i]),
@@ -127,9 +124,7 @@ class DataCache {
       if (changed) {
         await fs.writeFile(p, content)
       }
-      if (this.encrypted[key]) {
-        data.encryptedValue = value
-      }
+      data.encryptedValue = value
       return data
     }
     return data

@@ -1,11 +1,7 @@
-// Next line is to avoid that npm-check-unused reports it
-require('tiny-cli-editor')
-//
-
 const _ = require('lodash')
 const path = require('path')
 const fs = require('fs-extra')
-const {isYaml, yamlParse, yamlStringify} = require('@secrez/utils')
+const {isYaml, yamlParse, yamlStringify} = require('../utils')
 
 class Edit extends require('../Command') {
 
@@ -137,7 +133,6 @@ class Edit extends require('../Command') {
 
   getTinyCliEditorBinPath() {
     if (!this.editorBinPath) {
-
       let bin = path.resolve(__dirname, '../../node_modules/tiny-cli-editor/bin.js')
       if (!fs.existsSync(bin)) {
         bin = path.resolve(__dirname, '../../../../node_modules/tiny-cli-editor/bin.js')

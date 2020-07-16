@@ -7,7 +7,7 @@ This is the filesystem component.
 A documentation will come soon. For now, for info, look at https://github.com/secrez/secrez
 
 
-## Test coverage
+#### Test coverage
 
 ```
   94 passing (2s)

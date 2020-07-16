@@ -1,6 +1,7 @@
 module.exports = {
   Secrez: require('./Secrez'),
-  Crypto: require('./Crypto'),
+  Utils: require('./utils'),
+  Crypto: require('./utils/Crypto'),
   Entry: require('./Entry'),
   config: require('./config'),
   ConfigUtils: require('./config/ConfigUtils'),

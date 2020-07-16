@@ -3,15 +3,13 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const path = require('path')
 const inquirer = require('inquirer')
-const clear = require('clear')
 
 // eslint-disable-next-line node/no-unpublished-require
-// const inquirerCommandPrompt = require('../../../../inquirer-command-prompt')
+// const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
-const utils = require('@secrez/utils')
-const {Secrez} = require('@secrez/core')
+const {Secrez, Utils} = require('@secrez/core')
 const {FsUtils, InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
 
 const Logger = require('./utils/Logger')
@@ -20,7 +18,6 @@ const cliConfig = require('./cliConfig')
 const Commands = require('./commands')
 const welcome = require('./Welcome')
 const AliasManager = require('./AliasManager')
-const UserManager = require('./UserManager')
 
 inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('multiEditor', multiEditorPrompt)
@@ -36,7 +33,6 @@ class Prompt {
     this.secrez = new Secrez
     await this.secrez.init(options.container, options.localDir)
     this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'), this.secrez)
-    this.secrez.cache.initEncryption('alias', 'user')
     await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs()
@@ -50,6 +46,7 @@ class Prompt {
       onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd
     })
     this.commands = (new Commands(this, cliConfig)).getCommands()
+
   }
 
   reorderCommandLineWithDefaultAtEnd(line) {
@@ -69,7 +66,7 @@ class Prompt {
       let result = []
       for (let key in params) {
         if (key !== '_unknown') {
-          result.push(utils.getKeyValue(params, key))
+          result.push(Utils.getKeyValue(params, key))
         }
       }
       result.sort((a, b) => {
@@ -128,12 +125,12 @@ class Prompt {
   async loading() {
     this.loadingIndex = 0
     this.showLoading = true
-    await utils.sleep(100)
+    await Utils.sleep(100)
     while (this.showLoading) {
       const loader = ['\\', '|', '/', '-']
       this.loadingIndex = (this.loadingIndex + 1) % 4
       process.stdout.write(loader[this.loadingIndex] + ' ' + this.loadingMessage)
-      await utils.sleep(100)
+      await Utils.sleep(100)
       process.stdout.clearLine()
       process.stdout.cursorTo(0)
     }
@@ -173,23 +170,7 @@ class Prompt {
     return res
   }
 
-  async clearScreen() {
-    this.clearIsRunning = true
-    if (Date.now() - this.lastCommandAt > 1000 * cliConfig.clearScreenAfter) {
-      clear()
-      console.info(chalk.grey(`Terminal has been cleared after ${cliConfig.clearScreenAfter} seconds of inactivity.`))
-      process.stdout.write(this.lastpre + ' ')
-      this.clearIsRunning = false
-    } else {
-      await utils.sleep(100 * cliConfig.clearScreenAfter)
-      this.clearScreen()
-    }
-  }
-
   async run(options) {
-    if (!this.clearIsRunning) {
-      this.clearScreen()
-    }
     if (!this.loggedIn) {
       this.getCommands = Completion(cliConfig.completion)
       this.basicCommands = await this.getCommands()
@@ -205,19 +186,15 @@ class Prompt {
         Logger.red(alerts[0])
         Logger.cyan(alerts.slice(1).join('\n'))
       }
-      await this.secrez.cache.load('alias')
-      await this.secrez.cache.load('user')
+      await this.secrez.cache.load('alias', true)
       AliasManager.setCache(this.secrez.cache)
       this.aliasManager = new AliasManager()
-      UserManager.setCache(this.secrez.cache)
-      this.userManager = new UserManager()
     }
     if (this.disableRun) {
       return
     }
     try {
       let pre = chalk.reset(`Secrez ${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()}`)
-      this.lastpre = `${pre} ${chalk.bold('$')}`
       let {cmd} = await inquirer.prompt([
         {
           type: 'command',
@@ -231,7 +208,6 @@ class Prompt {
           context: 0,
           ellipsize: true,
           autocompletePrompt: chalk.grey('Available options:'),
-          onBeforeKeyPress: () => this.lastCommandAt = Date.now(),
           onClose: () => {
             fs.emptyDirSync(cliConfig.tmpPath)
           },
@@ -250,10 +226,10 @@ class Prompt {
         command = command.replace(/^\$/, '')
         let data = this.aliasManager.get(command)
         if (data) {
-          let cmds = data.commandLine.split('&&').map(e => _.trim(e))
+          let cmds = data.content.split('&&').map(e => _.trim(e))
           let max = 0
           let missing = false
-          for (let i = 0; i < cmds.length; i++) {
+          for (let i=0; i< cmds.length;i++) {
             let c = cmds[i]
             let params = c.match(/\$\w{1}/g)
             if (params) {
@@ -277,7 +253,7 @@ class Prompt {
             }
           }
           if (missing) {
-            Logger.red(`The alias "${command}" requires ${max} parameter${max > 1 ? 's' : ''}`)
+            Logger.red(`The alias "${command}" requires ${max} parameter${max > 1 ? 's': ''}`)
             this.disableRun = false
           }
           this.run()

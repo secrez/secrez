@@ -1,11 +1,11 @@
 {
   "name": "secrez",
-  "version": "0.8.0",
+  "version": "0.7.14",
   "license": "MIT",
   "scripts": {
-    "dev": "cross-env NODE_ENV=dev bin/secrez.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
-    "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/**/*.js'",
-    "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
+    "dev": "cross-env NODE_ENV=dev node src -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js'",
+    "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
     "posttest": "nyc check-coverage --statements 95 --branches 75 --functions 95 --lines 95",
     "build-helpers": "cd test/helpers/os && ./build.sh"
@@ -21,26 +21,26 @@
     ]
   },
   "dependencies": {
-    "@secrez/core": "workspace:^*",
-    "@secrez/courier": "workspace:^*",
-    "@secrez/fs": "workspace:^*",
-    "@secrez/utils": "workspace:^*",
+    "@secrez/core": "^0.7.1",
+    "@secrez/fs": "0.7.6",
+    "beepbeep": "^1.3.0",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
-    "clear": "^0.1.0",
     "clipboardy": "^2.3.0",
     "command-line-args": "^5.1.1",
+    "csv-parse": "^4.9.0",
     "external-editor": "^3.1.0",
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
     "inquirer": "^7.1.0",
-    "inquirer-command-prompt": "^0.0.28",
+    "inquirer-command-prompt": "^0.0.27",
     "jimp": "^0.13.0",
     "lodash": "^4.17.15",
     "otplib": "^12.0.1",
     "qrcode-reader": "^1.0.4",
-    "superagent": "^5.3.1",
-    "tiny-cli-editor": "^0.1.1"
+    "secrez": "^0.6.5",
+    "tiny-cli-editor": "^0.1.1",
+    "yaml": "^1.9.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -48,16 +48,18 @@
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-plugin-node": "^11.0.0",
+    "log": "^6.0.0",
     "mocha": "^7.1.1",
     "nyc": "^15.1.0",
+    "sinon": "^7.5.0",
     "test-console": "^1.1.0"
   },
   "bin": {
-    "secrez": "bin/secrez.js"
+    "secrez": "cli/secrez"
   },
-  "preferGlobal": true,
+  "preferGlobal": "true",
   "description": "A secrets manager in times of crypto coins.",
-  "main": "src/index.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/secrez/secrez.git"

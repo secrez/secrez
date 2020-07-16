@@ -367,59 +367,52 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
-__0.8.0__
-* add `user` to manage trusted users, i.e, trusted public keys
-* add @secrez/courier to allow communication between local accounts
-* add @secrez/tunnel to manage the tunneling for the Courier
-* add `chat` to enter the chat environemnt, and send/receive messages and data to any trusted user
-* return `find` results as a numbered list, to be used as variable (like `$1`) in following commands
-
-__0.7.14__
+__7.0.14__
 * fix chained aliases generating prompt duplications
 
-__0.7.13__
+__7.0.13__
 * fix autocomplete when single command
 
-__0.7.12__
+__7.0.12__
 * adds support for Linux to `totp --from-clipboard`, using `xclip`
 
-__0.7.11__
+__7.0.11__
 * returns an alert if `clipboardy` does not find the required libraries
 
-__0.7.10__
+__7.0.10__
 * fixes the autocomplete loading the data only when needed
 
-__0.7.9__
+__7.0.9__
 * fix bug in Prompt.js which caused an exit if command not found
 
-__0.7.8__
+__7.0.8__
 * upgrade `@secrez/core` to `0.7.1` which fixes an error if `env.json` does not exists
 
-__0.7.7__
+__7.0.7__
 * aliases now accept params (ex. `alias x -c 'copy $1 && ls $2 $1')
 
-__0.7.6__
+__7.0.6__
 * `rm` ask confirmation before delete forever from the `trash` dataset
 * `edit` does not crash if no path is passed
 
-__0.7.5__
+__7.0.5__
 * `totp` can read an image to scan a qrcode and recover its secret
 * on MacOs, `totp` can also read the image from the clipboard to recover its secret; it requires `pngpaste`
 
-__0.7.4__
+__7.0.4__
 * fix bug in autocomplete showing the error stack
 * add script to upgrade the versions of any changed packages
 
-__0.7.3__
+__7.0.3__
 * `find` ignores `trash` during global searches if not using `--trash-too`
 * update to `@secrez/fs 0.7.2`, which fixes a bug in the `DataCache` class
 
-__0.7.2__
+__7.0.2__
 * `totp` allows to generate TOTP codes (like Google Authenticator)
 * add option `--wait` to `copy` to force it to wait the end of the execution
 * `alias` handles chains of commands, like `copy coinbase.yml -f email password -d 3 2 --wait && totp coinbase.yml`
 
-__0.7.1__
+__7.0.1__
 * Calling a command with unknown options will generate an error
 * Fix issue moving duplicates
 * Adds to `mv` an explicit destination field
@@ -628,7 +621,7 @@ All files         |   95.42 |    82.26 |     100 |   95.33 |
   Use.js          |   98.04 |     93.1 |     100 |   97.92 | 103                             
   Ver.js          |      90 |    66.67 |     100 |      90 | 27                              
   index.js        |      90 |       50 |     100 |   89.47 | 18,27                           
- src/index        |     100 |    66.67 |     100 |     100 |                                 
+ src/utils        |     100 |    66.67 |     100 |     100 |                                 
   index.js        |     100 |    66.67 |     100 |     100 | 53,77                           
 ------------------|---------|----------|---------|---------|---------------------------------
 ```
