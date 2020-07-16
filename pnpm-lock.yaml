@@ -169,7 +169,7 @@ importers:
       homedir: ^0.6.0
       koa: 2.13.0
       koa-router: 9.1.0
-      lodash: 4.17.19
+      lodash: ^4.17.19
       mocha: 8.0.1
       node-dev: 4.1.0
       nyc: ^15.1.0
