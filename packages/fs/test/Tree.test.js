@@ -215,7 +215,7 @@ describe('#Tree', function () {
       let files0 = await fs.readdir(`${rootDir}/data`)
       assert.equal(files0.length, 0)
 
-      let backup = path.resolve(__dirname, '../../tmp/test/backup')
+      let backup = path.resolve(__dirname, '../tmp/test/backup')
       await fs.emptyDir(backup)
 
       await internalFs.make({

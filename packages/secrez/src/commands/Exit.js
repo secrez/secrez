@@ -1,9 +1,9 @@
-const {Utils} = require('@secrez/core')
+const utils = require('@secrez/utils')
 
 class Exit extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.cliConfig.completion.exit = Utils.sortKeys({
+    this.cliConfig.completion.exit = utils.sortKeys({
       // dontSaveHistory: TRUE // not supported, yet
     })
     this.cliConfig.completion.help.exit = true
