@@ -1,7 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 
-const {sleep} = require('../utils')
+const {sleep} = require('@secrez/utils')
 
 const {Node} = require('@secrez/fs')
 

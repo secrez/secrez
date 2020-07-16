@@ -4,7 +4,16 @@ const _ = require('../packages/secrez/node_modules/lodash')
 
 let target = process.argv[2]
 
-if (!['core', 'fs', 'secrez'].includes(target)) {
+if (![
+  'core',
+  'courier',
+  'fs',
+  'hub',
+  'secrez',
+  'tls',
+  'tunnel',
+  'utils'
+].includes(target)) {
   console.error(`Wrong target: ${target}`)
   process.exit(1)
 }
