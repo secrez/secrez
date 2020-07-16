@@ -16,9 +16,10 @@ class Config {
       throw new Error('You are not supposed to test @secrez/courier in the default folder. This can lead to mistakes and loss of data.')
     }
     options.certsPath = path.join(root, 'certs')
-    // options.dataPath = path.join(root, 'data')
+    options.dataPath = path.join(root, 'data')
     fs.ensureDirSync(options.certsPath)
-    // fs.ensureDirSync(options.dataPath)
+    fs.ensureDirSync(options.dataPath)
+    options.dbPath = path.join(options.dataPath, 'courier.sqlite3')
     this.options = options
   }
 

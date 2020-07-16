@@ -55,7 +55,7 @@ try {
 }
 
 options.host = options.host || 'https://secrez.cc'
-options.port = options.port || 4433
+// options.port = options.port || 4433
 
 console.info(chalk.bold.grey(`@secrez/courier v${pkg.version}`))
 
@@ -73,9 +73,9 @@ Options:
 By default, if not otherwise specified, it does not produce any log
                       
 Examples:
-  $ secrez-listener
-  $ secrez-listener -r \`pwd\`/data     Uses ./data as root
-  $ secrez-listener -d                Does not log in the terminal 
+  $ secrez-courier
+  $ secrez-courier -r \`pwd\`/data     Uses ./data as root
+  $ secrez-courier -d                Does not log in the terminal 
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)
