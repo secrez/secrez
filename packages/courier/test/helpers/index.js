@@ -1,4 +1,6 @@
 const https = require('https')
+const superagent = require('superagent')
+const {Crypto} = require('@secrez/core')
 
 const helpers = {
 
@@ -30,6 +32,31 @@ const helpers = {
       })
       req.end()
     })
+  },
+
+  async sendMessage (message, publicKey1, secrez, server) {
+    let encryptedMessage = secrez.encryptSharedData(message, publicKey1)
+
+    const payload = JSON.stringify({
+      message: {
+        sentAt: Date.now(),
+        content: encryptedMessage
+      },
+      publicKey: secrez.getPublicKey(),
+      salt: Crypto.getRandomBase58String(16)
+    })
+    const signature = secrez.signMessage(payload)
+
+    const params = {
+      payload,
+      signature
+    }
+
+    return superagent.post(`${server.localhost}/`)
+        .set('Accept', 'application/json')
+        .query({cc: 44})
+        .send(params)
+        .ca(await server.tls.getCa())
   }
 
 }

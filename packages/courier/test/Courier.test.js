@@ -34,7 +34,7 @@ describe('#Courier', function () {
 
     it('should setup the environment', async function () {
 
-      let courier = new Courier({root})
+      // let courier = new Courier({root})
 
       // await courier.init()
 

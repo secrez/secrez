@@ -30,6 +30,10 @@ const optionDefinitions = [
     name: 'do-not-log',
     alias: 'd',
     type: Boolean
+  },
+  {
+    name: 'new-auth-code',
+    type: Boolean
   }
 ]
 
@@ -55,10 +59,8 @@ try {
 }
 
 options.host = options.host || 'https://secrez.cc'
-// options.port = options.port || 4433
 
 console.info(chalk.bold.grey(`@secrez/courier v${pkg.version}`))
-
 
 if (options.help) {
   console.info(`${pkg.description}
@@ -69,13 +71,14 @@ Options:
   -l, --local           The local hostname (by default localhost)
   -r, --root            Root folder (by default ~/.secrez-courier)
   -d, --do-not-log      Does not log on screen
+  --new-auth-code       Refreshes the authCode, if a previous one's been saved
                           
 By default, if not otherwise specified, it does not produce any log
                       
 Examples:
-  $ secrez-courier
-  $ secrez-courier -r \`pwd\`/data     Uses ./data as root
-  $ secrez-courier -d                Does not log in the terminal 
+  $ secrez-courier -h https://secrez.cc
+  $ secrez-courier -h https://secrez.cc-r \`pwd\`/data     Uses ./data as root
+  $ secrez-courier -h https://secrez.cc -d               Does not log in the terminal 
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)

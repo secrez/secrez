@@ -529,12 +529,12 @@ git clone git@github.com:sullof/secrez.git
 #### Install the requirements
 
 ```
-npm i -g lerna
+npm i -g pnpm
 ```
 
 #### Bootstrap the monorepo
 ```
-lerna bootstrap
+npm run reset
 ```
 #### Install OS requirements
 To complete the tests, you must install some tool, depending on you operating system.

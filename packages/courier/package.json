@@ -1,6 +1,6 @@
 {
   "name": "@secrez/courier",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/**/*.js'",
@@ -13,11 +13,12 @@
     "secrez-courier": "bin/secrez-courier.js"
   },
   "dependencies": {
-    "@secrez/core": "workspace:^*",
-    "@secrez/fs": "workspace:^*",
-    "@secrez/tls": "workspace:^*",
-    "@secrez/tunnel": "workspace:^*",
-    "@secrez/utils": "workspace:^*",
+    "@secrez/core": "workspace:^0.8.0",
+    "@secrez/fs": "workspace:^0.8.0",
+    "@secrez/hub": "workspace:^0.1.1",
+    "@secrez/tls": "workspace:^0.1.1",
+    "@secrez/tunnel": "workspace:^0.1.1",
+    "@secrez/utils": "workspace:^0.1.1",
     "body-parser": "^1.19.0",
     "chalk": "^3.0.0",
     "command-line-args": "^5.1.1",
@@ -34,7 +35,6 @@
     "superagent": "^5.3.1"
   },
   "devDependencies": {
-    "@secrez/hub": "workspace:^*",
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",

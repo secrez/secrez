@@ -16,12 +16,13 @@ class Tunnel extends EventEmitter {
 
   _getInfo(body) {
     /* eslint-disable camelcase */
-    const {id, ip, port, url, cached_url, max_conn_count} = body
+    const {id, ip, port, url, short_url, cached_url, max_conn_count} = body
     const {host, port: local_port, local_host, payload, signature} = this.opts
     const {local_https, local_cert, local_key, local_ca, allow_invalid_cert} = this.opts
     return {
       name: id,
       url,
+      short_url,
       cached_url,
       max_conn: max_conn_count || 1,
       remote_host: new URL(host).hostname,
@@ -141,9 +142,9 @@ class Tunnel extends EventEmitter {
       if (err) {
         return cb(err)
       }
-
       this.clientId = info.name
       this.url = info.url
+      this.short_url = info.short_url
 
       // `cached_url` is only returned by proxy servers that support resource caching.
       if (info.cached_url) {

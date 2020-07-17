@@ -5,8 +5,9 @@ const {Debug} = require('@secrez/utils')
 const http = require('http')
 const Router = require('koa-router')
 const {version} = require('../package.json')
-const {Crypto, Secrez} = require('@secrez/core')
+const {Secrez} = require('@secrez/core')
 
+const Shortener = require('./lib/Shortener')
 const ClientManager = require('./lib/ClientManager')
 const debug = Debug('hub:server')
 const {getRandomId, isValidRandomId, verifyPayload} = require('./utils')
@@ -19,6 +20,7 @@ module.exports = function (opt) {
   const validHosts = (opt.domain) ? [opt.domain] : undefined
   const myTldjs = tldjs.fromUserSettings({validHosts})
   const landingPage = opt.landing
+  const shortener = new Shortener
 
   function GetClientIdFromHostname(hostname) {
     return myTldjs.getSubdomain(hostname)
@@ -69,6 +71,7 @@ module.exports = function (opt) {
       let q = ctx.request.query
       payload = q.payload
       signature = q.signature
+      keepShortUrl = q.keepShortUrl
       let parsedPayload = JSON.parse(payload)
       id = parsedPayload.id
       publicKey = parsedPayload.publicKey
@@ -94,38 +97,30 @@ module.exports = function (opt) {
     if (!reqId) {
       reqId = getRandomId(publicKey, allIds)
     }
+    let info
     if (manager.hasClient(reqId)) {
-      debug('returning existed client with id %s', reqId)
-      ctx.body = manager.getClient(reqId)
-      return
+      debug('returning existing client with id %s', reqId)
+      info = manager.getClientInfo(reqId)
+    } else {
+      debug('making new client with id %s', reqId)
+      info = await manager.newClient(reqId, debug)
     }
-    debug('making new client with id %s', reqId)
-    const info = await manager.newClient(reqId, debug)
-
     const url = schema + '://' + info.id + '.' + ctx.request.host
     info.url = url
+    info.short_url = schema + '://' + ctx.request.host + '/s/' + shortener.set(publicKey, url, keepShortUrl)
     ctx.body = info
     allIds[reqId] = true
   })
 
-  router.get('/api/v1/courier/:cmd', async (ctx, next) => {
+  router.get('/s/:id', async (ctx, next) => {
 
-    const hostname = ctx.request.headers.host
-    const clientId = GetClientIdFromHostname(hostname)
-
-    if (!clientId) {
-      const result = {
-        status_code: 400,
-        message: 'Missed id'
-      }
-      ctx.status = 400
-      ctx.body = result
+    const id = ctx.params.id
+    const shortened = shortener.get(id)
+    if (shortened) {
+      ctx.status = 200
+      ctx.body = shortened
       return
-    }
-
-    const client = manager.getClient(clientId)
-
-    if (!client) {
+    } else {
       const result = {
         status_code: 404,
         message: 'Not found'
@@ -134,9 +129,6 @@ module.exports = function (opt) {
       ctx.body = result
       return
     }
-
-    client.handleRequest(ctx.request, ctx.response)
-
   })
 
   app.use(router.routes())
@@ -168,7 +160,6 @@ module.exports = function (opt) {
 
   // anything after the / path is a request for a specific client name
   // This is a backwards compat feature
-  // TODO (sullo) extend this for servers that cannot handle subdomains
   app.use(async (ctx, next) => {
     const parts = ctx.request.path.split('/')
 

@@ -1,21 +1,17 @@
-const http = require('http')
-const https = require('https')
 const path = require('path')
 const chai = require('chai')
 const fs = require('fs-extra')
 const assert = chai.assert
 const superagent = require('superagent')
-const {TLS} = require('@secrez/tls')
 const {Secrez, Crypto} = require('@secrez/core')
-const {sleep, base58ToInt} = require('@secrez/utils')
+const {sleep} = require('@secrez/utils')
 const {createServer, utils} = require('@secrez/hub')
 const {isValidRandomId} = utils
 const Config = require('../src/Config')
 const Server = require('../src/Server')
-const pkg = require('../package.json')
-const WebSocket = require('ws')
 
-const {publicKey1, publicKey2, sendMessage} = require('./fixtures')
+const {sendMessage} = require('./helpers')
+const {publicKey1, publicKey2} = require('./fixtures')
 
 describe.only('Server', async function () {
 
@@ -68,7 +64,7 @@ describe.only('Server', async function () {
   it('should build an instance and start the server', async function () {
     assert.equal(server.localhost, `https://${localDomain}:${server.port}`)
     try {
-      const res = await superagent.get(`${server.localhost}`)
+      await superagent.get(`${server.localhost}`)
           .set('Accept', 'application/json')
           .ca(await server.tls.getCa())
       assert.isTrue(false)
@@ -119,9 +115,34 @@ describe.only('Server', async function () {
         .query({payload, signature})
         .ca(await server.tls.getCa())
 
-    let result = res.body.tunnelUrl.split('//')[1].split('.')
+    assert.isTrue(/\/s\/\w{6}$/.test(res.body.info.short_url))
+
+    let result = res.body.info.url.split('//')[1].split('.')
     assert.isTrue(isValidRandomId(result[0], JSON.parse(payload).publicKey))
     assert.isTrue(res.body.success)
+  })
+
+  it('should reuse port and authCode', async function () {
+
+    let firstPort = server.port
+    let authCode = server.authCode
+
+    await server.close()
+    config = new Config({root: courierRoot, hub: `http://${localDomain}:4433`})
+    server = new Server(config)
+    await server.start()
+
+    assert.equal(firstPort, server.port)
+    assert.equal(authCode, server.authCode)
+
+    await server.close()
+    config = new Config({root: courierRoot, hub: `http://${localDomain}:4433`, port: 9876})
+    server = new Server(config)
+    await server.start()
+
+    assert.equal(9876, server.port)
+    assert.equal(authCode, server.authCode)
+
   })
 
   it('should add a publickey to the trusted circle', async function () {
@@ -149,7 +170,7 @@ describe.only('Server', async function () {
     assert.isTrue(res.body.success)
   })
 
-  it.only('should receive a message from a public key in the trusted circle', async function () {
+  it('should receive a message from a public key in the trusted circle', async function () {
 
     const authCode = server.authCode
     const publicKey1 = secrez1.getPublicKey()
@@ -194,7 +215,7 @@ describe.only('Server', async function () {
         .query({payload, signature})
         .ca(await server.tls.getCa())
 
-    encryptedMessage = res.body.result[0].message.content
+    let encryptedMessage = res.body.result[0].message.content
 
     assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
 
@@ -258,7 +279,7 @@ describe.only('Server', async function () {
   it('should throw if calling /admin with missing or wrong auth-code', async function () {
 
     try {
-      const res = await superagent.get(`${server.localhost}/admin`)
+      await superagent.get(`${server.localhost}/admin`)
           .set('Accept', 'application/json')
           .ca(await server.tls.getCa())
       assert.isTrue(false)
@@ -267,7 +288,7 @@ describe.only('Server', async function () {
     }
 
     try {
-      const res = await superagent.get(`${server.localhost}/admin`)
+      await superagent.get(`${server.localhost}/admin`)
           .set('Accept', 'application/json')
           .set('auth-code', 'somecode')
           .ca(await server.tls.getCa())

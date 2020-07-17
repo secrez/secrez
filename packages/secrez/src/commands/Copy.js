@@ -210,7 +210,6 @@ class Copy extends require('../Command') {
       this.Logger.grey('Copied to clipboard:')
       this.Logger.reset(name)
     } catch (e) {
-      console.log(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

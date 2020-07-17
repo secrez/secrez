@@ -43,6 +43,7 @@ describe.only('Server', () => {
     const hostname = 'uzcmscmbx5y9j61k94r66akycscjbepzwyz9aam7dn4gqmwkyi60c3uc9urw'
     const server = createServer({
       domain: 'example.com',
+      port: 9699,
     })
     await new Promise(resolve => server.listen(resolve))
 
@@ -111,7 +112,7 @@ describe.only('Server', () => {
       signature
     })
 
-    let {id} = res.body
+    let {short_url, id, url} = res.body
 
     assert.equal(id.substring(0, 4), Crypto.b32Hash(Secrez.getSignPublicKey(secrez.getPublicKey())).substring(0, 4))
 
@@ -119,6 +120,15 @@ describe.only('Server', () => {
     assert.equal(res.statusCode, 200)
     assert.deepEqual(res.body, {
       connected_sockets: 0,
+    })
+
+    let parsedUrl = new URL(short_url)
+
+    res = await request(server).get(parsedUrl.pathname)
+    assert.equal(res.statusCode, 200)
+    assert.deepEqual(res.body, {
+      publicKey: secrez.getPublicKey(),
+      url
     })
 
     await new Promise(resolve => server.close(resolve))
@@ -147,7 +157,8 @@ describe.only('Server', () => {
       payload,
       signature
     })
-    let {id} = res.body
+    let {id, short_url: shortUrl} = res.body
+
     assert.equal(id, publicKeyId)
 
     res = await request(server).get(`/api/v1/tunnels/${id}/status`)
@@ -155,6 +166,20 @@ describe.only('Server', () => {
     assert.deepEqual(res.body, {
       connected_sockets: 0,
     })
+
+    res = await request(server).get('/api/v1/tunnel/new').query({
+      payload,
+      signature,
+      keepShortUrl: true
+    })
+    assert.equal(res.body.short_url, shortUrl)
+    assert.equal(res.body.id, id)
+
+    res = await request(server).get('/api/v1/tunnel/new').query({
+      payload,
+      signature
+    })
+    assert.notEqual(res.body.short_url, shortUrl)
 
     await new Promise(resolve => server.close(resolve))
   })

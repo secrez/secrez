@@ -2,14 +2,6 @@ const path = require('path')
 const fs = require('fs')
 const {execSync} = require('child_process')
 
-const corePath = path.resolve(__dirname, '../packages/core/package.json')
-const fsPath = path.resolve(__dirname, '../packages/fs/package.json')
-const secrezPath = path.resolve(__dirname, '../packages/secrez/package.json')
-
-const corePackage = require(corePath)
-const fsPackage = require(fsPath)
-const secrezPackage = require(secrezPath)
-
 let packages = {}
 execSync(`git diff master --name-only`).toString().split('\n').map(e => {
   let m = e.split('/')
@@ -19,66 +11,50 @@ execSync(`git diff master --name-only`).toString().split('\n').map(e => {
   return e
 })
 
-function getDiff(dir, pkg) {
-  let ver = execSync(`npm view ${pkg || dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
-  return [ver, packages[dir]]
+let packagesFolder = fs.readdirSync(path.resolve(__dirname, '../packages'))
+
+let packagesJson = {}
+
+for (let package of packagesFolder) {
+  let pjsonPath = path.resolve(__dirname, '../packages', package, 'package.json')
+  if (fs.existsSync(pjsonPath)) {
+    packagesJson[package] = require(path.resolve(__dirname, '../packages', package, 'package.json'))
+  }
 }
 
-let [corePublished, coreChange] = getDiff('core', '@secrez/core')
-let [fsPublished, fsChange] = getDiff('fs', '@secrez/fs')
-let [secrezPublished, secrezChange] = getDiff('secrez')
-
-let coreVersion = corePackage.version
-let fsVersion = fsPackage.version
-let secrezVersion = secrezPackage.version
-
-function incVersion(v) {
-  v = v.split('.')
-  v[2] = parseInt(v[2]) + 1
-  return v.join('.')
-}
-
-if (coreChange) {
-  coreVersion = incVersion(corePublished)
-  console.log(`Updating @secrez/core to ${coreVersion}`)
-  corePackage.version = coreVersion
-  fsPackage.dependencies['@secrez/core'] = `^${coreVersion}`
-  secrezPackage.dependencies['@secrez/core'] = `^${coreVersion}`
-  coreChange = fsChange = secrezChange = true
-}
-
-if (fsChange) {
-  fsVersion = incVersion(fsPublished)
-  console.log(`Updating @secrez/fs to ${fsVersion}`)
-  fsPackage.version = fsVersion
-  secrezPackage.dependencies['@secrez/fs'] = `^${fsVersion}`.substring(1)
-  fsChange = secrezChange = true
-}
-
-if (secrezChange) {
-  secrezVersion = incVersion(secrezPublished)
-  console.log(`Updating secrez to ${secrezVersion}`)
-  secrezPackage.version = secrezVersion
-  secrezChange = true
-}
-
-if (coreChange) {
-  // console.log(corePackage)
-  fs.writeFileSync(corePath, JSON.stringify(corePackage, null, 2))
-}
-if (fsChange) {
-  // console.log(fsPackage)
-  fs.writeFileSync(fsPath, JSON.stringify(fsPackage, null, 2))
-}
-if (secrezChange) {
-  // console.log(secrezPackage)
-  fs.writeFileSync(secrezPath, JSON.stringify(secrezPackage, null, 2))
+function getExistingVersion(pkg) {
+  return execSync(`npm view ${pkg} | grep latest`).toString().split('\n')[0].split(' ')[1]
 }
 
 
+function updateOtherPackages(package, name, newVersion) {
+  for (let p in packages) {
+    if (p === package) {
+      continue
+    }
+    let json = packagesJson[p]
+    if (json.dependencies[name]) {
+      json.dependencies[name] = 'workspace:^'+ newVersion
+    }
+    if (json.devDependencies[name]) {
+      json.devDependencies[name] = 'workspace:^'+ newVersion
+    }
+  }
+}
 
-if (coreChange || fsChange || secrezChange) {
-  execSync('npm run reset')
-} else {
-  console.log('No change required')
+for (let p in packages) {
+  let json = packagesJson[p]
+  let {version, name} = json
+  if(version === getExistingVersion(name)) {
+    let v = version.split('.')
+    v[2] = parseInt(v[2]) + 1
+    v = v.join('.')
+    json.version = v
+    updateOtherPackages(p, name, v)
+  }
+
+}
+
+for (let p in packagesJson) {
+  fs.writeFileSync(path.resolve(__dirname, '../packages', p, 'package.json'), JSON.stringify(packagesJson[p], null, 2))
 }

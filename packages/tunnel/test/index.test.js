@@ -84,9 +84,15 @@ describe('tunnel', async function () {
 
   it('query localtunnel server w/out ident', async function () {
 
+    // this.timeout(10000)
+
+    // process.env.AS_DEV = true
+
     const {payload, signature} = fixtures.randomId
 
     tunnel = await localtunnel({host, port: localPort, payload, signature})
+
+    // await sleep(10000)
 
     let result = tunnel.url.split('//')[1].split('.')
 
