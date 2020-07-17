@@ -2,7 +2,6 @@ const path = require('path')
 const fs = require('fs')
 const {execSync} = require('child_process')
 
-
 let packages = {}
 execSync(`git diff master --name-only`).toString().split('\n').map(e => {
   let m = e.split('/')
@@ -35,10 +34,10 @@ function updateOtherPackages(package, name, newVersion) {
     }
     let json = packagesJson[p]
     if (json.dependencies[name]) {
-      json.dependencies[name] = '^'+ newVersion
+      json.dependencies[name] = 'workspace:^'+ newVersion
     }
     if (json.devDependencies[name]) {
-      json.devDependencies[name] = '^'+ newVersion
+      json.devDependencies[name] = 'workspace:^'+ newVersion
     }
   }
 }

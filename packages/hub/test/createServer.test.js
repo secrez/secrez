@@ -169,10 +169,17 @@ describe.only('Server', () => {
 
     res = await request(server).get('/api/v1/tunnel/new').query({
       payload,
-      signature
+      signature,
+      keepShortUrl: true
     })
     assert.equal(res.body.short_url, shortUrl)
     assert.equal(res.body.id, id)
+
+    res = await request(server).get('/api/v1/tunnel/new').query({
+      payload,
+      signature
+    })
+    assert.notEqual(res.body.short_url, shortUrl)
 
     await new Promise(resolve => server.close(resolve))
   })

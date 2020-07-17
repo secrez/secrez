@@ -1,6 +1,6 @@
 {
   "name": "@secrez/tls",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "scripts": {
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/**/*.js'",
@@ -10,7 +10,7 @@
     "posttest": "nyc check-coverage --statements 99 --branches 90 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/utils": "workspace:^*",
+    "@secrez/utils": "workspace:^0.1.1",
     "chalk": "^4.1.0",
     "command-line-args": "^5.1.1",
     "cross-env": "^7.0.2",

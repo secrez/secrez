@@ -21,10 +21,10 @@
     ]
   },
   "dependencies": {
-    "@secrez/core": "workspace:^*",
-    "@secrez/courier": "workspace:^*",
-    "@secrez/fs": "workspace:^*",
-    "@secrez/utils": "workspace:^*",
+    "@secrez/core": "workspace:^0.8.0",
+    "@secrez/courier": "workspace:^0.1.1",
+    "@secrez/fs": "workspace:^0.8.0",
+    "@secrez/utils": "workspace:^0.1.1",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
     "clear": "^0.1.0",

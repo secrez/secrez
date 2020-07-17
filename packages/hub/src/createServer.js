@@ -66,11 +66,12 @@ module.exports = function (opt) {
   })
 
   router.get('/api/v1/tunnel/new', async (ctx, next) => {
-    let payload, signature, id, publicKey, reqId, keepShortUrl
+    let payload, signature, id, publicKey, reqId
     try {
       let q = ctx.request.query
       payload = q.payload
       signature = q.signature
+      keepShortUrl = q.keepShortUrl
       let parsedPayload = JSON.parse(payload)
       id = parsedPayload.id
       publicKey = parsedPayload.publicKey

@@ -1,7 +1,7 @@
 {
   "name": "@secrez/hub",
   "description": "A hub end-to-end encrypted communication",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,9 +22,9 @@
   },
   "preferGlobal": true,
   "dependencies": {
-    "@secrez/core": "workspace:^*",
-    "@secrez/tls": "workspace:^*",
-    "@secrez/utils": "workspace:^*",
+    "@secrez/core": "workspace:^0.8.0",
+    "@secrez/tls": "workspace:^0.1.1",
+    "@secrez/utils": "workspace:^0.1.1",
     "book": "1.3.3",
     "chalk": "^3.0.0",
     "command-line-args": "^5.1.1",
