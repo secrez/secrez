@@ -83,7 +83,7 @@ Options:
                           to establish at one time (the tunnels); default: 4.           
                       
 Examples:
-  $ secrez-hub -p 9000 -d some-secrez-zub.com -m 5
+  $ secrez-hub -p 9494
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)

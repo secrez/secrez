@@ -8,7 +8,7 @@
   "scripts": {
     "test": "pnpm run test -r",
     "test-only": "pnpm run test-only -r",
-    "lint": "lerna run lint",
+    "lint": "pnpm run lint -r",
     "reset": "bin/clean-all-modules.sh && pnpm install",
     "patch-versions": "node bin/patch-versions.js",
     "pre-push": "pnpm run lint && bin/pre-push.sh",

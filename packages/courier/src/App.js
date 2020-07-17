@@ -1,12 +1,8 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-// const expressWs = require('express-ws')
-// const WebSocket = require('ws')
-const {Crypto, Secrez} = require('@secrez/core')
-const {Debug, intToBase58, base58ToInt} = require('@secrez/utils')
-const {DataCache} = require('@secrez/fs')
+const {Secrez} = require('@secrez/core')
+const {Debug} = require('@secrez/utils')
 const debug = Debug('courier:app')
-const pkg = require('../package.json')
 const {utils: hubUtils} = require('@secrez/hub')
 const {verifyPayload} = hubUtils
 
@@ -44,16 +40,16 @@ class App {
           } else if (action && action.name) {
             switch (action.name) {
 
-              case 'publish':
+              case 'publish': {
                 let {payload, signature} = req.query
-                const tunnelUrl = await this.server.publish(payload, signature)
+                const info = await this.server.publish(payload, signature)
                 res.json({
                   success: true,
-                  tunnelUrl
+                  info
                 })
                 break
-
-              case 'add':
+              }
+              case 'add': {
                 let wrongKeys
                 for (let pk of action.publicKeys) {
                   if (!Secrez.isValidPublicKey(pk)) {
@@ -69,6 +65,7 @@ class App {
                   success: true,
                   wrongKeys
                 })
+              }
             }
           } else {
             res.status(400).end()
@@ -83,44 +80,7 @@ class App {
           if (this.owner !== publicKey) {
             res.status(403).end()
           } else {
-
             let result = await this.db.getMessages(minTimestamp, maxTimestamp, from)
-            //
-            // // let query =
-            //
-            //
-            // // let allMessages = this.server.cache.get('message')
-            //
-            //
-            // let keys = Object.keys(allMessages).filter(key => {
-            //   if (from !== 0) {
-            //     let ok = false
-            //     for (let pk of from) {
-            //       if (this.messageKeyFrom(key, pk)) {
-            //         ok = true
-            //         break
-            //       }
-            //     }
-            //     if (!ok) {
-            //       return false
-            //     }
-            //   }
-            //   if (since !== 0 && !this.messageKeySince(key, since)) {
-            //     return false
-            //   }
-            //   return true
-            // })
-            // keys.sort((a, b) => {
-            //   let A = base58ToInt(a.substring(20))
-            //   let B = base58ToInt(b.substring(20))
-            //   return A > B ? 1 : A < B ? -1 : 0
-            // })
-            //
-            // let result = []
-            // let latestByKey = {}
-            // for (let key of keys) {
-            //   result.push(allMessages[key])
-            // }
             res.json({
               success: true,
               result
@@ -133,7 +93,7 @@ class App {
         async (req, res, next) => {
           const {message, publicKey} = req.parsedPayload
           if (this.db.isTrustedPublicKey(publicKey)) {
-            let result = await this.db.saveMessage(message, publicKey)
+            await this.db.saveMessage(message, publicKey)
             res.json({
               success: true
             })
@@ -171,26 +131,12 @@ class App {
 
   async setOwner(publicKey) {
     let owner = await this.db.getValueFromConfig('owner')
-    if (owner[0] && owner[0].value) {
-      if (owner[0].value !== publicKey) {
-        throw new Error('This courier has been set up by another user')
-      }
+    if (owner && owner !== publicKey) {
+      throw new Error('This courier has been set up by another user')
     } else {
       await this.db.saveKeyValueToConfig('owner', publicKey)
     }
     this.owner = publicKey
-  }
-
-  messageKey(publicKey, content, now) {
-    return Crypto.b58Hash(publicKey, 16) + Crypto.b58Hash(content, 4) + now
-  }
-
-  messageKeyFrom(key, from) {
-    return key.substring(0, 16) === Crypto.b58Hash(from, 16)
-  }
-
-  messageKeySince(key, since) {
-    return parseInt(key.substring(20)) >= since
   }
 
   authMiddleware(req, res, next) {
@@ -222,12 +168,6 @@ class App {
       })
     }
   }
-
-  async filter(publicKey) {
-    let all = this.server.cache.get('publickey')
-    console.log(all)
-  }
-
 
 }
 

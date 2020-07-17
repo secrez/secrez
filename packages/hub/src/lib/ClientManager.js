@@ -96,6 +96,17 @@ class ClientManager {
   getClient(id) {
     return this.clients[id]
   }
+
+  getClientInfo(id) {
+    let client = this.clients[id]
+    if (client) {
+      return {
+        id: client.id,
+        port: client.port,
+        max_conn_count: this.opt.max_tcp_sockets
+      }
+    }
+  }
 }
 
 module.exports = ClientManager

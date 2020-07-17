@@ -1,5 +1,6 @@
-const sqlite3 = require('sqlite3').verbose()
-const fs = require('fs-extra')
+// Next line is to avoid that npm-check-unused reports it
+require('sqlite3')
+//
 const {Crypto} = require('@secrez/core')
 
 class Db {
@@ -17,23 +18,27 @@ class Db {
 
   async init() {
 
-    await this.knex.schema.createTable('config', function (table) {
-      table.string('key')
-      table.string('value')
-    })
-
-    await this.knex.schema.createTable('publickeys', function (table) {
-      table.integer('timestamp').unsigned()
-      table.integer('microseconds').unsigned()
-      table.text('publickey')
-    })
-
-    await this.knex.schema.createTable('messages', function (table) {
-      table.integer('timestamp').unsigned()
-      table.integer('microseconds').unsigned()
-      table.text('message')
-      table.text('publickey')
-    })
+    if (!(await this.knex.schema.hasTable('config'))) {
+      await this.knex.schema.createTable('config', function (table) {
+        table.string('key')
+        table.string('value')
+      })
+    }
+    if (!(await this.knex.schema.hasTable('publickeys'))) {
+      await this.knex.schema.createTable('publickeys', function (table) {
+        table.integer('timestamp').unsigned()
+        table.integer('microseconds').unsigned()
+        table.text('publickey')
+      })
+    }
+    if (!(await this.knex.schema.hasTable('messages'))) {
+      await this.knex.schema.createTable('messages', function (table) {
+        table.integer('timestamp').unsigned()
+        table.integer('microseconds').unsigned()
+        table.text('message')
+        table.text('publickey')
+      })
+    }
   }
 
   async insert(options, table) {
@@ -45,11 +50,18 @@ class Db {
   }
 
   async getValueFromConfig(key) {
-    return this.select('*', 'config', {key})
+    let result = await this.select('*', 'config', {key})
+    if (result && result[0]) {
+      return result[0].value
+    }
   }
 
   async saveKeyValueToConfig(key, value) {
-    return this.insert({key, value}, 'config')
+    if (await this.getValueFromConfig(key)) {
+      return this.knex('config').update({value}).where({key})
+    } else {
+      return this.insert({key, value}, 'config')
+    }
   }
 
   async trustPublicKey(publickey) {
@@ -77,17 +89,10 @@ class Db {
   }
 
   async getMessages(minTimestamp = 0, maxTimestamp = Crypto.getTimestampWithMicroseconds()[0], from) {
-
-    console.log('timestamp', '>=', minTimestamp)
-    console.log('timestamp', '<=', maxTimestamp)
-    console.log('publickey', from ? '=' : '!=', from ? from : '-')
-
     let messages = await this.knex.select('*').from('messages')
         .where('timestamp', '>=', minTimestamp)
         .andWhere('timestamp', '<=', maxTimestamp)
         .andWhere('publickey', from ? '=' : '!=', from ? from : '-')
-
-
     return messages.map(e => {
       e.message = JSON.parse(e.message)
       return e

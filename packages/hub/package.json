@@ -54,5 +54,8 @@
     "posttest": "nyc check-coverage --statements 80 --branches 50 --functions 80 --lines 80",
     "start": "./bin/secrez-hub",
     "dev": "node-dev bin/server --port 3000"
+  },
+  "engines": {
+    "node": ">=10.0.0"
   }
 }

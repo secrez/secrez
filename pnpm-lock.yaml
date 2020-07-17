@@ -237,6 +237,8 @@ importers:
   packages/tls:
     dependencies:
       '@secrez/utils': 'link:../utils'
+      chalk: 4.1.0
+      command-line-args: 5.1.1
       cross-env: 7.0.2
       eslint-plugin-node: 11.1.0_eslint@6.8.0
       fs-extra: 8.1.0
@@ -248,6 +250,8 @@ importers:
     specifiers:
       '@secrez/utils': 'workspace:^*'
       chai: ^4.2.0
+      chalk: ^4.1.0
+      command-line-args: ^5.1.1
       cross-env: ^7.0.2
       eslint: ^6.8.0
       eslint-plugin-node: ^11.1.0

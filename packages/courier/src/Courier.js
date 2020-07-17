@@ -1,5 +1,3 @@
-const path = require('path')
-const {TLS} = require('@secrez/tls')
 const Server = require('./Server')
 const Config = require('./Config')
 
