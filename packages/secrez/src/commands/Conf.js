@@ -51,6 +51,10 @@ class Conf extends require('../Command') {
       {
         name: 'new-iterations-number',
         type: Boolean
+      },
+      {
+        name: 'init-courier',
+        type: Boolean
       }
     ]
   }
@@ -66,7 +70,9 @@ class Conf extends require('../Command') {
           'registers an emergency recovery code called "memo" to be used if all the factors are lost'],
         ['conf --recovery-code -r seed --use-this "salad spring peace silk snake real they thunder please final clinic close"', 'registers an emergency recovery code called "seed" using the seed passed with the parameter "--use-this"'],
         ['conf -u solo',
-          'unregister the fido2 key "solo"; if that is the only key, it unregister also any emergency code and restores the normal access.']
+          'unregister the fido2 key "solo"; if that is the only key, it unregister also any emergency code and restores the normal access.'],
+        ['conf --init-courier', 'initialize the courier, if not initiated yet; it needs the auth code returned by secrez-courier when launched —— if you do not have it, install it with "npm i -g @secrez/courier"'],
+
       ]
     }
   }
@@ -404,6 +410,75 @@ class Conf extends require('../Command') {
     this.Logger.grey('Operation canceled')
   }
 
+  async publishToHubIfNotYet(options) {
+    try {
+      const {authCode, port, caCrt} = options.env.courier
+      return await this.callCourier({name: 'publish'}, authCode, port, caCrt, '/admin')
+    } catch (e) {
+
+      console.error(e)
+
+      throw new Error('A courier is connected but it is unable to expose itself throught the remote hub. Be sure that the hub is up and running, or re-launch the courier setting a different hub.')
+    }
+  }
+
+  async initCourier(options) {
+    const env = options.env = await ConfigUtils.getEnv()
+    let ready
+    if (env.courier) {
+      const {authCode, port, caCrt} = env.courier
+      let body = await this.callCourier({name: 'ready'}, authCode, port, caCrt, '/admin')
+
+      ready = body.success
+      if (!ready) {
+        delete env.courier
+        await ConfigUtils.putEnv(env)
+      } else {
+        env.courier.tunnel = body.tunnel.url
+            ? body.tunnel
+            : await this.publishToHubIfNotYet(options)
+        await ConfigUtils.putEnv(env)
+      }
+    }
+    if (ready) {
+      this.Logger.reset(`A courier is already set and is listening on port ${env.courier.port}`)
+    } else {
+      let yes = await this.useConfirm({
+        message: 'No Secrez Courier found. If you launched it, do you have the auth code?',
+        default: false
+      })
+      if (yes) {
+        let authCode = await this.useInput({
+          message: 'Paste the auth code'
+        })
+        if (authCode) {
+          const port = authCode.substring(8)
+          authCode = authCode.substring(0, 8)
+          const body = await this.callCourier({name: 'ready'}, authCode, port, undefined, '/admin')
+          if (body.success) {
+            env.courier = {
+              authCode,
+              port,
+              caCrt: body.caCrt
+            }
+            env.courier.tunnel = body.tunnel.url
+                ? body.tunnel
+                : await this.publishToHubIfNotYet(options)
+            await ConfigUtils.putEnv(env)
+            this.Logger.reset(`Connected with the courier listening on port ${port}`)
+          } else {
+            this.Logger.red('The auth-code is not correct. Try again, please.')
+          }
+        } else {
+          this.Logger.grey('Operation canceled0')
+        }
+      } else {
+        this.Logger.grey('Operation canceled')
+      }
+    }
+
+  }
+
   async conf(options) {
     if (!this.fido2Client) {
       this.fido2Client = new Fido2Client(this.secrez)
@@ -417,6 +492,8 @@ class Conf extends require('../Command') {
       await this.setFido2(options)
     } else if (options.unregister) {
       await this.unregister(options)
+    } else if (options.initCourier) {
+      await this.initCourier(options)
     } else if (options.newPassword || options.newIterationsNumber) {
       await this.upgradeAccount(options)
     } else {

@@ -5,12 +5,12 @@ const chai = require('chai')
 const fs = require('fs-extra')
 const assert = chai.assert
 const request = require('superagent')
+const {Secrez, Crypto} = require('@secrez/core')
 const {TLS} = require('@secrez/tls')
 const {sleep} = require('@secrez/utils')
 const {createServer, utils: hubUtils} = require('@secrez/hub')
-const {isValidRandomId} = hubUtils
+const {isValidRandomId, getRandomId, setPayloadAndSignIt} = hubUtils
 
-const fixtures = require('./fixtures')
 const localDomain = 'localho.st' // '127zero0one.com'
 
 const localtunnel = require('../index')
@@ -26,6 +26,23 @@ describe('tunnel', async function () {
   let localHttpsServer
   let hubServer
   let tunnel
+
+  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+  let secrez = new Secrez()
+
+  function setPayloadAndSignature(id  = 0) {
+    return setPayloadAndSignIt(secrez, {
+      id
+    })
+  }
+
+  // process.env.AS_DEV = true
+
+  before(async function () {
+    await fs.emptyDir(rootDir)
+    await secrez.init(rootDir)
+    await secrez.signup('password', 1000)
+  })
 
   const startHub = async () => {
     hubServer = createServer({
@@ -84,15 +101,9 @@ describe('tunnel', async function () {
 
   it('query localtunnel server w/out ident', async function () {
 
-    // this.timeout(10000)
-
-    // process.env.AS_DEV = true
-
-    const {payload, signature} = fixtures.randomId
+    const {payload, signature} = setPayloadAndSignature()
 
     tunnel = await localtunnel({host, port: localPort, payload, signature})
-
-    // await sleep(10000)
 
     let result = tunnel.url.split('//')[1].split('.')
 
@@ -113,8 +124,7 @@ describe('tunnel', async function () {
   it('query localtunnel server with ident', async function () {
 
     expected = 'Enjoy!'
-
-    const {payload, signature} = fixtures.fixedId
+    const {payload, signature} = setPayloadAndSignature(getRandomId(secrez.getPublicKey()))
 
     tunnel = await localtunnel({host, port: localPort, payload, signature})
 
@@ -150,7 +160,7 @@ describe('tunnel', async function () {
 
     expected = 'Azzo'
 
-    const {payload, signature} = fixtures.randomId
+    const {payload, signature} = setPayloadAndSignature()
 
     tunnel = await localtunnel({
       host,
@@ -176,7 +186,7 @@ describe('tunnel', async function () {
 
     expected = undefined
 
-    const {payload, signature} = fixtures.randomId
+    const {payload, signature} = setPayloadAndSignature()
 
     tunnel = await localtunnel({host, port: localPort, payload, signature, local_host: '127.0.0.1'})
 
@@ -192,7 +202,7 @@ describe('tunnel', async function () {
 
     expected = 'ciao'
 
-    const {payload, signature} = fixtures.randomId
+    const {payload, signature} = setPayloadAndSignature()
 
     tunnel = await localtunnel({host, port: localPort, payload, signature})
     let res = await request.get(tunnel.url)

@@ -89,4 +89,7 @@ Examples:
   process.exit(0)
 }
 
-startServer(options)
+(async function () {
+  const port = await startServer(options)
+  console.log(`Hub listening on port ${port}`)
+})()

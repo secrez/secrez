@@ -1,9 +1,4 @@
-// const _ = require('lodash')
-// const {chalk} = require('../utils/Logger')
-// const path = require('path')
-// const {Crypto, config} = require('@secrez/core')
-// const {Node} = require('@secrez/fs')
-// const {isYaml, yamlParse} = require('@secrez/utils')
+const {ConfigUtils} = require('@secrez/core')
 
 class Chat extends require('../Command') {
 
@@ -32,7 +27,25 @@ class Chat extends require('../Command') {
   }
 
   async chat(options) {
+    const env = options.env = await ConfigUtils.getEnv()
+    if (env.courier) {
+      const {authCode, port, caCrt} = env.courier
+      if (!(await this.callCourier({name: 'ready'}, authCode, port, caCrt, '/admin')).success) {
+        throw new Error("A courier is configured, but either it's not listening or the Auth Code is changed or it has been taken by another account")
+      }
+    } else {
+      this.Logger.grey(`Chat requires a courier listening locally.
+In another terminal window install @secrez/courier with 
 
+  npm i -g @secrez/courier
+  
+and launch it with 
+
+  secrez-courier
+  
+It will show an Auth Code, copy it and come back to Secrez. Then run "conf --init-courier" to connect it.`)
+      throw new Error('Courier not found.')
+    }
   }
 
   async exec(options = {}) {

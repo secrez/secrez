@@ -1,6 +1,6 @@
 // const log = require('book')
 const Koa = require('koa')
-const tldjs = require('tldjs')
+// const tldjs = require('tldjs')
 const {Debug} = require('@secrez/utils')
 const http = require('http')
 const Router = require('koa-router')
@@ -10,21 +10,18 @@ const {Secrez} = require('@secrez/core')
 const Shortener = require('./lib/Shortener')
 const ClientManager = require('./lib/ClientManager')
 const debug = Debug('hub:server')
-const {getRandomId, isValidRandomId, verifyPayload} = require('./utils')
+const {getRandomId, isValidRandomId, verifyPayload, getClientIdFromHostname} = require('./utils')
 
 const allIds = {}
+const oneMinute = 60 * 1000
 
 module.exports = function (opt) {
   opt = opt || {}
 
   const validHosts = (opt.domain) ? [opt.domain] : undefined
-  const myTldjs = tldjs.fromUserSettings({validHosts})
+  // const myTldjs = tldjs.fromUserSettings({validHosts})
   const landingPage = opt.landing
   const shortener = new Shortener
-
-  function GetClientIdFromHostname(hostname) {
-    return myTldjs.getSubdomain(hostname)
-  }
 
   const manager = new ClientManager(opt)
 
@@ -84,13 +81,13 @@ module.exports = function (opt) {
       error(ctx, 400, 'Wrong public key')
       return
     }
-    if (!verifyPayload(payload, signature)) {
+    if (!verifyPayload(payload, signature, oneMinute, true)) {
       error(ctx, 400, 'Wrong signature')
       return
     }
     if (reqId) {
       if (!isValidRandomId(reqId)) {
-        error(ctx, 400, 'Wrong requested id')
+        error(ctx, 400, 'Wrong id')
         return
       }
     }
@@ -141,7 +138,7 @@ module.exports = function (opt) {
     const hostname = ctx.request.headers.host
 
     // skip anything not on the root path
-    if (path !== '/' || GetClientIdFromHostname(hostname)) {
+    if (path !== '/' || getClientIdFromHostname(hostname)) {
       await next()
       return
     }
@@ -163,10 +160,12 @@ module.exports = function (opt) {
   app.use(async (ctx, next) => {
     const parts = ctx.request.path.split('/')
 
+    const hostname = ctx.request.headers.host
+
     // any request with several layers of paths is not allowed
     // rejects /foo/bar
     // allow /foo
-    if (parts.length !== 2) {
+    if (parts.length !== 2 || getClientIdFromHostname(hostname)) {
       await next()
       return
     }
@@ -208,7 +207,7 @@ module.exports = function (opt) {
       return
     }
 
-    let clientId = GetClientIdFromHostname(hostname)
+    let clientId = getClientIdFromHostname(hostname)
 
     debug('clientId %s', clientId, hostname)
 
@@ -240,7 +239,7 @@ module.exports = function (opt) {
       return
     }
 
-    const clientId = GetClientIdFromHostname(hostname)
+    const clientId = getClientIdFromHostname(hostname)
     if (!clientId) {
       socket.destroy()
       return

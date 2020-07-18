@@ -1,6 +1,7 @@
 const {Crypto, Secrez} = require('@secrez/core')
+const validator = require('./Validator')
 
-module.exports = {
+const Utils = {
 
   getRandomId(publicKey, allIds = {}) {
     let id
@@ -14,10 +15,11 @@ module.exports = {
     }
   },
 
-  isValidRandomId(id, publicKey) {
+  isValidRandomId(id = '', publicKey) {
     id = id.split('0')
     return (
         Crypto.isBase32String(id[0]) &&
+        id[1] &&
         id[1].length === 8 &&
         Crypto.isBase32String(id[1]) && (
             publicKey
@@ -35,9 +37,46 @@ module.exports = {
     return id[0].substring(0, 4) + (id[1] ? '...' + id[1] : '')
   },
 
-  verifyPayload(payload, signature) {
-    let {publicKey} = JSON.parse(payload)
+  verifyPayload(payload, signature, validFor, onlyOneTime) {
+    let {when, publicKey} = JSON.parse(payload)
     let signPublicKey = Secrez.getSignPublicKey(publicKey)
-    return Crypto.verifySignature(payload, signature, signPublicKey)
+    let verified = Crypto.verifySignature(payload, signature, signPublicKey)
+    if (verified && validFor && Math.abs(Date.now() - when) > validFor) {
+      verified = false
+    }
+    if (verified && onlyOneTime) {
+      // it can be verified only one time
+      let key = when + signature
+      if (validator.isAlreadyValidated(when, signature)) {
+        verified = false
+      } else {
+        validator.setAsValidated(when, signature)
+      }
+    }
+    return verified
+  },
+
+  setPayloadAndSignIt(secrez, payload) {
+    const publicKey = secrez.getPublicKey()
+    payload = Object.assign(payload, {
+      when: Date.now(),
+      publicKey,
+      salt: Crypto.getRandomBase58String(16)
+    })
+    payload = JSON.stringify(payload)
+    const signature = secrez.signMessage(payload)
+    return {payload, signature}
+  },
+
+  getClientIdFromHostname(hostname = '') {
+    hostname = hostname.toString().split(':')[0].split('.')
+    for (let part of hostname) {
+      if (Utils.isValidRandomId(part)) {
+        return part
+      }
+    }
   }
 }
+
+
+module.exports = Utils

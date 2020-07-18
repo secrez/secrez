@@ -29,25 +29,28 @@ class Server {
 
   async publish(payload, signature) {
 
-    let ssl = await this.getCertificates()
+    if (!this.tunnelActive) {
 
-    let opts = {
-      host: this.options.hub,
-      port: this.port,
-      payload,
-      signature,
-      local_host: this.localhost,
-      local_https: true,
-      local_cert: ssl.cert,
-      local_key: ssl.key,
-      local_ca: ssl.ca,
-      allow_invalid_cert: false
+      let ssl = await this.getCertificates()
+      let opts = {
+        host: this.options.hub,
+        port: this.port,
+        payload,
+        signature,
+        // local_host: '127zero0one.com',
+        local_https: true,
+        local_cert: ssl.cert,
+        local_key: ssl.key,
+        local_ca: ssl.ca,
+        allow_invalid_cert: false
+      }
+
+      this.tunnel = await localtunnel(opts)
+      this.tunnelActive = true
+      this.tunnel.on('close', () => {
+        this.tunnelActive = false
+      })
     }
-    this.tunnel = await localtunnel(opts)
-    this.tunnelActive = true
-    this.tunnel.on('close', () => {
-      this.tunnelActive = false
-    })
 
     return {
       url: this.tunnel.url,
@@ -83,6 +86,9 @@ class Server {
     if (!port) {
       port = await this.db.getValueFromConfig('port')
     }
+    if (this.options.newRandomPort) {
+      port = undefined
+    }
 
     const options = await this.getCertificates()
     const app = new App(this)
@@ -102,7 +108,7 @@ class Server {
 
     await this.db.saveKeyValueToConfig('port', this.port)
 
-    this.localhost = `https://${this.options.local || 'localhost'}:${this.port}`
+    this.localhost = `https://localhost:${this.port}`
 
     this.httpsServer.on('error', error => {
       if (error.syscall !== 'listen') {

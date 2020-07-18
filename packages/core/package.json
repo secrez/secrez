@@ -10,7 +10,7 @@
     "posttest": "nyc check-coverage --statements 99 --branches 95 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/utils": "workspace:^0.1.1",
+    "@secrez/utils": "workspace:~0.1.1",
     "base-x": "^3.0.8",
     "bip39": "^3.0.2",
     "blake3": "^2.1.4",

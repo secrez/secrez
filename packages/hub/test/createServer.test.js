@@ -7,7 +7,7 @@ const {Server} = require('ws')
 const WebSocketServer = Server
 const WebSocket = require('ws')
 const net = require('net')
-const {getRandomId} = require('../src/utils')
+const {getRandomId, setPayloadAndSignIt} = require('../src/utils')
 const {Secrez, Crypto} = require('@secrez/core')
 
 const createServer = require('../src/createServer')
@@ -16,6 +16,12 @@ describe.only('Server', () => {
 
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
   let secrez = new Secrez()
+
+  function setPayloadAndSignature(id = 0) {
+    return setPayloadAndSignIt(secrez, {
+      id
+    })
+  }
 
   before(async function () {
     await fs.emptyDir(rootDir)
@@ -98,15 +104,7 @@ describe.only('Server', () => {
     let res = await request(server).get('/api/v1/tunnels/foobar-test/status')
     assert.equal(res.statusCode, 404)
 
-    // request a new client called foobar-test
-    const payload = JSON.stringify({
-      id: 0,
-      publicKey: secrez.getPublicKey(),
-      salt: Crypto.getRandomBase58String(16)
-    })
-    const signature = secrez.signMessage(payload)
-
-    // console.log({payload, signature})
+    const {payload, signature} = setPayloadAndSignature()
     res = await request(server).get('/api/v1/tunnel/new').query({
       payload,
       signature
@@ -143,16 +141,9 @@ describe.only('Server', () => {
     assert.equal(res.statusCode, 404)
 
     // request a new client called foobar-test
-    const publicKey = secrez.getPublicKey()
-    let publicKeyId = getRandomId(publicKey)
+    const publicKeyId = getRandomId(secrez.getPublicKey())
+    const {payload, signature} = setPayloadAndSignature(publicKeyId)
 
-    const payload = JSON.stringify({
-      id: publicKeyId,
-      publicKey,
-      salt: Crypto.getRandomBase58String(16)
-    })
-    const signature = secrez.signMessage(payload)
-    // console.log({payload, signature})
     res = await request(server).get('/api/v1/tunnel/new').query({
       payload,
       signature
@@ -167,9 +158,11 @@ describe.only('Server', () => {
       connected_sockets: 0,
     })
 
+    const {payload: payload2, signature: signature2} = setPayloadAndSignature(publicKeyId)
+
     res = await request(server).get('/api/v1/tunnel/new').query({
-      payload,
-      signature,
+      payload: payload2,
+      signature: signature2,
       keepShortUrl: true
     })
     assert.equal(res.body.short_url, shortUrl)
@@ -180,6 +173,19 @@ describe.only('Server', () => {
       signature
     })
     assert.notEqual(res.body.short_url, shortUrl)
+
+    try {
+      // reusing the same payload is not allowed
+      res = await request(server).get('/api/v1/tunnel/new').query({
+        payload: payload2,
+        signature: signature2,
+        keepShortUrl: true
+      })
+      assert.isTrue(false)
+    } catch(e) {
+      assert.isTrue(!!e.message)
+    }
+
 
     await new Promise(resolve => server.close(resolve))
   })

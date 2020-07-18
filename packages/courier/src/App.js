@@ -39,7 +39,17 @@ class App {
             return res.status(403).end()
           } else if (action && action.name) {
             switch (action.name) {
-
+              case 'ready': {
+                res.json({
+                  success: true,
+                  caCrt: await this.server.tls.getCa(),
+                  tunnel: this.server.tunnelActive ? {
+                    url: this.server.tunnel.url,
+                    short_url: this.server.tunnel.short_url
+                  } : {}
+                })
+                break
+              }
               case 'publish': {
                 let {payload, signature} = req.query
                 const info = await this.server.publish(payload, signature)

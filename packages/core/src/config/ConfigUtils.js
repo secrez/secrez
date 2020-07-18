@@ -90,7 +90,7 @@ history
   }
 
   static async putEnv(env) {
-    return await fs.writeFile(config.envPath, JSON.stringify(env))
+    // return await fs.writeFile(config.envPath, JSON.stringify(env))
   }
 
 }
