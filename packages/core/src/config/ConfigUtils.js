@@ -48,6 +48,7 @@ Be very careful, and don't touch anything :o)
       await fs.writeFile(fPath, `tmp
 env.json
 history
+local
 `, 'utf-8')
     }
     return config
@@ -90,7 +91,7 @@ history
   }
 
   static async putEnv(env) {
-    // return await fs.writeFile(config.envPath, JSON.stringify(env))
+    return await fs.writeFile(config.envPath, JSON.stringify(env))
   }
 
 }

@@ -125,6 +125,23 @@ class User extends require('../Command') {
     }
   }
 
+  async list(options) {
+    let list = []
+    let users = this.userManager.get()
+    let max = 4
+    for (let user in users) {
+      let content = users[user].content
+      if (options.filter) {
+        if (content.split(' ')[0] !== options.filter) {
+          continue
+        }
+      }
+      list.push([user, content])
+      max = Math.max(max, user.length)
+    }
+    return [list, max]
+  }
+
   async user(options) {
     if (!UserManager.getCache().dataPath) {
       // for testing, when Prompt is not required
@@ -134,18 +151,9 @@ class User extends require('../Command') {
       this.userManager = new UserManager
     }
     if (options.list) {
-      let list = []
-      let users = this.userManager.get()
-      let max = 4
-      for (let user in users) {
-        let content = users[user].content
-        if (options.filter) {
-          if (content.split(' ')[0] !== options.filter) {
-            continue
-          }
-        }
-        list.push([user, content])
-        max = Math.max(max, user.length)
+      let [list, max] = await this.list(options)
+      if (options.asIs) {
+        return list
       }
       const format = l => {
         return l[0] + ' '.repeat(max - l[0].length) + '  ' + l[1]

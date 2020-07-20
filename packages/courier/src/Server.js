@@ -42,20 +42,31 @@ class Server {
         local_cert: ssl.cert,
         local_key: ssl.key,
         local_ca: ssl.ca,
-        allow_invalid_cert: false
+        allow_invalid_cert: false,
+        timeout: 5
       }
 
       this.tunnel = await localtunnel(opts)
-      this.tunnelActive = true
-      this.tunnel.on('close', () => {
-        this.tunnelActive = false
-      })
+      if (this.tunnel.clientId) {
+        this.tunnelActive = true
+        this.tunnel.on('close', this.onTunnelClose)
+        return {
+          clientId: this.tunnel.clientId,
+          url: this.tunnel.url,
+          short_url: this.tunnel.short_url
+        }
+      } else {
+        this.tunnel.close()
+        return {
+          error: 'Tunnel server offline',
+          hub: this.options.hub
+        }
+      }
     }
+  }
 
-    return {
-      url: this.tunnel.url,
-      short_url: this.tunnel.short_url
-    }
+  async onTunnelClose() {
+    this.tunnelActive = false
   }
 
   async getCertificates() {
@@ -142,20 +153,23 @@ class Server {
     process.on('SIGINT', () => {
       debug('SIGINT signal received.')
 
-      this.httpsServer.close(async function (err) {
-        if (err) {
-          debug('ERROR', err)
-          // eslint-disable-next-line no-process-exit
-          process.exit(1)
-        }
-        await sleep(100)
-        // eslint-disable-next-line no-process-exit
-        process.exit(0)
-      })
+      process.exit(0)
+      // this.httpsServer.close(err => {
+      //   if (err) {
+      //     debug('ERROR', err)
+      //     // eslint-disable-next-line no-process-exit
+      //     process.exit(1)
+      //   }
+      //   // eslint-disable-next-line no-process-exit
+      //   process.exit(0)
+      // })
     })
 
     process.on('exit', () => {
       debug('Closing connections...')
+      if (this.tunnelActive) {
+        this.tunnel.close()
+      }
       // this.db.db.close()
       // this.httpsServer.close()
       debug('Closed.')

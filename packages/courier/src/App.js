@@ -44,6 +44,7 @@ class App {
                   success: true,
                   caCrt: await this.server.tls.getCa(),
                   tunnel: this.server.tunnelActive ? {
+                    clientId: this.server.tunnel.clientId,
                     url: this.server.tunnel.url,
                     short_url: this.server.tunnel.short_url
                   } : {}
@@ -89,6 +90,12 @@ class App {
           let {minTimestamp, maxTimestamp, from, publicKey} = req.parsedPayload
           if (this.owner !== publicKey) {
             res.status(403).end()
+          } else if (!this.server.tunnelActive) {
+            res.json({
+              success: false,
+              error: 2,
+              message: 'Tunnel not active'
+            })
           } else {
             let result = await this.db.getMessages(minTimestamp, maxTimestamp, from)
             res.json({

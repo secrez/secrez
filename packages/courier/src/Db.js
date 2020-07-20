@@ -65,12 +65,14 @@ class Db {
   }
 
   async trustPublicKey(publickey) {
-    let ts = Crypto.getTimestampWithMicroseconds()
-    return this.insert({
-      timestamp: ts[0],
-      microseconds: ts[1],
-      publickey
-    }, 'publickeys')
+    if (!(await this.isTrustedPublicKey(publickey))) {
+      let ts = Crypto.getTimestampWithMicroseconds()
+      return this.insert({
+        timestamp: ts[0],
+        microseconds: ts[1],
+        publickey
+      }, 'publickeys')
+    }
   }
 
   async isTrustedPublicKey(publickey) {

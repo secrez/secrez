@@ -52,12 +52,14 @@ class TunnelCluster extends EventEmitter {
       // emit connection refused errors immediately, because they
       // indicate that the tunnel can't be established.
       if (err.code === 'ECONNREFUSED') {
-        this.emit(
-            'error',
-            new Error(
-                `connection refused: ${remoteHostOrIp}:${remotePort} (check your firewall settings)`
-            )
-        )
+        console.error(`Connection refused/lost: ${remoteHostOrIp}:${remotePort}`)
+        this.tunnel.close()
+        // this.emit(
+        //     'error',
+        //     new Error(
+        //         `connection refused: ${remoteHostOrIp}:${remotePort} (check your firewall settings)`
+        //     )
+        // )
       }
 
       remote.end()

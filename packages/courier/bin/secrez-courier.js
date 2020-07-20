@@ -22,11 +22,6 @@ const optionDefinitions = [
     type: String
   },
   {
-    name: 'do-not-log',
-    alias: 'd',
-    type: Boolean
-  },
-  {
     name: 'new-auth-code',
     type: Boolean
   },
@@ -68,7 +63,6 @@ Options:
   -h, --help            This help.
   -H, --hub             The remote host (by default https://secrez.cc)
   -r, --root            Root folder (by default ~/.secrez-courier)
-  -d, --do-not-log      Does not log on screen
   --new-auth-code       Refreshes the authCode, if a previous one's been saved
   --new-random-port     Force the refresh of a new random port (modifying the auth-code)
                           
@@ -78,7 +72,7 @@ Examples:
   $ secrez-courier                          All defaults (uses secrez.cc as remote hub)
   $ secrez-courier -H https://example.org   Uses example.org as remote hub
   $ secrez-courier -r \`pwd\`/data            Uses ./data as root
-  $ secrez-courier -d                       Does not log in the terminal 
+  $ NODE_ENV=dev secrez-courier             Logs events in the terminal 
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)

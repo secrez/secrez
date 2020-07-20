@@ -1,6 +1,7 @@
 const Fido2Client = require('../Fido2Client')
 const _ = require('lodash')
 const Case = require('case')
+const {sleep} = require('@secrez/utils')
 const {Crypto, config, ConfigUtils} = require('@secrez/core')
 const chalk = require('chalk')
 
@@ -413,34 +414,71 @@ class Conf extends require('../Command') {
   async publishToHubIfNotYet(options) {
     try {
       const {authCode, port, caCrt} = options.env.courier
-      return await this.callCourier({name: 'publish'}, authCode, port, caCrt, '/admin')
+      let id = options.env.courier.tunnel ? options.env.courier.tunnel.clientId : 0
+      this.prompt.loadingMessage = 'Publishing the courier'
+      this.prompt.loading()
+      let res = await this.callCourier({
+            action: {
+              name: 'publish'
+            },
+            id
+          },
+          authCode,
+          port,
+          caCrt,
+          '/admin'
+      )
+      this.prompt.showLoading = false
+      await sleep(100)
+      process.stdout.clearLine()
+      if (res.info.error) {
+        throw new Error(`The connection to the hub ${res.info.hub} is refused. Verify that your Secrez Courier is connecting to an active hub, please, and try again.`)
+      } else {
+        return res.info
+      }
     } catch (e) {
-
-      console.error(e)
-
-      throw new Error('A courier is connected but it is unable to expose itself throught the remote hub. Be sure that the hub is up and running, or re-launch the courier setting a different hub.')
+      // console.error(e)
+      throw new Error(e.message)
     }
   }
 
-  async initCourier(options) {
-    const env = options.env = await ConfigUtils.getEnv()
+  async isCourierReady(options) {
+    if (!options.env) {
+      options.env = await ConfigUtils.getEnv()
+    }
+    const {authCode, port, caCrt} = options.env.courier
+    if (authCode) {
+      return await this.callCourier({action: {name: 'ready'}}, authCode, port, caCrt, '/admin')
+    } else {
+      throw new Error('No courier set up yet.')
+    }
+  }
+
+  async preInit(options) {
+    const env = options.env
     let ready
     if (env.courier) {
-      const {authCode, port, caCrt} = env.courier
-      let body = await this.callCourier({name: 'ready'}, authCode, port, caCrt, '/admin')
-
+      let body = await this.isCourierReady(options)
       ready = body.success
       if (!ready) {
         delete env.courier
         await ConfigUtils.putEnv(env)
       } else {
-        env.courier.tunnel = body.tunnel.url
-            ? body.tunnel
-            : await this.publishToHubIfNotYet(options)
+        env.courier.caCrt = body.caCrt
+        if (!body.tunnel.url) {
+          body.tunnel = await this.publishToHubIfNotYet(options)
+        }
+        env.courier.tunnel = body.tunnel
         await ConfigUtils.putEnv(env)
       }
+      options.ready = true
     }
-    if (ready) {
+  }
+
+  async initCourier(options) {
+    const env = options.env = await ConfigUtils.getEnv()
+    await this.preInit(options)
+    if (options.ready) {
       this.Logger.reset(`A courier is already set and is listening on port ${env.courier.port}`)
     } else {
       let yes = await this.useConfirm({
@@ -454,16 +492,17 @@ class Conf extends require('../Command') {
         if (authCode) {
           const port = authCode.substring(8)
           authCode = authCode.substring(0, 8)
-          const body = await this.callCourier({name: 'ready'}, authCode, port, undefined, '/admin')
+          const body = await this.callCourier({action: {name: 'ready'}}, authCode, port, undefined, '/admin')
           if (body.success) {
             env.courier = {
               authCode,
               port,
               caCrt: body.caCrt
             }
-            env.courier.tunnel = body.tunnel.url
-                ? body.tunnel
-                : await this.publishToHubIfNotYet(options)
+            if (!body.tunnel.url) {
+              body.tunnel = await this.publishToHubIfNotYet(options)
+            }
+            env.courier.tunnel = body.tunnel
             await ConfigUtils.putEnv(env)
             this.Logger.reset(`Connected with the courier listening on port ${port}`)
           } else {
@@ -515,6 +554,7 @@ class Conf extends require('../Command') {
       }
       await this.conf(options)
     } catch (e) {
+      // console.error(e)
       this.Logger.red(e.message)
     }
     this.prompt.run()

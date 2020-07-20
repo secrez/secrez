@@ -26,24 +26,36 @@ class Chat extends require('../Command') {
     }
   }
 
+  async uploadUsersPublicKeysToCourier(options) {
+    let users = await this.prompt.commands.user.user({list: true, asIs: true})
+    let publicKeys = []
+    for (let user of users) {
+      publicKeys.push(user[1])
+    }
+    const {authCode, port, caCrt} = options.env.courier
+    await this.callCourier({action: {name: 'add', publicKeys}}, authCode, port, caCrt, '/admin')
+  }
+
   async chat(options) {
     const env = options.env = await ConfigUtils.getEnv()
     if (env.courier) {
-      const {authCode, port, caCrt} = env.courier
-      if (!(await this.callCourier({name: 'ready'}, authCode, port, caCrt, '/admin')).success) {
-        throw new Error("A courier is configured, but either it's not listening or the Auth Code is changed or it has been taken by another account")
+      await this.prompt.commands.conf.preInit(options)
+      if (options.ready) {
+        await this.uploadUsersPublicKeysToCourier(options)
+      } else {
+        throw new Error('The configured courier is not responding.')
       }
     } else {
       this.Logger.grey(`Chat requires a courier listening locally.
-In another terminal window install @secrez/courier with 
+If you haven't yet, in another terminal install @secrez/courier as 
 
   npm i -g @secrez/courier
   
-and launch it with 
+and launch it as 
 
   secrez-courier
   
-It will show an Auth Code, copy it and come back to Secrez. Then run "conf --init-courier" to connect it.`)
+It will show an Auth Code, copy it and come back to Secrez. Then run "conf --init-courier" to configure the connection w/ the courier.`)
       throw new Error('Courier not found.')
     }
   }
