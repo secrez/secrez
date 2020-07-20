@@ -6,18 +6,14 @@ const inquirer = require('inquirer')
 // eslint-disable-next-line node/no-unpublished-require
 // const inquirerCommandPrompt = require('../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
-
 const multiEditorPrompt = require('./utils/MultiEditorPrompt')
-const {sleep, getKeyValue} = require('@secrez/utils')
-const {FsUtils} = require('@secrez/fs')
-
-
-const Logger = require('./utils/Logger')
-const cliConfig = require('./cliConfig')
-
 inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('multiEditor', multiEditorPrompt)
 
+const {sleep, getKeyValue} = require('@secrez/utils')
+const {FsUtils} = require('@secrez/fs')
+const Logger = require('./utils/Logger')
+const cliConfig = require('./cliConfig')
 const clearScreen = require('./ClearScreen')
 
 let thiz
@@ -188,7 +184,7 @@ class CommandPrompt {
     }
     try {
       let pre = this.prePromptMessage(options)
-      this.lastpre = this.lastPrePromptMessage(pre)
+      let lastpre = this.lastPrePromptMessage(pre)
       let {cmd} = await inquirer.prompt([
         {
           type: 'command',
@@ -202,6 +198,9 @@ class CommandPrompt {
           context: 0,
           ellipsize: true,
           autocompletePrompt: this.availableOptionsMessage(),
+          onBeforeKeyPress: () => {
+            clearScreen.setLastCommandAt(lastpre)
+          },
           onClose: () => {
             fs.emptyDirSync(cliConfig.tmpPath)
           },

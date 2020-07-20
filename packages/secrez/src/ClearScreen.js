@@ -18,7 +18,8 @@ class ClearScreen {
     }
   }
 
-  setLastCommandAt() {
+  setLastCommandAt(lastpre) {
+    this.lastpre = lastpre
     this.lastCommandAt = Date.now()
   }
 
