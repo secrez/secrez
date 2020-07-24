@@ -6,7 +6,7 @@ class Validator {
     this.validated = {}
   }
 
-  isAlreadyValidated( when, signature) {
+  isAlreadyValidated(when, signature) {
     when = when.toString()
     if (this.validated[when]) {
       return !!this.validated[when][signature]
@@ -14,7 +14,7 @@ class Validator {
     return false
   }
 
-  setAsValidated( when, signature) {
+  setAsValidated(when, signature) {
     when = when.toString()
     if (!this.validated[when]) {
       this.validated[when] = {}

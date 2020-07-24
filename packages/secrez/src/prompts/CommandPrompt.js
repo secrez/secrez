@@ -6,15 +6,16 @@ const inquirer = require('inquirer')
 // eslint-disable-next-line node/no-unpublished-require
 // const inquirerCommandPrompt = require('../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
-const multiEditorPrompt = require('./utils/MultiEditorPrompt')
+const multiEditorPrompt = require('./MultiEditorPrompt')
 inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('multiEditor', multiEditorPrompt)
 
 const {sleep, getKeyValue} = require('@secrez/utils')
+const Completion = require('./Completion')
 const {FsUtils} = require('@secrez/fs')
-const Logger = require('./utils/Logger')
-const cliConfig = require('./cliConfig')
-const clearScreen = require('./ClearScreen')
+const Logger = require('../utils/Logger')
+const cliConfig = require('../cliConfig')
+const sigintManager = require('./SigintManager')
 
 let thiz
 
@@ -25,7 +26,6 @@ class CommandPrompt {
     this.inquirer = inquirer
     this.commandPrompt = inquirerCommandPrompt
     this.historyPath = options.historyPath
-    this.getHistory = inquirerCommandPrompt.getHistory
     inquirerCommandPrompt.setConfig({
       history: {
         save: false,
@@ -34,6 +34,34 @@ class CommandPrompt {
       },
       onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd
     })
+    this.completion = cliConfig[options.completion]
+    this.commands = options.commands
+    this.environment = options.environment
+    if (options.secrez) {
+      this.secrez = options.secrez
+    }
+    this.clearScreen = require('./ClearScreen')(this.secrez.config)
+    this.context = options.context || 0
+    process.on('SIGINT', async () => {
+      await sigintManager.onSigint(this)
+    })
+    await this.setSigintPosition()
+  }
+
+  async setSigintPosition() {
+    const {position, runNow} = await sigintManager.setPosition(this)
+    this.sigintPosition = position
+    if (runNow) {
+      await this.run()
+    }
+  }
+
+  async firstRun() {
+    if (!this.getCommands) {
+      this.getCommands = Completion(this.completion)
+      this.basicCommands = await this.getCommands()
+      this.getCommands.bind(this)
+    }
   }
 
   reorderCommandLineWithDefaultAtEnd(line) {
@@ -157,50 +185,48 @@ class CommandPrompt {
     return res
   }
 
-  async preRun(options, cmd) {
+  async preRun(options) {
     // can be implemented by the extending class
   }
 
-  async postRun(options, cmd) {
+  async postRun(options) {
     // must be implemented by the extending class
   }
 
-  prePromptMessage(options) {
-    return 'Prompt'
+  prePromptMessage() {
+    return 'MainPrompt'
   }
 
-  lastPrePromptMessage(pre, options = {}) {
-    return `Prompt`
+  promptMessage() {
+    return '$'
   }
 
   availableOptionsMessage(options) {
     return chalk.grey('Available options:')
   }
 
-  async run(options) {
+  async run(options = {}) {
+    await this.firstRun()
     await this.preRun(options)
     if (this.disableRun) {
       return
     }
     try {
-      let pre = this.prePromptMessage(options)
-      let lastpre = this.lastPrePromptMessage(pre)
+      let prefix = this.prePromptMessage(options)
       let {cmd} = await inquirer.prompt([
         {
           type: 'command',
           name: 'cmd',
           autoCompletion: this.getCommands,
           short: this.short,
-          prefix: pre,
+          prefix,
           // noColorOnAnswered: true,
           colorOnAnswered: 'grey',
-          message: options.message || '$',
-          context: 0,
+          message: this.promptMessage(),
           ellipsize: true,
           autocompletePrompt: this.availableOptionsMessage(),
-          onBeforeKeyPress: () => {
-            clearScreen.setLastCommandAt(lastpre)
-          },
+          onBeforeKeyPress: this.clearScreen.setLastCommandAt,
+          context: this.context,
           onClose: () => {
             fs.emptyDirSync(cliConfig.tmpPath)
           },
@@ -214,8 +240,37 @@ class CommandPrompt {
       options.cmd = _.trim(cmd)
       await this.postRun(options)
     } catch (e) {
-      // console.error(e)
+      console.error(e)
       Logger.red(e.message)
+    }
+  }
+
+  async exec(cmds, noRun) {
+    for (let cmd of cmds) {
+      if (cmd) {
+        cmd = cmd.split(' ')
+        const command = cmd[0]
+        if (this.basicCommands.includes(command)) {
+          let commandLine = cmd.slice(1).join(' ')
+          if (!commandLine) {
+            // prevent command-line-args from parsing process.argv
+            commandLine = ' '
+          }
+          try {
+            const options = FsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
+            await this.commands[command].exec(options)
+          } catch (e) {
+            // console.error(e)
+            Logger.red(e.message)
+            await this.run()
+          }
+        } else {
+          Logger.red('Command not found')
+          if (!noRun) {
+            await this.run()
+          }
+        }
+      }
     }
   }
 

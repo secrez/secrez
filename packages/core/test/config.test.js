@@ -1,7 +1,7 @@
 const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
-const Secrez = require('../src/Secrez')
+const Secrez = require('../src/Secrez')(Math.random())
 const fs = require('fs-extra')
 
 describe('#config', function () {
@@ -22,7 +22,7 @@ describe('#config', function () {
     assert.equal(s.tmpPath, path.join(rootDir, 'tmp'))
     assert.equal(s.workingDir, '/')
     assert.equal(s.localWorkingDir, path.dirname(rootDir))
-    assert.equal(s.envPath, path.join(rootDir, 'env.json'))
+    assert.equal(s.envPath, path.join(rootDir, 'local/env.json'))
     assert.equal(s.keysPath, path.join(rootDir, 'keys.json'))
 
   })

@@ -13,11 +13,12 @@
   "nyc": {
     "include": "src",
     "exclude": [
-      "src/utils/Logger.js",
-      "src/commands/Edit.js",
       "src/PreCommand.js",
-      "src/Fido2Client.js",
-      "src/commands/Conf.js"
+      "src/utils/Logger.js",
+      "src/utils/Fido2Client.js",
+      "src/commands/Edit.js",
+      "src/commands/Conf.js",
+      "src/commands/Exit.js"
     ]
   },
   "dependencies": {

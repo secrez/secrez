@@ -1,12 +1,12 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const {Secrez} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 const {Debug} = require('@secrez/utils')
+const superagent = require('superagent')
 const debug = Debug('courier:app')
 const {utils: hubUtils} = require('@secrez/hub')
 const {verifyPayload} = hubUtils
-
-let authCode
+const Db = require('./Db')
 
 function verifyPayloadAndSignature(req, prop) {
   let {payload, signature} = req[prop]
@@ -22,16 +22,26 @@ class App {
 
     this.server = server
     const app = express()
-    authCode = server.authCode
+    let authCode = server.authCode
     this.db = this.server.db
 
     app.use(bodyParser.json({limit: '100mb'}))
 
+    const authMiddleware = (req, res, next) => {
+      if (req.headers['auth-code'] === authCode) {
+        next()
+      } else {
+        res.status(401).json({
+          error: 'Unauthorized'
+        })
+      }
+    }
+
     app.get('/admin',
-        this.authMiddleware,
+        authMiddleware,
         this.wellSignedGet,
         async (req, res) => {
-          let {action, publicKey} = req.parsedPayload
+          let {action, publicKey, url} = req.parsedPayload
           if (!this.owner) {
             await this.setOwner(publicKey)
           }
@@ -61,21 +71,42 @@ class App {
                 break
               }
               case 'add': {
-                let wrongKeys
-                for (let pk of action.publicKeys) {
-                  if (!Secrez.isValidPublicKey(pk)) {
-                    if (!wrongKeys) {
-                      wrongKeys = []
-                    }
-                    wrongKeys.push(pk)
-                    continue
-                  }
-                  await this.db.trustPublicKey(publicKey)
+                let result
+                if (!Secrez.isValidPublicKey(action.publicKey)) {
+                  result = await this.db.trustPublicKey(action.publicKey, action.url)
                 }
                 res.json({
                   success: true,
-                  wrongKeys
+                  result
                 })
+                break
+              }
+              case 'send': {
+                let result
+                if (!Secrez.isValidPublicKey(action.publicKey)) {
+                  let url = await this.db.getTrustedPublicKeyUrl(action.publicKey)
+                  if (url) {
+                    let message = action.message
+                    // this are specifically for the message
+                    let {payload, signature} = message
+                    const params = {
+                      payload,
+                      signature
+                    }
+                    let res = await superagent.post(url)
+                        .set('Accept', 'application/json')
+                        .query({cc: 44})
+                        .send(params)
+                        // this is mostly for testing
+                        .ca(req.parsedPayload.caCrt)
+
+                  }
+                } else {
+                  res.json({
+                    success: false,
+                    error: 'No url found for the public key'
+                  })
+                }
               }
             }
           } else {
@@ -84,10 +115,10 @@ class App {
         })
 
     app.get('/',
-        this.authMiddleware,
+        authMiddleware,
         this.wellSignedGet,
         async (req, res, next) => {
-          let {minTimestamp, maxTimestamp, from, publicKey} = req.parsedPayload
+          let {minTimestamp, maxTimestamp, from, publicKey, limit} = req.parsedPayload
           if (this.owner !== publicKey) {
             res.status(403).end()
           } else if (!this.server.tunnelActive) {
@@ -97,7 +128,7 @@ class App {
               message: 'Tunnel not active'
             })
           } else {
-            let result = await this.db.getMessages(minTimestamp, maxTimestamp, from)
+            let result = await this.db.getMessages(minTimestamp, maxTimestamp, from, limit)
             res.json({
               success: true,
               result
@@ -108,9 +139,9 @@ class App {
     app.post('/',
         this.wellSignedPost,
         async (req, res, next) => {
-          const {message, publicKey} = req.parsedPayload
+          let {message, publicKey} = req.parsedPayload
           if (this.db.isTrustedPublicKey(publicKey)) {
-            await this.db.saveMessage(message, publicKey)
+            await this.db.saveMessage(message, publicKey, Db.FROM)
             res.json({
               success: true
             })
@@ -154,16 +185,6 @@ class App {
       await this.db.saveKeyValueToConfig('owner', publicKey)
     }
     this.owner = publicKey
-  }
-
-  authMiddleware(req, res, next) {
-    if (req.headers['auth-code'] === authCode) {
-      next()
-    } else {
-      res.status(401).json({
-        error: 'Unauthorized'
-      })
-    }
   }
 
   wellSignedGet(req, res, next) {

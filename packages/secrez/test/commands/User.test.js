@@ -3,8 +3,8 @@ const assert = chai.assert
 const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('../mocks/PromptMock')
-const UserManager = require('../../src/UserManager')
+const MainPrompt = require('../mocks/PromptMock')
+const UserManager = require('../../src/Managers/UserManager')
 const {assertConsole, noPrint, decolorize} = require('../helpers')
 
 const {
@@ -31,7 +31,7 @@ describe('#User', function () {
   before(async function () {
     for (let i = 0; i < 3; i++) {
       await fs.emptyDir(testDir)
-      prompt = new Prompt
+      prompt = new MainPrompt
       await prompt.init(options)
       await prompt.secrez.signup(password, iterations)
       publicKeys['user' + i] = prompt.secrez.getPublicKey()
@@ -41,7 +41,7 @@ describe('#User', function () {
   beforeEach(async function () {
     UserManager.getCache().reset()
     await fs.emptyDir(testDir)
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)

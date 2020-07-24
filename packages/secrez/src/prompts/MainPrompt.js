@@ -1,30 +1,17 @@
 const chalk = require('chalk')
 const _ = require('lodash')
 const path = require('path')
-const inquirer = require('inquirer')
 
-// eslint-disable-next-line node/no-unpublished-require
-// const inquirerCommandPrompt = require('../../../../inquirer-command-prompt')
-const inquirerCommandPrompt = require('inquirer-command-prompt')
+const Secrez = require('@secrez/core').Secrez(Math.random())
+const {InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
+const Logger = require('../utils/Logger')
+const cliConfig = require('../cliConfig')
+const Commands = require('../commands')
+const welcome = require('../Welcome')
+const AliasManager = require('../Managers/AliasManager')
+const UserManager = require('../Managers/UserManager')
 
-const multiEditorPrompt = require('./utils/MultiEditorPrompt')
-const {Secrez} = require('@secrez/core')
-const {FsUtils, InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
-
-const Logger = require('./utils/Logger')
-const Completion = require('./Completion')
-const cliConfig = require('./cliConfig')
-const Commands = require('./commands')
-const welcome = require('./Welcome')
-const AliasManager = require('./AliasManager')
-const UserManager = require('./UserManager')
-
-inquirer.registerPrompt('command', inquirerCommandPrompt)
-inquirer.registerPrompt('multiEditor', multiEditorPrompt)
-
-const CommandPrompt = require('./CommandPrompt')
-
-class Prompt extends CommandPrompt {
+class MainPrompt extends require('./CommandPrompt') {
 
   async init(options) {
     this.secrez = new Secrez
@@ -33,18 +20,19 @@ class Prompt extends CommandPrompt {
     this.secrez.cache.initEncryption('alias', 'user')
     await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
-    this.externalFs = new ExternalFs()
+    this.externalFs = new ExternalFs(this.secrez)
     this.getReady({
-      historyPath: this.secrez.config.historyPath
+      historyPath: this.secrez.config.historyPath,
+      completion: 'completion',
+      commands: (new Commands(this, cliConfig)).getCommands()
     })
-    this.commands = (new Commands(this, cliConfig)).getCommands()
   }
 
-  async preRun(options) {
+  async preRun(options = {}) {
     if (!this.loggedIn) {
-      this.getCommands = Completion(cliConfig.completion)
-      this.basicCommands = await this.getCommands()
-      this.getCommands.bind(this)
+      // this.getCommands = Completion(cliConfig.completion)
+      // this.basicCommands = await this.getCommands()
+      // this.getCommands.bind(this)
       await welcome.start(this.secrez, options)
       this.internalFs.init().then(() => delete this.showLoading)
       this.loadingMessage = 'Initializing'
@@ -65,24 +53,20 @@ class Prompt extends CommandPrompt {
     }
   }
 
-  prePromptMessage(options) {
+  prePromptMessage(options = {}) {
     return chalk.reset(`Secrez ${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()}`)
   }
 
-  lastPrePromptMessage(pre, options = {}) {
-    return `${pre} ${chalk.bold('$')}`
-  }
-
-  async postRun(options) {
+  async postRun(options = {}) {
     let cmd = options.cmd
     let components = cmd.split(' ')
     let command = components[0]
     /* istanbul ignore if  */
     if (!this.basicCommands.includes(command)) {
-      command = command.replace(/^\$/, '')
+      command = command.replace(/^\//, '')
       let data = this.aliasManager.get(command)
       if (data) {
-        let cmds = data.commandLine.split('&&').map(e => _.trim(e))
+        let cmds = data.content.split('&&').map(e => _.trim(e))
         let max = 0
         let missing = false
         for (let i = 0; i < cmds.length; i++) {
@@ -124,35 +108,7 @@ class Prompt extends CommandPrompt {
 
   }
 
-  async exec(cmds, noRun) {
-    for (let cmd of cmds) {
-      if (cmd) {
-        cmd = cmd.split(' ')
-        const command = cmd[0]
-        if (this.basicCommands.includes(command)) {
-          let commandLine = cmd.slice(1).join(' ')
-          if (!commandLine) {
-            // prevent command-line-args from parsing process.argv
-            commandLine = ' '
-          }
-          try {
-            const options = FsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
-            await this.commands[command].exec(options)
-          } catch (e) {
-            // console.error(e)
-            Logger.red(e.message)
-            this.run()
-          }
-        } else {
-          Logger.red('Command not found.')
-          if (!noRun) {
-            this.run()
-          }
-        }
-      }
-    }
-  }
 }
 
-module.exports = Prompt
+module.exports = MainPrompt
 

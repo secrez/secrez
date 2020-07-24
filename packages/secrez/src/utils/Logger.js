@@ -4,7 +4,6 @@ const path = require('path')
 
 let jsonIndent = 0
 
-
 chalk.blu = str => {
   return chalk.rgb(40, 160, 210).dim(str)
 }

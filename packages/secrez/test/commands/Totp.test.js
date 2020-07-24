@@ -7,7 +7,7 @@ const chalk = require('chalk')
 const path = require('path')
 const {yamlParse} = require('@secrez/utils')
 
-const Prompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/PromptMock')
 const {sleep, noPrint, decolorize, assertConsole, copyImageToClipboard} = require('../helpers')
 
 const {
@@ -31,7 +31,7 @@ describe('#Totp', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)

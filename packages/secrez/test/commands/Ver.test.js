@@ -1,7 +1,7 @@
 const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/PromptMock')
 const {assertConsole} = require('../helpers')
 const pkg = require('../../package')
 
@@ -26,7 +26,7 @@ describe('#Ver', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)

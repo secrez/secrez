@@ -4,7 +4,7 @@ const fs = require('fs-extra')
 const cliConfig = require('./cliConfig')
 const {Crypto} = require('@secrez/core')
 const Logger = require('./utils/Logger')
-const Fido2Client = require('./Fido2Client')
+const Fido2Client = require('./utils/Fido2Client')
 
 class Welcome {
 

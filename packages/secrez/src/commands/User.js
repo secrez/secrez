@@ -1,7 +1,7 @@
 // const _ = require('lodash')
-const {Secrez} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 const chalk = require('chalk')
-const UserManager = require('../UserManager')
+const UserManager = require('../Managers/UserManager')
 
 class User extends require('../Command') {
 
@@ -144,7 +144,7 @@ class User extends require('../Command') {
 
   async user(options) {
     if (!UserManager.getCache().dataPath) {
-      // for testing, when Prompt is not required
+      // for testing, when MainPrompt is not required
       UserManager.setCache(this.secrez.cache)
     }
     if (!this.userManager) {
@@ -194,7 +194,7 @@ class User extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

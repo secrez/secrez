@@ -3,7 +3,7 @@ const assert = chai.assert
 const path = require('path')
 const fs = require('fs-extra')
 const DataCache = require('../src/DataCache')
-const {Secrez} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 
 const {
   password,

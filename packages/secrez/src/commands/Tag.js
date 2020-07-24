@@ -206,7 +206,7 @@ class Tag extends require('../Command') {
       // console.log(e)
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

@@ -8,7 +8,8 @@ const WebSocketServer = Server
 const WebSocket = require('ws')
 const net = require('net')
 const {getRandomId, setPayloadAndSignIt} = require('../src/utils')
-const {Secrez, Crypto} = require('@secrez/core')
+const {Crypto} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 
 const createServer = require('../src/createServer')
 

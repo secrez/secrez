@@ -5,7 +5,7 @@ const {Debug} = require('@secrez/utils')
 const http = require('http')
 const Router = require('koa-router')
 const {version} = require('../package.json')
-const {Secrez} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 
 const Shortener = require('./lib/Shortener')
 const ClientManager = require('./lib/ClientManager')

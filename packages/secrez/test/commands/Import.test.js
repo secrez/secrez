@@ -4,7 +4,7 @@ const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/PromptMock')
 const {fromSimpleYamlToJson} = require('@secrez/utils')
 const {assertConsole, noPrint, decolorize} = require('../helpers')
 
@@ -30,7 +30,7 @@ describe('#Import', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -105,6 +105,8 @@ describe('#Import', function () {
     inspect.restore()
     assertConsole(inspect, [
       'Imported files:',
+      '/file',
+      '/file.2',
       '/file0.txt',
       '/file3',
       '/folder1/file-2',
@@ -118,15 +120,16 @@ describe('#Import', function () {
       content: true
     })
     inspect.restore()
-    assertConsole(inspect, ['7 results found:',
-      '1  /file0.txt',
-      '2  /file3',
-      '3  /folder1/',
-      '4  /folder1/file-2',
-      '5  /folder1/file1',
-      '6  /folder1/folder3/',
-      '7  /folder1/folder3/file4'
-
+    assertConsole(inspect, ['9 results found:',
+      '1  /file',
+      '2  /file.2',
+      '3  /file0.txt',
+      '4  /file3',
+      '5  /folder1/',
+      '6  /folder1/file-2',
+      '7  /folder1/file1',
+      '8  /folder1/folder3/',
+      '9  /folder1/folder3/file4'
     ])
 
   })

@@ -7,7 +7,7 @@ const commandLineArgs = require('command-line-args')
 
 const pkg = require('../package')
 
-const Prompt = require('../src/Prompt')
+const MainPrompt = require('../src/prompts/MainPrompt')
 const Logger = require('../src/utils/Logger')
 
 const optionDefinitions = [
@@ -108,7 +108,7 @@ Examples:
 }
 
 (async () => {
-  const prompt = new Prompt
+  const prompt = new MainPrompt
   await prompt.init(options)
   prompt.run(options)
 })()

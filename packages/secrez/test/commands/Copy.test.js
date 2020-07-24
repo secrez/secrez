@@ -6,7 +6,7 @@ const fs = require('fs-extra')
 const path = require('path')
 
 const {yamlParse} = require('@secrez/utils')
-const Prompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/PromptMock')
 const {assertConsole, sleep, noPrint, decolorize} = require('../helpers')
 
 const {
@@ -30,7 +30,7 @@ describe('#Copy', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -93,6 +93,7 @@ describe('#Copy', function () {
     await sleep(100)
     assert.equal(await clipboardy.read(), 'caruso')
 
+    await sleep(100)
   })
 
   it('should copy a card to the clipboard', async function () {

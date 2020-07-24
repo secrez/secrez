@@ -20,23 +20,26 @@ class Db {
 
     if (!(await this.knex.schema.hasTable('config'))) {
       await this.knex.schema.createTable('config', function (table) {
-        table.string('key')
+        table.string('key').unique()
         table.string('value')
       })
     }
     if (!(await this.knex.schema.hasTable('publickeys'))) {
       await this.knex.schema.createTable('publickeys', function (table) {
-        table.integer('timestamp').unsigned()
-        table.integer('microseconds').unsigned()
-        table.text('publickey')
+        table.integer('addedAt').unsigned()
+        table.integer('updatedAt').unsigned()
+        table.text('publickey').unique()
+        table.text('url').unique()
       })
     }
     if (!(await this.knex.schema.hasTable('messages'))) {
       await this.knex.schema.createTable('messages', function (table) {
         table.integer('timestamp').unsigned()
         table.integer('microseconds').unsigned()
+        table.integer('direction')
         table.text('message')
         table.text('publickey')
+        table.index(['timestamp','microseconds'], 'index_timestamp')
       })
     }
   }
@@ -64,14 +67,32 @@ class Db {
     }
   }
 
-  async trustPublicKey(publickey) {
+  async trustPublicKey(publickey, url) {
     if (!(await this.isTrustedPublicKey(publickey))) {
       let ts = Crypto.getTimestampWithMicroseconds()
       return this.insert({
-        timestamp: ts[0],
-        microseconds: ts[1],
-        publickey
+        addedAt: ts[0],
+        updatedAt: ts[0],
+        publickey,
+        url
       }, 'publickeys')
+    } else {
+      return this.updateUrlForTrustPublicKey(publickey, url)
+    }
+  }
+
+  async updateUrlForTrustPublicKey(publickey, url) {
+    if (await this.isTrustedPublicKey(publickey)) {
+      let existentUrl = await this.getTrustedPublicKeyUrl(publickey)
+      if (existentUrl !== url) {
+        let ts = Crypto.getTimestampWithMicroseconds()
+        return this.knex('publickeys').update({
+          updatedAt: ts[0],
+          url
+        }).where({
+          publickey
+        })
+      }
     }
   }
 
@@ -80,21 +101,30 @@ class Db {
     return !!query[0]
   }
 
-  async saveMessage(message, publickey) {
+  async getTrustedPublicKeyUrl(publickey) {
+    let query = await this.select('*', 'publickeys', {publickey})
+    return query[0].url
+  }
+
+  async saveMessage(message, publickey, direction) {
     let ts = Crypto.getTimestampWithMicroseconds()
     return this.insert({
       timestamp: ts[0],
       microseconds: ts[1],
       message: JSON.stringify(message),
-      publickey
+      publickey,
+      direction
     }, 'messages')
   }
 
-  async getMessages(minTimestamp = 0, maxTimestamp = Crypto.getTimestampWithMicroseconds()[0], from) {
+  async getMessages(minTimestamp = 0, maxTimestamp = Crypto.getTimestampWithMicroseconds()[0], publickey, limit = 10, direction) {
     let messages = await this.knex.select('*').from('messages')
         .where('timestamp', '>=', minTimestamp)
         .andWhere('timestamp', '<=', maxTimestamp)
-        .andWhere('publickey', from ? '=' : '!=', from ? from : '-')
+        .andWhere('publickey', publickey ? '=' : '!=', publickey ? publickey : '-')
+        .andWhere('direction', direction ? '=' : '>', direction ? direction : 0)
+        .orderBy(['timestamp', 'microseconds'], 'asc')
+        .limit(limit)
     return messages.map(e => {
       e.message = JSON.parse(e.message)
       return e
@@ -102,6 +132,9 @@ class Db {
   }
 
 }
+
+Db.FROM = 1
+Db.TO = 2
 
 
 module.exports = Db

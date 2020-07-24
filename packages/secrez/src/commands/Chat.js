@@ -1,4 +1,6 @@
+const path = require('path')
 const {ConfigUtils} = require('@secrez/core')
+const ChatPrompt = require('../prompts/ChatPrompt')
 
 class Chat extends require('../Command') {
 
@@ -37,11 +39,18 @@ class Chat extends require('../Command') {
   }
 
   async chat(options) {
-    const env = options.env = await ConfigUtils.getEnv()
+    const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
     if (env.courier) {
       await this.prompt.commands.conf.preInit(options)
       if (options.ready) {
         await this.uploadUsersPublicKeysToCourier(options)
+        this.chatPrompt = new ChatPrompt
+        await this.chatPrompt.init({
+          historyPath: path.join(this.secrez.config.localDataPath, 'chatHistory'),
+          environment: this,
+          secrez: this.secrez
+        })
+        await this.chatPrompt.run(options)
       } else {
         throw new Error('The configured courier is not responding.')
       }
@@ -67,9 +76,10 @@ It will show an Auth Code, copy it and come back to Secrez. Then run "conf --ini
     try {
       await this.chat(options)
     } catch (e) {
+      // console.log(e)
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

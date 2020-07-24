@@ -9,10 +9,12 @@ const Db = require('./Db')
 const debug = Debug('courier:server')
 const App = require('./App')
 
+let siginted = false
+
 class Server {
 
   constructor(config) {
-    if (config instanceof Config) {
+    if (config.constructor.name  === 'Config') {
       this.config = config
     } else {
       throw new Error('Server requires a Config instance during construction')
@@ -30,7 +32,6 @@ class Server {
   async publish(payload, signature) {
 
     if (!this.tunnelActive) {
-
       let ssl = await this.getCertificates()
       let opts = {
         host: this.options.hub,
@@ -47,6 +48,7 @@ class Server {
       }
 
       this.tunnel = await localtunnel(opts)
+
       if (this.tunnel.clientId) {
         this.tunnelActive = true
         this.tunnel.on('close', this.onTunnelClose)
@@ -88,7 +90,7 @@ class Server {
       authCode = await this.db.getValueFromConfig('authcode')
     }
     if (!authCode) {
-      authCode = Crypto.getRandomBase58String(8)
+      authCode = Crypto.getRandomBase32String(8)
       await this.db.saveKeyValueToConfig('authcode', authCode)
     }
     process.env.AUTH_CODE = this.authCode = authCode
@@ -150,33 +152,29 @@ class Server {
       debug('Listening on ' + bind)
     })
 
-    process.on('SIGINT', () => {
-      debug('SIGINT signal received.')
+    if (!siginted) {
+      process.on('SIGINT', () => {
+        debug('SIGINT signal received.')
 
-      process.exit(0)
-      // this.httpsServer.close(err => {
-      //   if (err) {
-      //     debug('ERROR', err)
-      //     // eslint-disable-next-line no-process-exit
-      //     process.exit(1)
-      //   }
-      //   // eslint-disable-next-line no-process-exit
-      //   process.exit(0)
-      // })
-    })
+        process.exit(0)
+      })
 
-    process.on('exit', () => {
-      debug('Closing connections...')
-      if (this.tunnelActive) {
-        this.tunnel.close()
-      }
-      // this.db.db.close()
-      // this.httpsServer.close()
-      debug('Closed.')
-    })
+      process.on('exit', () => {
+        debug('Closing connections...')
+        if (this.tunnelActive) {
+          this.tunnel.close()
+        }
+        debug('Closed.')
+      })
+
+      siginted = true
+    }
   }
 
   async close() {
+    if (this.tunnel) {
+      this.tunnel.close()
+    }
     await new Promise(resolve => this.httpsServer.close(resolve))
   }
 

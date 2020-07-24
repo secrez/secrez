@@ -1,4 +1,5 @@
-const {Crypto, Secrez} = require('@secrez/core')
+const {Crypto} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 const validator = require('./Validator')
 
 const Utils = {

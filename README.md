@@ -383,7 +383,7 @@ __7.0.10__
 * fixes the autocomplete loading the data only when needed
 
 __7.0.9__
-* fix bug in Prompt.js which caused an exit if command not found
+* fix bug in MainPrompt.js which caused an exit if command not found
 
 __7.0.8__
 * upgrade `@secrez/core` to `0.7.1` which fixes an error if `env.json` does not exists
