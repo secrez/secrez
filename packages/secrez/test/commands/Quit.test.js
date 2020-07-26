@@ -1,7 +1,7 @@
 const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/PromptMock')
 const {assertConsole} = require('../helpers')
 
 const {
@@ -12,7 +12,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe('#Exit', function () {
+describe('#Quit', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
@@ -25,7 +25,7 @@ describe('#Exit', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -35,7 +35,7 @@ describe('#Exit', function () {
   it('should show the content of an external file via bash', async function () {
 
     inspect = stdout.inspect()
-    await C.exit.exec({testing: true})
+    await C.quit.exec({testing: true})
     inspect.restore()
     assertConsole(inspect, 'Bye bye :o)')
 

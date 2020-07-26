@@ -1,5 +1,5 @@
 const chalk = require('chalk')
-const AliasManager = require('../AliasManager')
+const AliasManager = require('../Managers/AliasManager')
 
 class Alias extends require('../Command') {
 
@@ -63,7 +63,7 @@ class Alias extends require('../Command') {
     return {
       description: ['Create aliases of other commands.',
         'Aliases\' name are case sensitive. They can be any combination of letters, numerals, underscores and hiphens',
-        'If an alias conflicts with a command, you can disambiguate it prefixing it with a $. Like calling the alias "mv" as "$mv".'],
+        'If an alias conflicts with a command, you can disambiguate it prefixing it with a slash ("/"). Like calling the alias "mv" as "/mv".'],
       examples: [
         ['alias f -c "copy facebook.yml -f email password"', 'creates an alias "f" that executes "copy facebook.yml -f email password"'],
         ['alias g --previous-command', 'creates the alias "g" using the previous command; this allows you to test something, and when ready generate an alias for it'],
@@ -79,7 +79,7 @@ class Alias extends require('../Command') {
 
   async alias(options) {
     if (!AliasManager.getCache().dataPath) {
-      // for testing, when Prompt is not required
+      // for testing, when MainPrompt is not required
       AliasManager.setCache(this.secrez.cache)
     }
     if (!this.aliasManager) {
@@ -137,7 +137,7 @@ class Alias extends require('../Command') {
         max = Math.max(max, alias.length)
       }
       for (let i=0;i<list.length; i++) {
-        list[i] = list[i][0] + ' '.repeat(max - list[i][0].length) + '  ' + chalk.grey(list[i][1])
+        list[i] = chalk.bold(list[i][0]) + ' '.repeat(max - list[i][0].length) + '  ' + chalk.reset(list[i][1])
       }
       return list
     } else if (options.rename) {
@@ -189,7 +189,7 @@ class Alias extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

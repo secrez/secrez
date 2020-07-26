@@ -18,6 +18,9 @@ const cliConfig = Object.assign(require('@secrez/core').config, {
   completion: {
     help: {}
   },
+  chatCompletion: {
+    help: {}
+  },
   completionTypes,
   clearScreenAfter: 300
 })

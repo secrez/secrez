@@ -1,6 +1,7 @@
 const {chalk} = require('./utils/Logger')
 const {Crypto} = require('@secrez/core')
-
+const {utils: hubUtils} = require('@secrez/hub')
+const superagent = require('superagent')
 
 class PreCommand {
 
@@ -95,6 +96,18 @@ class PreCommand {
     }
   }
 
+  async callCourier(_payload, authCode, port, caCrt, pathname) {
+    const {payload, signature} = hubUtils.setPayloadAndSignIt(this.secrez, _payload)
+    try {
+      const res = await superagent.get(`https://localhost:${port}${pathname || ''}`)
+          .set('Accept', 'application/json')
+          .set('auth-code', authCode)
+          .query({payload, signature})[caCrt ? 'ca' : 'trustLocalhost'](caCrt)
+      return res.body
+    } catch (e) {
+      return {error: e.message}
+    }
+  }
 
 }
 

@@ -12,7 +12,7 @@ const App = require('./App')
 class Server {
 
   constructor(config) {
-    if (config instanceof Config) {
+    if (config.constructor.name  === 'Config') {
       this.config = config
     } else {
       throw new Error('Server requires a Config instance during construction')
@@ -29,30 +29,44 @@ class Server {
 
   async publish(payload, signature) {
 
-    let ssl = await this.getCertificates()
+    if (!this.tunnelActive) {
+      let ssl = await this.getCertificates()
+      let opts = {
+        host: this.options.hub,
+        port: this.port,
+        payload,
+        signature,
+        // local_host: '127zero0one.com',
+        local_https: true,
+        local_cert: ssl.cert,
+        local_key: ssl.key,
+        local_ca: ssl.ca,
+        allow_invalid_cert: false,
+        timeout: 5
+      }
 
-    let opts = {
-      host: this.options.hub,
-      port: this.port,
-      payload,
-      signature,
-      local_host: this.localhost,
-      local_https: true,
-      local_cert: ssl.cert,
-      local_key: ssl.key,
-      local_ca: ssl.ca,
-      allow_invalid_cert: false
-    }
-    this.tunnel = await localtunnel(opts)
-    this.tunnelActive = true
-    this.tunnel.on('close', () => {
-      this.tunnelActive = false
-    })
+      this.tunnel = await localtunnel(opts)
 
-    return {
-      url: this.tunnel.url,
-      short_url: this.tunnel.short_url
+      if (this.tunnel.clientId) {
+        this.tunnelActive = true
+        this.tunnel.on('close', this.onTunnelClose)
+        return {
+          clientId: this.tunnel.clientId,
+          url: this.tunnel.url,
+          short_url: this.tunnel.short_url
+        }
+      } else {
+        this.tunnel.close()
+        return {
+          error: 'Tunnel server offline',
+          hub: this.options.hub
+        }
+      }
     }
+  }
+
+  async onTunnelClose() {
+    this.tunnelActive = false
   }
 
   async getCertificates() {
@@ -74,7 +88,7 @@ class Server {
       authCode = await this.db.getValueFromConfig('authcode')
     }
     if (!authCode) {
-      authCode = Crypto.getRandomBase58String(8)
+      authCode = Crypto.getRandomBase32String(8)
       await this.db.saveKeyValueToConfig('authcode', authCode)
     }
     process.env.AUTH_CODE = this.authCode = authCode
@@ -82,6 +96,9 @@ class Server {
     let port = this.options.port
     if (!port) {
       port = await this.db.getValueFromConfig('port')
+    }
+    if (this.options.newRandomPort) {
+      port = undefined
     }
 
     const options = await this.getCertificates()
@@ -102,7 +119,7 @@ class Server {
 
     await this.db.saveKeyValueToConfig('port', this.port)
 
-    this.localhost = `https://${this.options.local || 'localhost'}:${this.port}`
+    this.localhost = `https://localhost:${this.port}`
 
     this.httpsServer.on('error', error => {
       if (error.syscall !== 'listen') {
@@ -133,30 +150,27 @@ class Server {
       debug('Listening on ' + bind)
     })
 
-    process.on('SIGINT', () => {
-      debug('SIGINT signal received.')
+    if (process.env.NODE_ENV !== 'test') {
 
-      this.httpsServer.close(async function (err) {
-        if (err) {
-          debug('ERROR', err)
-          // eslint-disable-next-line no-process-exit
-          process.exit(1)
-        }
-        await sleep(100)
-        // eslint-disable-next-line no-process-exit
+      process.on('SIGINT', () => {
+        debug('SIGINT signal received.')
         process.exit(0)
       })
-    })
 
-    process.on('exit', () => {
-      debug('Closing connections...')
-      // this.db.db.close()
-      // this.httpsServer.close()
-      debug('Closed.')
-    })
+      process.on('exit', () => {
+        debug('Closing connections...')
+        if (this.tunnelActive) {
+          this.tunnel.close()
+        }
+        debug('Closed.')
+      })
+    }
   }
 
   async close() {
+    if (this.tunnel) {
+      this.tunnel.close()
+    }
     await new Promise(resolve => this.httpsServer.close(resolve))
   }
 

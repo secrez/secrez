@@ -2,7 +2,7 @@ const {DataCache} = require('@secrez/fs')
 
 let cache = new DataCache
 
-class UserManager {
+class ContactManager {
 
   static setCache(dataCache) {
     if (typeof dataCache === 'object') {
@@ -14,8 +14,8 @@ class UserManager {
     return cache
   }
 
-  get(user) {
-    return cache.get('user', user)
+  get(contact) {
+    return cache.get('contact', contact)
   }
 
   validateName(name) {
@@ -27,23 +27,26 @@ class UserManager {
   async create(options) {
     /* istanbul ignore if  */
     if (this.get(options.name)) {
-      throw new Error(`An user named "${options.name}" already exists`)
+      throw new Error(`A contact named "${options.name}" already exists`)
     }
-    return await cache.puts('user', {
+    return await cache.puts('contact', {
       value: options.name,
-      content: options.publicKey
+      content: JSON.stringify({
+        publicKey: options.publicKey,
+        url: options.url
+      })
     })
   }
 
-  async remove(user) {
-    return await cache.remove('user', user)
+  async remove(contact) {
+    return await cache.remove('contact', contact)
   }
 
-  async rename(existentName, user) {
+  async rename(existentName, contact) {
     let old = this.get(existentName)
     if (await this.remove(existentName)) {
       return await this.create({
-        name: user,
+        name: contact,
         content: old.content
       })
     }
@@ -51,4 +54,4 @@ class UserManager {
 
 }
 
-module.exports = UserManager
+module.exports = ContactManager

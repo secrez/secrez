@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const {Secrez} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 
 const ExternalFs = require('../src/ExternalFs')
 
@@ -17,7 +17,7 @@ describe('#ExternalFs', function () {
     await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
     secrez = new Secrez()
     await secrez.init(rootDir, localWorkingDir)
-    externalFs = new ExternalFs()
+    externalFs = new ExternalFs(secrez)
   })
 
 

@@ -1,9 +1,6 @@
-// const _ = require('lodash')
-// const {chalk} = require('../utils/Logger')
-// const path = require('path')
-// const {Crypto, config} = require('@secrez/core')
-// const {Node} = require('@secrez/fs')
-// const {isYaml, yamlParse} = require('@secrez/utils')
+const path = require('path')
+const {ConfigUtils} = require('@secrez/core')
+const ChatPrompt = require('../prompts/ChatPrompt')
 
 class Chat extends require('../Command') {
 
@@ -31,8 +28,45 @@ class Chat extends require('../Command') {
     }
   }
 
-  async chat(options) {
+  async uploadUsersPublicKeysToCourier(options) {
+    let users = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
+    let publicKeys = []
+    for (let user of users) {
+      publicKeys.push(user[1])
+    }
+    const {authCode, port, caCrt} = options.env.courier
+    await this.callCourier({action: {name: 'add', publicKeys}}, authCode, port, caCrt, '/admin')
+  }
 
+  async chat(options) {
+    const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
+    if (env.courier) {
+      await this.prompt.commands.conf.preInit(options)
+      if (options.ready) {
+        await this.uploadUsersPublicKeysToCourier(options)
+        this.chatPrompt = new ChatPrompt
+        await this.chatPrompt.init({
+          historyPath: path.join(this.secrez.config.localDataPath, 'chatHistory'),
+          environment: this,
+          secrez: this.secrez
+        })
+        await this.chatPrompt.run(options)
+      } else {
+        throw new Error('The configured courier is not responding.')
+      }
+    } else {
+      this.Logger.grey(`Chat requires a courier listening locally.
+If you haven't yet, in another terminal install @secrez/courier as 
+
+  npm i -g @secrez/courier
+  
+and launch it as 
+
+  secrez-courier
+  
+It will show an Auth Code, copy it and come back to Secrez. Then run "conf --init-courier" to configure the connection w/ the courier.`)
+      throw new Error('Courier not found.')
+    }
   }
 
   async exec(options = {}) {
@@ -42,9 +76,10 @@ class Chat extends require('../Command') {
     try {
       await this.chat(options)
     } catch (e) {
+      // console.log(e)
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

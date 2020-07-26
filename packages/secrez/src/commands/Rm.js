@@ -75,7 +75,7 @@ class Rm extends require('../Command') {
         this.Logger.red(e.message)
       }
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

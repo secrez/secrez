@@ -1,7 +1,7 @@
 const util = require('util')
 const path = require('path')
 const fs = require('fs-extra')
-const {config, Entry, ConfigUtils, Secrez} = require('@secrez/core')
+const {config, Entry, ConfigUtils} = require('@secrez/core')
 const Node = require('./Node')
 const Tree = require('./Tree')
 const {ENTRY_EXISTS} = require('./Messages')
@@ -9,7 +9,7 @@ const {ENTRY_EXISTS} = require('./Messages')
 class InternalFs {
 
   constructor(secrez) {
-    if (secrez instanceof Secrez) {
+    if (secrez.constructor.name  === 'Secrez') {
       this.secrez = secrez
       this.dataPath = secrez.config.dataPath
       this.trees = [new Tree(secrez), new Tree(secrez, 1)]

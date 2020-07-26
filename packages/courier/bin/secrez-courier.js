@@ -17,22 +17,16 @@ const optionDefinitions = [
     type: String
   },
   {
-    name: 'local',
-    alias: 'l',
-    type: String
-  },
-  {
     name: 'root',
     alias: 'r',
     type: String
   },
   {
-    name: 'do-not-log',
-    alias: 'd',
+    name: 'new-auth-code',
     type: Boolean
   },
   {
-    name: 'new-auth-code',
+    name: 'new-random-port',
     type: Boolean
   }
 ]
@@ -68,17 +62,17 @@ if (options.help) {
 Options:
   -h, --help            This help.
   -H, --hub             The remote host (by default https://secrez.cc)
-  -l, --local           The local hostname (by default localhost)
   -r, --root            Root folder (by default ~/.secrez-courier)
-  -d, --do-not-log      Does not log on screen
   --new-auth-code       Refreshes the authCode, if a previous one's been saved
+  --new-random-port     Force the refresh of a new random port (modifying the auth-code)
                           
-By default, if not otherwise specified, it does not produce any log
+Everytime you change auth-code or port, you must re-init the courier in Secrez. If not, Secrez cannot find the listening courier. 
                       
 Examples:
-  $ secrez-courier -h https://secrez.cc
-  $ secrez-courier -h https://secrez.cc-r \`pwd\`/data     Uses ./data as root
-  $ secrez-courier -h https://secrez.cc -d               Does not log in the terminal 
+  $ secrez-courier                          All defaults (uses secrez.cc as remote hub)
+  $ secrez-courier -H https://example.org   Uses example.org as remote hub
+  $ secrez-courier -r \`pwd\`/data            Uses ./data as root
+  $ NODE_ENV=dev secrez-courier             Logs events in the terminal 
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)
@@ -87,8 +81,8 @@ Examples:
 (async () => {
   const courier = new Courier(options)
   await courier.start()
-  console.info('Listening...')
-  console.info('Auth code: ', chalk.bold(`${courier.server.authCode}-${courier.server.port}`))
-  console.info(chalk.grey('You can copy the auth code and paste it in Secrez to connect the chat with the courier.'))
+  console.info('Courier listening...')
+  console.info('Auth-Code: ', chalk.bold(`${courier.server.authCode}${courier.server.port}`))
+  console.info(chalk.grey('Copy the Auth-Code and paste it in Secrez using "conf --init-courier" to initiate the chat'))
 })()
 

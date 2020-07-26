@@ -101,7 +101,7 @@ class Export extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

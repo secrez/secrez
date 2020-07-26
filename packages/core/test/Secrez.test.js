@@ -1,7 +1,9 @@
 const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
-const Secrez = require('../src/Secrez')
+const Secrez = require('../src/Secrez')(Math.random())
+const Secrez2 = require('../src/Secrez')(Math.random())
+
 const Crypto = require('../src/Crypto')
 const Entry = require('../src/Entry')
 const fs = require('fs-extra')
@@ -21,9 +23,11 @@ const {
 
 describe('#Secrez', function () {
 
-  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+  let rootDir = path.resolve(__dirname, '../tmp/test/secrez')
+  let rootDir2 = path.resolve(__dirname, '../tmp/test/secrez2')
 
   let secrez
+  let secrez2
   let masterKeyHash
 
   const D = config.types.DIR
@@ -52,6 +56,8 @@ describe('#Secrez', function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
+      secrez2 = new Secrez2()
+      await secrez2.init(rootDir2)
     })
 
     describe('derivePassword', async function () {
@@ -85,6 +91,17 @@ describe('#Secrez', function () {
         await secrez.signin(password, iterations)
         assert.equal(masterKeyHash, secrez.masterKeyHash)
       })
+
+      it('should signup in two instances without conflicts', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+
+        await secrez2.init(rootDir2)
+        await secrez2.signup(password, iterations)
+
+        assert.notEqual(secrez.getConf().data.id, secrez2.getConf().data.id)
+      })
+
 
       it('should signup the user and signin saved the iterations', async function () {
         await secrez.init(rootDir)
@@ -852,11 +869,11 @@ describe('#Secrez', function () {
         assert.equal(masterKeyHash, secrez.masterKeyHash)
 
         let publicKey = secrez.getPublicKey()
-        assert.isTrue(Secrez.isValidPublicKey(publicKey))
-        assert.isFalse(Secrez.isValidPublicKey([1, 2, 3, 4]))
+        assert.isTrue(Crypto.isValidSecrezPublicKey(publicKey))
+        assert.isFalse(Crypto.isValidSecrezPublicKey([1, 2, 3, 4]))
 
-        let signPublicKey = Secrez.getSignPublicKey(publicKey)
-        let boxPublicKey = Secrez.getBoxPublicKey(publicKey)
+        let signPublicKey = Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)
+        let boxPublicKey = Crypto.getBoxPublicKeyFromSecretPublicKey(publicKey)
 
         publicKey = publicKey.split('0').map(e => Crypto.fromBase58(e))
         assert.equal(publicKey[0].toString(), boxPublicKey.toString())

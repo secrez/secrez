@@ -13,18 +13,20 @@
   "nyc": {
     "include": "src",
     "exclude": [
-      "src/utils/Logger.js",
-      "src/commands/Edit.js",
       "src/PreCommand.js",
-      "src/Fido2Client.js",
-      "src/commands/Conf.js"
+      "src/utils/Logger.js",
+      "src/utils/Fido2Client.js",
+      "src/commands/Edit.js",
+      "src/commands/Conf.js",
+      "src/commands/Exit.js"
     ]
   },
   "dependencies": {
-    "@secrez/core": "workspace:^0.8.0",
-    "@secrez/courier": "workspace:^0.1.1",
-    "@secrez/fs": "workspace:^0.8.0",
-    "@secrez/utils": "workspace:^0.1.1",
+    "@secrez/core": "workspace:~0.8.0",
+    "@secrez/courier": "workspace:~0.1.1",
+    "@secrez/fs": "workspace:~0.8.0",
+    "@secrez/hub": "workspace:^0.1.1",
+    "@secrez/utils": "workspace:~0.1.1",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
     "clear": "^0.1.0",

@@ -5,12 +5,17 @@ const request = require('superagent')
 const {Debug} = require('@secrez/utils')
 const debug = Debug('lt:client')
 
+let globalOptions = {}
+
 const TunnelCluster = require('./TunnelCluster')
 
 class Tunnel extends EventEmitter {
   constructor(opts = {}) {
     super(opts)
     this.opts = opts
+    if (opts.timeout) {
+      globalOptions.timeout = opts.timeout
+    }
     this.closed = false
   }
 
@@ -48,6 +53,7 @@ class Tunnel extends EventEmitter {
     const getInfo = this._getInfo.bind(this)
 
     let uri = `${opt.host}/api/v1/tunnel/new`
+    let now = Date.now()
 
     function getUrl() {
       request
@@ -69,8 +75,14 @@ class Tunnel extends EventEmitter {
             cb(null, getInfo(body))
           })
           .catch(err => {
-            debug(`tunnel server offline: ${err.message}, retry 1s`)
-            return setTimeout(getUrl, 1000)
+            if (!globalOptions.timeout || Date.now() - now < globalOptions.timeout * 1000) {
+              debug(`tunnel server offline: ${err.message}, retry 1s`)
+              return setTimeout(getUrl, 1000)
+            } else {
+              cb(null, {
+                error: 'Timeout'
+              })
+            }
           })
     }
 
@@ -79,61 +91,69 @@ class Tunnel extends EventEmitter {
 
   _establish(info) {
 
-    // increase max event listeners so that localtunnel consumers don't get
-    // warning messages as soon as they setup even one listener. See #71
-    this.setMaxListeners(info.max_conn + (EventEmitter.defaultMaxListeners || 10))
+    if (info.max_conn) {
 
-    this.tunnelCluster = new TunnelCluster(info, this)
+      // increase max event listeners so that localtunnel consumers don't get
+      // warning messages as soon as they setup even one listener. See #71
+      this.setMaxListeners(info.max_conn + (EventEmitter.defaultMaxListeners || 10))
 
-    // only emit the url the first time
-    this.tunnelCluster.once('open', () => {
-      this.emit('url', info.url)
-    })
+      this.tunnelCluster = new TunnelCluster(info, this)
 
-    // re-emit socket error
-    this.tunnelCluster.on('error', err => {
-      debug('got socket error', err.message)
-      this.emit('error', err)
-    })
-
-    let tunnelCount = 0
-
-    // track open count
-    this.tunnelCluster.on('open', tunnel => {
-      tunnelCount++
-      debug('tunnel open [total: %d]', tunnelCount)
-
-      const closeHandler = () => {
-        tunnel.destroy()
-      }
-
-      if (this.closed) {
-        return closeHandler()
-      }
-
-      this.once('close', closeHandler)
-      tunnel.once('close', () => {
-        this.removeListener('close', closeHandler)
+      // only emit the url the first time
+      this.tunnelCluster.once('open', () => {
+        this.emit('url', info.url)
       })
-    })
 
-    // when a tunnel dies, open a new one
-    this.tunnelCluster.on('dead', () => {
-      tunnelCount--
-      debug('tunnel dead [total: %d]', tunnelCount)
-      if (this.closed) {
-        return
+      // re-emit socket error
+      this.tunnelCluster.on('error', err => {
+        debug('got socket error', err.message)
+        this.emit('error', err)
+      })
+
+      let tunnelCount = 0
+
+      // track open count
+      this.tunnelCluster.on('open', tunnel => {
+        tunnelCount++
+        debug('tunnel open [total: %d]', tunnelCount)
+
+        const closeHandler = () => {
+          tunnel.destroy()
+        }
+
+        if (this.closed) {
+          return closeHandler()
+        }
+
+        this.once('close', closeHandler)
+        tunnel.once('close', () => {
+          this.removeListener('close', closeHandler)
+        })
+      })
+
+      // when a tunnel dies, open a new one
+      this.tunnelCluster.on('dead', () => {
+        tunnelCount--
+        debug('tunnel dead [total: %d]', tunnelCount)
+        if (this.closed) {
+          return
+        }
+        this.tunnelCluster.open()
+      })
+
+      this.tunnelCluster.on('request', req => {
+        this.emit('request', req)
+      })
+
+      // establish as many tunnels as allowed
+      for (let count = 0; count < info.max_conn; ++count) {
+        this.tunnelCluster.open()
       }
-      this.tunnelCluster.open()
-    })
 
-    this.tunnelCluster.on('request', req => {
-      this.emit('request', req)
-    })
+    } else {
 
-    // establish as many tunnels as allowed
-    for (let count = 0; count < info.max_conn; ++count) {
-      this.tunnelCluster.open()
+      debug('unable to establish the connection. Closing the tunnel')
+      this.emit('close')
     }
   }
 

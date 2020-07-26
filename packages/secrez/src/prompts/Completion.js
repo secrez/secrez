@@ -82,6 +82,9 @@ class _Completion {
         })
         let v = lasts[0].l
         let prefix = v !== -1 ? line.substring(0, v) + lasts[0].n : line
+        if (c._self && !!c._self.prompt.commands[prefix]) {
+          prefix += ' '
+        }
         commands = commands.map(e => `${prefix}${
             e
                 ? e.replace(/ /g, '\\ ')

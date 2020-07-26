@@ -1,46 +1,32 @@
 const chalk = require('chalk')
 const _ = require('lodash')
 const fs = require('fs-extra')
-const path = require('path')
 const inquirer = require('inquirer')
-const clear = require('clear')
 
 // eslint-disable-next-line node/no-unpublished-require
 // const inquirerCommandPrompt = require('../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
-
-const multiEditorPrompt = require('./utils/MultiEditorPrompt')
-const utils = require('@secrez/utils')
-const {Secrez} = require('@secrez/core')
-const {FsUtils, InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
-
-const Logger = require('./utils/Logger')
-const Completion = require('./Completion')
-const cliConfig = require('./cliConfig')
-const Commands = require('./commands')
-const welcome = require('./Welcome')
-const AliasManager = require('./AliasManager')
-const UserManager = require('./UserManager')
-
+const multiEditorPrompt = require('./MultiEditorPrompt')
 inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('multiEditor', multiEditorPrompt)
 
+const {sleep, getKeyValue} = require('@secrez/utils')
+const Completion = require('./Completion')
+const {FsUtils} = require('@secrez/fs')
+const Logger = require('../utils/Logger')
+const cliConfig = require('../cliConfig')
+const sigintManager = require('./SigintManager')
+const ClearScreen = require('./ClearScreen')
+
 let thiz
 
-class Prompt {
+class CommandPrompt {
 
-  async init(options) {
+  async getReady(options) {
+    thiz = this
     this.inquirer = inquirer
     this.commandPrompt = inquirerCommandPrompt
-    this.getHistory = inquirerCommandPrompt.getHistory
-    this.secrez = new Secrez
-    await this.secrez.init(options.container, options.localDir)
-    this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'), this.secrez)
-    this.secrez.cache.initEncryption('alias', 'user')
-    await this.secrez.cache.load('id')
-    this.internalFs = new InternalFs(this.secrez)
-    this.externalFs = new ExternalFs()
-    thiz = this
+    this.historyPath = options.historyPath
     inquirerCommandPrompt.setConfig({
       history: {
         save: false,
@@ -49,7 +35,31 @@ class Prompt {
       },
       onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd
     })
-    this.commands = (new Commands(this, cliConfig)).getCommands()
+    this.completion = cliConfig[options.completion]
+    this.commands = options.commands
+    this.environment = options.environment
+    this.clearScreen = new ClearScreen(this.secrez.config)
+    this.context = options.context || 0
+    // process.on('SIGINT', async () => {
+    //   await sigintManager.onSigint(this)
+    // })
+    await this.setSigintPosition()
+  }
+
+  async setSigintPosition() {
+    const {position, runNow} = await sigintManager.setPosition(this)
+    this.sigintPosition = position
+    if (runNow) {
+      await this.run()
+    }
+  }
+
+  async firstRun() {
+    if (!this.getCommands) {
+      this.getCommands = Completion(this.completion)
+      this.basicCommands = await this.getCommands()
+      this.getCommands.bind(this)
+    }
   }
 
   reorderCommandLineWithDefaultAtEnd(line) {
@@ -69,7 +79,7 @@ class Prompt {
       let result = []
       for (let key in params) {
         if (key !== '_unknown') {
-          result.push(utils.getKeyValue(params, key))
+          result.push(getKeyValue(params, key))
         }
       }
       result.sort((a, b) => {
@@ -113,13 +123,13 @@ class Prompt {
   async saveHistory() {
     let histories = JSON.stringify(inquirerCommandPrompt.getHistories(true))
     let encryptedHistory = this.secrez.encryptData(histories)
-    await fs.writeFile(this.secrez.config.historyPath, encryptedHistory)
+    await fs.writeFile(this.historyPath, encryptedHistory)
   }
 
   async loadSavedHistory() {
     let previousHistories
-    if (await fs.pathExists(this.secrez.config.historyPath)) {
-      let encryptedHistory = await fs.readFile(this.secrez.config.historyPath, 'utf8')
+    if (await fs.pathExists(this.historyPath)) {
+      let encryptedHistory = await fs.readFile(this.historyPath, 'utf8')
       previousHistories = JSON.parse(this.secrez.decryptData(encryptedHistory))
       inquirerCommandPrompt.setHistoryFromPreviousSavedHistories(previousHistories)
     }
@@ -128,12 +138,12 @@ class Prompt {
   async loading() {
     this.loadingIndex = 0
     this.showLoading = true
-    await utils.sleep(100)
+    await sleep(100)
     while (this.showLoading) {
       const loader = ['\\', '|', '/', '-']
       this.loadingIndex = (this.loadingIndex + 1) % 4
       process.stdout.write(loader[this.loadingIndex] + ' ' + this.loadingMessage)
-      await utils.sleep(100)
+      await sleep(100)
       process.stdout.clearLine()
       process.stdout.cursorTo(0)
     }
@@ -173,67 +183,50 @@ class Prompt {
     return res
   }
 
-  async clearScreen() {
-    this.clearIsRunning = true
-    if (Date.now() - this.lastCommandAt > 1000 * cliConfig.clearScreenAfter) {
-      clear()
-      console.info(chalk.grey(`Terminal has been cleared after ${cliConfig.clearScreenAfter} seconds of inactivity.`))
-      process.stdout.write(this.lastpre + ' ')
-      this.clearIsRunning = false
-    } else {
-      await utils.sleep(100 * cliConfig.clearScreenAfter)
-      this.clearScreen()
-    }
+  async preRun(options) {
+    // can be implemented by the extending class
   }
 
-  async run(options) {
-    if (!this.clearIsRunning) {
-      this.clearScreen()
-    }
-    if (!this.loggedIn) {
-      this.getCommands = Completion(cliConfig.completion)
-      this.basicCommands = await this.getCommands()
-      this.getCommands.bind(this)
-      await welcome.start(this.secrez, options)
-      this.internalFs.init().then(() => delete this.showLoading)
-      this.loadingMessage = 'Initializing'
-      await this.loading()
-      await this.loadSavedHistory()
-      this.loggedIn = true
-      let alerts = this.internalFs.tree.alerts
-      if (alerts.length) {
-        Logger.red(alerts[0])
-        Logger.cyan(alerts.slice(1).join('\n'))
-      }
-      await this.secrez.cache.load('alias')
-      await this.secrez.cache.load('user')
-      AliasManager.setCache(this.secrez.cache)
-      this.aliasManager = new AliasManager()
-      UserManager.setCache(this.secrez.cache)
-      this.userManager = new UserManager()
-    }
+  async postRun(options) {
+    // must be implemented by the extending class
+  }
+
+  prePromptMessage() {
+    return 'MainPrompt'
+  }
+
+  promptMessage() {
+    return '$'
+  }
+
+  availableOptionsMessage(options) {
+    return chalk.grey('Available options:')
+  }
+
+  async run(options = {}) {
+    await this.firstRun()
+    await this.preRun(options)
     if (this.disableRun) {
       return
     }
     try {
-      let pre = chalk.reset(`Secrez ${this.internalFs.tree.name}:${this.internalFs.tree.workingNode.getPath()}`)
-      this.lastpre = `${pre} ${chalk.bold('$')}`
+      let prefix = this.prePromptMessage(options)
       let {cmd} = await inquirer.prompt([
         {
           type: 'command',
           name: 'cmd',
           autoCompletion: this.getCommands,
           short: this.short,
-          prefix: pre,
+          prefix,
           // noColorOnAnswered: true,
           colorOnAnswered: 'grey',
-          message: '$',
-          context: 0,
+          message: this.promptMessage(),
           ellipsize: true,
-          autocompletePrompt: chalk.grey('Available options:'),
-          onBeforeKeyPress: () => this.lastCommandAt = Date.now(),
+          autocompletePrompt: this.availableOptionsMessage(),
+          onBeforeKeyPress: this.clearScreen.setLastCommandAt,
+          context: this.context,
           onClose: () => {
-            fs.emptyDirSync(cliConfig.tmpPath)
+            fs.emptyDirSync(this.secrez.config.tmpPath)
           },
           validate: val => {
             return val
@@ -242,55 +235,10 @@ class Prompt {
           }
         }
       ])
-      cmd = _.trim(cmd)
-      let components = cmd.split(' ')
-      let command = components[0]
-      /* istanbul ignore if  */
-      if (!this.basicCommands.includes(command)) {
-        command = command.replace(/^\$/, '')
-        let data = this.aliasManager.get(command)
-        if (data) {
-          let cmds = data.commandLine.split('&&').map(e => _.trim(e))
-          let max = 0
-          let missing = false
-          for (let i = 0; i < cmds.length; i++) {
-            let c = cmds[i]
-            let params = c.match(/\$\w{1}/g)
-            if (params) {
-              for (let p of params) {
-                let num = parseInt(p.substring(1))
-                max = Math.max(max, num)
-                let option = components[num]
-                if (!option) {
-                  missing = true
-                }
-                c = c.replace(RegExp('\\$' + num), option)
-              }
-            }
-            if (!missing) {
-              Logger.green('>>  ' + chalk.bold.grey(c))
-              this.disableRun = i !== cmds.length - 1
-              await this.exec([c])
-              if (i === cmds.length - 1) {
-                return
-              }
-            }
-          }
-          if (missing) {
-            Logger.red(`The alias "${command}" requires ${max} parameter${max > 1 ? 's' : ''}`)
-            this.disableRun = false
-          }
-          this.run()
-          return
-        }
-        Logger.red('Command not found')
-        this.run()
-        return
-      }
-      await this.exec([cmd])
-      this.previousCommandLine = cmd
+      options.cmd = _.trim(cmd)
+      await this.postRun(options)
     } catch (e) {
-      // console.error(e)
+      console.error(e)
       Logger.red(e.message)
     }
   }
@@ -312,18 +260,19 @@ class Prompt {
           } catch (e) {
             // console.error(e)
             Logger.red(e.message)
-            this.run()
+            await this.run()
           }
         } else {
-          Logger.red('Command not found.')
+          Logger.red('Command not found')
           if (!noRun) {
-            this.run()
+            await this.run()
           }
         }
       }
     }
   }
+
 }
 
-module.exports = Prompt
+module.exports = CommandPrompt
 

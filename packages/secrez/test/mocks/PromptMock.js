@@ -1,5 +1,5 @@
 const path = require('path')
-const {Secrez} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 const {InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 
@@ -15,7 +15,7 @@ class PromptMock {
     this.secrez.cache = new DataCache(path.join(options.container, 'cache'))
     await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
-    this.externalFs = new ExternalFs()
+    this.externalFs = new ExternalFs(this.secrez)
     this.commands = (new Commands(this, cliConfig)).getCommands()
     this.commandPrompt = inquirerCommandPrompt
   }

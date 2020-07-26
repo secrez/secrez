@@ -4,8 +4,8 @@ const stdout = require('test-console').stdout
 const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('../mocks/PromptMock')
-const AliasManager = require('../../src/AliasManager')
+const MainPrompt = require('../mocks/PromptMock')
+const AliasManager = require('../../src/Managers/AliasManager')
 const {assertConsole, noPrint, decolorize} = require('../helpers')
 const {sleep} = require('@secrez/utils')
 
@@ -32,7 +32,7 @@ describe('#Alias', function () {
   beforeEach(async function () {
     AliasManager.getCache().reset()
     await fs.emptyDir(testDir)
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
