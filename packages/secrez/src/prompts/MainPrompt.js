@@ -9,12 +9,12 @@ const cliConfig = require('../cliConfig')
 const Commands = require('../commands')
 const welcome = require('../Welcome')
 const AliasManager = require('../Managers/AliasManager')
-const UserManager = require('../Managers/UserManager')
+const ContactManager = require('../Managers/ContactManager')
 
 class MainPrompt extends require('./CommandPrompt') {
 
   async init(options) {
-    this.secrez = new Secrez
+    this.secrez = new Secrez()
     await this.secrez.init(options.container, options.localDir)
     this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'), this.secrez)
     this.secrez.cache.initEncryption('alias', 'user')
@@ -45,11 +45,11 @@ class MainPrompt extends require('./CommandPrompt') {
         Logger.cyan(alerts.slice(1).join('\n'))
       }
       await this.secrez.cache.load('alias')
-      await this.secrez.cache.load('user')
+      await this.secrez.cache.load('contact')
       AliasManager.setCache(this.secrez.cache)
       this.aliasManager = new AliasManager()
-      UserManager.setCache(this.secrez.cache)
-      this.userManager = new UserManager()
+      ContactManager.setCache(this.secrez.cache)
+      this.contactManager = new ContactManager()
     }
   }
 

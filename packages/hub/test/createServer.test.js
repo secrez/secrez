@@ -97,7 +97,7 @@ describe.only('Server', () => {
     await new Promise(resolve => server.close(resolve))
   })
 
-  it('should support the /api/v1/tunnels/:id/status endpoint', async () => {
+  it('should create a tunnel and support the /api/v1/tunnels/:id/status endpoint', async () => {
     const server = createServer()
     await new Promise(resolve => server.listen(resolve))
 
@@ -113,7 +113,7 @@ describe.only('Server', () => {
 
     let {short_url, id, url} = res.body
 
-    assert.equal(id.substring(0, 4), Crypto.b32Hash(Secrez.getSignPublicKey(secrez.getPublicKey())).substring(0, 4))
+    assert.equal(id.substring(0, 4), Crypto.b32Hash(Crypto.getSignPublicKeyFromSecretPublicKey(secrez.getPublicKey())).substring(0, 4))
 
     res = await request(server).get(`/api/v1/tunnels/${id}/status`)
     assert.equal(res.statusCode, 200)

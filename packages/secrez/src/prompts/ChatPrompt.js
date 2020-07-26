@@ -6,12 +6,12 @@ const Logger = require('../utils/Logger')
 class ChatPrompt extends require('./CommandPrompt') {
 
   async init(options) {
+    this.secrez = options.secrez
     this.getReady({
       historyPath: options.historyPath,
       completion: 'chatCompletion',
       commands: (new Commands(this, cliConfig, 'chat')).getCommands(),
       environment: options.environment,
-      secrez: options.secrez,
       context: 'chat'
     })
     await this.loadSavedHistory()

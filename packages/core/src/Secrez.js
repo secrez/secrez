@@ -6,11 +6,10 @@ const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
 const utils = require('@secrez/utils')
 
-let globals = {}
+const $ = {}
 
 module.exports = function (rand) {
 
-  rand = rand.toString()
   const _Secrez = require('./_Secrez')(rand)
 
   class Secrez {
@@ -31,7 +30,8 @@ module.exports = function (rand) {
     }
 
     async signup(password, iterations,
-                 testDerivationVersion // to test the upgrade from 1 to 2
+                 // to test the upgrade from 1 to 2
+                 testDerivationVersion
     ) {
       if (!this.config || !this.config.keysPath) {
         throw new Error('Secrez not initiated')
@@ -39,33 +39,33 @@ module.exports = function (rand) {
       if (!await fs.pathExists(this.config.keysPath)) {
 
         let id = Crypto.b58Hash(Crypto.generateKey())
-        globals[rand] = new _Secrez
+        $[rand] = new _Secrez
 
         let derivationVersion = _Secrez.derivationVersion.TWO
         if (process.env.NODE_ENV === 'test' && testDerivationVersion) {
           derivationVersion = testDerivationVersion
         }
 
-        await globals[rand].init(password, iterations, derivationVersion)
+        await $[rand].init(password, iterations, derivationVersion)
 
-        let {key, hash} = await globals[rand].signup()
+        let {key, hash} = await $[rand].signup()
         this.masterKeyHash = hash
 
         // x25519-xsalsa20-poly1305
         const boxPair = Crypto.generateBoxKeyPair()
         const box = {
-          secretKey: globals[rand].encrypt(Crypto.toBase58(boxPair.secretKey)),
+          secretKey: $[rand].encrypt(Crypto.toBase58(boxPair.secretKey)),
           publicKey: Crypto.toBase58(boxPair.publicKey)
         }
 
         // ed25519
         const ed25519Pair = Crypto.generateSignatureKeyPair()
         const sign = {
-          secretKey: globals[rand].encrypt(Crypto.toBase58(ed25519Pair.secretKey)),
+          secretKey: $[rand].encrypt(Crypto.toBase58(ed25519Pair.secretKey)),
           publicKey: Crypto.toBase58(ed25519Pair.publicKey)
         }
 
-        globals[rand].initPrivateKeys(boxPair.secretKey, ed25519Pair.secretKey)
+        $[rand].initPrivateKeys(boxPair.secretKey, ed25519Pair.secretKey)
 
         const data = {
           id,
@@ -78,7 +78,7 @@ module.exports = function (rand) {
         if (derivationVersion === _Secrez.derivationVersion.TWO) {
           data.derivationVersion = derivationVersion
         }
-        globals[rand].setConf(await this.signAndSave(data), true)
+        $[rand].setConf(await this.signAndSave(data), true)
       } else {
         throw new Error('An account already exists. Please, sign in or chose a different container directory')
       }
@@ -89,7 +89,7 @@ module.exports = function (rand) {
     }
 
     async signAndSave(data) {
-      const conf = globals[rand].signData(data)
+      const conf = $[rand].signData(data)
       await fs.writeFile(this.config.keysPath, JSON.stringify(conf))
       return conf
     }
@@ -101,11 +101,11 @@ module.exports = function (rand) {
     }
 
     generateSharedSecrets(secret) {
-      return globals[rand].generateSharedSecrets(secret)
+      return $[rand].generateSharedSecrets(secret)
     }
 
     async removeSharedSecret(authenticator, all) {
-      let data = globals[rand].conf.data
+      let data = $[rand].conf.data
       let code = 1
       let removeAll = true
       if (!all) {
@@ -121,10 +121,10 @@ module.exports = function (rand) {
       }
       if (removeAll) {
         code = 2
-        globals[rand].restoreKey()
+        $[rand].restoreKey()
       }
       let conf = await this.signAndSave(data)
-      globals[rand].setConf(conf, true)
+      $[rand].setConf(conf, true)
       return code
     }
 
@@ -149,39 +149,16 @@ module.exports = function (rand) {
         delete conf.data.key
       }
       conf = await this.signAndSave(conf.data)
-      globals[rand].setConf(conf, true)
+      $[rand].setConf(conf, true)
       return conf
     }
 
     getConf() {
-      return globals[rand].conf
+      return $[rand].conf
     }
 
     getPublicKey() {
-      return globals[rand].conf.data.box.publicKey + '0' + globals[rand].conf.data.sign.publicKey
-    }
-
-    static getSignPublicKey(publicKey) {
-      return Crypto.fromBase58(publicKey.split('0')[1])
-    }
-
-    static getBoxPublicKey(publicKey) {
-      return Crypto.fromBase58(publicKey.split('0')[0])
-    }
-
-    static isValidPublicKey(pk) {
-      if (typeof pk === 'string') {
-        const [boxPublicKey, signPublicKey] = pk.split('0').map(e => {
-          e = Crypto.fromBase58(e)
-          if (Crypto.isValidPublicKey(e)) {
-            return e
-          }
-        })
-        if (boxPublicKey && signPublicKey) {
-          return true
-        }
-      }
-      return false
+      return $[rand].conf.data.box.publicKey + '0' + $[rand].conf.data.sign.publicKey
     }
 
     async readConf() {
@@ -196,16 +173,16 @@ module.exports = function (rand) {
     }
 
     async upgradeAccount(password, iterations) {
-      let data = await globals[rand].changePassword(password, iterations)
-      globals[rand].setConf(await this.signAndSave(data), true)
+      let data = await $[rand].changePassword(password, iterations)
+      $[rand].setConf(await this.signAndSave(data), true)
     }
 
     verifyPassword(password) {
-      return globals[rand].isItRight(password)
+      return $[rand].isItRight(password)
     }
 
     signMessage(message) {
-      return globals[rand].signMessage(message)
+      return $[rand].signMessage(message)
     }
 
     verifySignedMessage(message, signature, publicKey) {
@@ -226,14 +203,14 @@ module.exports = function (rand) {
       iterations = parseInt(iterations)
       const conf = await this.readConf()
       const data = conf.data
-      globals[rand] = new _Secrez
-      await globals[rand].init(password, iterations, data.derivationVersion)
+      $[rand] = new _Secrez
+      await $[rand].init(password, iterations, data.derivationVersion)
       /* istanbul ignore if  */
       if (!data.key && !data.keys) {
         throw new Error('No valid data found')
       }
       if (data.key) {
-        let masterKeyHash = await globals[rand].signin(data)
+        let masterKeyHash = await $[rand].signin(data)
         this.setMasterKeyHash(conf, masterKeyHash)
         if (!data.derivationVersion) {
           await this.upgradeAccount()
@@ -246,7 +223,7 @@ module.exports = function (rand) {
     }
 
     async getSecondFactorData(authenticator) {
-      if (!this.config || !this.config.keysPath || !globals[rand] || !globals[rand].isInitiated()) {
+      if (!this.config || !this.config.keysPath || !$[rand] || !$[rand].isInitiated()) {
         throw new Error('A standard sign in must be run before to initiate Secrez')
       }
       const conf = await this.readConf()
@@ -259,7 +236,7 @@ module.exports = function (rand) {
     }
 
     async sharedSignin(authenticator, secret) {
-      if (!this.config || !this.config.keysPath || !globals[rand] || !globals[rand].isInitiated()) {
+      if (!this.config || !this.config.keysPath || !$[rand] || !$[rand].isInitiated()) {
         throw new Error('A standard sign in must be run before to initiate Secrez')
       }
       const conf = await this.readConf()
@@ -271,7 +248,7 @@ module.exports = function (rand) {
       if (!data.keys[authenticator]) {
         throw new Error(`No second factor registered with the authenticator ${authenticator}`)
       }
-      let masterKeyHash = await globals[rand].sharedSignin(data, authenticator, secret)
+      let masterKeyHash = await $[rand].sharedSignin(data, authenticator, secret)
       this.setMasterKeyHash(conf, masterKeyHash)
       if (!data.derivationVersion) {
         await this.upgradeAccount()
@@ -282,7 +259,7 @@ module.exports = function (rand) {
 
     setMasterKeyHash(conf, masterKeyHash) {
       /* istanbul ignore if  */
-      if (!globals[rand].setConf(conf)) {
+      if (!$[rand].setConf(conf)) {
         throw new Error('keys.json looks corrupted')
       }
       this.masterKeyHash = masterKeyHash
@@ -299,27 +276,27 @@ module.exports = function (rand) {
     }
 
     encryptData(data) {
-      return globals[rand].encrypt(data)
+      return $[rand].encrypt(data)
     }
 
     decryptData(encryptedData) {
-      return globals[rand].decrypt(encryptedData)
+      return $[rand].decrypt(encryptedData)
     }
 
     preEncryptData(data) {
-      return globals[rand].preEncrypt(data)
+      return $[rand].preEncrypt(data)
     }
 
     preDecryptData(encryptedData) {
-      return globals[rand].preDecrypt(encryptedData)
+      return $[rand].preDecrypt(encryptedData)
     }
 
     encryptSharedData(data, publicKey) {
-      return globals[rand].encryptShared(data, publicKey)
+      return $[rand].encryptShared(data, publicKey)
     }
 
     decryptSharedData(encryptedData, publicKey) {
-      return globals[rand].decryptShared(encryptedData, publicKey)
+      return $[rand].decryptShared(encryptedData, publicKey)
     }
 
 
@@ -350,7 +327,7 @@ module.exports = function (rand) {
           ts
         })
         if (name) {
-          let encryptedName = type + globals[rand].encrypt(JSON.stringify({
+          let encryptedName = type + $[rand].encrypt(JSON.stringify({
             i: id,
             t: ts,
             n: name
@@ -373,7 +350,7 @@ module.exports = function (rand) {
         }
         if (content) {
           encryptedEntry.set({
-            encryptedContent: globals[rand].encrypt(JSON.stringify({
+            encryptedContent: $[rand].encrypt(JSON.stringify({
               i: id,
               t: ts,
               c: content
@@ -415,7 +392,7 @@ module.exports = function (rand) {
               data = encryptedName.substring(0, 254) + extraName
             }
             let type = parseInt(data.substring(0, 1))
-            let e = JSON.parse(globals[rand].decrypt(data.substring(1)))
+            let e = JSON.parse($[rand].decrypt(data.substring(1)))
             let id = e.i
             let ts = e.t
             let name = e.n
@@ -423,7 +400,7 @@ module.exports = function (rand) {
 
             // during the indexing internalFS reads only the names of the files
             if (encryptedContent) {
-              let e = JSON.parse(globals[rand].decrypt(encryptedContent))
+              let e = JSON.parse($[rand].decrypt(encryptedContent))
               if (id !== e.i || ts !== e.t) {
                 throw new Error('Data is corrupted')
               }
@@ -447,7 +424,7 @@ module.exports = function (rand) {
 
           // when the encryptedName has been already decrypted and we need only the content
           if (encryptedContent) {
-            let e = JSON.parse(globals[rand].decrypt(encryptedContent))
+            let e = JSON.parse($[rand].decrypt(encryptedContent))
 
             if ((nameId && e.i !== nameId) || (nameTs && e.t !== nameTs)) {
               throw new Error('Content is corrupted')
@@ -484,7 +461,7 @@ module.exports = function (rand) {
     signout() {
       if (this.masterKeyHash) {
         delete this.masterKeyHash
-        globals[rand] = undefined
+        $[rand] = undefined
       } else {
         throw new Error('User not logged')
       }

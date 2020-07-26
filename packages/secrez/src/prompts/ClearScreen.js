@@ -40,5 +40,5 @@ class ClearScreen {
 
 }
 
-module.exports = new ClearScreen
+module.exports = ClearScreen
 

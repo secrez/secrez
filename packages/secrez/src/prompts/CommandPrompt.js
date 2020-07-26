@@ -16,6 +16,7 @@ const {FsUtils} = require('@secrez/fs')
 const Logger = require('../utils/Logger')
 const cliConfig = require('../cliConfig')
 const sigintManager = require('./SigintManager')
+const ClearScreen = require('./ClearScreen')
 
 let thiz
 
@@ -37,14 +38,11 @@ class CommandPrompt {
     this.completion = cliConfig[options.completion]
     this.commands = options.commands
     this.environment = options.environment
-    if (options.secrez) {
-      this.secrez = options.secrez
-    }
-    this.clearScreen = require('./ClearScreen')(this.secrez.config)
+    this.clearScreen = new ClearScreen(this.secrez.config)
     this.context = options.context || 0
-    process.on('SIGINT', async () => {
-      await sigintManager.onSigint(this)
-    })
+    // process.on('SIGINT', async () => {
+    //   await sigintManager.onSigint(this)
+    // })
     await this.setSigintPosition()
   }
 
@@ -228,7 +226,7 @@ class CommandPrompt {
           onBeforeKeyPress: this.clearScreen.setLastCommandAt,
           context: this.context,
           onClose: () => {
-            fs.emptyDirSync(cliConfig.tmpPath)
+            fs.emptyDirSync(this.secrez.config.tmpPath)
           },
           validate: val => {
             return val

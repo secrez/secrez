@@ -9,8 +9,6 @@ const Db = require('./Db')
 const debug = Debug('courier:server')
 const App = require('./App')
 
-let siginted = false
-
 class Server {
 
   constructor(config) {
@@ -152,10 +150,10 @@ class Server {
       debug('Listening on ' + bind)
     })
 
-    if (!siginted) {
+    if (process.env.NODE_ENV !== 'test') {
+
       process.on('SIGINT', () => {
         debug('SIGINT signal received.')
-
         process.exit(0)
       })
 
@@ -166,8 +164,6 @@ class Server {
         }
         debug('Closed.')
       })
-
-      siginted = true
     }
   }
 

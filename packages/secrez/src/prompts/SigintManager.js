@@ -4,16 +4,23 @@ class SigintManager {
     this.prompts = []
     this.siginted = false
     this.lastCalled = Date.now()
+
+    if (process.env.NODE_ENV !== 'test') {
+      process.on('SIGINT', async () => {
+        await this.onSigint()
+      })
+    }
   }
 
-  async onSigint(prompt) {
+  async onSigint() {
     this.siginted = true
-    let len = this.prompts.length
+    // let len = this.prompts.length
     if (Date.now() - this.lastCalled < 500) {
       // eslint-disable-next-line no-process-exit
       process.exit(0)
     }
-    if (prompt.sigintPosition === len - 1) {
+    const prompt = this.prompts[this.prompts.length - 1]
+    // if (prompt.sigintPosition === len - 1) {
       let msg
       if (prompt.context === 'chat') {
         msg = 'To leave the chat, type leave. To exit press ^C two times'
@@ -23,7 +30,7 @@ class SigintManager {
       console.info(msg)
       this.lastCalled = Date.now()
       return prompt.run()
-    }
+    // }
   }
 
   async setPosition(prompt) {

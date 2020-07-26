@@ -5,7 +5,7 @@ const assert = chai.assert
 const superagent = require('superagent')
 const {Crypto} = require('@secrez/core')
 const Secrez = require('@secrez/core').Secrez(Math.random())
-const Secrez2 = Secrez_(Math.random())
+const Secrez2 = require('@secrez/core').Secrez(Math.random())
 const {sleep} = require('@secrez/utils')
 const {createServer, utils: hubUtils} = require('@secrez/hub')
 const {isValidRandomId, setPayloadAndSignIt, verifyPayload} = hubUtils
@@ -17,9 +17,9 @@ const {publicKey1, publicKey2} = require('./fixtures')
 
 const jlog = require('./helpers/jlog')
 
-describe.only('Server', async function () {
+describe('Server', async function () {
 
-  let localDomain = 'localhost'
+  let localDomain = 'localho.st'
   let courierRoot = path.resolve(__dirname, '../tmp/test/secrez-courier')
   let courierRoot2 = path.resolve(__dirname, '../tmp/test/secrez-courier2')
   let secrezDir1 = path.resolve(__dirname, '../tmp/test/secrez1')
@@ -63,7 +63,6 @@ describe.only('Server', async function () {
     })
   }
 
-
   beforeEach(async function () {
     await fs.emptyDir(secrezDir1)
     await secrez1.init(secrezDir1)
@@ -92,16 +91,11 @@ describe.only('Server', async function () {
   })
 
   it('should build an instance and start the server', async function () {
-    assert.equal(server.localhost, `https://${localDomain}:${server.port}`)
-    try {
-      await superagent.get(`${server.localhost}`)
+    assert.equal(server.localhost.replace(/localhost/, 'localho.st'), `https://${localDomain}:${server.port}`)
+      let res = await superagent.get(`${server.localhost}`)
           .set('Accept', 'application/json')
           .ca(await server.tls.getCa())
-      assert.isTrue(false)
-    } catch (e) {
-      assert.equal(e.message, 'Unauthorized')
-    }
-
+    assert.equal(res.body.hello, 'world')
   })
 
   it('should accept /admin requests with auth-code', async function () {
@@ -119,7 +113,7 @@ describe.only('Server', async function () {
           .query({payload, signature})
           .ca(await server.tls.getCa())
       assert.isTrue(false)
-    } catch(e) {
+    } catch (e) {
       assert.equal(e.message, 'Bad Request')
     }
 
@@ -194,7 +188,8 @@ describe.only('Server', async function () {
     const {payload, signature} = setPayloadAndSignIt(secrez1, {
       action: {
         name: 'add',
-        publicKey: publicKey1
+        publicKey: publicKey1,
+        url: 'https://example.com'
       }
     })
 
@@ -205,6 +200,7 @@ describe.only('Server', async function () {
         .ca(await server.tls.getCa())
 
     assert.isTrue(res.body.success)
+
   })
 
   it('should receive a message from a public key in the trusted circle', async function () {
@@ -253,7 +249,7 @@ describe.only('Server', async function () {
       publickey: publicKey2
     })
 
-    res = await superagent.get(`${server.localhost}/`)
+    res = await superagent.get(`${server.localhost}/messages`)
         .set('Accept', 'application/json')
         .set('auth-code', authCode)
         .query({payload: payload2, signature: signature2})
@@ -267,7 +263,7 @@ describe.only('Server', async function () {
       publickey: publicKey2
     })
 
-    res = await superagent.get(`${server.localhost}/`)
+    res = await superagent.get(`${server.localhost}/messages`)
         .set('Accept', 'application/json')
         .set('auth-code', authCode)
         .query({payload: payload3, signature: signature3})
@@ -278,11 +274,10 @@ describe.only('Server', async function () {
     assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
 
     const {payload: payload4, signature: signature4} = setPayloadAndSignIt(secrez1, {
-      minTimestamp: parseInt((Date.now() - 1000)/1000)
+      minTimestamp: parseInt((Date.now() - 1000) / 1000)
     })
 
-
-    res = await superagent.get(`${server.localhost}/`)
+    res = await superagent.get(`${server.localhost}/messages`)
         .set('Accept', 'application/json')
         .set('auth-code', authCode)
         .query({payload: payload4, signature: signature4})
@@ -297,10 +292,10 @@ describe.only('Server', async function () {
     await sendMessage('And what?', publicKey1, secrez2, server)
 
     const {payload: payload5, signature: signature5} = setPayloadAndSignIt(secrez1, {
-      maxTimestamp: parseInt(Date.now()/1000) - 1
+      maxTimestamp: parseInt(Date.now() / 1000) - 1
     })
 
-    res = await superagent.get(`${server.localhost}/`)
+    res = await superagent.get(`${server.localhost}/messages`)
         .set('Accept', 'application/json')
         .set('auth-code', authCode)
         .query({payload: payload5, signature: signature5})
@@ -313,9 +308,10 @@ describe.only('Server', async function () {
 
   it('should send a message to a public key in the trusted circle', async function () {
 
-    this.timeout(5000)
+    this.timeout(10000)
 
-    const authCode = server.authCode
+    const authCode1 = server.authCode
+    const authCode2 = server2.authCode
     const publicKey1 = secrez1.getPublicKey()
     const publicKey2 = secrez2.getPublicKey()
 
@@ -327,7 +323,7 @@ describe.only('Server', async function () {
 
     let res = await superagent.get(`${server.localhost}/admin`)
         .set('Accept', 'application/json')
-        .set('auth-code', authCode)
+        .set('auth-code', authCode1)
         .query({payload, signature})
         .ca(await server.tls.getCa())
 
@@ -341,7 +337,7 @@ describe.only('Server', async function () {
 
     res = await superagent.get(`${server2.localhost}/admin`)
         .set('Accept', 'application/json')
-        .set('auth-code', server2.authCode)
+        .set('auth-code', authCode2)
         .query({payload: payload0, signature: signature0})
         .ca(await server2.tls.getCa())
 
@@ -355,87 +351,55 @@ describe.only('Server', async function () {
       }
     })
 
-    jlog(JSON.parse(payload1))
-
     await superagent.get(`${server.localhost}/admin`)
         .set('Accept', 'application/json')
-        .set('auth-code', server.authCode)
+        .set('auth-code', authCode1)
         .query({payload: payload1, signature: signature1})
         .ca(await server.tls.getCa())
 
-    let encryptedMessage = secrez1.encryptSharedData('Ciao amico mio', publicKey2)
+    let message = 'Ciao amico mio'
+
+    let encryptedMessage = secrez1.encryptSharedData(message, publicKey2)
+
+    const {payload: payloadMessage, signature: signatureMessage} = setPayloadAndSignIt(secrez1, {
+      message: {
+        sentAt: Date.now(),
+        content: encryptedMessage
+      }
+    })
 
     const {payload: payload2, signature: signature2} = setPayloadAndSignIt(secrez1, {
       action: {
         name: 'send',
         publicKey: publicKey2,
         message: {
-          sentAt: Date.now(),
-          content: encryptedMessage
+          payload: payloadMessage,
+          signature: signatureMessage
         }
       }
     })
 
-    jlog(JSON.parse(payload2))
-
-    res = await superagent.get(`${server.localhost}/`)
+    res = await superagent.get(`${server.localhost}/admin`)
         .set('Accept', 'application/json')
-        .set('auth-code', authCode)
-        .query({payload: payload2, signature: signature2})
+        .set('auth-code', authCode1)
+        .query({payload: payload2, signature: signature2, caCrt: await server.tls.getCa()})
         .ca(await server.tls.getCa())
 
-    // jlog(res.body)
+    assert.isTrue(res.body.success)
 
-    // let encryptedMessage = res.body.result[0].message.content
-    //
-    // assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
-    //
-    // const {payload: payload3, signature: signature3} = setPayloadAndSignIt(secrez1, {
-    //   publickey: publicKey2
-    // })
-    //
-    // res = await superagent.get(`${server.localhost}/`)
-    //     .set('Accept', 'application/json')
-    //     .set('auth-code', authCode)
-    //     .query({payload: payload3, signature: signature3})
-    //     .ca(await server.tls.getCa())
-    // encryptedMessage = res.body.result[0].message.content
-    //
-    // assert.equal(res.body.result.length, 3)
-    // assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
-    //
-    // const {payload: payload4, signature: signature4} = setPayloadAndSignIt(secrez1, {
-    //   minTimestamp: parseInt((Date.now() - 1000)/1000)
-    // })
-    //
-    //
-    // res = await superagent.get(`${server.localhost}/`)
-    //     .set('Accept', 'application/json')
-    //     .set('auth-code', authCode)
-    //     .query({payload: payload4, signature: signature4})
-    //     .ca(await server.tls.getCa())
-    // encryptedMessage = res.body.result[0].message.content
-    //
-    // assert.equal(res.body.result.length, 3)
-    // assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
-    //
-    // await sleep(1000)
-    //
-    // await sendMessage('And what?', publicKey1, secrez2, server)
-    //
-    // const {payload: payload5, signature: signature5} = setPayloadAndSignIt(secrez1, {
-    //   maxTimestamp: parseInt(Date.now()/1000) - 1
-    // })
-    //
-    // res = await superagent.get(`${server.localhost}/`)
-    //     .set('Accept', 'application/json')
-    //     .set('auth-code', authCode)
-    //     .query({payload: payload5, signature: signature5})
-    //     .ca(await server.tls.getCa())
-    // encryptedMessage = res.body.result[0].message.content
-    //
-    // assert.equal(res.body.result.length, 3)
-    // assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
+    const {payload: payload3, signature: signature3} = setPayloadAndSignIt(secrez2, {
+      publickey: publicKey1
+    })
+
+    res = await superagent.get(`${server2.localhost}/messages`)
+        .set('Accept', 'application/json')
+        .set('auth-code', authCode2)
+        .query({payload: payload3, signature: signature3})
+        .ca(await server2.tls.getCa())
+    encryptedMessage = res.body.result[0].message.content
+
+    assert.equal(message, secrez2.decryptSharedData(encryptedMessage, publicKey1))
+
   })
 
   it('should throw if calling /admin with missing or wrong auth-code', async function () {

@@ -2,7 +2,6 @@ const fs = require('fs-extra')
 const path = require('path')
 const Node = require('./Node')
 const {config, Entry, Crypto, ConfigUtils} = require('@secrez/core')
-const Secrez = require('@secrez/core').Secrez(Math.random())
 
 class Tree {
 

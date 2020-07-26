@@ -29,7 +29,7 @@ class Chat extends require('../Command') {
   }
 
   async uploadUsersPublicKeysToCourier(options) {
-    let users = await this.prompt.commands.user.user({list: true, asIs: true})
+    let users = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
     let publicKeys = []
     for (let user of users) {
       publicKeys.push(user[1])

@@ -1,6 +1,5 @@
-const chalk = require('chalk')
 const {ConfigUtils} = require('@secrez/core')
-const Secrez = require('@secrez/core').Secrez(Math.random())
+const {Crypto} = require('@secrez/core')
 
 class Join extends require('../../Command') {
 
@@ -43,7 +42,7 @@ class Join extends require('../../Command') {
   }
 
   async customCompletion(options, originalLine, defaultOption) {
-    const existingUsers = (await this.prompt.environment.prompt.commands.user.user({
+    const existingUsers = (await this.prompt.environment.prompt.commands.contacts.contacts({
       list: true,
       asIs: true
     })).map(e => e[0])
@@ -70,11 +69,11 @@ class Join extends require('../../Command') {
       await this.prompt.environment.prompt.commands.conf.preInit(options)
       if (options.ready) {
         if (options.user) {
-          if (!Secrez.isValidPublicKey(options.chat||'')) {
+          if (!Crypto.isValidSecrezPublicKey(options.chat||'')) {
             throw new Error('The passed public key is invalid')
           } else {
             options.add = [options.user, options.chat]
-            await this.prompt.environment.prompt.commands.user.user(options)
+            await this.prompt.environment.prompt.commands.contacts.contacts(options)
             options.chat = options.user
           }
         }

@@ -869,11 +869,11 @@ describe('#Secrez', function () {
         assert.equal(masterKeyHash, secrez.masterKeyHash)
 
         let publicKey = secrez.getPublicKey()
-        assert.isTrue(Secrez.isValidPublicKey(publicKey))
-        assert.isFalse(Secrez.isValidPublicKey([1, 2, 3, 4]))
+        assert.isTrue(Crypto.isValidSecrezPublicKey(publicKey))
+        assert.isFalse(Crypto.isValidSecrezPublicKey([1, 2, 3, 4]))
 
-        let signPublicKey = Secrez.getSignPublicKey(publicKey)
-        let boxPublicKey = Secrez.getBoxPublicKey(publicKey)
+        let signPublicKey = Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)
+        let boxPublicKey = Crypto.getBoxPublicKeyFromSecretPublicKey(publicKey)
 
         publicKey = publicKey.split('0').map(e => Crypto.fromBase58(e))
         assert.equal(publicKey[0].toString(), boxPublicKey.toString())

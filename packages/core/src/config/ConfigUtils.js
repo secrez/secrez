@@ -105,7 +105,7 @@ local
 
   static async getEnv(config) {
     if (await fs.pathExists(config.envPath)) {
-      return JSON.parse(await fs.readFile(config.envPath, 'utf8'))
+      return JSON.parse(await fs.readFile(config.envPath, 'utf8') || '{}')
     } else {
       return {}
     }

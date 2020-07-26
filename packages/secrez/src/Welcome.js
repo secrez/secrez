@@ -1,7 +1,6 @@
 const chalk = require('chalk')
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
-const cliConfig = require('./cliConfig')
 const {Crypto} = require('@secrez/core')
 const Logger = require('./utils/Logger')
 const Fido2Client = require('./utils/Fido2Client')
@@ -9,22 +8,23 @@ const Fido2Client = require('./utils/Fido2Client')
 class Welcome {
 
   async start(secrez, options) {
+    this.secrez = secrez
     this.options = options
     this.iterations = options.iterations || await this.getIterations()
-    if (await fs.pathExists(cliConfig.keysPath)) {
-      let errorCode = await this.login(secrez)
+    if (await fs.pathExists(this.secrez.config.keysPath)) {
+      let errorCode = await this.login()
       if (errorCode === 1) {
-        await this.sharedLogin(secrez)
+        await this.sharedLogin()
       }
     } else {
       Logger.grey('Please signup to create your local account')
-      await this.signup(secrez)
+      await this.signup()
     }
   }
 
   async getIterations() {
-    if (await fs.pathExists(cliConfig.envPath)) {
-      let env = require(cliConfig.envPath)
+    if (await fs.pathExists(this.secrez.config.envPath)) {
+      let env = require(this.secrez.config.envPath)
       if (env.iterations) {
         return env.iterations
       }
@@ -45,13 +45,13 @@ class Welcome {
   }
 
 // chimney piano fabric forest curious black hip axis story stool spoil fold
-  async saveIterations(secrez) {
+  async saveIterations() {
     if (this.options.saveIterations) {
-      await secrez.saveIterations(this.iterations)
+      await this.secrez.saveIterations(this.iterations)
     }
   }
 
-  async login(secrez) {
+  async login() {
     for (; ;) {
       try {
         let {password} = await inquirer.prompt([{
@@ -67,9 +67,9 @@ class Welcome {
           }
         }])
         try {
-          await secrez.signin(password, this.iterations)
-          if (secrez.masterKeyHash) {
-            await this.saveIterations(secrez)
+          await this.secrez.signin(password, this.iterations)
+          if (this.secrez.masterKeyHash) {
+            await this.saveIterations()
           }
           return 0
         } catch (e) {
@@ -84,11 +84,11 @@ class Welcome {
     }
   }
 
-  async sharedLogin(secrez) {
-    let fido2Client = new Fido2Client(secrez)
+  async sharedLogin() {
+    let fido2Client = new Fido2Client(this.secrez)
     let authenticator
     let list = await fido2Client.getKeys()
-    const conf = await secrez.readConf()
+    const conf = await this.secrez.readConf()
     let choices = []
     for (let authenticator in conf.data.keys) {
       choices.push(authenticator)
@@ -132,9 +132,9 @@ class Welcome {
             }
             secret = p.recoveryCode
           }
-          let resCode = await secrez.sharedSignin(authenticator, secret)
-          if (secrez.masterKeyHash) {
-            await this.saveIterations(secrez)
+          let resCode = await this.secrez.sharedSignin(authenticator, secret)
+          if (this.secrez.masterKeyHash) {
+            await this.saveIterations()
           }
           if (resCode === 1) {
             Logger.bold(chalk.red('Your data has been upgraded.'))
@@ -151,7 +151,7 @@ class Welcome {
     }
   }
 
-  async signup(secrez) {
+  async signup() {
     for (; ;) {
       try {
         let p = await inquirer.prompt([{
@@ -179,8 +179,8 @@ class Welcome {
         }])
         if (p.password === p.retype) {
           try {
-            await secrez.signup(p.password, this.iterations)
-            await this.saveIterations(secrez)
+            await this.secrez.signup(p.password, this.iterations)
+            await this.saveIterations()
             return
           } catch (e) {
             Logger.red(e.message)

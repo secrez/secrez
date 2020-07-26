@@ -77,12 +77,6 @@ class Db {
         url
       }, 'publickeys')
     } else {
-      return this.updateUrlForTrustPublicKey(publickey, url)
-    }
-  }
-
-  async updateUrlForTrustPublicKey(publickey, url) {
-    if (await this.isTrustedPublicKey(publickey)) {
       let existentUrl = await this.getTrustedPublicKeyUrl(publickey)
       if (existentUrl !== url) {
         let ts = Crypto.getTimestampWithMicroseconds()
@@ -103,7 +97,7 @@ class Db {
 
   async getTrustedPublicKeyUrl(publickey) {
     let query = await this.select('*', 'publickeys', {publickey})
-    return query[0].url
+    return query[0] ? query[0].url : undefined
   }
 
   async saveMessage(message, publickey, direction) {

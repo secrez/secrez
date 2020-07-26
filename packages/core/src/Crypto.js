@@ -313,6 +313,29 @@ class Crypto {
     return asUint8Array ? recovered : utf8Decoder.decode(recovered)
   }
 
+  static getSignPublicKeyFromSecretPublicKey(publicKey) {
+    return Crypto.fromBase58(publicKey.split('0')[1])
+  }
+
+  static getBoxPublicKeyFromSecretPublicKey(publicKey) {
+    return Crypto.fromBase58(publicKey.split('0')[0])
+  }
+
+  static isValidSecrezPublicKey(pk) {
+    if (typeof pk === 'string') {
+      const [boxPublicKey, signPublicKey] = pk.split('0').map(e => {
+        e = Crypto.fromBase58(e)
+        if (Crypto.isValidPublicKey(e)) {
+          return e
+        }
+      })
+      if (boxPublicKey && signPublicKey) {
+        return true
+      }
+    }
+    return false
+  }
+
   //
   // for retro-compatibility
 

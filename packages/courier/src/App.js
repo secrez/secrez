@@ -1,6 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const Secrez = require('@secrez/core').Secrez(Math.random())
+const {Crypto} = require('@secrez/core')
 const {Debug} = require('@secrez/utils')
 const superagent = require('superagent')
 const debug = Debug('courier:app')
@@ -72,7 +72,7 @@ class App {
               }
               case 'add': {
                 let result
-                if (!Secrez.isValidPublicKey(action.publicKey)) {
+                if (Crypto.isValidSecrezPublicKey(action.publicKey)) {
                   result = await this.db.trustPublicKey(action.publicKey, action.url)
                 }
                 res.json({
@@ -83,7 +83,7 @@ class App {
               }
               case 'send': {
                 let result
-                if (!Secrez.isValidPublicKey(action.publicKey)) {
+                if (Crypto.isValidSecrezPublicKey(action.publicKey)) {
                   let url = await this.db.getTrustedPublicKeyUrl(action.publicKey)
                   if (url) {
                     let message = action.message
@@ -93,13 +93,12 @@ class App {
                       payload,
                       signature
                     }
-                    let res = await superagent.post(url)
+                    let response = await superagent.post(url)
                         .set('Accept', 'application/json')
-                        .query({cc: 44})
                         .send(params)
-                        // this is mostly for testing
-                        .ca(req.parsedPayload.caCrt)
-
+                    res.json({
+                      success: response.body.success
+                    })
                   }
                 } else {
                   res.json({
@@ -115,6 +114,13 @@ class App {
         })
 
     app.get('/',
+        async (req, res, next) => {
+          res.json({
+            hello: 'world'
+          })
+        })
+
+    app.get('/messages',
         authMiddleware,
         this.wellSignedGet,
         async (req, res, next) => {

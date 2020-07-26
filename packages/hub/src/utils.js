@@ -1,12 +1,11 @@
 const {Crypto} = require('@secrez/core')
-const Secrez = require('@secrez/core').Secrez(Math.random())
 const validator = require('./Validator')
 
 const Utils = {
 
   getRandomId(publicKey, allIds = {}) {
     let id
-    let prefix = Crypto.b32Hash(Secrez.getSignPublicKey(publicKey))
+    let prefix = Crypto.b32Hash(Crypto.getSignPublicKeyFromSecretPublicKey(publicKey))
     for (; ;) {
       id = [prefix, Crypto.getRandomBase32String(8)].join('0')
       if (allIds[id]) {
@@ -14,6 +13,14 @@ const Utils = {
       }
       return id
     }
+  },
+
+  isValidUrl(url, publicKey) {
+    let id = Utils.getClientIdFromHostname(url)
+    if (id) {
+      return Utils.isValidRandomId(id, publicKey)
+    }
+    return false
   },
 
   isValidRandomId(id = '', publicKey) {
@@ -24,7 +31,7 @@ const Utils = {
         id[1].length === 8 &&
         Crypto.isBase32String(id[1]) && (
             publicKey
-                ? Crypto.b32Hash(Secrez.getSignPublicKey(publicKey)) === id[0]
+                ? Crypto.b32Hash(Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)) === id[0]
                 : Crypto.fromBase32(id[0]).length === 32
         )
     )
@@ -40,7 +47,7 @@ const Utils = {
 
   verifyPayload(payload, signature, validFor, onlyOneTime) {
     let {when, publicKey} = JSON.parse(payload)
-    let signPublicKey = Secrez.getSignPublicKey(publicKey)
+    let signPublicKey = Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)
     let verified = Crypto.verifySignature(payload, signature, signPublicKey)
     if (verified && validFor && Math.abs(Date.now() - when) > validFor) {
       verified = false
@@ -70,11 +77,14 @@ const Utils = {
   },
 
   getClientIdFromHostname(hostname = '') {
-    hostname = hostname.toString().split(':')[0].split('.')
-    for (let part of hostname) {
-      if (Utils.isValidRandomId(part)) {
-        return part
+    try {
+      hostname = hostname.toString().split('//')[1].split('.')
+      for (let part of hostname) {
+        if (Utils.isValidRandomId(part)) {
+          return part
+        }
       }
+    } catch(e) {
     }
   }
 }

@@ -2,30 +2,29 @@ const Crypto = require('./Crypto')
 const utils = require('@secrez/utils')
 const bs58 = Crypto.bs58
 
-let globals = {}
+const $ = {}
 
 module.exports = function (rand) {
 
-
-  globals[rand] = {}
-  globals[rand]._sharedKeys = {}
+  $[rand] = {}
+  $[rand].sharedKeys = {}
 
   class _Secrez {
 
     async init(password, iterations, derivationVersion) {
-      globals[rand].password = password
-      globals[rand].iterations = iterations
-      globals[rand].derivedPassword = await _Secrez.derivePassword(password, iterations, derivationVersion)
+      $[rand].password = password
+      $[rand].iterations = iterations
+      $[rand].derivedPassword = await _Secrez.derivePassword(password, iterations, derivationVersion)
     }
 
     async isInitiated() {
-      return !!globals[rand].derivedPassword
+      return !!$[rand].derivedPassword
     }
 
     async signup() {
-      globals[rand].masterKey = Crypto.generateKey()
-      let key = this.preEncrypt(globals[rand].masterKey)
-      let hash = Crypto.b58Hash(globals[rand].masterKey)
+      $[rand].masterKey = Crypto.generateKey()
+      let key = this.preEncrypt($[rand].masterKey)
+      let hash = Crypto.b58Hash($[rand].masterKey)
       return {
         key,
         hash
@@ -33,34 +32,34 @@ module.exports = function (rand) {
     }
 
     initPrivateKeys(box, sign) {
-      globals[rand].boxPrivateKey = box
-      globals[rand].signPrivateKey = sign
+      $[rand].boxPrivateKey = box
+      $[rand].signPrivateKey = sign
     }
 
     signMessage(message) {
-      return Crypto.getSignature(message, globals[rand].signPrivateKey)
+      return Crypto.getSignature(message, $[rand].signPrivateKey)
     }
 
     isItRight(password) {
       // to allow to change it
-      return password === globals[rand].password
+      return password === $[rand].password
     }
 
-    async changePassword(password = globals[rand].password, iterations = globals[rand].iterations) {
+    async changePassword(password = $[rand].password, iterations = $[rand].iterations) {
       let data = this.conf.data
       let dv = _Secrez.derivationVersion.TWO
-      globals[rand].password = password
-      globals[rand].iterations = iterations
-      globals[rand].derivedPassword = await _Secrez.derivePassword(password, iterations, dv)
+      $[rand].password = password
+      $[rand].iterations = iterations
+      $[rand].derivedPassword = await _Secrez.derivePassword(password, iterations, dv)
       delete data.keys
-      data.key = this.preEncrypt(globals[rand].masterKey)
+      data.key = this.preEncrypt($[rand].masterKey)
       data.derivationVersion = dv
       return data
     }
 
     async restoreKey() {
       delete this.conf.data.keys
-      this.conf.data.key = this.preEncrypt(globals[rand].masterKey)
+      this.conf.data.key = this.preEncrypt($[rand].masterKey)
     }
 
     setConf(conf, doNotVerify) {
@@ -80,13 +79,13 @@ module.exports = function (rand) {
 
     async signin(data) {
       try {
-        globals[rand].masterKey = await this.preDecrypt(data.key, true)
-        globals[rand].boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
-        globals[rand].signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
+        $[rand].masterKey = await this.preDecrypt(data.key, true)
+        $[rand].boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
+        $[rand].signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
       } catch (e) {
         throw new Error('Wrong password or wrong number of iterations')
       }
-      if (utils.secureCompare(Crypto.b58Hash(globals[rand].masterKey), data.hash)) {
+      if (utils.secureCompare(Crypto.b58Hash($[rand].masterKey), data.hash)) {
         return data.hash
       } else {
         throw new Error('Hash on file does not match the master key')
@@ -101,9 +100,9 @@ module.exports = function (rand) {
         if (!utils.secureCompare(Crypto.b58Hash(masterKey), data.hash)) {
           throw new Error('Hash on file does not match the master key')
         }
-        globals[rand].masterKey = masterKey
-        globals[rand].boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
-        globals[rand].signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
+        $[rand].masterKey = masterKey
+        $[rand].boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
+        $[rand].signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
         return data.hash
       } catch (e) {
         throw new Error('Wrong data/secret')
@@ -111,7 +110,7 @@ module.exports = function (rand) {
     }
 
     static async derivePassword(
-        password = globals[rand].password,
+        password = $[rand].password,
         iterations,
         derivationVersion
     ) {
@@ -123,31 +122,31 @@ module.exports = function (rand) {
     }
 
     encrypt(data) {
-      return Crypto.encrypt(data, globals[rand].masterKey)
+      return Crypto.encrypt(data, $[rand].masterKey)
     }
 
     decrypt(encryptedData) {
-      return Crypto.decrypt(encryptedData, globals[rand].masterKey)
+      return Crypto.decrypt(encryptedData, $[rand].masterKey)
     }
 
     preEncrypt(data) {
-      return Crypto.encrypt(data, globals[rand].derivedPassword)
+      return Crypto.encrypt(data, $[rand].derivedPassword)
     }
 
     preDecrypt(encryptedData, unsafeMode) {
-      let data = Crypto.decrypt(encryptedData, globals[rand].derivedPassword)
-      if (!unsafeMode && data === globals[rand].masterKey) {
+      let data = Crypto.decrypt(encryptedData, $[rand].derivedPassword)
+      if (!unsafeMode && data === $[rand].masterKey) {
         throw new Error('Attempt to hack the master key')
       }
       return data
     }
 
     getSharedKey(publicKey) {
-      if (!globals[rand].sharedKeys[publicKey]) {
+      if (!$[rand].sharedKeys[publicKey]) {
         let publicKeyArr = Crypto.fromBase58(publicKey.split('0')[0])
-        globals[rand].sharedKeys[publicKey] = Crypto.getSharedSecret(publicKeyArr, globals[rand].boxPrivateKey)
+        $[rand].sharedKeys[publicKey] = Crypto.getSharedSecret(publicKeyArr, $[rand].boxPrivateKey)
       }
-      return globals[rand].sharedKeys[publicKey]
+      return $[rand].sharedKeys[publicKey]
     }
 
     encryptShared(data, publicKey) {
@@ -164,7 +163,7 @@ module.exports = function (rand) {
     }
 
     generateSharedSecrets(secret) {
-      let parts = Crypto.splitSecret(globals[rand].masterKey, 2, 2)
+      let parts = Crypto.splitSecret($[rand].masterKey, 2, 2)
       parts[1] = this.preEncrypt(bs58.encode(Buffer.from(parts['1'])))
       parts[2] = Crypto.encrypt(bs58.encode(Buffer.from(parts['2'])), this.encodeSignature(secret))
       return parts

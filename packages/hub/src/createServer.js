@@ -5,7 +5,7 @@ const {Debug} = require('@secrez/utils')
 const http = require('http')
 const Router = require('koa-router')
 const {version} = require('../package.json')
-const Secrez = require('@secrez/core').Secrez(Math.random())
+const {Crypto} = require('@secrez/core')
 
 const Shortener = require('./lib/Shortener')
 const ClientManager = require('./lib/ClientManager')
@@ -18,7 +18,7 @@ const oneMinute = 60 * 1000
 module.exports = function (opt) {
   opt = opt || {}
 
-  const validHosts = (opt.domain) ? [opt.domain] : undefined
+  // const validHosts = (opt.domain) ? [opt.domain] : undefined
   // const myTldjs = tldjs.fromUserSettings({validHosts})
   const landingPage = opt.landing
   const shortener = new Shortener
@@ -63,7 +63,7 @@ module.exports = function (opt) {
   })
 
   router.get('/api/v1/tunnel/new', async (ctx, next) => {
-    let payload, signature, id, publicKey, reqId
+    let payload, signature, id, publicKey, reqId, keepShortUrl
     try {
       let q = ctx.request.query
       payload = q.payload
@@ -77,7 +77,7 @@ module.exports = function (opt) {
       error(ctx, 400, 'Wrong parameters')
       return
     }
-    if (!Secrez.isValidPublicKey(publicKey)) {
+    if (!Crypto.isValidSecrezPublicKey(publicKey)) {
       error(ctx, 400, 'Wrong public key')
       return
     }
