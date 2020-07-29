@@ -10,14 +10,14 @@ const helpers = {
     const server = https.createServer(options, (req, res) => {
       res.writeHead(200)
       res.end('hello world')
-    }).listen(4433)
+    }).listen(4435)
     return server
   },
 
   verifyTlsConnection(key, cert, ca) {
     const options = {
       hostname: 'localhost',
-      port: 4433,
+      port: 4435,
       path: '/',
       method: 'GET',
       ca

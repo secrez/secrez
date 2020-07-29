@@ -4,7 +4,7 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const {utils: hubUtils} = require('@secrez/hub')
-const MainPrompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/MainPromptMock')
 const ContactManager = require('../../src/Managers/ContactManager')
 const {assertConsole, noPrint, decolorize} = require('../helpers')
 
@@ -16,11 +16,11 @@ const {
 // eslint-disable-next-line no-unused-vars
 const jlog = require('../helpers/jlog')
 
-describe.only('#Contacts', function () {
+describe('#Contacts', function () {
 
   let prompt
   let testDir = path.resolve(__dirname, '../../tmp/test')
-  let rootDir = path.resolve(testDir, '.secrez')
+  let rootDir = path.resolve(testDir, 'secrez')
   let inspect, C
   let publicKeys = {}
 
@@ -35,7 +35,7 @@ describe.only('#Contacts', function () {
       prompt = new MainPrompt
       await prompt.init(options)
       await prompt.secrez.signup(password, iterations)
-      publicKeys['contacts' + i] = prompt.secrez.getPublicKey()
+      publicKeys['user' + i] = prompt.secrez.getPublicKey()
     }
   })
 
@@ -88,55 +88,55 @@ describe.only('#Contacts', function () {
 
     inspect = stdout.inspect()
     await C.contacts.exec({
-      add: 'contacts1',
-      publicKey: publicKeys.contacts1
+      add: 'user1',
+      publicKey: publicKeys.user1
     })
     inspect.restore()
-    assertConsole(inspect, `The contact "contacts1" has been added to your trusted contacts`)
+    assertConsole(inspect, `The contact "user1" has been added to your trusted contacts`)
 
   })
 
   it('create contacts and get their public keys', async function () {
 
     await noPrint(C.contacts.exec({
-      add: 'contacts1',
-      publicKey: publicKeys.contacts1
+      add: 'user1',
+      publicKey: publicKeys.user1
     }))
 
     inspect = stdout.inspect()
     await C.contacts.exec({
-      add: 'contacts2',
-      publicKey: publicKeys.contacts2
+      add: 'user2',
+      publicKey: publicKeys.user2
     })
     inspect.restore()
-    assertConsole(inspect, `The contact "contacts2" has been added to your trusted contacts`)
+    assertConsole(inspect, `The contact "user2" has been added to your trusted contacts`)
 
     inspect = stdout.inspect()
     await C.contacts.exec({
-      show: 'contacts1'
+      show: 'user1'
     })
     inspect.restore()
     assertConsole(inspect, [
-      'contacts1',
-      'public key: ' + publicKeys.contacts1
+      'user1',
+      'public key: ' + publicKeys.user1
     ])
 
   })
 
   it('should list contacts', async function () {
 
-    let randomId = hubUtils.getRandomId(publicKeys.contacts1)
+    let randomId = hubUtils.getRandomId(publicKeys.user1)
     let url = `https://${randomId}.secrez.cc`
 
     await noPrint(C.contacts.contacts({
-      add: 'contacts1',
-      publicKey: publicKeys.contacts1,
+      add: 'user1',
+      publicKey: publicKeys.user1,
       url
     }))
 
     await noPrint(C.contacts.exec({
-      add: 'contacts2',
-      publicKey: publicKeys.contacts2
+      add: 'user2',
+      publicKey: publicKeys.user2
     }))
 
     inspect = stdout.inspect()
@@ -145,28 +145,28 @@ describe.only('#Contacts', function () {
     })
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e).replace(/ +/g, ' '))
-    assert.equal(output[0], 'contacts1\npublic key: ' + publicKeys.contacts1 + '\nurl: ' + url)
+    assert.equal(output[0], 'user1\npublic key: ' + publicKeys.user1 + '\nurl: ' + url)
 
   })
 
   it('should update a contact', async function () {
 
-    let randomId = hubUtils.getRandomId(publicKeys.contacts1)
+    let randomId = hubUtils.getRandomId(publicKeys.user1)
     let url = `https://${randomId}.secrez.cc`
 
     await C.contacts.contacts({
-      add: 'contacts1',
-      publicKey: publicKeys.contacts1,
+      add: 'user1',
+      publicKey: publicKeys.user1,
       url
     })
 
     assert.equal((await C.contacts.list())[0][1].url, url)
 
-    randomId = hubUtils.getRandomId(publicKeys.contacts1)
+    randomId = hubUtils.getRandomId(publicKeys.user1)
     url = `https://${randomId}.secrez.cc`
 
     await C.contacts.contacts({
-      update: 'contacts1',
+      update: 'user1',
       url
     })
 
@@ -177,38 +177,38 @@ describe.only('#Contacts', function () {
   it('should rename a contacts', async function () {
 
     await noPrint(C.contacts.exec({
-      add: 'contacts1',
-      publicKey: publicKeys.contacts1
+      add: 'user1',
+      publicKey: publicKeys.user1
     }))
 
     inspect = stdout.inspect()
     await C.contacts.exec({
-      rename: ['contacts1', 'contactsA']
+      rename: ['user1', 'contactsA']
     })
     inspect.restore()
-    assertConsole(inspect, 'The contact "contacts1" has been renamed "contactsA"')
+    assertConsole(inspect, 'The contact "user1" has been renamed "contactsA"')
 
   })
 
   it('should remove a contacts', async function () {
 
     await noPrint(C.contacts.exec({
-      add: 'contacts1',
-      publicKey: publicKeys.contacts1
+      add: 'user1',
+      publicKey: publicKeys.user1
     }))
 
     await noPrint(C.contacts.exec({
-      add: 'contacts2',
-      publicKey: publicKeys.contacts2
+      add: 'user2',
+      publicKey: publicKeys.user2
 
     }))
 
     inspect = stdout.inspect()
     await C.contacts.exec({
-      delete: 'contacts1'
+      delete: 'user1'
     })
     inspect.restore()
-    assertConsole(inspect, 'The contact "contacts1" has been deleted')
+    assertConsole(inspect, 'The contact "user1" has been deleted')
 
     inspect = stdout.inspect()
     await C.contacts.exec({
@@ -223,13 +223,13 @@ describe.only('#Contacts', function () {
 
   it('should throw if there are errors', async function () {
 
-    let randomId = hubUtils.getRandomId(publicKeys.contacts1)
+    let randomId = hubUtils.getRandomId(publicKeys.user1)
     let url = `https://${randomId}9999.secrez.cc`
 
     try {
       await C.contacts.contacts({
-        add: 'contacts1',
-        publicKey: publicKeys.contacts1,
+        add: 'user1',
+        publicKey: publicKeys.user1,
         url
       })
       assert.isTrue(false)
@@ -241,8 +241,8 @@ describe.only('#Contacts', function () {
 
     try {
       await C.contacts.contacts({
-        add: 'contacts1',
-        publicKey: publicKeys.contacts1,
+        add: 'user1',
+        publicKey: publicKeys.user1,
         url
       })
       assert.isTrue(false)
@@ -250,13 +250,13 @@ describe.only('#Contacts', function () {
       assert.equal(e.message, 'The url is not a valid one')
     }
 
-    randomId = hubUtils.getRandomId(publicKeys.contacts2)
+    randomId = hubUtils.getRandomId(publicKeys.user2)
     url = `https://${randomId}.secrez.cc`
 
     try {
       await C.contacts.contacts({
-        add: 'contacts1',
-        publicKey: publicKeys.contacts1,
+        add: 'user1',
+        publicKey: publicKeys.user1,
         url
       })
       assert.isTrue(false)
@@ -265,13 +265,13 @@ describe.only('#Contacts', function () {
     }
 
     await noPrint(C.contacts.exec({
-      add: 'contacts1',
-      publicKey: publicKeys.contacts1
+      add: 'user1',
+      publicKey: publicKeys.user1
     }))
 
     await noPrint(C.contacts.exec({
-      add: 'contacts2',
-      publicKey: publicKeys.contacts2
+      add: 'user2',
+      publicKey: publicKeys.user2
     }))
 
     inspect = stdout.inspect()
@@ -290,10 +290,10 @@ describe.only('#Contacts', function () {
 
     inspect = stdout.inspect()
     await C.contacts.exec({
-      rename: ['contacts1', 'contacts2']
+      rename: ['user1', 'user2']
     })
     inspect.restore()
-    assertConsole(inspect, 'A contact named "contacts2" already exists')
+    assertConsole(inspect, 'A contact named "user2" already exists')
 
     inspect = stdout.inspect()
     await C.contacts.exec({
@@ -312,19 +312,19 @@ describe.only('#Contacts', function () {
 
     inspect = stdout.inspect()
     await C.contacts.exec({
-      add: 'contacts2',
-      publicKey: publicKeys.contacts0
+      add: 'user2',
+      publicKey: publicKeys.user0
     })
     inspect.restore()
-    assertConsole(inspect, 'A contact named "contacts2" already exists')
+    assertConsole(inspect, 'A contact named "user2" already exists')
 
     inspect = stdout.inspect()
     await C.contacts.exec({
       add: 'contacts3',
-      publicKey: publicKeys.contacts2
+      publicKey: publicKeys.user2
     })
     inspect.restore()
-    assertConsole(inspect, 'The contact "contacts2" is already associated to this public key')
+    assertConsole(inspect, 'The contact "user2" is already associated to this public key')
 
 
   })

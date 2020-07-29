@@ -19,7 +19,7 @@ const jlog = require('./helpers/jlog')
 
 describe('Server', async function () {
 
-  let localDomain = 'localho.st'
+  let localDomain = '127zero0one.com'
   let courierRoot = path.resolve(__dirname, '../tmp/test/secrez-courier')
   let courierRoot2 = path.resolve(__dirname, '../tmp/test/secrez-courier2')
   let secrezDir1 = path.resolve(__dirname, '../tmp/test/secrez1')
@@ -91,7 +91,7 @@ describe('Server', async function () {
   })
 
   it('should build an instance and start the server', async function () {
-    assert.equal(server.localhost.replace(/localhost/, 'localho.st'), `https://${localDomain}:${server.port}`)
+    assert.equal(server.localhost.replace(/localhost/, '127zero0one.com'), `https://${localDomain}:${server.port}`)
       let res = await superagent.get(`${server.localhost}`)
           .set('Accept', 'application/json')
           .ca(await server.tls.getCa())
@@ -371,7 +371,7 @@ describe('Server', async function () {
     const {payload: payload2, signature: signature2} = setPayloadAndSignIt(secrez1, {
       action: {
         name: 'send',
-        publicKey: publicKey2,
+        recipient: publicKey2,
         message: {
           payload: payloadMessage,
           signature: signatureMessage
@@ -382,7 +382,7 @@ describe('Server', async function () {
     res = await superagent.get(`${server.localhost}/admin`)
         .set('Accept', 'application/json')
         .set('auth-code', authCode1)
-        .query({payload: payload2, signature: signature2, caCrt: await server.tls.getCa()})
+        .query({payload: payload2, signature: signature2})
         .ca(await server.tls.getCa())
 
     assert.isTrue(res.body.success)

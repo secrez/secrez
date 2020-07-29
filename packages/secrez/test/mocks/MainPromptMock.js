@@ -7,13 +7,13 @@ const cliConfig = require('../../src/cliConfig')
 const Commands = require('../../src/commands')
 
 
-class PromptMock {
+class MainPromptMock {
 
   async init(options) {
     this.secrez = new Secrez
     await this.secrez.init(options.container, options.localDir)
     this.secrez.cache = new DataCache(path.join(options.container, 'cache'))
-    await this.secrez.cache.load('id')
+    // await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs(this.secrez)
     this.commands = (new Commands(this, cliConfig)).getCommands()
@@ -27,7 +27,11 @@ class PromptMock {
   async exec(cmds, noRun) {
 
   }
+
+  async loading() {
+
+  }
 }
 
-module.exports = PromptMock
+module.exports = MainPromptMock
 

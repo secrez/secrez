@@ -4,7 +4,7 @@ const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
-const MainPrompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/MainPromptMock')
 const {fromSimpleYamlToJson} = require('@secrez/utils')
 const {assertConsole, noPrint, decolorize} = require('../helpers')
 

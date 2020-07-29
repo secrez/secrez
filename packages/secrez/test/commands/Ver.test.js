@@ -1,7 +1,7 @@
 const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
-const MainPrompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/MainPromptMock')
 const {assertConsole} = require('../helpers')
 const pkg = require('../../package')
 
@@ -31,7 +31,6 @@ describe('#Ver', function () {
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     await prompt.internalFs.init()
-
   })
 
   it('should show the current version', async function () {

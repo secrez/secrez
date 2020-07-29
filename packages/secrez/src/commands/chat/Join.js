@@ -41,11 +41,16 @@ class Join extends require('../../Command') {
     }
   }
 
+  async getAllUsers() {
+    let all = await this.prompt.environment.prompt.commands.contacts.list({})
+    if (all && all.length) {
+      return all.map(e => e[0])
+    }
+    return []
+  }
+
   async customCompletion(options, originalLine, defaultOption) {
-    const existingUsers = (await this.prompt.environment.prompt.commands.contacts.contacts({
-      list: true,
-      asIs: true
-    })).map(e => e[0])
+    const existingUsers = await this.getAllUsers()
     if (options.chat) {
       let lastUser = options.chat[options.chat.length - 1]
       return existingUsers.filter(e => {
@@ -57,16 +62,30 @@ class Join extends require('../../Command') {
   }
 
   async joinRoom(options) {
+    const existingUsers = await this.getAllUsers({asIs: true})
+    if (typeof options.chat === 'string') {
+      options.chat = [options.chat]
+    }
     if (options.chat.length > 1) {
       throw new Error('Multiple chat not supported yet')
     }
-    this.prompt.environment.room = options.chat
+    if (!existingUsers.includes(options.chat[0])) {
+      throw new Error('Contact not found')
+    }
+    let room = []
+    for (let contact of options.chat) {
+      room.push(await this.prompt.environment.prompt.commands.contacts.show({
+        show: contact,
+        asIs: true
+      }))
+    }
+    this.prompt.environment.room = room
   }
 
   async join(options) {
     const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
     if (env.courier) {
-      await this.prompt.environment.prompt.commands.conf.preInit(options)
+      await this.prompt.environment.prompt.commands.courier.preInit(options)
       if (options.ready) {
         if (options.user) {
           if (!Crypto.isValidSecrezPublicKey(options.chat||'')) {

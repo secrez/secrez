@@ -42,6 +42,13 @@ class ContactManager {
     return await cache.remove('contact', contact)
   }
 
+  async empty() {
+    let allContacts = Object.keys(this.get())
+    for (let contact of allContacts) {
+      await cache.remove('contact', contact)
+    }
+  }
+
   async rename(existentName, contact) {
     let old = this.get(existentName)
     if (await this.remove(existentName)) {
