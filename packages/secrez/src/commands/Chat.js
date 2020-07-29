@@ -29,22 +29,30 @@ class Chat extends require('../Command') {
   }
 
   async uploadUsersPublicKeysToCourier(options) {
-    let users = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
-    let publicKeys = []
-    for (let user of users) {
-      publicKeys.push(user[1])
-    }
     const {authCode, port, caCrt} = options.env.courier
-    await this.callCourier({action: {name: 'add', publicKeys}}, authCode, port, caCrt, '/admin')
+    let users = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
+    for (let user of users) {
+      console.log(await this.callCourier({
+        action: {
+          name: 'add',
+          publicKey: user[1].publicKey,
+          url: user[1].url
+        }
+      }, authCode, port, caCrt, '/admin'))
+    }
   }
 
   async chat(options) {
     const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
     if (env.courier) {
-      await this.prompt.commands.conf.preInit(options)
+      await this.prompt.commands.courier.preInit(options)
       if (options.ready) {
         await this.uploadUsersPublicKeysToCourier(options)
-        this.chatPrompt = new ChatPrompt
+        if (process.env.NODE_ENV === 'test') {
+          this.chatPrompt = options.chatPrompt
+        } else {
+          this.chatPrompt = new ChatPrompt
+        }
         await this.chatPrompt.init({
           historyPath: path.join(this.secrez.config.localDataPath, 'chatHistory'),
           environment: this,

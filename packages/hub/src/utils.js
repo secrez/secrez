@@ -78,7 +78,8 @@ const Utils = {
 
   getClientIdFromHostname(hostname = '') {
     try {
-      hostname = hostname.toString().split('//')[1].split('.')
+      hostname = hostname.replace(/^[^/]+\/\//, '')
+      hostname = hostname.toString().split('.')
       for (let part of hostname) {
         if (Utils.isValidRandomId(part)) {
           return part

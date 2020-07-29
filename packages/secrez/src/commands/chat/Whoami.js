@@ -35,7 +35,7 @@ class Whoami extends require('../../Command') {
   async whoami(options) {
     const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
     if (env.courier) {
-      await this.prompt.environment.prompt.commands.conf.preInit(options)
+      await this.prompt.environment.prompt.commands.courier.preInit(options)
       if (options.ready) {
         this.Logger.reset(chalk.grey('Public key: ') + this.prompt.environment.secrez.getPublicKey())
         this.Logger.reset(chalk.grey('Hub url: ') + env.courier.tunnel.url)

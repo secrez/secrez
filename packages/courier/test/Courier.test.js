@@ -30,15 +30,4 @@ describe('#Courier', function () {
 
   })
 
-  describe.skip('#init', async function () {
-
-    it('should setup the environment', async function () {
-
-      // let courier = new Courier({root})
-
-      // await courier.init()
-
-    })
-
-  })
 })

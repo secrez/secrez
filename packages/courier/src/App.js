@@ -82,10 +82,12 @@ class App {
                 break
               }
               case 'send': {
-                let result
-                if (Crypto.isValidSecrezPublicKey(action.publicKey)) {
-                  let url = await this.db.getTrustedPublicKeyUrl(action.publicKey)
+                if (Crypto.isValidSecrezPublicKey(action.recipient)) {
+                  let url = await this.db.getTrustedPublicKeyUrl(action.recipient)
                   if (url) {
+                    if (/http:.*\.localhost:/.test(url)) {
+                      url = url.replace(/\.localhost:/, '.127zero0one.com:')
+                    }
                     let message = action.message
                     // this are specifically for the message
                     let {payload, signature} = message

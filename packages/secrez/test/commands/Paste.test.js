@@ -6,7 +6,7 @@ const fs = require('fs-extra')
 const path = require('path')
 
 const {yamlParse} = require('@secrez/utils')
-const MainPrompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/MainPromptMock')
 const {assertConsole, noPrint, decolorize} = require('../helpers')
 
 const {

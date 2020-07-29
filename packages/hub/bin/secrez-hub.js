@@ -64,6 +64,10 @@ try {
   error(e.message)
 }
 
+if (!options.port) {
+  options.port = 8433
+}
+
 console.info(chalk.bold.grey(`Secrez-hub v${pkg.version}`))
 
 if (options.help) {
@@ -71,14 +75,14 @@ if (options.help) {
 
 Options:
   -h, --help              This help.
-  -p, --port              Listen on this port for outside requests; default: 4433.
+  -p, --port              Listen on this port for outside requests; default: 8433.
   -s, --secure            Use this flag to indicate proxy over https.
   -l, --landing           The url of the landing page, if any.               
   -a, --address           IP address to bind to.
   -d, --domain            Specify the base domain name. This is optional if hosting 
-                          from a regular example.com domain. It is required if hosting 
+                          from a regular domain. It is required if hosting 
                           a hub from a subdomain (i.e. lt.example.dom where clients 
-                          will be huw7y3dl.lt.example.com); default: secrez.cc.
+                          will be huw7y3dl.lt.example.com).
   -m, --max-sockets       Maximum number of tcp sockets each client is allowed 
                           to establish at one time (the tunnels); default: 4.           
                       

@@ -20,7 +20,7 @@ class ChatPrompt extends require('./CommandPrompt') {
   prePromptMessage(options = {}) {
     return chalk.reset(`Secrez/chat ${chalk.bold(
         this.environment.room
-            ? '@' + this.environment.room.join('|')
+            ? '@' + this.environment.room[0].contact
             : '-'
     )}`)
   }
@@ -29,7 +29,7 @@ class ChatPrompt extends require('./CommandPrompt') {
     let cmd = options.cmd.split(' ')
     let command = cmd[0]
     if (this.environment.room && !/^\//.test(command)) {
-      await this.exec([`send "${options.cmd.replace(/"/g, '\\"')}"`])
+      await this.exec([`send -m "${options.cmd.replace(/"/g, '\\"')}"`])
     } else {
       command = command.replace(/^\//, '')
       /* istanbul ignore if */

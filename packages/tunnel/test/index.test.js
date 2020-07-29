@@ -12,7 +12,7 @@ const {sleep} = require('@secrez/utils')
 const {createServer, utils: hubUtils} = require('@secrez/hub')
 const {isValidRandomId, getRandomId, setPayloadAndSignIt} = hubUtils
 
-const localDomain = 'localho.st' // '127zero0one.com'
+const localDomain = '127zero0one.com' // '127zero0one.com'
 
 const localtunnel = require('../index')
 

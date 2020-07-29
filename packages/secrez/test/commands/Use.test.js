@@ -3,7 +3,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const chai = require('chai')
 const assert = chai.assert
-const MainPrompt = require('../mocks/PromptMock')
+const MainPrompt = require('../mocks/MainPromptMock')
 const {decolorize, noPrint, assertConsole} = require('../helpers')
 
 const {
@@ -39,12 +39,13 @@ describe('#Use', function () {
   it('should return the help', async function () {
 
     inspect = stdout.inspect()
-    await C.touch.exec({help: true})
+    await C.use.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
-    assert.isTrue(/-h, --help/.test(output[6]))
+    assert.isTrue(/-h, --help/.test(output[4]))
 
   })
+
   it('should use a new dataset, creating it if does not exist', async function () {
 
     assert.equal(internalFs.treeIndex, 0)

@@ -1,7 +1,7 @@
 const {Crypto} = require('@secrez/core')
 const {utils: hubUtils} = require('@secrez/hub')
 const chalk = require('chalk')
-const contactManager = require('../Managers/ContactManager')
+const ContactManager = require('../Managers/ContactManager')
 const superagent = require('superagent')
 
 class Contacts extends require('../Command') {
@@ -247,7 +247,6 @@ class Contacts extends require('../Command') {
   async list(options) {
     let list = []
     let contacts = this.contactManager.get()
-    let max = 4
     for (let contact in contacts) {
       let content = JSON.parse(contacts[contact].content)
       list.push([contact, content])
@@ -278,23 +277,24 @@ class Contacts extends require('../Command') {
     if (!content) {
       throw new Error(`A contact named "${contact}" is not in your trusted circle`)
     }
-    return this.formatContact([contact, JSON.parse(content)])
+    content = JSON.parse(content)
+    return options.asIs ? Object.assign(content, {contact}) : this.formatContact([contact, content])
   }
 
   async contacts(options) {
-    if (!contactManager.getCache().dataPath) {
+    if (process.env.NODE_ENV === 'test') {
       // for testing, when MainPrompt is not required
-      contactManager.setCache(this.secrez.cache)
+      ContactManager.setCache(this.secrez.cache)
     }
     if (!this.contactManager) {
-      this.contactManager = new contactManager
+      this.contactManager = new ContactManager
     }
     if (options.list) {
       let contacts = await this.list(options)
+      if (options.asIs) {
+        return contacts
+      }
       if (contacts.length) {
-        if (options.asIs) {
-          return contacts
-        }
         for (let i = 0; i < contacts.length; i++) {
           contacts[i] = this.formatContact(contacts[i])
         }
@@ -337,6 +337,7 @@ class Contacts extends require('../Command') {
       }
 
     } catch (e) {
+      // console.log(e)
       this.Logger.red(e.message)
     }
     await this.prompt.run()

@@ -182,6 +182,7 @@ module.exports = function (opt) {
 
     const url = schema + '://' + info.id + '.' + ctx.request.host
     info.url = url
+
     ctx.body = info
     return
   })

@@ -3,7 +3,7 @@ const assert = chai.assert
 const Command = require('../src/Command')
 const fs = require('fs-extra')
 const path = require('path')
-const MainPrompt = require('./mocks/PromptMock')
+const MainPrompt = require('./mocks/MainPromptMock')
 const {noPrint, decolorize} = require('./helpers')
 
 const {
