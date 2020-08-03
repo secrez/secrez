@@ -28,10 +28,21 @@ class Command extends PreCommand {
   setHelpAndCompletion() {
   }
 
+  getCompletionType(option) {
+    if (!this.completionTypes) {
+      this.completionTypes = {}
+      for (let item of this.optionDefinitions) {
+        this.completionTypes[item.name] = item.completionType
+      }
+    }
+    return this.completionTypes[option]
+  }
+
   selfCompletion(self, extraOptions = {}) {
     return async (options, originalLine, currentOption) => {
       options = Object.assign(options, extraOptions)
       options.forAutoComplete = true
+      let completionType = this.getCompletionType(currentOption)
       /* istanbul ignore if  */
       if (this.customCompletion) {
         let extra = await this.customCompletion(options, originalLine, currentOption)
@@ -39,9 +50,22 @@ class Command extends PreCommand {
           return extra
         }
       }
-      if (currentOption === 'path') {
-        if (options.path === null) {
-          delete options.path
+      if (completionType === 'dataset') {
+        let datasetsInfo = await this.internalFs.getDatasetsInfo()
+        options.forAutoComplete = true
+        if (options.dataset) {
+          return datasetsInfo.map(e => e.name).filter(e => RegExp('^' + options.dataset).test(e))
+        } else {
+          return datasetsInfo.map(e => e.name)
+        }
+      }
+      if ((process.env.NODE_ENV === 'test' && currentOption === 'path')
+          || completionType === 'file') {
+        if (options[currentOption] === null) {
+          delete options[currentOption]
+        }
+        if (currentOption !== 'path') {
+          options.path = options[currentOption]
         }
         return await self.prompt[extraOptions.external ? 'externalFs' : 'internalFs'].getFileList(options, true)
       } else {

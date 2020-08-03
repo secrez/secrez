@@ -1,70 +1,81 @@
-# localtunnel-server
+# @secrez/hub
 
 **This is a fork of [Localtunnel Server](https://github.com/localtunnel/server) with applied restriction in order to use it for [Secrez](https://github.com/secrez/secrez).**
 
-localtunnel exposes your localhost to the world for easy testing and sharing! No need to mess with DNS or deploy just to have others test out your changes.
+## Introduction
 
-This repo is the server component. If you are just looking for the CLI localtunnel app, see (https://github.com/localtunnel/localtunnel).
+Secrez, starting from version 0.8.0, allows local accounts to have a full encrypted communication, tunneling their conversation. To send and receive messages, a user must activate a Secrez courier (@secrez/courier). The courier must talk with a remote hub to be accessible remotely.
 
-## overview ##
+The hub is a dumb proxy which only allows a restricted number of operations.
 
-The default localtunnel client connects to the `localtunnel.me` server. You can, however, easily set up and run your own server. In order to run your own localtunnel server you must ensure that your server can meet the following requirements:
+Any request that it receive requires a payload and a signature. The hub will verify them and only if they are correct will perform the requested action.
 
-* You can set up DNS entries for your `domain.tld` and `*.domain.tld` (or `sub.domain.tld` and `*.sub.domain.tld`).
-* The server can accept incoming TCP connections for any non-root TCP port (i.e. ports over 1000).
-
-The above are important as the client will ask the server for a subdomain under a particular domain. The server will listen on any OS-assigned TCP port for client connections.
-
-#### setup
-
-```shell
-# pick a place where the files will live
-git clone git://github.com/defunctzombie/localtunnel-server.git
-cd localtunnel-server
-npm install
-
-# server set to run on port 1234
-bin/server --port 1234
-```
-
-The localtunnel server is now running and waiting for client requests on port 1234. You will most likely want to set up a reverse proxy to listen on port 80 (or start localtunnel on port 80 directly).
-
-**NOTE** By default, localtunnel will use subdomains for clients, if you plan to host your localtunnel server itself on a subdomain you will need to use the _--domain_ option and specify the domain name behind which you are hosting localtunnel. (i.e. my-localtunnel-server.example.com)
-
-#### use your server
-
-You can now use your domain with the `--host` flag for the `lt` client.
-
-```shell
-lt --host http://sub.example.tld:1234 --port 9000
-```
-
-You will be assigned a URL similar to `heavy-puma-9.sub.example.com:1234`.
-
-If your server is acting as a reverse proxy (i.e. nginx) and is able to listen on port 80, then you do not need the `:1234` part of the hostname for the `lt` client.
-
-## REST API
-
-### POST /api/tunnels
-
-Create a new tunnel. A LocalTunnel client posts to this enpoint to request a new tunnel with a specific name or a randomly assigned name.
-
-### GET /api/status
-
-General server information.
-
-## Deploy
-
-You can deploy your own localtunnel server using the prebuilt docker image.
-
-**Note** This assumes that you have a proxy in front of the server to handle the http(s) requests and forward them to the localtunnel server on port 3000. You can use our [localtunnel-nginx](https://github.com/localtunnel/nginx) to accomplish this.
-
-If you do not want ssl support for your own tunnel (not recommended), then you can just run the below with `--port 80` instead.
+The first step, for the courier, is to publish itself on the hub. This is done calling the api
 
 ```
-docker run -d \
-    --restart always \
-    --name localtunnel \
-    --net host \
-    defunctzombie/localtunnel-server:latest --port 3000
+/api/v1/new
 ```
+If everything is fine, the hub will assign an id and a url to the courier. The id is a mix of the base32 version of the signature public key plus a random 8-chars string. The hub will also generate a short url that can be used by the Secrez account to quickly set up a trusted contact.
+
+## Using a hub from Secrez
+
+First, you must activate a local courier (look at the [@secrez/courier README](https://github.com/secrez/secrez/tree/master/packages/courier) for more info).
+
+When you have connected your Secrez account to the courier, you can run `whoami` and see you remote id on the hub and your short url. You can pass the short url to your contacts, to allow them to talk with you.
+
+For privacy reason, and also because id and short url can change, don't add them to, for example, your email signature. But you can add your Secrez public key, if you like.
+
+## Installing your own hub
+
+You can just install it with npm, like
+```
+npm i -g @secrez/hub
+```
+and run 
+```
+secrez-hub
+```
+This will listen, by default, on port 8433, on http.
+
+To run it on https, use `-s, --secure`.
+
+If your domain is a third level, like `something.example.com`, you must specify the domain when you run the hub, if not it will produce an error accessing the couriers. You can do it with the option `-d, --domain`.
+
+If someone connect to the hub, it will respond with a json like this:
+```
+{
+    welcome_to: 'This is a Secrez hub',
+    version: 0.1.0,
+    more_info_at: 'https://secrez.github.io/secrez'
+}
+```
+If you prefer to redirect it to a landing page, just use the option `-l, --landing`.
+
+If you need to bind a specific IP address to the hub, use `-a, --address`.
+
+Finally, you can set up the maximum number of sockets allowed by ID. By default it is set to 4, but you can change it with `-m, --max-sockets`.
+
+## In production
+
+To make an hub accessible to, for example, your company, you should:
+
+Run the hub, setup a proxy, for example with Nginx, and set up SSL certificates, for the domain and any subdomain. The hub, to work, requires that the firewall allows access to port from 32k to 64k, because those ports are randomly used to generate the tunnels.
+
+When I have a moment, I will write a post on how to do it using Let's Encrypt.
+
+
+## Copyright
+
+Secrez-hub is based on [Localtunnel Server](https://github.com/localtunnel/server), which is Copyright (c) 2015 Roman Shtylman  
+
+It has been modified by [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>). Any opinion, help, suggestion, critic is very welcome.
+
+Se
+
+## Licence
+MIT
+
+
+
+
+     

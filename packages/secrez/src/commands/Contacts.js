@@ -1,7 +1,7 @@
 const {Crypto} = require('@secrez/core')
 const {utils: hubUtils} = require('@secrez/hub')
 const chalk = require('chalk')
-const ContactManager = require('../Managers/ContactManager')
+const ContactManager = require('../utils/ContactManager')
 const superagent = require('superagent')
 
 class Contacts extends require('../Command') {
@@ -48,11 +48,6 @@ class Contacts extends require('../Command') {
         name: 'show',
         alias: 's',
         type: String
-      },
-      {
-        name: 'myself',
-        alias: 'm',
-        type: Boolean
       }
     ]
   }
@@ -61,7 +56,6 @@ class Contacts extends require('../Command') {
     return {
       description: ['Gives info about contacts'],
       examples: [
-        ['contacts -m', 'it shows your public key'],
         ['contacts -a pan', 'adds a new trusted contact pan, asking for his public key  and hub url'],
         ['contacts -u pan', 'updates the hub url'],
         ['contacts -s pan', 'returns pan\'s public key and url'],
@@ -70,11 +64,6 @@ class Contacts extends require('../Command') {
         ['contacts', 'listed all trusted contacts']
       ]
     }
-  }
-
-  async myself(options) {
-    let publicKey = this.secrez.getPublicKey()
-    return [chalk.grey('Your public key:'), publicKey]
   }
 
   async getType(options) {
@@ -90,7 +79,8 @@ class Contacts extends require('../Command') {
 
   async getShortUrl(shortUrl) {
     try {
-      let res = await superagent.get(shortUrl)
+      let res = await superagent
+          .get(shortUrl)
           .set('Accept', 'application/json')
       return res.body
     } catch (e) {
@@ -282,12 +272,8 @@ class Contacts extends require('../Command') {
   }
 
   async contacts(options) {
-    if (process.env.NODE_ENV === 'test') {
-      // for testing, when MainPrompt is not required
-      ContactManager.setCache(this.secrez.cache)
-    }
     if (!this.contactManager) {
-      this.contactManager = new ContactManager
+      this.contactManager = new ContactManager(this.secrez.cache)
     }
     if (options.list) {
       let contacts = await this.list(options)
@@ -302,8 +288,6 @@ class Contacts extends require('../Command') {
       } else {
         return 'No contacts found'
       }
-    } else if (options.myself) {
-      return this.myself(options)
     } else if (options.add) {
       return this.add(options)
     } else if (options.update) {

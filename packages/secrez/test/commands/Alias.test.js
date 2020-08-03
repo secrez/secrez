@@ -5,17 +5,14 @@ const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
 const MainPrompt = require('../mocks/MainPromptMock')
-const AliasManager = require('../../src/Managers/AliasManager')
-const {assertConsole, noPrint, decolorize} = require('../helpers')
+const AliasManager = require('../../src/utils/AliasManager')
+const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 const {sleep} = require('@secrez/utils')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Alias', function () {
 

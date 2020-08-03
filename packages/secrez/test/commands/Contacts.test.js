@@ -5,16 +5,12 @@ const fs = require('fs-extra')
 const path = require('path')
 const {utils: hubUtils} = require('@secrez/hub')
 const MainPrompt = require('../mocks/MainPromptMock')
-const ContactManager = require('../../src/Managers/ContactManager')
-const {assertConsole, noPrint, decolorize} = require('../helpers')
+const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Contacts', function () {
 
@@ -40,7 +36,6 @@ describe('#Contacts', function () {
   })
 
   beforeEach(async function () {
-    ContactManager.getCache().reset()
     await fs.emptyDir(testDir)
     prompt = new MainPrompt
     await prompt.init(options)
@@ -58,32 +53,6 @@ describe('#Contacts', function () {
 
   })
 
-  it('initialize correctly the ContactManager', async function () {
-
-    inspect = stdout.inspect()
-    await C.contacts.exec({
-      list: true
-    })
-    inspect.restore()
-    assertConsole(inspect, [])
-
-    assert.equal(ContactManager.getCache().dataPath, path.join(rootDir, 'cache'))
-
-  })
-
-  it('returns my public key', async function () {
-
-    inspect = stdout.inspect()
-    await C.contacts.exec({
-      myself: true
-    })
-    inspect.restore()
-    assertConsole(inspect, [
-      'Your public key:',
-      prompt.secrez.getPublicKey()
-    ])
-  })
-
   it('create a contacts', async function () {
 
     inspect = stdout.inspect()
@@ -92,7 +61,7 @@ describe('#Contacts', function () {
       publicKey: publicKeys.user1
     })
     inspect.restore()
-    assertConsole(inspect, `The contact "user1" has been added to your trusted contacts`)
+    assertConsole(inspect, 'The contact "user1" has been added to your trusted contacts')
 
   })
 
@@ -109,7 +78,7 @@ describe('#Contacts', function () {
       publicKey: publicKeys.user2
     })
     inspect.restore()
-    assertConsole(inspect, `The contact "user2" has been added to your trusted contacts`)
+    assertConsole(inspect, 'The contact "user2" has been added to your trusted contacts')
 
     inspect = stdout.inspect()
     await C.contacts.exec({
@@ -237,7 +206,7 @@ describe('#Contacts', function () {
       assert.equal(e.message, 'The url is not a valid one')
     }
 
-    url = `https://somerandom.secrez.cc`
+    url = 'https://somerandom.secrez.cc'
 
     try {
       await C.contacts.contacts({

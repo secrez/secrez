@@ -11,24 +11,19 @@ const {createServer, utils: hubUtils} = require('@secrez/hub')
 const {Config, Server} = require('@secrez/courier')
 const Secrez = require('@secrez/core').Secrez(Math.random())
 
-const ContactManager = require('../../../src/Managers/ContactManager')
-
 const MainPrompt = require('../../mocks/MainPromptMock')
 const ChatPrompt = require('../../mocks/ChatPromptMock')
 
-const {assertConsole, noPrint, decolorize} = require('../../helpers')
+const {noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../../fixtures')
 
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../../helpers/jlog')
-
 describe('#Send', function () {
 
-  let prompt, prompt2
+  let prompt
   let hubPort = 4433
   let testDir = path.resolve(__dirname, '../../../tmp/test')
   let rootDir = path.resolve(testDir, 'secrez')
@@ -44,6 +39,8 @@ describe('#Send', function () {
   let secrez
   let secrez2 = new Secrez()
   let publicKeys = {}
+  let hubServer
+  let res
 
   let options = {
     container: rootDir,
@@ -75,22 +72,21 @@ describe('#Send', function () {
   }
 
   beforeEach(async function () {
-    ContactManager.getCache().reset()
     await fs.emptyDir(testDir)
     await startHub()
-    config = new Config({root: courierRoot, hub: `http://${localDomain}:${hubPort}`})
-    server = new Server(config)
-    await server.start()
-    config2 = new Config({root: courierRoot2, hub: `http://${localDomain}:${hubPort}`})
-    server2 = new Server(config2)
-    await server2.start()
     prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     secrez = prompt.secrez
+    config = new Config({root: courierRoot, hub: `http://${localDomain}:${hubPort}`, owner: secrez.getPublicKey()})
+    server = new Server(config)
+    await server.start()
     await secrez2.init(rootDir2)
     await secrez2.signup('password2', 9)
+    config2 = new Config({root: courierRoot2, hub: `http://${localDomain}:${hubPort}`, owner: secrez2.getPublicKey()})
+    server2 = new Server(config2)
+    await server2.start()
 
     const {payload: payload0, signature: signature0} = hubUtils.setPayloadAndSignIt(secrez2, {
       action: {
@@ -98,14 +94,13 @@ describe('#Send', function () {
       }
     })
 
-    res = await superagent.get(`${server2.localhost}/admin`)
+    res = await superagent
+        .get(`${server2.localhost}/admin`)
         .set('Accept', 'application/json')
-        .set('auth-code', server2.authCode)
         .query({payload: payload0, signature: signature0})
         .ca(await server2.tls.getCa())
 
     await noPrint(C.courier.courier({
-      authCode: server.authCode,
       port: server.port
     }))
     await noPrint(C.contacts.exec({
@@ -130,9 +125,9 @@ describe('#Send', function () {
       }
     })
 
-    await superagent.get(`${server2.localhost}/admin`)
+    await superagent
+        .get(`${server2.localhost}/admin`)
         .set('Accept', 'application/json')
-        .set('auth-code', server2.authCode)
         .query({payload, signature})
         .ca(await server2.tls.getCa())
   })
@@ -160,7 +155,6 @@ describe('#Send', function () {
       chat: 'user0'
     }))
 
-
     let message = 'Ciao bello!'
 
     await D.send.send({
@@ -173,16 +167,14 @@ describe('#Send', function () {
       publickey: sender
     })
 
-    res = await superagent.get(`${server2.localhost}/messages`)
+    res = await superagent
+        .get(`${server2.localhost}/messages`)
         .set('Accept', 'application/json')
-        .set('auth-code', server2.authCode)
         .query({payload: payload3, signature: signature3})
         .ca(await server2.tls.getCa())
 
-    let encryptedMessage = res.body.result[0].message.content
-
+    let encryptedMessage = JSON.parse(res.body.result[0].payload).message
     assert.equal(message, secrez2.decryptSharedData(encryptedMessage, sender))
-
 
   })
 

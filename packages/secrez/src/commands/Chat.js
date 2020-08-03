@@ -1,4 +1,5 @@
 const path = require('path')
+const chalk = require('chalk')
 const {ConfigUtils} = require('@secrez/core')
 const ChatPrompt = require('../prompts/ChatPrompt')
 
@@ -29,23 +30,58 @@ class Chat extends require('../Command') {
   }
 
   async uploadUsersPublicKeysToCourier(options) {
-    const {authCode, port, caCrt} = options.env.courier
-    let users = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
-    for (let user of users) {
-      console.log(await this.callCourier({
+    const {port, caCrt} = options.env.courier
+    let contacts = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
+    this.contactsByPublicKey = {}
+    for (let contact of contacts) {
+      this.contactsByPublicKey[contact[1].publicKey] = contact[0]
+      await this.callCourier({
         action: {
           name: 'add',
-          publicKey: user[1].publicKey,
-          url: user[1].url
+          publicKey: contact[1].publicKey,
+          url: contact[1].url
         }
-      }, authCode, port, caCrt, '/admin'))
+      }, port, caCrt, '/admin')
     }
+  }
+
+  async readHistoryMessages(options = {}) {
+    if (!options.asIs) {
+      this.chatPrompt.skip = true
+    }
+    const {minTimestamp, maxTimestamp, from, to} = options
+    if (!options.asIs) {
+      this.Logger.bold(from  || to ? `Messages${from ? ` from ${from}` : ''}${to ? ` to ${to}` : ''}:` : 'All message history:')
+    }
+    let newMessages = await this.prompt.commands.courier.getSomeMessages({
+      payload: {
+        minTimestamp,
+        maxTimestamp,
+        publickey: this.room[0].publicKey,
+        limit: 1000
+      }
+    })
+    if (options.asIs) {
+      return newMessages
+    }
+    let len = newMessages.length
+    if (len) {
+      this.chatPrompt.onMessages(newMessages, {
+        fromHistory: true,
+        verbose: options.verbose,
+        lastLine: options.asIs ? undefined : chalk.grey(`${len} message${len > 1 ? 's' : ''} found.`)
+      })
+    } else {
+      this.Logger.yellow('None found')
+    }
+    this.chatPrompt.skip = false
   }
 
   async chat(options) {
     const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
     if (env.courier) {
-      await this.prompt.commands.courier.preInit(options)
+      this.courier = await this.prompt.commands.courier
+      await this.courier.preInit(options)
       if (options.ready) {
         await this.uploadUsersPublicKeysToCourier(options)
         if (process.env.NODE_ENV === 'test') {
@@ -72,7 +108,7 @@ and launch it as
 
   secrez-courier
   
-It will show an Auth Code, copy it and come back to Secrez. Then run "conf --init-courier" to configure the connection w/ the courier.`)
+It will show the port where it is listening to. Copy it and come back to Secrez. Then run "courier" to configure the connection w/ the courier.`)
       throw new Error('Courier not found.')
     }
   }

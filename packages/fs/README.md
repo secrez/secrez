@@ -4,8 +4,19 @@ Secrez is the secrets manager for the cryptocurrencies era.
 
 This is the filesystem component.
 
-A documentation will come soon. For now, for info, look at https://github.com/secrez/secrez
+@secrez/fs exposes:
 
+* InternalFs
+* ExternalFs
+* FsUtils
+* Tree
+* Node
+* DataCache
+
+
+## TODO
+
+API documentation
 
 ## Test coverage
 
@@ -25,4 +36,13 @@ All files      |   91.28 |    80.36 |   92.37 |   91.16 |
  Tree.js       |   90.16 |    74.71 |   86.11 |   90.11 | ...72,418-441,472,482,533,625,628,655-664 
 ---------------|---------|----------|---------|---------|-------------------------------------------
 ```
+
+
+## Copyright
+
+(c) 2020-present [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>)
+
+## Licence
+
+MIT
 

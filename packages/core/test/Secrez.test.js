@@ -9,9 +9,6 @@ const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')
 
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
-
 const {
   password,
   newPassword,

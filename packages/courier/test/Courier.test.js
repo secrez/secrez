@@ -6,9 +6,6 @@ const path = require('path')
 const Courier = require('../src/Courier')
 const Server = require('../src/Server')
 
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
-
 describe('#Courier', function () {
 
   let root = path.resolve(__dirname, '../tmp/test/.secrez-courier')

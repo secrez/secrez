@@ -36,6 +36,7 @@
     "superagent": "^5.3.1"
   },
   "devDependencies": {
+    "@secrez/test-helpers": "workspace:~0.1.0",
     "@secrez/hub": "workspace:~0.1.1",
     "@secrez/tls": "workspace:~0.1.1",
     "chai": "^4.2.0",

@@ -1,5 +1,5 @@
 const chalk = require('chalk')
-const AliasManager = require('../Managers/AliasManager')
+const AliasManager = require('../utils/AliasManager')
 
 class Alias extends require('../Command') {
 

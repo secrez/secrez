@@ -17,6 +17,7 @@
     "lodash": "^4.17.15"
   },
   "devDependencies": {
+    "@secrez/test-helpers": "workspace:~0.1.0",
     "chai": "^4.2.0",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.2",

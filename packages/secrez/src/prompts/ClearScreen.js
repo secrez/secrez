@@ -11,15 +11,16 @@ class ClearScreen {
   constructor(config) {
     thiz = this
     this.config = config
+    this.paused = false
   }
 
   async clear() {
     const env = await ConfigUtils.getEnv(thiz.config)
     let seconds = env.clearScreenAfter || cliConfig.clearScreenAfter
     this.clearIsRunning = true
-    if (Date.now() - thiz.lastCommandAt > 1000 * seconds) {
+    if (!this.paused && Date.now() - thiz.lastCommandAt > 1000 * seconds) {
       clear()
-      console.info(chalk.grey(`Terminal has been cleared after ${seconds} seconds of inactivity. Press right-arrow to restore the prompt.`))
+      console.info(chalk.grey(`Terminal viewport has been cleared after ${seconds} seconds of inactivity. Press right-arrow to restore the prompt.`))
       this.clearIsRunning = false
     } else {
       await sleep(100 * seconds)
@@ -30,6 +31,10 @@ class ClearScreen {
   setLastCommandAt() {
     thiz.lastCommandAt = Date.now()
     thiz.start()
+  }
+
+  pause(value = true) {
+    thiz.paused = value
   }
 
   start() {

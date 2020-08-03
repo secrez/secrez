@@ -2,12 +2,23 @@
 
 Secrez is the secrets manager for the cryptocurrencies era.
 
-This is the basic library.
+@secrez/core is the basic library.
 
-A documentation will come soon. For now, for info, look at https://github.com/secrez/secrez
+It exposes 
+* Secrez
+* Crypto
+* Entry
+* config
+* ConfigUtils
+
+Those classes are used by other Secrez packages to interact with the encrypted database.
 
 
-#### Test coverage
+## TODO
+
+API documentation
+
+## Test coverage
 
 ```
   81 passing (3s)
@@ -27,3 +38,12 @@ All files        |     100 |    96.34 |     100 |     100 |
 -----------------|---------|----------|---------|---------|-------------------
 
 ```
+
+
+## Copyright
+
+(c) 2020-present [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>)
+
+## Licence
+
+MIT

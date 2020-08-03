@@ -5,15 +5,12 @@ const fs = require('fs-extra')
 const path = require('path')
 const {Node} = require('@secrez/fs')
 const MainPrompt = require('../mocks/MainPromptMock')
-const {assertConsole, decolorize, noPrint} = require('../helpers')
+const {assertConsole, decolorize, noPrint} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Mv', function () {
 

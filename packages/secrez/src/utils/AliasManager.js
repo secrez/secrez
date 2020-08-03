@@ -14,6 +14,10 @@ class AliasManager {
     return cache
   }
 
+  // constructor(cache) {
+  //   this.cache = cache
+  // }
+
   get(alias) {
     return cache.get('alias', alias)
   }

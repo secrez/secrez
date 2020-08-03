@@ -21,6 +21,7 @@ class Cat extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String

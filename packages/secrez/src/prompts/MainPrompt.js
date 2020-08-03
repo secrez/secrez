@@ -8,8 +8,8 @@ const Logger = require('../utils/Logger')
 const cliConfig = require('../cliConfig')
 const Commands = require('../commands')
 const welcome = require('../Welcome')
-const AliasManager = require('../Managers/AliasManager')
-const ContactManager = require('../Managers/ContactManager')
+const AliasManager = require('../utils/AliasManager')
+const ContactManager = require('../utils/ContactManager')
 
 class MainPrompt extends require('./CommandPrompt') {
 
@@ -48,8 +48,7 @@ class MainPrompt extends require('./CommandPrompt') {
       await this.secrez.cache.load('contact')
       AliasManager.setCache(this.secrez.cache)
       this.aliasManager = new AliasManager()
-      ContactManager.setCache(this.secrez.cache)
-      this.contactManager = new ContactManager()
+      this.contactManager = new ContactManager(this.secrez.cache)
     }
   }
 

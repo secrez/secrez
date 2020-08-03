@@ -17,6 +17,7 @@ class Mv extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         multiple: true,

@@ -5,16 +5,13 @@ const path = require('path')
 const {config, Crypto, Entry} = require('@secrez/core')
 const Secrez = require('@secrez/core').Secrez(Math.random())
 const Node = require('../src/Node')
-const {jsonEqual, initRandomNode, setNewNodeVersion, initARootNode} = require('./helpers')
+const {jsonEqual, initRandomNode, setNewNodeVersion, initARootNode} = require('@secrez/test-helpers')
 const {ENTRY_EXISTS} = require('../src/Messages')
 
 const {
   password,
   iterations
 } = require('./fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
 
 describe('#Node', function () {
 

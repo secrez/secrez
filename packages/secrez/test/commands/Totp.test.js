@@ -8,15 +8,12 @@ const path = require('path')
 const {yamlParse} = require('@secrez/utils')
 
 const MainPrompt = require('../mocks/MainPromptMock')
-const {sleep, noPrint, decolorize, assertConsole, copyImageToClipboard} = require('../helpers')
+const {sleep, noPrint, decolorize, assertConsole, copyImageToClipboard} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Totp', function () {
 

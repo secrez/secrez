@@ -32,14 +32,16 @@ class Db {
         table.text('url').unique()
       })
     }
+    // await this.knex.schema.dropTable('messages')
     if (!(await this.knex.schema.hasTable('messages'))) {
       await this.knex.schema.createTable('messages', function (table) {
         table.integer('timestamp').unsigned()
-        table.integer('microseconds').unsigned()
+        // table.integer('microseconds').unsigned()
         table.integer('direction')
-        table.text('message')
+        table.text('payload')
+        table.text('signature')
         table.text('publickey')
-        table.index(['timestamp','microseconds'], 'index_timestamp')
+        table.index('timestamp', 'index_timestamp')
       })
     }
   }
@@ -100,29 +102,26 @@ class Db {
     return query[0] ? query[0].url : undefined
   }
 
-  async saveMessage(message, publickey, direction) {
-    let ts = Crypto.getTimestampWithMicroseconds()
+  async saveMessage(payload, signature, publickey, direction) {
     return this.insert({
-      timestamp: ts[0],
-      microseconds: ts[1],
-      message: JSON.stringify(message),
+      timestamp: Date.now(), //ts[0],
+      // microseconds: ts[1],
+      payload,
+      signature,
       publickey,
       direction
     }, 'messages')
   }
 
-  async getMessages(minTimestamp = 0, maxTimestamp = Crypto.getTimestampWithMicroseconds()[0], publickey, limit = 10, direction) {
+  async getMessages(minTimestamp = 0, maxTimestamp = Date.now() + 1000, publickey, limit = 10, direction) {
     let messages = await this.knex.select('*').from('messages')
         .where('timestamp', '>=', minTimestamp)
         .andWhere('timestamp', '<=', maxTimestamp)
         .andWhere('publickey', publickey ? '=' : '!=', publickey ? publickey : '-')
         .andWhere('direction', direction ? '=' : '>', direction ? direction : 0)
-        .orderBy(['timestamp', 'microseconds'], 'asc')
+        .orderBy('timestamp', 'asc')
         .limit(limit)
-    return messages.map(e => {
-      e.message = JSON.parse(e.message)
-      return e
-    })
+    return messages
   }
 
 }

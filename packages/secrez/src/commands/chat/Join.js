@@ -80,6 +80,7 @@ class Join extends require('../../Command') {
       }))
     }
     this.prompt.environment.room = room
+    this.prompt.start()
   }
 
   async join(options) {
@@ -99,7 +100,7 @@ class Join extends require('../../Command') {
         if (options.chat) {
           await this.joinRoom(options)
           if (!this.hint) {
-            this.Logger.grey('In the room, by default, you send messages. To execute any command, prefix it with a slash, like "/leave".')
+            this.Logger.grey('In a room, by default, you send messages, but you can execute commands. If a message looks like a command, for example "join me tonight", disambiguate it by prefixing it with a slash, like "/join me tonight".')
             this.hint = true
           }
         }

@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const {startHttpsServer, verifyTlsConnection} = require('./helpers')
+const {startHttpsServer, verifyTlsConnection} = require('@secrez/test-helpers')
 
 const TLS = require('../src/TLS')
 

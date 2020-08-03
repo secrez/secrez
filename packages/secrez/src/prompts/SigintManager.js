@@ -14,23 +14,13 @@ class SigintManager {
 
   async onSigint() {
     this.siginted = true
-    // let len = this.prompts.length
     if (Date.now() - this.lastCalled < 500) {
       // eslint-disable-next-line no-process-exit
       process.exit(0)
     }
-    const prompt = this.prompts[this.prompts.length - 1]
-    // if (prompt.sigintPosition === len - 1) {
-      let msg
-      if (prompt.context === 'chat') {
-        msg = 'To leave the chat, type leave. To exit press ^C two times'
-      } else {
-        msg = 'To exit, type quit or press ^C two times'
-      }
-      console.info(msg)
-      this.lastCalled = Date.now()
-      return prompt.run()
-    // }
+    console.info('To exit, type quit or press ^C two times')
+    this.lastCalled = Date.now()
+    return this.prompts[this.prompts.length - 1].run()
   }
 
   async setPosition(prompt) {

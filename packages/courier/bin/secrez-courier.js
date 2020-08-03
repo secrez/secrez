@@ -17,13 +17,14 @@ const optionDefinitions = [
     type: String
   },
   {
-    name: 'root',
-    alias: 'r',
+    name: 'owner',
+    alias: 'o',
     type: String
   },
   {
-    name: 'new-auth-code',
-    type: Boolean
+    name: 'root',
+    alias: 'r',
+    type: String
   },
   {
     name: 'new-random-port',
@@ -63,7 +64,7 @@ Options:
   -h, --help            This help.
   -H, --hub             The remote host (by default https://secrez.cc)
   -r, --root            Root folder (by default ~/.secrez-courier)
-  --new-auth-code       Refreshes the authCode, if a previous one's been saved
+  -o, --owner           The public key of the secrez account using it
   --new-random-port     Force the refresh of a new random port (modifying the auth-code)
                           
 Everytime you change auth-code or port, you must re-init the courier in Secrez. If not, Secrez cannot find the listening courier. 
@@ -81,8 +82,6 @@ Examples:
 (async () => {
   const courier = new Courier(options)
   await courier.start()
-  console.info('Courier listening...')
-  console.info('Auth-Code: ', chalk.bold(`${courier.server.authCode}${courier.server.port}`))
-  console.info(chalk.grey('Copy the Auth-Code and paste it in Secrez using "conf --init-courier" to initiate the chat'))
+  console.info(`Courier ready and listening on port ${courier.server.port}`)
 })()
 

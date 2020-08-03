@@ -7,15 +7,12 @@ const path = require('path')
 
 const {yamlParse} = require('@secrez/utils')
 const MainPrompt = require('../mocks/MainPromptMock')
-const {assertConsole, sleep, noPrint, decolorize} = require('../helpers')
+const {assertConsole, sleep, noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Copy', function () {
 

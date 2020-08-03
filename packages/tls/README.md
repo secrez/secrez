@@ -1,10 +1,8 @@
-# @secrez/courier
+# @secrez/tls
 
-Secrez is the secrets manager for the cryptocurrencies era.
+Secrez tls generates local SSL certificates to be used by @secrez/courier and other packages.
 
-This is the communication component.
-
-A documentation will come soon. For now, for info, look at https://github.com/secrez/secrez
+A documentation will come soon.
 
 
 ## Test coverage
@@ -12,3 +10,10 @@ A documentation will come soon. For now, for info, look at https://github.com/se
 ```
 ```
 
+## Copyright
+
+(c) 2020-present [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>)
+
+## Licence
+
+MIT

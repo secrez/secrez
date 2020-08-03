@@ -59,10 +59,7 @@ class Send extends require('../../Command') {
     let recipient = this.prompt.environment.room[0].publicKey
     let encryptedMessage = this.secrez.encryptSharedData(options.message, recipient)
     const {payload: payloadMessage, signature: signatureMessage} = hubUtils.setPayloadAndSignIt(this.secrez, {
-      message: {
-        sentAt: Date.now(),
-        content: encryptedMessage
-      }
+      message: encryptedMessage
     })
     const {payload: payload2, signature: signature2} = hubUtils.setPayloadAndSignIt(this.secrez, {
       action: {
@@ -76,7 +73,6 @@ class Send extends require('../../Command') {
     })
     return superagent.get(`https://localhost:${env.courier.port}/admin`)
         .set('Accept', 'application/json')
-        .set('auth-code', env.courier.authCode)
         .query({payload: payload2, signature: signature2})
         .ca(await env.courier.caCrt)
   }
