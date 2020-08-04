@@ -46,7 +46,7 @@ describe('#Join', function () {
       prompt = new MainPrompt
       await prompt.init(options)
       await prompt.secrez.signup(password, iterations)
-      publicKeys['user' + i] = prompt.secrez.getPublicKey()
+      publicKeys['user' + i + 'x'] = prompt.secrez.getPublicKey()
     }
   })
 
@@ -80,16 +80,16 @@ describe('#Join', function () {
       port: server.port
     }))
     await noPrint(C.contacts.exec({
-      add: 'user0',
-      publicKey: publicKeys.user0
+      add: 'user0x',
+      publicKey: publicKeys.user0x
     }))
     await noPrint(C.contacts.exec({
-      add: 'user1',
-      publicKey: publicKeys.user1
+      add: 'user1x',
+      publicKey: publicKeys.user1x
     }))
     await noPrint(C.contacts.exec({
-      add: 'user2',
-      publicKey: publicKeys.user2
+      add: 'user2x',
+      publicKey: publicKeys.user2x
     }))
     await noPrint(C.chat.chat({
       chatPrompt: new ChatPrompt
@@ -113,47 +113,77 @@ describe('#Join', function () {
 
   })
 
-  it('should join a chat with user0', async function () {
+  it('should join a chat with user0x', async function () {
 
     await noPrint(
         D.join.join({
-      chat: 'user0'
-    }))
-    assert.equal(C.chat.room[0].contact, 'user0')
+          chat: 'user0x'
+        }))
+    assert.equal(C.chat.room[0].contact, 'user0x')
+  })
+
+  it('should join a chat with user0x', async function () {
+
+    await noPrint(
+        D.join.join({
+          chat: 'user0x'
+        }))
+    assert.equal(C.chat.room[0].contact, 'user0x')
   })
 
   it('should jump between chats', async function () {
 
     await noPrint(D.join.join({
-      chat: 'user0'
+      chat: 'user0x'
     }))
 
-    await noPrint(D.join.join({
-      chat: 'user1'
+    await noPrint(D.join.exec({
+      chat: 'user1x'
     }))
 
-    assert.equal(C.chat.room[0].contact, 'user1')
+    assert.equal(C.chat.room[0].contact, 'user1x')
+
+  })
+
+  it('should return all the users', async function () {
+
+    let all = await D.join.customCompletion({}, undefined, undefined)
+
+    assert.equal(all.join(','), 'user0x,user1x,user2x')
+
+    all = await D.join.customCompletion({
+      chat: ['user1']
+    }, undefined, 'chat')
+
+    assert.equal(all.join(','), 'user1x')
 
   })
 
   it('should throw if contact not found or multiple chat', async function () {
 
     try {
-      await D.join.join({
-        chat: 'nobody'
-      })
+      await D.join.join({})
       assert.isTrue(false)
-    } catch(e) {
-      assert.equal(e.message, 'Contact not found')
+    } catch (e) {
+      assert.equal(e.message, 'Missing parameters')
     }
 
     try {
       await D.join.join({
-        chat: ['user0', 'user1']
+        chat: ['user0x', 'user1x']
       })
       assert.isTrue(false)
-    } catch(e) {
+    } catch (e) {
       assert.equal(e.message, 'Multiple chat not supported yet')
+    }
+
+    try {
+      await D.join.join({
+        chat: 'nobody'
+      })
+      assert.isTrue(false)
+    } catch (e) {
+      assert.equal(e.message, 'Contact not found')
     }
 
   })

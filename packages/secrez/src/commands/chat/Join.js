@@ -1,5 +1,4 @@
 const {ConfigUtils} = require('@secrez/core')
-const {Crypto} = require('@secrez/core')
 
 class Join extends require('../../Command') {
 
@@ -21,11 +20,6 @@ class Join extends require('../../Command') {
         defaultOption: true,
         multiple: true,
         type: String
-      },
-      {
-        name: 'user',
-        alias: 'u',
-        type: String
       }
     ]
   }
@@ -35,8 +29,7 @@ class Join extends require('../../Command') {
       description: ['Manages joins.'],
       examples: [
         ['join pan', 'joins a conversation with the previously-added user "pan"'],
-        ['/join ema', 'jumps from the current conversation to the a new one with "ema". Notice the initial slash to disambiguate the command.'],
-        ['join 7uH1nwoXJ7... -u lester', 'joins a conversation with a public key not associated with an existing user, and creates the user lester for it'],
+        ['/join ema', 'jumps from the current conversation to the a new one with "ema". Notice the initial slash to disambiguate the command.']
       ]
     }
   }
@@ -49,9 +42,9 @@ class Join extends require('../../Command') {
     return []
   }
 
-  async customCompletion(options, originalLine, defaultOption) {
+  async customCompletion(options, originalLine, currentOption) {
     const existingUsers = await this.getAllUsers()
-    if (options.chat) {
+    if (currentOption === 'chat') {
       let lastUser = options.chat[options.chat.length - 1]
       return existingUsers.filter(e => {
         return RegExp('^' + lastUser).test(e)
@@ -84,20 +77,13 @@ class Join extends require('../../Command') {
   }
 
   async join(options) {
+    if (!options.chat) {
+      throw new Error('Missing parameters')
+    } else {
     const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
     if (env.courier) {
       await this.prompt.environment.prompt.commands.courier.preInit(options)
       if (options.ready) {
-        if (options.user) {
-          if (!Crypto.isValidSecrezPublicKey(options.chat||'')) {
-            throw new Error('The passed public key is invalid')
-          } else {
-            options.add = [options.user, options.chat]
-            await this.prompt.environment.prompt.commands.contacts.contacts(options)
-            options.chat = options.user
-          }
-        }
-        if (options.chat) {
           await this.joinRoom(options)
           if (!this.hint) {
             this.Logger.grey('In a room, by default, you send messages, but you can execute commands. If a message looks like a command, for example "join me tonight", disambiguate it by prefixing it with a slash, like "/join me tonight".')

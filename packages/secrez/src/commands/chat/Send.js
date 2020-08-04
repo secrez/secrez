@@ -34,16 +34,6 @@ class Send extends require('../../Command') {
     }
   }
 
-  async customCompletion() {
-    return []
-  }
-
-  selfCompletion(self, extraOptions = {}) {
-    return async () => {
-      return []
-    }
-  }
-
   async sendMessage (options) {
     const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
     if (!env.courier) {

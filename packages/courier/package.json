@@ -7,7 +7,7 @@
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
-    "posttest": "nyc check-coverage --statements 85 --branches 80 --functions 85 --lines 85"
+    "posttest": "nyc check-coverage --statements 75 --branches 60 --functions 75 --lines 75"
   },
   "bin": {
     "secrez-courier": "bin/secrez-courier.js"

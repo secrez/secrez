@@ -480,7 +480,7 @@ email: some@example.com`)
 
   })
 
-  describe.only('uglifyDate', async function () {
+  describe('uglifyDate', async function () {
 
 
     let uglyDate = new UglyDate()

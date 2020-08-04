@@ -43,9 +43,11 @@ class ConfigUtils {
     config.envPath = path.join(config.localDataPath, 'env.json')
     config.historyPath = path.join(config.localDataPath, 'mainHistory')
 
+    /* istanbul ignore if  */
     if (await fs.pathExists(oldEnvPath)) {
       await fs.move(oldEnvPath, config.envPath)
     }
+    /* istanbul ignore if  */
     if (await fs.pathExists(oldHistoryPath)) {
       await fs.move(oldHistoryPath, config.historyPath)
     }
@@ -67,6 +69,7 @@ local
 `, 'utf-8')
     } else {
       let gitignore = await fs.readFile(gitignorePath, 'utf8')
+      /* istanbul ignore if  */
       if (!/local/.test(gitignore)) {
         gitignore =  _.trim(gitignore) + '\nlocal\n'
         fs.writeFile(gitignorePath, gitignore)

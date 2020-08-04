@@ -24,7 +24,7 @@ describe('#Whoami', function () {
 
   let prompt
   let hubPort = 4433
-  let testDir = path.resolve(__dirname, '../../../tmp/test')
+  let testDir = path.resolve(__dirname, '../../tmp/test')
   let rootDir = path.resolve(testDir, 'secrez')
   let courierRoot = path.resolve(testDir, 'secrez-courier')
   let localDomain = '127zero0one.com'

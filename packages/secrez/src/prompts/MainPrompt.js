@@ -46,8 +46,7 @@ class MainPrompt extends require('./CommandPrompt') {
       }
       await this.secrez.cache.load('alias')
       await this.secrez.cache.load('contact')
-      AliasManager.setCache(this.secrez.cache)
-      this.aliasManager = new AliasManager()
+      this.aliasManager = new AliasManager(this.secrez.cache)
       this.contactManager = new ContactManager(this.secrez.cache)
     }
   }

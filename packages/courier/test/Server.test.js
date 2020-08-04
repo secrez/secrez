@@ -14,7 +14,7 @@ const Server = require('../src/Server')
 const {sendMessage} = require('@secrez/test-helpers')
 const {publicKey1} = require('./fixtures')
 
-describe.only('Server', async function () {
+describe('Server', async function () {
 
   let localDomain = '127zero0one.com'
   let courierRoot = path.resolve(__dirname, '../tmp/test/secrez-courier')

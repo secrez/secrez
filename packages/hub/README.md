@@ -64,13 +64,17 @@ Run the hub, setup a proxy, for example with Nginx, and set up SSL certificates,
 When I have a moment, I will write a post on how to do it using Let's Encrypt.
 
 
+## Test coverage
+```
+
+```
+
 ## Copyright
 
 Secrez-hub is based on [Localtunnel Server](https://github.com/localtunnel/server), which is Copyright (c) 2015 Roman Shtylman  
 
 It has been modified by [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>). Any opinion, help, suggestion, critic is very welcome.
 
-Se
 
 ## Licence
 MIT

@@ -94,14 +94,9 @@ describe('#Courier', function () {
 
   it('should set up the courier', async function () {
 
-    inspect = stdout.inspect()
-    await C.courier.courier({
+    await noPrint(C.courier.courier({
       port: server.port
-    })
-    inspect.restore()
-    let output = inspect.output.map(e => decolorize(e))
-
-    assert.equal(output[1], 'Connected')
+    }))
     assert.isTrue((await C.courier.isCourierReady({})).success)
 
   })

@@ -78,12 +78,8 @@ class Alias extends require('../Command') {
   }
 
   async alias(options) {
-    if (!AliasManager.getCache().dataPath) {
-      // for testing, when MainPrompt is not required
-      AliasManager.setCache(this.secrez.cache)
-    }
     if (!this.aliasManager) {
-      this.aliasManager = new AliasManager
+      this.aliasManager = new AliasManager(this.secrez.cache)
     }
     if (options.previousCommand && options.commandLine) {
       throw new Error('Conflicting parameters')

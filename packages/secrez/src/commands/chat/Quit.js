@@ -25,16 +25,6 @@ class Quit extends require('../../Command') {
     }
   }
 
-  async customCompletion() {
-    return []
-  }
-
-  selfCompletion(self, extraOptions = {}) {
-    return async () => {
-      return []
-    }
-  }
-
   async exec(options = {}) {
     if (options.help) {
       return this.showHelp()
@@ -44,7 +34,6 @@ class Quit extends require('../../Command') {
       await this.prompt.run()
     } else {
       /* istanbul ignore if  */
-      // eslint-disable-next-line no-constant-condition
       if (!options.testing) {
         await this.prompt.saveHistory()
       }

@@ -367,52 +367,59 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
-__7.0.14__
+__0.8.0__
+* add `user` to manage trusted users, i.e, trusted public keys
+* add @secrez/courier to allow communication between local accounts
+* add @secrez/tunnel to manage the tunneling for the Courier
+* add `chat` to enter the chat environemnt, and send/receive messages and data to any trusted user
+* return `find` results as a numbered list, to be used as variable (like `$1`) in following commands
+
+__0.7.14__
 * fix chained aliases generating prompt duplications
 
-__7.0.13__
+__0.7.13__
 * fix autocomplete when single command
 
-__7.0.12__
+__0.7.12__
 * adds support for Linux to `totp --from-clipboard`, using `xclip`
 
-__7.0.11__
+__0.7.11__
 * returns an alert if `clipboardy` does not find the required libraries
 
-__7.0.10__
+__0.7.10__
 * fixes the autocomplete loading the data only when needed
 
-__7.0.9__
+__0.7.9__
 * fix bug in MainPrompt.js which caused an exit if command not found
 
-__7.0.8__
+__0.7.8__
 * upgrade `@secrez/core` to `0.7.1` which fixes an error if `env.json` does not exists
 
-__7.0.7__
+__0.7.7__
 * aliases now accept params (ex. `alias x -c 'copy $1 && ls $2 $1')
 
-__7.0.6__
+__0.7.6__
 * `rm` ask confirmation before delete forever from the `trash` dataset
 * `edit` does not crash if no path is passed
 
-__7.0.5__
+__0.7.5__
 * `totp` can read an image to scan a qrcode and recover its secret
 * on MacOs, `totp` can also read the image from the clipboard to recover its secret; it requires `pngpaste`
 
-__7.0.4__
+__0.7.4__
 * fix bug in autocomplete showing the error stack
 * add script to upgrade the versions of any changed packages
 
-__7.0.3__
+__0.7.3__
 * `find` ignores `trash` during global searches if not using `--trash-too`
 * update to `@secrez/fs 0.7.2`, which fixes a bug in the `DataCache` class
 
-__7.0.2__
+__0.7.2__
 * `totp` allows to generate TOTP codes (like Google Authenticator)
 * add option `--wait` to `copy` to force it to wait the end of the execution
 * `alias` handles chains of commands, like `copy coinbase.yml -f email password -d 3 2 --wait && totp coinbase.yml`
 
-__7.0.1__
+__0.7.1__
 * Calling a command with unknown options will generate an error
 * Fix issue moving duplicates
 * Adds to `mv` an explicit destination field
@@ -522,12 +529,12 @@ git clone git@github.com:sullof/secrez.git
 #### Install the requirements
 
 ```
-npm i -g lerna
+npm i -g pnpm
 ```
 
 #### Bootstrap the monorepo
 ```
-lerna bootstrap
+npm run reset
 ```
 #### Install OS requirements
 To complete the tests, you must install some tool, depending on you operating system.
@@ -584,46 +591,7 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  130 passing (10s)
 
-------------------|---------|----------|---------|---------|---------------------------------
-File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
-------------------|---------|----------|---------|---------|---------------------------------
-All files         |   95.49 |     82.4 |     100 |    95.4 |                                 
- src              |     100 |    92.11 |     100 |     100 |                                 
-  AliasManager.js |     100 |    85.71 |     100 |     100 | 8,58                            
-  Command.js      |     100 |    95.83 |     100 |     100 | 55                              
-  cliConfig.js    |     100 |      100 |     100 |     100 |                                 
- src/commands     |   95.05 |    82.14 |     100 |   94.96 |                                 
-  Alias.js        |   91.89 |    79.25 |     100 |   91.78 | 89,100,122,150,155,165          
-  Bash.js         |   93.33 |    66.67 |     100 |   93.33 | 48                              
-  Cat.js          |   98.89 |    88.89 |     100 |   98.89 | 142                             
-  Cd.js           |   96.43 |    86.67 |     100 |   96.43 | 44                              
-  Copy.js         |   94.94 |    74.51 |     100 |   94.87 | 96,141,158,183                  
-  Exit.js         |      90 |       50 |     100 |      90 | 30                              
-  Export.js       |     100 |    64.29 |     100 |     100 | 55,75,87-92,99                  
-  Find.js         |   92.54 |    86.67 |     100 |   92.31 | 90,141,172-176,182              
-  Help.js         |   92.13 |    83.58 |     100 |      92 | 49,142-143,160-165,184          
-  Import.js       |   94.84 |    85.11 |     100 |   94.77 | 171,229,231,244,250,292,319-323 
-  Lcat.js         |     100 |    85.71 |     100 |     100 | 54                              
-  Lcd.js          |   95.65 |    81.82 |     100 |   95.65 | 48                              
-  Lls.js          |   95.45 |    72.73 |     100 |   95.45 | 89                              
-  Lpwd.js         |   92.31 |      100 |     100 |   92.31 | 38                              
-  Ls.js           |   88.89 |    68.75 |     100 |    87.5 | 65,69,90                        
-  Mkdir.js        |     100 |    66.67 |     100 |     100 | 38-44                           
-  Mv.js           |   91.01 |    77.36 |     100 |    90.8 | 113,136,147-153                 
-  Paste.js        |   87.23 |       75 |     100 |   87.23 | 65,71,74,82,106,123             
-  Pwd.js          |   92.31 |      100 |     100 |   92.31 | 36                              
-  Rm.js           |   96.67 |       90 |     100 |   96.55 | 75                              
-  Tag.js          |      99 |    93.75 |     100 |   98.95 | 160                             
-  Totp.js         |     100 |    79.49 |     100 |     100 | 68-90,140,169-174,198-210,221   
-  Touch.js        |     100 |    71.43 |     100 |     100 | 56,67                           
-  Use.js          |   98.04 |     93.1 |     100 |   97.92 | 103                             
-  Ver.js          |      90 |    66.67 |     100 |      90 | 27                              
-  index.js        |      95 |     62.5 |     100 |   94.74 | 18                              
- src/utils        |     100 |    66.67 |     100 |     100 |                                 
-  index.js        |     100 |    66.67 |     100 |     100 | 53,77                           
-------------------|---------|----------|---------|---------|---------------------------------
 ```
 
 

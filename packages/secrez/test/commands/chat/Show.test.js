@@ -1,14 +1,11 @@
 const chai = require('chai')
 const assert = chai.assert
 const stdout = require('test-console').stdout
-const superagent = require('superagent')
 const fs = require('fs-extra')
 const path = require('path')
 
-const {sendMessage} = require('@secrez/test-helpers')
-const {ConfigUtils} = require('@secrez/core')
 const {sleep} = require('@secrez/utils')
-const {createServer, utils: hubUtils} = require('@secrez/hub')
+const {createServer} = require('@secrez/hub')
 const {Config, Server} = require('@secrez/courier')
 
 const MainPrompt = require('../../mocks/MainPromptMock')
@@ -38,7 +35,6 @@ describe('#Show', function () {
   let server1, server2
   let secrez1, secrez2
   let hubServer
-  let res
 
   let options1 = {
     container: rootDir,

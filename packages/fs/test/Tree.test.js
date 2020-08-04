@@ -241,7 +241,7 @@ describe('#Tree', function () {
       let files1 = await fs.readdir(`${rootDir}/data`)
       assert.equal(files1.length, 7)
 
-      await sleep(100)
+      await sleep(200)
 
       await startTree()
 
@@ -283,7 +283,7 @@ describe('#Tree', function () {
 
       // jlog(Object.keys(tree.root.flat()))
 
-      await sleep(100)
+      await sleep(200)
 
       await startTree()
 

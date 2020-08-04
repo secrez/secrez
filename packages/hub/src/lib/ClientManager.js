@@ -1,4 +1,3 @@
-const utils = require('../utils')
 const {Debug} = require('@secrez/utils')
 const Client = require('./Client')
 const TunnelAgent = require('./TunnelAgent')
@@ -31,10 +30,6 @@ class ClientManager {
     const clients = this.clients
     const stats = this.stats
     const maxSockets = this.opt.max_tcp_sockets
-
-    if (!id && process.env.NODE_ENV === 'test') {
-      id = utils.getRandomId('facePublicKey')
-    }
 
     if (clients[id]) {
       return {

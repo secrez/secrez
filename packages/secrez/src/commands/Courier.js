@@ -44,7 +44,11 @@ class Conf extends require('../Command') {
       )
       this.prompt.showLoading = false
       await sleep(100)
-      process.stdout.clearLine()
+      try {
+        process.stdout.clearLine()
+      } catch(e) {
+        // most likely we are running workspace testing
+      }
       if (res.info.error) {
         throw new Error(`The connection to the hub ${res.info.hub} is refused. Verify that your Secrez Courier is connecting to an active hub, please, and try again.`)
       } else {

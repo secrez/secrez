@@ -1,7 +1,6 @@
 const chalk = require('chalk')
 const cliConfig = require('../cliConfig')
 const Commands = require('../commands')
-const Logger = require('../utils/Logger')
 const {sleep, UglyDate, decolorize, getCols} = require('@secrez/utils')
 
 class ChatPrompt extends require('./CommandPrompt') {
@@ -40,32 +39,6 @@ class ChatPrompt extends require('./CommandPrompt') {
       }
     }
   }
-
-  // async readHistoryMessages(options = {}) {
-  //   this.skip = true
-  //   const {minTimestamp, maxTimestamp, since, to} = options
-  //   Logger.bold(`Messages${since ? ` since ${since}` : ''}${to ? ` to ${to}` : ''}`)
-  //   let newMessages = await this.environment.courier.getSomeMessages({
-  //     payload: {
-  //       minTimestamp,
-  //       maxTimestamp,
-  //       publickey: this.environment.room[0].publicKey,
-  //       limit: 1000
-  //     }
-  //   })
-  //   let len = newMessages.length
-  //   if (len) {
-  //     this.onMessages(newMessages, {
-  //       fromHistory: true,
-  //       verbose: options.verbose,
-  //       lastLine: chalk.grey(`${len} message${len > 1 ? 's' : ''} found.`)
-  //     })
-  //     // Logger.grey(`${len} message${len > 1 ? 's' : ''} found`)
-  //   } else {
-  //     Logger.yellow('None found')
-  //   }
-  //   delete this.skip
-  // }
 
   prePromptMessage(options = {}) {
     if (this.environment.room) {

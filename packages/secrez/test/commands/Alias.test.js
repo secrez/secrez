@@ -5,7 +5,6 @@ const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
 const MainPrompt = require('../mocks/MainPromptMock')
-const AliasManager = require('../../src/utils/AliasManager')
 const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 const {sleep} = require('@secrez/utils')
 
@@ -27,7 +26,6 @@ describe('#Alias', function () {
   }
 
   beforeEach(async function () {
-    AliasManager.getCache().reset()
     await fs.emptyDir(testDir)
     prompt = new MainPrompt
     await prompt.init(options)
@@ -42,19 +40,6 @@ describe('#Alias', function () {
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
     assert.isTrue(/-h, --help/.test(output[6]))
-
-  })
-
-  it('create initialize correctly the AliasManager', async function () {
-
-    inspect = stdout.inspect()
-    await C.alias.exec({
-      list: true
-    })
-    inspect.restore()
-    assertConsole(inspect, [])
-
-    assert.equal(AliasManager.getCache().dataPath, path.join(rootDir, 'cache'))
 
   })
 

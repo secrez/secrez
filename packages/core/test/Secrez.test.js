@@ -879,6 +879,33 @@ describe('#Secrez', function () {
       })
     })
 
+    describe('#encrypt and decrypt shared data', async function () {
+
+      it('should get a shared ket', async function () {
+
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+
+        let publicKey = secrez.getPublicKey()
+
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+
+
+        let message = 'Some message'
+        let encryptedMessage = secrez.encryptSharedData(message, publicKey)
+        let decryptedMessage = secrez.decryptSharedData(encryptedMessage, publicKey)
+
+        assert.equal(decryptedMessage, message)
+
+
+      })
+    })
+
   })
 
 

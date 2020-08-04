@@ -46,12 +46,14 @@ class Chat extends require('../Command') {
   }
 
   async readHistoryMessages(options = {}) {
+    /* istanbul ignore if  */
     if (!options.asIs) {
       this.chatPrompt.skip = true
     }
     const {minTimestamp, maxTimestamp, from, to} = options
+    /* istanbul ignore if  */
     if (!options.asIs) {
-      this.Logger.bold(from  || to ? `Messages${from ? ` from ${from}` : ''}${to ? ` to ${to}` : ''}:` : 'All message history:')
+      this.Logger.bold(from || to ? `Messages${from ? ` from ${from}` : ''}${to ? ` to ${to}` : ''}:` : 'All message history:')
     }
     let newMessages = await this.prompt.commands.courier.getSomeMessages({
       payload: {
@@ -61,20 +63,22 @@ class Chat extends require('../Command') {
         limit: 1000
       }
     })
-    if (options.asIs) {
+    /* istanbul ignore if  */
+    if (!options.asIs) {
+      let len = newMessages.length
+      if (len) {
+        this.chatPrompt.onMessages(newMessages, {
+          fromHistory: true,
+          verbose: options.verbose,
+          lastLine: options.asIs ? undefined : chalk.grey(`${len} message${len > 1 ? 's' : ''} found.`)
+        })
+      } else {
+        this.Logger.yellow('None found')
+      }
+      this.chatPrompt.skip = false
+    } else {
       return newMessages
     }
-    let len = newMessages.length
-    if (len) {
-      this.chatPrompt.onMessages(newMessages, {
-        fromHistory: true,
-        verbose: options.verbose,
-        lastLine: options.asIs ? undefined : chalk.grey(`${len} message${len > 1 ? 's' : ''} found.`)
-      })
-    } else {
-      this.Logger.yellow('None found')
-    }
-    this.chatPrompt.skip = false
   }
 
   async chat(options) {
