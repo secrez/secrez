@@ -32,6 +32,8 @@ tmp
 logs
 *_temp
 
+package-lock.json
+
 .nyc_output
 report.20*
 
