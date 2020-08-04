@@ -382,6 +382,7 @@ __0.8.0__
 * add `chat`'s subcommands `join`, `send` and `show`.
 * return `find` results as a numbered list, to be used as variable (like `$1`) in following commands
 * deprecate `exit` in favor of `quit` to leave rooms, chat and app
+* add `ssh` to connect via ssh to a remote server from inside Secrez, to protect private keys without password
 
 __0.7.14__
 * fix chained aliases generating prompt duplications
