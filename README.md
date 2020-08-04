@@ -351,6 +351,11 @@ Adding or removing a second factor changes the keys.json file. So, if you are us
 
 As a rule of thumb, if you use a git repo, always pull before running Secrez, and always commit and push after exiting.
 
+## End-to-end encrypted communication with other accounts
+
+Starting from version 0.8.0, Secrez allows to exchange encrypted messages with other users. To do it, you must set up a local Courier ([look here for more info](https://github.com/secrez/secrez/tree/master/packages/courier)). A blob post about it will come soon.
+
+
 ## A quick demo
 
 If you like to watch a quick demo, [you can take a look at this video on Youtube](https://www.youtube.com/watch?v=qGoBTpG0Fj0).
@@ -368,11 +373,15 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 ## History
 
 __0.8.0__
-* add `user` to manage trusted users, i.e, trusted public keys
+* add `contacts` to manage trusted users, i.e, trusted public keys
+* add `whoami` to get info about the account
 * add @secrez/courier to allow communication between local accounts
+* add @secrez/hub for the remote hub
 * add @secrez/tunnel to manage the tunneling for the Courier
 * add `chat` to enter the chat environemnt, and send/receive messages and data to any trusted user
+* add `chat`'s subcommands `join`, `send` and `show`.
 * return `find` results as a numbered list, to be used as variable (like `$1`) in following commands
+* deprecate `exit` in favor of `quit` to leave rooms, chat and app
 
 __0.7.14__
 * fix chained aliases generating prompt duplications
