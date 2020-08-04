@@ -18,6 +18,7 @@ class Lcd extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String,
@@ -42,14 +43,14 @@ class Lcd extends require('../Command') {
   async lcd(options) {
     let dir = options.path
     if (!this.externalFs.initialLocalWorkingDir) {
-      this.externalFs.initialLocalWorkingDir = this.cliConfig.localWorkingDir
+      this.externalFs.initialLocalWorkingDir = this.secrez.config.localWorkingDir
     }
     if (/^~\//.test(dir) || dir === '~') {
       dir = dir.replace(/^~/, this.externalFs.initialLocalWorkingDir)
     }
     dir = this.externalFs.getNormalizedPath(dir)
     if (await this.externalFs.isDir(dir)) {
-      this.cliConfig.localWorkingDir = dir
+      this.secrez.config.localWorkingDir = dir
     } else {
       throw new Error('No such directory')
     }
@@ -67,7 +68,7 @@ class Lcd extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

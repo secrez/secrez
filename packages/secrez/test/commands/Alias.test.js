@@ -1,20 +1,17 @@
 const chai = require('chai')
 const assert = chai.assert
 const stdout = require('test-console').stdout
-// const clipboardy = require('clipboardy')
+const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('../mocks/PromptMock')
-const AliasManager = require('../../src/AliasManager')
-const {assertConsole, noPrint, decolorize} = require('../helpers')
+const MainPrompt = require('../mocks/MainPromptMock')
+const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
+const {sleep} = require('@secrez/utils')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Alias', function () {
 
@@ -29,9 +26,8 @@ describe('#Alias', function () {
   }
 
   beforeEach(async function () {
-    AliasManager.getCache().reset()
     await fs.emptyDir(testDir)
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -44,19 +40,6 @@ describe('#Alias', function () {
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
     assert.isTrue(/-h, --help/.test(output[6]))
-
-  })
-
-  it('create initialize correctly the AliasManager', async function () {
-
-    inspect = stdout.inspect()
-    await C.alias.exec({
-      list: true
-    })
-    inspect.restore()
-    assertConsole(inspect, [])
-
-    assert.equal(AliasManager.getCache().dataPath, path.join(rootDir, 'cache'))
 
   })
 
@@ -102,34 +85,35 @@ describe('#Alias', function () {
 
   })
 
-  // it.only('should chain two commands', async function () {
-  //
-  //
-  //   let content = [
-  //       'user: ciccio',
-  //       'totp: sheurytwrefd'
-  //   ].join('\n')
-  //   let p = '/card.yml'
-  //   await noPrint(C.touch.execAsync({
-  //     path: p,
-  //     content
-  //   }))
-  //
-  //   await noPrint(C.alias.execAsync({
-  //     name: 'c',
-  //     skipConfirm: true,
-  //     commandLine: 'copy card.yml -f user --wait -d 0.2 && totp card.yml'
-  //   }))
-  //
-  //   await prompt.run('c', C.alias.aliasManager)
-  //
-  //   await sleep(100)
-  //   assert.equal(await clipboardy.read(), 'ciccio')
-  //
-  //   await sleep(200)
-  //   assert.isTrue(/^\d{6}$/.test(await clipboardy.read()))
-  //
-  // })
+  it.skip('should chain two commands', async function () {
+
+    // TODO Needs support for chained alias in PromptMock
+
+    let content = [
+        'user: ciccio',
+        'totp: sheurytwrefd'
+    ].join('\n')
+    let p = '/card.yml'
+    await noPrint(C.touch.exec({
+      path: p,
+      content
+    }))
+
+    await noPrint(C.alias.exec({
+      name: 'c',
+      skipConfirm: true,
+      commandLine: 'copy card.yml -f user --wait -d 0.2 && totp card.yml'
+    }))
+
+    await prompt.run('c', C.alias.aliasManager)
+
+    await sleep(100)
+    assert.equal(await clipboardy.read(), 'ciccio')
+
+    await sleep(200)
+    assert.isTrue(/^\d{6}$/.test(await clipboardy.read()))
+
+  })
 
 
   it('rename and delete aliases', async function () {

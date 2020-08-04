@@ -1,7 +1,6 @@
 const path = require('path')
 const clipboardy = require('clipboardy')
-const {isYaml, yamlParse, TRUE, sleep} = require('../utils')
-const beep = require('beepbeep')
+const {isYaml, yamlParse, TRUE, sleep, playMp3} = require('@secrez/utils')
 const {Node} = require('@secrez/fs')
 
 class Copy extends require('../Command') {
@@ -20,6 +19,7 @@ class Copy extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -180,7 +180,7 @@ class Copy extends require('../Command') {
         let wait = i ? duration[1] : duration[0]
         await this.writeAndWait(content[i], wait, counter)
         if (this.counter === counter && !options.noBeep) {
-          beep()
+          await playMp3(path.resolve(__dirname, '../../sounds/ding.mp3'))
         }
       }
     }
@@ -213,7 +213,7 @@ class Copy extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

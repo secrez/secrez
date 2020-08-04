@@ -2,18 +2,16 @@ const assert = require('chai').assert
 const fs = require('fs-extra')
 const util = require('util')
 const path = require('path')
-const {config, Secrez, Crypto, Entry} = require('@secrez/core')
+const {config, Crypto, Entry} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 const Node = require('../src/Node')
-const {jsonEqual, initRandomNode, setNewNodeVersion, initARootNode} = require('./helpers')
+const {jsonEqual, initRandomNode, setNewNodeVersion, initARootNode} = require('@secrez/test-helpers')
 const {ENTRY_EXISTS} = require('../src/Messages')
 
 const {
   password,
   iterations
 } = require('./fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
 
 describe('#Node', function () {
 
@@ -235,9 +233,9 @@ describe('#Node', function () {
         name: 'dir'
       })
       assert.equal(found[0][1], '/_inDirRoot')
-      assert.equal(found[1][1], '/dir1')
+      assert.equal(found[1][1], '/dir1/')
       assert.equal(found[2][1], '/dir1/beInDir1')
-      assert.equal(found[3][1], '/dir1/dir2')
+      assert.equal(found[3][1], '/dir1/dir2/')
 
 
       found = await root.find({})

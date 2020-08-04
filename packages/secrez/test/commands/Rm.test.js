@@ -4,16 +4,13 @@ const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
-const Prompt = require('../mocks/PromptMock')
-const {assertConsole, decolorize} = require('../helpers')
+const MainPrompt = require('../mocks/MainPromptMock')
+const {assertConsole, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Rm', function () {
 
@@ -28,7 +25,7 @@ describe('#Rm', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -167,7 +164,7 @@ describe('#Rm', function () {
   //   // }))
   //
   //   inspect = stdout.inspect()
-  //   await C.rm.execAsync({path: '/folder2/file3'})
+  //   await C.rm.exec({path: '/folder2/file3'})
   //   inspect.restore()
   //   assertConsole(inspect, ['Deleted entries:',
   //     '/folder2/file3'
@@ -202,7 +199,7 @@ describe('#Rm', function () {
   //   })
   //
   //   inspect = stdout.inspect()
-  //   await C.rm.execAsync({path: 'file3', versions: [ver1]})
+  //   await C.rm.exec({path: 'file3', versions: [ver1]})
   //   inspect.restore()
   //   assertConsole(inspect, [
   //     'Deleted entries:'

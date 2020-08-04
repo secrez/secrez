@@ -16,6 +16,7 @@ class Rm extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -75,7 +76,7 @@ class Rm extends require('../Command') {
         this.Logger.red(e.message)
       }
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

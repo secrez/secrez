@@ -1,9 +1,9 @@
 const fs = require('fs-extra')
 const path = require('path')
-
-const {Utils, config, Entry} = require('@secrez/core')
+const utils = require('@secrez/utils')
+const {config, Entry} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
-const {fromCsvToJson, yamlStringify, isYaml} = require('../utils')
+const {fromCsvToJson, yamlStringify, isYaml} = require('@secrez/utils')
 
 class Import extends require('../Command') {
 
@@ -23,6 +23,7 @@ class Import extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -132,7 +133,7 @@ class Import extends require('../Command') {
         if (/\/$/.test(fn)) {
           continue
         }
-        let isBinary = await Utils.isBinary(fn)
+        let isBinary = await utils.isBinary(fn)
 
         if (isBinary && !options.binaryToo) {
           continue
@@ -322,7 +323,7 @@ class Import extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

@@ -1,5 +1,5 @@
 const clipboardy = require('clipboardy')
-const {isYaml, yamlParse, yamlStringify} = require('../utils')
+const {isYaml, yamlParse, yamlStringify} = require('@secrez/utils')
 
 const {Node} = require('@secrez/fs')
 
@@ -19,6 +19,7 @@ class Paste extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -122,7 +123,7 @@ class Paste extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

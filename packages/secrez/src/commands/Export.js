@@ -1,7 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 
-const {sleep} = require('../utils')
+const {sleep} = require('@secrez/utils')
 
 const {Node} = require('@secrez/fs')
 
@@ -21,6 +21,7 @@ class Export extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -101,7 +102,7 @@ class Export extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

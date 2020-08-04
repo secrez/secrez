@@ -1,0 +1,52 @@
+{
+  "name": "@secrez/tunnel",
+  "description": "Expose localhost for secure messaging",
+  "version": "0.1.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/secrez/secrez.git"
+  },
+  "contributors": [
+    "Roman Shtylman <shtylman@gmail.com>",
+    "Francesco Sullo <francesco@sullo.co>"
+  ],
+  "forkedFrom": {
+    "type": "git",
+    "url": "git://github.com/localtunnel/localtunnel.git",
+    "author": "Roman Shtylman <shtylman@gmail.com>"
+  },
+  "main": "./index.js",
+  "bin": {
+    "secrez-tunnel": "bin/secrez-tunnel.js"
+  },
+  "scripts": {
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js' 'bin/*.js' './*.js'",
+    "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
+    "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
+    "posttest": "nyc check-coverage --statements 80 --branches 45 --functions 80 --lines 80"
+  },
+  "dependencies": {
+    "@secrez/core": "workspace:^0.8.2",
+    "@secrez/utils": "workspace:^0.1.3",
+    "chalk": "^3.0.0",
+    "command-line-args": "^5.1.1",
+    "fs-extra": "^9.0.1",
+    "openurl": "^1.1.1",
+    "superagent": "^5.3.1"
+  },
+  "devDependencies": {
+    "@secrez/test-helpers": "workspace:^0.1.1",
+    "@secrez/hub": "workspace:^0.1.3",
+    "@secrez/tls": "workspace:~0.1.1",
+    "chai": "^4.2.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-node": "^11.0.0",
+    "mocha": "^7.1.1",
+    "nyc": "^15.1.0"
+  },
+  "engines": {
+    "node": ">=10.0.0"
+  }
+}

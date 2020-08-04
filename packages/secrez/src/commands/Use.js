@@ -14,6 +14,7 @@ class Use extends require('../Command') {
       },
       {
         name: 'dataset',
+        completionType: 'dataset',
         alias: 'd',
         defaultOption: true,
         type: String
@@ -31,15 +32,15 @@ class Use extends require('../Command') {
     ]
   }
 
-  async customCompletion(options, originalLine, defaultOption) {
-    let datasetsInfo = await this.internalFs.getDatasetsInfo()
-    options.forAutoComplete = true
-    if (options.dataset) {
-      return datasetsInfo.map(e => e.name).filter(e => RegExp('^' + options.dataset).test(e))
-    } else {
-      return datasetsInfo.map(e => e.name)
-    }
-  }
+  // async customCompletion(options, originalLine, defaultOption) {
+  //   let datasetsInfo = await this.internalFs.getDatasetsInfo()
+  //   options.forAutoComplete = true
+  //   if (options.dataset) {
+  //     return datasetsInfo.map(e => e.name).filter(e => RegExp('^' + options.dataset).test(e))
+  //   } else {
+  //     return datasetsInfo.map(e => e.name)
+  //   }
+  // }
 
   help() {
     return {
@@ -111,7 +112,7 @@ class Use extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

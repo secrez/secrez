@@ -14,6 +14,7 @@ class Ls extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -30,6 +31,7 @@ class Ls extends require('../Command') {
       },
       {
         name: 'datasets',
+        completionType: 'dataset',
         alias: 'd',
         type: Boolean
       },
@@ -89,7 +91,7 @@ class Ls extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

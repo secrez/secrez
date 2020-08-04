@@ -1,8 +1,15 @@
 const fs = require('fs-extra')
 const path = require('path')
-const {config} = require('@secrez/core')
 
 class ExternalFs {
+
+  constructor(secrez) {
+    if (secrez.constructor.name  === 'Secrez') {
+      this.secrez = secrez
+    } else {
+      throw new Error('ExternalFs requires a Secrez instance during construction')
+    }
+  }
 
   getNormalizedPath(file = '') {
     if (file === '~') {
@@ -10,7 +17,7 @@ class ExternalFs {
     } else if (/^~\//.test(file)) {
       file = file.replace(/^~\//, '')
     }
-    let resolvedFile = path.resolve(config.localWorkingDir, file)
+    let resolvedFile = path.resolve(this.secrez.config.localWorkingDir, file)
     return path.normalize(resolvedFile)
   }
 

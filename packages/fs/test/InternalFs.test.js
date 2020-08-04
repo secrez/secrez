@@ -3,19 +3,17 @@ const assert = chai.assert
 const util = require('util')
 const fs = require('fs-extra')
 const path = require('path')
-const {Secrez, config} = require('@secrez/core')
+const {config} = require('@secrez/core')
+const Secrez = require('@secrez/core').Secrez(Math.random())
 const Node = require('../src/Node')
 const InternalFs = require('../src/InternalFs')
-const {jsonEqual} = require('./helpers')
+const {jsonEqual} = require('@secrez/test-helpers')
 const {ENTRY_EXISTS} = require('../src/Messages')
 
 const {
   password,
   iterations
 } = require('./fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
 
 describe('#InternalFs', function () {
 
@@ -598,7 +596,7 @@ describe('#InternalFs', function () {
       })
 
       let res = await internalFs.getFileList({}, true)
-      assert.equal(res.join(' '), 'main trash dir/')
+      assert.equal(res.join(' '), 'main:/ trash:/ dir/')
 
       res = await internalFs.getFileList('/dir')
       assert.equal(res.join(' '), 'file1 file2')

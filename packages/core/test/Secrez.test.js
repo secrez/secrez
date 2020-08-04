@@ -1,15 +1,13 @@
 const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
-const homedir = require('homedir')
-const Secrez = require('../src/Secrez')
-const Crypto = require('../src/utils/Crypto')
+const Secrez = require('../src/Secrez')(Math.random())
+const Secrez2 = require('../src/Secrez')(Math.random())
+
+const Crypto = require('../src/Crypto')
 const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
 
 const {
   password,
@@ -22,9 +20,11 @@ const {
 
 describe('#Secrez', function () {
 
-  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+  let rootDir = path.resolve(__dirname, '../tmp/test/secrez')
+  let rootDir2 = path.resolve(__dirname, '../tmp/test/secrez2')
 
   let secrez
+  let secrez2
   let masterKeyHash
 
   const D = config.types.DIR
@@ -33,16 +33,15 @@ describe('#Secrez', function () {
 
   describe('default secrez dir', function () {
 
-    before(async function () {
-      await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
-      secrez = new Secrez()
-      await secrez.init()
-    })
+    it('should throw trying to test in the default ~/.secrez folder', async function () {
 
-    it('should use the default ~/.secrez folder', async function () {
-
-      assert.equal(secrez.config.dataPath, homedir() + '/.secrez/data')
-      assert.equal(secrez.config.localWorkingDir, homedir())
+      try {
+        secrez = new Secrez()
+        await secrez.init()
+        assert.isTrue(false)
+      } catch (e) {
+        assert.equal(e.message, 'You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data.')
+      }
     })
 
   })
@@ -54,6 +53,8 @@ describe('#Secrez', function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
       secrez = new Secrez()
       await secrez.init(rootDir)
+      secrez2 = new Secrez2()
+      await secrez2.init(rootDir2)
     })
 
     describe('derivePassword', async function () {
@@ -87,6 +88,17 @@ describe('#Secrez', function () {
         await secrez.signin(password, iterations)
         assert.equal(masterKeyHash, secrez.masterKeyHash)
       })
+
+      it('should signup in two instances without conflicts', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+
+        await secrez2.init(rootDir2)
+        await secrez2.signup(password, iterations)
+
+        assert.notEqual(secrez.getConf().data.id, secrez2.getConf().data.id)
+      })
+
 
       it('should signup the user and signin saved the iterations', async function () {
         await secrez.init(rootDir)
@@ -772,7 +784,6 @@ describe('#Secrez', function () {
           assert.equal(e.message, 'No second factor registered with the authenticator billy')
         }
 
-
       })
 
     })
@@ -811,6 +822,88 @@ describe('#Secrez', function () {
         }
       })
 
+    })
+
+    describe('#signMessage', async function () {
+
+      beforeEach(async function () {
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        // await secrez.init(rootDir)
+      })
+
+      it('should sign a message and verify it', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+        assert.isTrue(await fs.pathExists(secrez.config.keysPath))
+        masterKeyHash = secrez.masterKeyHash
+        secrez.signout()
+        assert.isUndefined(secrez.masterKeyHash)
+        await secrez.signin(password, iterations)
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
+
+        let signature = secrez.signMessage('message')
+        assert.isTrue(secrez.verifySignedMessage('message', signature))
+      })
+    })
+
+    describe('#getPublicKey', async function () {
+
+      beforeEach(async function () {
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        // await secrez.init(rootDir)
+      })
+
+      it('should sign a message and verify it', async function () {
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+        assert.isTrue(await fs.pathExists(secrez.config.keysPath))
+        masterKeyHash = secrez.masterKeyHash
+        secrez.signout()
+        assert.isUndefined(secrez.masterKeyHash)
+        await secrez.signin(password, iterations)
+        assert.equal(masterKeyHash, secrez.masterKeyHash)
+
+        let publicKey = secrez.getPublicKey()
+        assert.isTrue(Crypto.isValidSecrezPublicKey(publicKey))
+        assert.isFalse(Crypto.isValidSecrezPublicKey([1, 2, 3, 4]))
+
+        let signPublicKey = Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)
+        let boxPublicKey = Crypto.getBoxPublicKeyFromSecretPublicKey(publicKey)
+
+        publicKey = publicKey.split('0').map(e => Crypto.fromBase58(e))
+        assert.equal(publicKey[0].toString(), boxPublicKey.toString())
+        assert.equal(publicKey[1].toString(), signPublicKey.toString())
+
+      })
+    })
+
+    describe('#encrypt and decrypt shared data', async function () {
+
+      it('should get a shared ket', async function () {
+
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+
+        let publicKey = secrez.getPublicKey()
+
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+
+
+        let message = 'Some message'
+        let encryptedMessage = secrez.encryptSharedData(message, publicKey)
+        let decryptedMessage = secrez.decryptSharedData(encryptedMessage, publicKey)
+
+        assert.equal(decryptedMessage, message)
+
+
+      })
     })
 
   })

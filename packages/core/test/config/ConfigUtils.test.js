@@ -2,9 +2,10 @@ const chai = require('chai')
 const assert = chai.assert
 
 const ConfigUtils = require('../../src/config/ConfigUtils')
-const Secrez = require('../../src/Secrez')
+const Secrez = require('../../src/Secrez')(Math.random())
 const fs = require('fs-extra')
 const path = require('path')
+const {execAsync} = require('@secrez/utils')
 
 const {
   password,
@@ -14,7 +15,7 @@ const {
 
 describe('#ConfigUtils', function () {
 
-  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 
   before(async function () {
     await fs.emptyDir(rootDir)
@@ -37,8 +38,8 @@ describe('#ConfigUtils', function () {
 
   it('#setAndGetDataset should set and get a secondary db', async function () {
 
-    const config = require('../../src/config')
-    await ConfigUtils.setSecrez(config, rootDir)
+    let config = require('../../src/config')
+    config = await ConfigUtils.setSecrez(config, rootDir)
     let dataDir = await ConfigUtils.setAndGetDataset(config, 1)
     assert.equal(dataDir, path.join(rootDir, 'data.1'))
 
@@ -60,8 +61,8 @@ describe('#ConfigUtils', function () {
 
   it('#getDatasetPath should get a dataset path', async function () {
 
-    const config = require('../../src/config')
-    await ConfigUtils.setSecrez(config, rootDir)
+    let config = require('../../src/config')
+    config = await ConfigUtils.setSecrez(config, rootDir)
     let dataPath = await ConfigUtils.getDatasetPath(config, 1)
     assert.equal(dataPath, path.join(rootDir, 'data.1'))
 
@@ -74,8 +75,12 @@ describe('#ConfigUtils', function () {
     await secrez.signup(password, iterations)
     await secrez.saveIterations(iterations)
 
-    let env = await ConfigUtils.getEnv()
+    let env = await ConfigUtils.getEnv(secrez.config)
     assert.equal(env.iterations, iterations)
+
+    await execAsync('rm', rootDir, ['local/env.json'])
+    env = await ConfigUtils.getEnv(secrez.config)
+    assert.equal(Object.keys(env).length, 0)
 
   })
 

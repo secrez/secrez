@@ -1,42 +1,25 @@
-const {Utils} = require('@secrez/core')
+const utils = require('@secrez/utils')
 
 class Exit extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.cliConfig.completion.exit = Utils.sortKeys({
+    this.cliConfig.completion.exit = utils.sortKeys({
       // dontSaveHistory: TRUE // not supported, yet
     })
     this.cliConfig.completion.help.exit = true
-    this.optionDefinitions = [
-      {
-        name: 'help',
-        alias: 'h',
-        type: Boolean
-      }]
+    this.optionDefinitions = []
   }
 
   help() {
     return {
-      description: ['Exits Secrez.'],
-      examples: [
-        'exit',
-        'exit dontSaveHistory'
-      ]
+      description: ['<< deprecated - use "quit" instead'],
+      examples: []
     }
   }
 
   async exec(options = {}) {
-    if (options.help) {
-      return this.showHelp()
-    }
-    this.Logger.reset('Bye bye :o)')
-    /* istanbul ignore if  */
-    // eslint-disable-next-line no-constant-condition
-    if (!options.testing) {
-      await this.prompt.saveHistory()
-      /*eslint-disable-next-line*/
-      process.exit(0)
-    }
+    this.Logger.red('Exit is deprecated. Use "quit" instead')
+    await this.prompt.run()
   }
 }
 

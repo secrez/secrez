@@ -2,7 +2,7 @@ const _ = require('lodash')
 const {chalk} = require('../utils/Logger')
 const Case = require('case')
 const {Node} = require('@secrez/fs')
-const utils = require('../utils')
+const utils = require('@secrez/utils')
 
 class Tag extends require('../Command') {
 
@@ -20,6 +20,7 @@ class Tag extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -206,7 +207,7 @@ class Tag extends require('../Command') {
       // console.log(e)
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

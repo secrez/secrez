@@ -4,17 +4,14 @@ const stdout = require('test-console').stdout
 
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('../mocks/PromptMock')
-const {fromSimpleYamlToJson} = require('../../src/utils')
-const {assertConsole, noPrint, decolorize} = require('../helpers')
+const MainPrompt = require('../mocks/MainPromptMock')
+const {fromSimpleYamlToJson} = require('@secrez/utils')
+const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Import', function () {
 
@@ -30,7 +27,7 @@ describe('#Import', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -105,6 +102,8 @@ describe('#Import', function () {
     inspect.restore()
     assertConsole(inspect, [
       'Imported files:',
+      '/file',
+      '/file.2',
       '/file0.txt',
       '/file3',
       '/folder1/file-2',
@@ -118,15 +117,16 @@ describe('#Import', function () {
       content: true
     })
     inspect.restore()
-    assertConsole(inspect, ['7 results found:',
-      '/file0.txt',
-      '/file3',
-      '/folder1',
-      '/folder1/file-2',
-      '/folder1/file1',
-      '/folder1/folder3',
-      '/folder1/folder3/file4'
-
+    assertConsole(inspect, ['9 results found:',
+      '1  /file',
+      '2  /file.2',
+      '3  /file0.txt',
+      '4  /file3',
+      '5  /folder1/',
+      '6  /folder1/file-2',
+      '7  /folder1/file1',
+      '8  /folder1/folder3/',
+      '9  /folder1/folder3/file4'
     ])
 
   })

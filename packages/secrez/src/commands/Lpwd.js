@@ -24,7 +24,7 @@ class Lpwd extends require('../Command') {
   }
 
   async lpwd() {
-    return this.cliConfig.localWorkingDir
+    return this.secrez.config.localWorkingDir
   }
 
   async exec(options = {}) {
@@ -37,7 +37,7 @@ class Lpwd extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

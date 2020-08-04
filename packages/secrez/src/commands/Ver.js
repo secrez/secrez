@@ -27,7 +27,7 @@ class Ver extends require('../Command') {
       return this.showHelp()
     }
     this.Logger.reset(`v${pkg.version}`)
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

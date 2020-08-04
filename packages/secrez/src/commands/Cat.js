@@ -3,7 +3,7 @@ const {chalk} = require('../utils/Logger')
 const path = require('path')
 const {Crypto, config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
-const {isYaml, yamlParse} = require('../utils')
+const {isYaml, yamlParse} = require('@secrez/utils')
 
 class Cat extends require('../Command') {
 
@@ -21,6 +21,7 @@ class Cat extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -203,7 +204,7 @@ class Cat extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

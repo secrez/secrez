@@ -3,16 +3,13 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint, decolorize} = require('../helpers')
+const MainPrompt = require('../mocks/MainPromptMock')
+const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Find', function () {
 
@@ -27,7 +24,7 @@ describe('#Find', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -87,9 +84,9 @@ describe('#Find', function () {
     inspect.restore()
     assertConsole(inspect, [
       '3 results found:',
-      '/folder1/File2',
-      '/folder2/file3',
-      '/folder3/folder4/FOLDER5/File3'
+      '1  /folder1/File2',
+      '2  /folder2/file3',
+      '3  /folder3/folder4/FOLDER5/File3'
     ])
 
     inspect = stdout.inspect()
@@ -99,12 +96,12 @@ describe('#Find', function () {
     inspect.restore()
     assertConsole(inspect, [
       '6 results found:',
-      '/folder1',
-      '/folder2',
-      '/folder3',
-      '/folder3/folder4',
-      '/folder3/folder4/FOLDER5',
-      '/folder4'
+      '1  /folder1/',
+      '2  /folder2/',
+      '3  /folder3/',
+      '4  /folder3/folder4/',
+      '5  /folder3/folder4/FOLDER5/',
+      '6  /folder4/'
     ])
 
     inspect = stdout.inspect()
@@ -113,9 +110,9 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['3 results found:',
-      '/folder2/file3',
-      '/folder3',
-      '/folder3/folder4/FOLDER5/File3'
+      '1  /folder2/file3',
+      '2  /folder3/',
+      '3  /folder3/folder4/FOLDER5/File3'
     ])
 
     let nodes = await C.find.find({
@@ -131,10 +128,11 @@ describe('#Find', function () {
       all: true
     })
     inspect.restore()
-    assertConsole(inspect, [
-      '1 result found:',
-      'file1'
-    ], true)
+    let output = inspect.output.map(e => decolorize(e))[1].split(/ +/)
+    assert.equal(output[0], 1)
+    assert.equal(output[1].length, 4)
+    assert.equal(output[2], '/folder1/File2')
+    assert.equal(output[3], 'file1')
 
     inspect = stdout.inspect()
     await C.find.exec({
@@ -143,7 +141,7 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['1 result found:',
-      '/folder1/File2'
+      '1  /folder1/File2'
     ])
 
 
@@ -154,7 +152,7 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['1 result found:',
-      'main:/folder1/File2'
+      '1  main:/folder1/File2'
     ])
 
     await noPrint(C.use.exec({
@@ -176,8 +174,8 @@ describe('#Find', function () {
     inspect.restore()
     assertConsole(inspect, [
       '2 results found:',
-      'main:/folder1/File2',
-      'archive:/password'
+      '1  main:/folder1/File2',
+      '2  archive:/password'
     ])
 
 
@@ -213,8 +211,8 @@ describe('#Find', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['2 results found:',
-      '/folder/file-2',
-      '/folder/file1'
+      '1  /folder/file-2',
+      '2  /folder/file1'
     ])
 
   })

@@ -5,17 +5,14 @@ const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
 
-const {yamlParse} = require('../../src/utils')
-const Prompt = require('../mocks/PromptMock')
-const {assertConsole, noPrint, decolorize} = require('../helpers')
+const {yamlParse} = require('@secrez/utils')
+const MainPrompt = require('../mocks/MainPromptMock')
+const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Paste', function () {
 
@@ -30,7 +27,7 @@ describe('#Paste', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)

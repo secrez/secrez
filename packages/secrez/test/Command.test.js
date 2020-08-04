@@ -3,16 +3,13 @@ const assert = chai.assert
 const Command = require('../src/Command')
 const fs = require('fs-extra')
 const path = require('path')
-const Prompt = require('./mocks/PromptMock')
-const {noPrint, decolorize} = require('./helpers')
+const MainPrompt = require('./mocks/MainPromptMock')
+const {noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('./fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
 
 describe('#Command', function () {
 
@@ -28,7 +25,7 @@ describe('#Command', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -59,10 +56,10 @@ describe('#Command', function () {
 
       let pseudoFileCompletion = command.selfCompletion(C.ls, {})
       let dir = await pseudoFileCompletion({path: '.'}, '', 'path')
-      assert.equal(dir.sort().join(' '),'dir1/ dir2/ dir3/ file1 file2 main trash')
+      assert.equal(dir.sort().join(' '),'dir1/ dir2/ dir3/ file1 file2 main:/ trash:/')
 
       dir = await pseudoFileCompletion({path: null}, '', 'path')
-      assert.equal(dir.sort().join(' '),'dir1/ dir2/ dir3/ file1 file2 main trash')
+      assert.equal(dir.sort().join(' '),'dir1/ dir2/ dir3/ file1 file2 main:/ trash:/')
 
       dir = await pseudoFileCompletion({path: '/dir3'}, '', 'path')
       assert.equal(dir.sort().join(' '),'file3')

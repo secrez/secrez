@@ -2,7 +2,7 @@ const {authenticator} = require('otplib')
 const path = require('path')
 const fs = require('fs-extra')
 const {execSync} = require('child_process')
-const {isYaml, yamlParse, yamlStringify, execAsync, TRUE} = require('../utils')
+const {isYaml, yamlParse, yamlStringify, execAsync, TRUE} = require('@secrez/utils')
 const {Node} = require('@secrez/fs')
 const QrCode = require('qrcode-reader')
 const Jimp = require('jimp')
@@ -23,6 +23,7 @@ class Totp extends require('../Command') {
       },
       {
         name: 'path',
+        completionType: 'file',
         alias: 'p',
         defaultOption: true,
         type: String
@@ -223,7 +224,7 @@ class Totp extends require('../Command') {
     } catch (e) {
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

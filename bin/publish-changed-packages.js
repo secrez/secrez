@@ -1,5 +1,3 @@
-const path = require('path')
-const fs = require('fs')
 const {execSync} = require('child_process')
 
 let changes
@@ -14,8 +12,14 @@ function checkAndPublish(dir, pkg) {
 }
 
 checkAndPublish('core', '@secrez')
+checkAndPublish('courier', '@secrez')
 checkAndPublish('fs', '@secrez')
-checkAndPublish('secrez')
+checkAndPublish('hub', '@secrez')
+// checkAndPublish('secrez')
+checkAndPublish('test-helpers', '@secrez')
+checkAndPublish('tls', '@secrez')
+checkAndPublish('tunnel', '@secrez')
+checkAndPublish('utils', '@secrez')
 
 if (!changes) {
   console.log('No upgrade needed.')

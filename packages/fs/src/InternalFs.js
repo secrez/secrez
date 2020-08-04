@@ -9,7 +9,7 @@ const {ENTRY_EXISTS} = require('./Messages')
 class InternalFs {
 
   constructor(secrez) {
-    if (secrez && secrez.constructor.name === 'Secrez') {
+    if (secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
       this.dataPath = secrez.config.dataPath
       this.trees = [new Tree(secrez), new Tree(secrez, 1)]
@@ -261,7 +261,7 @@ class InternalFs {
   async getFileList(options = {}, addSlashIfDir, returnNodes) {
     try {
       return await this.fileList(options, addSlashIfDir, returnNodes)
-    } catch(e) {
+    } catch (e) {
       return []
     }
   }
@@ -277,7 +277,10 @@ class InternalFs {
     // console.log(data)
     let datasets = []
     if (!data.updated && !options.ignoreDatasets) {
-      datasets = (await this.getDatasetsInfo()).map(e => e.name).filter(e => RegExp('^' + (options.path || '').replace(/\*/g, '\\*').replace(/\?/g, '\\?')).test(e))
+      datasets = (await this.getDatasetsInfo())
+          .map(e => e.name)
+          .filter(e => RegExp('^' + (options.path || '').replace(/\*/g, '\\*').replace(/\?/g, '\\?')).test(e))
+          .map(e => e + ':/')
     }
     let tree = data.tree
     let files = data.path

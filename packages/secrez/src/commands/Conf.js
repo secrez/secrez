@@ -1,4 +1,4 @@
-const Fido2Client = require('../Fido2Client')
+const Fido2Client = require('../utils/Fido2Client')
 const _ = require('lodash')
 const Case = require('case')
 const {Crypto, config, ConfigUtils} = require('@secrez/core')
@@ -16,6 +16,15 @@ class Conf extends require('../Command') {
         name: 'help',
         alias: 'h',
         type: Boolean
+      },
+      {
+        name: 'show',
+        alias: 's',
+        type: Boolean
+      },
+      {
+        name: 'set-clear-screen-time',
+        type: Number
       },
       {
         name: 'register',
@@ -59,14 +68,17 @@ class Conf extends require('../Command') {
     return {
       description: ['Configure security data (2FA, password, number of iterations).'],
       examples: [
+        ['conf -s', 'shows the general settings'],
         ['conf --fido2 -r solo',
           'registers a new key saving it as "solo"; if there are registered keys, it will checks if the new one is one of them before adding it.'],
-        ['conf -l', 'lists all factors'],
+        ['conf', 'lists all settings, included second factors'],
         ['conf --recovery-code -r memo',
           'registers an emergency recovery code called "memo" to be used if all the factors are lost'],
         ['conf --recovery-code -r seed --use-this "salad spring peace silk snake real they thunder please final clinic close"', 'registers an emergency recovery code called "seed" using the seed passed with the parameter "--use-this"'],
         ['conf -u solo',
-          'unregister the fido2 key "solo"; if that is the only key, it unregister also any emergency code and restores the normal access.']
+          'unregister the fido2 key "solo"; if that is the only key, it unregister also any emergency code and restores the normal access.'],
+        ['conf --init-courier', 'initialize the courier, if not initiated yet; it needs the auth code returned by secrez-courier when launched —— if you do not have it, install it with "npm i -g @secrez/courier"'],
+
       ]
     }
   }
@@ -116,6 +128,29 @@ class Conf extends require('../Command') {
     }
     return false
   }
+
+  async showConf(options) {
+    const env = await ConfigUtils.getEnv(this.secrez.config)
+
+    // this.Logger.reset('Account settings:')
+    this.Logger.reset(chalk.grey('Container: ') + this.secrez.config.container)
+    let seconds = env.clearScreenAfter || this.cliConfig.clearScreenAfter
+    this.Logger.grey(`Clean screen after ${chalk.reset(seconds)} ${chalk.grey('seconds')}`)
+
+  }
+
+  async setClearScreenTime(options) {
+    if (options.setClearScreenTime >= 0) {
+      const env = await ConfigUtils.getEnv(this.secrez.config)
+      env.clearScreenAfter = options.setClearScreenTime
+      await ConfigUtils.putEnv(this.secrez.config, env)
+      this.Logger.grey(`Screen will be cleared after ${chalk.reset(env.clearScreenAfter)} ${chalk.grey('seconds')}`)
+      this.prompt.clearScreen.clear(this.secrez.config)
+    } else {
+      throw new Error('The clear screen time must be >= 0. 0 deactivate the clear screen feature.')
+    }
+  }
+
 
   async showList(options) {
     let allFactors = await this.getAllFactors()
@@ -188,7 +223,6 @@ class Conf extends require('../Command') {
     })
     this.Logger.reset(`For your convenience, ${message} has been saved in main:${node.getPath()}`)
   }
-
 
   async setFido2(options) {
     let client = this.fido2Client
@@ -391,10 +425,10 @@ class Conf extends require('../Command') {
             throw new Error('Invalid number')
           }
           await this.secrez.upgradeAccount(undefined, iterations)
-          const env = await ConfigUtils.getEnv()
+          const env = await ConfigUtils.getEnv(this.secrez.config)
           if (env.iterations) {
             env.iterations = iterations
-            await ConfigUtils.putEnv(env)
+            await ConfigUtils.putEnv(this.secrez.config, env)
           }
           this.Logger.reset('The number of iterations has been successfully changed.')
           return
@@ -408,12 +442,16 @@ class Conf extends require('../Command') {
     if (!this.fido2Client) {
       this.fido2Client = new Fido2Client(this.secrez)
     }
-    await this.fido2Client.checkIfReady()
     if (options.list) {
       await this.showList(options)
+    } else if (options.show) {
+      await this.showConf(options)
+    } else if (options.setClearScreenTime) {
+      await this.setClearScreenTime(options)
     } else if (options.recoveryCode) {
       await this.setRecoveryCode(options)
     } else if (options.fido2) {
+      await this.fido2Client.checkIfReady()
       await this.setFido2(options)
     } else if (options.unregister) {
       await this.unregister(options)
@@ -429,6 +467,9 @@ class Conf extends require('../Command') {
       return this.showHelp()
     }
     try {
+      if (!Object.keys(options).length) {
+        options.list = true
+      }
       this.validate(options)
       if (options.fido2 && options.recoveryCode) {
         throw new Error('Conflicting params. Launch "conf -h" for examples.')
@@ -438,9 +479,10 @@ class Conf extends require('../Command') {
       }
       await this.conf(options)
     } catch (e) {
+      // console.error(e)
       this.Logger.red(e.message)
     }
-    this.prompt.run()
+    await this.prompt.run()
   }
 }
 

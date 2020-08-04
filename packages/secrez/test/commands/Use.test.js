@@ -3,16 +3,13 @@ const fs = require('fs-extra')
 const path = require('path')
 const chai = require('chai')
 const assert = chai.assert
-const Prompt = require('../mocks/PromptMock')
-const {decolorize, noPrint, assertConsole} = require('../helpers')
+const MainPrompt = require('../mocks/MainPromptMock')
+const {decolorize, noPrint, assertConsole} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Use', function () {
 
@@ -28,7 +25,7 @@ describe('#Use', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new Prompt
+    prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
@@ -39,12 +36,13 @@ describe('#Use', function () {
   it('should return the help', async function () {
 
     inspect = stdout.inspect()
-    await C.touch.exec({help: true})
+    await C.use.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
-    assert.isTrue(/-h, --help/.test(output[6]))
+    assert.isTrue(/-h, --help/.test(output[4]))
 
   })
+
   it('should use a new dataset, creating it if does not exist', async function () {
 
     assert.equal(internalFs.treeIndex, 0)
@@ -135,17 +133,6 @@ describe('#Use', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['Wrong parameters'])
-
-  })
-
-  it('#completion should return the list of the datasets', async function () {
-
-    let result = (await C.use.customCompletion({})).sort()
-    assert.equal(result.join(' '), 'main trash')
-    result = (await C.use.customCompletion({
-      dataset: 'ma'
-    })).sort()
-    assert.equal(result.join(' '), 'main')
 
   })
 
