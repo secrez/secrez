@@ -205,5 +205,4 @@ module.exports = function (rand) {
   }
 
   return _Secrez
-
 }

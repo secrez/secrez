@@ -16,9 +16,7 @@ describe('#Config', function () {
 
   describe('#constructor', async function () {
 
-
     it('should setup the environment', async function () {
-
       config = new Config({root})
       assert.equal(config.options.root, root)
       assert.isTrue(await fs.pathExists(path.join(root, 'certs')))

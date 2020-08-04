@@ -120,8 +120,4 @@ describe('#DataCache', function () {
     assert.equal(dataCache.list('encKey').length, 3)
   })
 
-
-
-
-
 })

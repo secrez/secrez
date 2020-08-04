@@ -1,6 +1,6 @@
 const _ = require('lodash')
-const isBinaryFile = require('isbinaryfile').isBinaryFile
 const fs = require('fs-extra')
+const isBinaryFile = require('isbinaryfile').isBinaryFile
 const YAML = require('yaml')
 const path = require('path')
 const {spawn} = require('child_process')

@@ -1,6 +1,4 @@
-// const log = require('book')
 const Koa = require('koa')
-// const tldjs = require('tldjs')
 const {Debug} = require('@secrez/utils')
 const http = require('http')
 const Router = require('koa-router')
@@ -18,8 +16,6 @@ const oneMinute = 60 * 1000
 module.exports = function (opt) {
   opt = opt || {}
 
-  // const validHosts = (opt.domain) ? [opt.domain] : undefined
-  // const myTldjs = tldjs.fromUserSettings({validHosts})
   const landingPage = opt.landing
   const shortener = new Shortener
 

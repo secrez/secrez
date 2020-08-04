@@ -1,5 +1,4 @@
 /* eslint-disable consistent-return, no-underscore-dangle */
-
 const {EventEmitter} = require('events')
 const request = require('superagent')
 const {Debug} = require('@secrez/utils')
