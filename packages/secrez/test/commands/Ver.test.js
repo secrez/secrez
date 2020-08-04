@@ -2,16 +2,13 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 const MainPrompt = require('../mocks/MainPromptMock')
-const {assertConsole} = require('../helpers')
+const {assertConsole} = require('@secrez/test-helpers')
 const pkg = require('../../package')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Ver', function () {
 

@@ -9,9 +9,6 @@ const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')
 
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
-
 const {
   password,
   newPassword,
@@ -878,6 +875,33 @@ describe('#Secrez', function () {
         publicKey = publicKey.split('0').map(e => Crypto.fromBase58(e))
         assert.equal(publicKey[0].toString(), boxPublicKey.toString())
         assert.equal(publicKey[1].toString(), signPublicKey.toString())
+
+      })
+    })
+
+    describe('#encrypt and decrypt shared data', async function () {
+
+      it('should get a shared ket', async function () {
+
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+
+        let publicKey = secrez.getPublicKey()
+
+        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
+        secrez = new Secrez()
+        await secrez.init(rootDir)
+        await secrez.signup(password, iterations)
+
+
+        let message = 'Some message'
+        let encryptedMessage = secrez.encryptSharedData(message, publicKey)
+        let decryptedMessage = secrez.decryptSharedData(encryptedMessage, publicKey)
+
+        assert.equal(decryptedMessage, message)
+
 
       })
     })

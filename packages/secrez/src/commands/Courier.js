@@ -1,9 +1,5 @@
-const Fido2Client = require('../utils/Fido2Client')
-const _ = require('lodash')
-const Case = require('case')
 const {sleep} = require('@secrez/utils')
-const {Crypto, config, ConfigUtils} = require('@secrez/core')
-const chalk = require('chalk')
+const {ConfigUtils} = require('@secrez/core')
 
 class Conf extends require('../Command') {
 
@@ -32,7 +28,7 @@ class Conf extends require('../Command') {
 
   async publishToHubIfNotYet(options) {
     try {
-      const {authCode, port, caCrt} = options.env.courier
+      const {port, caCrt} = options.env.courier
       let id = options.env.courier.tunnel ? options.env.courier.tunnel.clientId : 0
       this.prompt.loadingMessage = 'Publishing the courier'
       this.prompt.loading()
@@ -42,14 +38,17 @@ class Conf extends require('../Command') {
             },
             id
           },
-          authCode,
           port,
           caCrt,
           '/admin'
       )
       this.prompt.showLoading = false
       await sleep(100)
-      process.stdout.clearLine()
+      try {
+        process.stdout.clearLine()
+      } catch(e) {
+        // most likely we are running workspace testing
+      }
       if (res.info.error) {
         throw new Error(`The connection to the hub ${res.info.hub} is refused. Verify that your Secrez Courier is connecting to an active hub, please, and try again.`)
       } else {
@@ -66,11 +65,51 @@ class Conf extends require('../Command') {
       options.env = await ConfigUtils.getEnv(this.secrez.config)
     }
     if (options.env.courier) {
-      const {authCode, port, caCrt} = options.env.courier
-      return await this.callCourier({action: {name: 'ready'}}, authCode, port, caCrt, '/admin')
+      const {port, caCrt} = options.env.courier
+      return await this.callCourier({action: {name: 'ready'}}, port, caCrt, '/admin')
     } else {
       throw new Error('No courier set up yet.')
     }
+  }
+
+  async getRecentMessages(options = {}) {
+    const env = await ConfigUtils.getEnv(this.secrez.config)
+    if (!env.messages) {
+      env.messages = {}
+    }
+    this.lastRead = env.messages.lastRead || 0
+    if (env.courier) {
+      const {port, caCrt} = env.courier
+      const payload = Object.assign({
+        minTimestamp: this.lastRead
+      }, options)
+      let messages = await this.callCourier(payload, port, caCrt, '/messages')
+      for (let message of messages.result) {
+        this.lastRead = Math.max(this.lastRead, message.timestamp + 1)
+      }
+      env.messages.lastRead = this.lastRead
+      await ConfigUtils.putEnv(this.secrez.config, env)
+      return messages.result.map(e => this.decryptMessage(e))
+    } else {
+      throw new Error('No courier set up yet.')
+    }
+  }
+
+  async getSomeMessages(options = {}) {
+    const env = await ConfigUtils.getEnv(this.secrez.config)
+    if (env.courier) {
+      const {port, caCrt} = env.courier
+      const payload = options.payload
+      let messages = await this.callCourier(payload, port, caCrt, '/messages')
+      return messages.result.map(e => this.decryptMessage(e))
+    } else {
+      throw new Error('No courier set up yet.')
+    }
+  }
+
+  decryptMessage(message) {
+    message.decrypted = this.secrez.decryptSharedData(JSON.parse(message.payload).message, message.publickey)
+    return message
   }
 
   async preInit(options) {
@@ -79,10 +118,7 @@ class Conf extends require('../Command') {
     if (env.courier && env.courier.port) {
       let body = await this.isCourierReady(options)
       ready = body.success
-      if (!ready) {
-        delete env.courier
-        await ConfigUtils.putEnv(this.secrez.config, env)
-      } else {
+      if (ready) {
         env.courier.caCrt = body.caCrt
         if (!body.tunnel.url) {
           body.tunnel = await this.publishToHubIfNotYet(options)
@@ -104,14 +140,14 @@ class Conf extends require('../Command') {
       this.Logger.reset(`A courier is already set and is listening on port ${env.courier.port}`)
     } else {
       let yes = await this.useConfirm({
-        message: 'No Secrez Courier found. If you launched it, do you have the auth code?',
-        default: false
+        message: 'No Secrez Courier configured yet.\nIf you launched it, do you have the auth code?',
+        default: true
       })
       if (yes) {
-        options.fullAuthCode = await this.useInput({
-          message: 'Paste the auth code'
+        options.port = await this.useInput({
+          message: 'Which port the courier is listening to?'
         })
-        if (options.fullAuthCode) {
+        if (options.port) {
           await this.setUpCorier(options)
         } else {
           this.Logger.grey('Operation canceled')
@@ -123,24 +159,24 @@ class Conf extends require('../Command') {
   }
 
   async setUpCorier(options) {
-    const port = options.port || options.fullAuthCode.substring(8)
-    const authCode = options.authCode || options.fullAuthCode.substring(0, 8)
-    const body = await this.callCourier({action: {name: 'ready'}}, authCode, port, undefined, '/admin')
-
+    const port = options.port
+    const body = await this.callCourier({action: {name: 'ready'}}, port, undefined, '/admin')
     if (body.success) {
+      let previousTunnel
+      if (options.env.courier && options.env.courier.port === port) {
+        previousTunnel = options.env.courier.tunnel
+      }
       options.env.courier = {
-        authCode,
         port,
-        caCrt: body.caCrt
+        caCrt: body.caCrt,
+        tunnel: previousTunnel
       }
-      if (!body.tunnel.url) {
-        body.tunnel = await this.publishToHubIfNotYet(options)
-      }
+      body.tunnel = await this.publishToHubIfNotYet(options)
       options.env.courier.tunnel = body.tunnel
       await ConfigUtils.putEnv(this.secrez.config, options.env)
-      this.Logger.reset(`Connected with the courier listening on port ${port}`)
+      this.Logger.reset('Connected')
     } else {
-      this.Logger.red('The auth-code is not correct. Try again, please.')
+      this.Logger.red('Courier not found')
     }
 
   }

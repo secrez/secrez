@@ -10,14 +10,20 @@ class ChatPromptMock {
   }
 
   async run(options) {
+  }
 
+  onBeforeClose() {
+    delete this.environment.room
+  }
+
+  async start() {
   }
 
   async exec(cmds, noRun) {
-
   }
 
-  async loading() {}
+  async loading() {
+  }
 }
 
 module.exports = ChatPromptMock

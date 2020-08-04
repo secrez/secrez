@@ -96,12 +96,12 @@ class PreCommand {
     }
   }
 
-  async callCourier(_payload, authCode, port, caCrt, pathname) {
+  async callCourier(_payload, port, caCrt, pathname) {
     const {payload, signature} = hubUtils.setPayloadAndSignIt(this.secrez, _payload)
     try {
-      const res = await superagent.get(`https://localhost:${port}${pathname || ''}`)
+      const res = await superagent
+          .get(`https://localhost:${port}${pathname || ''}`)
           .set('Accept', 'application/json')
-          .set('auth-code', authCode)
           .query({payload, signature})[caCrt ? 'ca' : 'trustLocalhost'](caCrt)
       return res.body
     } catch (e) {

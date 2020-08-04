@@ -1,21 +1,11 @@
-const {DataCache} = require('@secrez/fs')
-
-let cache = new DataCache
-
 class AliasManager {
 
-  static setCache(dataCache) {
-    if (typeof dataCache === 'object') {
-      cache = dataCache
-    }
-  }
-
-  static getCache() {
-    return cache
+  constructor(cache) {
+    this.cache = cache
   }
 
   get(alias) {
-    return cache.get('alias', alias)
+    return this.cache.get('alias', alias)
   }
 
   validateCommand(line, regularCmds) {
@@ -43,14 +33,14 @@ class AliasManager {
     if (this.get(options.name)) {
       throw new Error(`An alias named "${options.name}" already exists`)
     }
-    return await cache.puts('alias', {
+    return await this.cache.puts('alias', {
       value: options.name,
       content: options.commandLine
     })
   }
 
   async remove(alias) {
-    return await cache.remove('alias', alias)
+    return await this.cache.remove('alias', alias)
   }
 
   async rename(existentName, alias) {

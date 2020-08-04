@@ -1,9 +1,7 @@
 const https = require('https')
 const localtunnel = require('@secrez/tunnel')
-const {sleep, Debug} = require('@secrez/utils')
-const {Crypto} = require('@secrez/core')
+const {Debug} = require('@secrez/utils')
 const {TLS} = require('@secrez/tls')
-const Config = require('./Config')
 const Db = require('./Db')
 
 const debug = Debug('courier:server')
@@ -28,7 +26,6 @@ class Server {
   }
 
   async publish(payload, signature) {
-
     if (!this.tunnelActive) {
       let ssl = await this.getCertificates()
       let opts = {
@@ -62,6 +59,12 @@ class Server {
           hub: this.options.hub
         }
       }
+    } else {
+      return {
+        clientId: this.tunnel.clientId,
+        url: this.tunnel.url,
+        short_url: this.tunnel.short_url
+      }
     }
   }
 
@@ -80,18 +83,27 @@ class Server {
     }
   }
 
+  async setOwner() {
+    let owner = await this.db.getValueFromConfig('owner')
+    if (!owner) {
+      if (this.options.owner) {
+        await this.db.saveKeyValueToConfig('owner', this.options.owner)
+        owner = this.options.owner
+      } else {
+        throw new Error('The public key of the secrez account using the courier is required')
+      }
+    } else if (this.options.owner && owner !== this.options.owner) {
+      throw new Error('This courier has been set up by someone else')
+    }
+    this.options.owner = owner
+  }
+
   async start(prefix) {
 
     await this.db.init()
-    let authCode
-    if (!this.options.newAuthCode) {
-      authCode = await this.db.getValueFromConfig('authcode')
+    if (this.options.owner) {
+      await this.setOwner()
     }
-    if (!authCode) {
-      authCode = Crypto.getRandomBase32String(8)
-      await this.db.saveKeyValueToConfig('authcode', authCode)
-    }
-    process.env.AUTH_CODE = this.authCode = authCode
 
     let port = this.options.port
     if (!port) {
@@ -154,6 +166,7 @@ class Server {
 
       process.on('SIGINT', () => {
         debug('SIGINT signal received.')
+        // eslint-disable-next-line no-process-exit
         process.exit(0)
       })
 

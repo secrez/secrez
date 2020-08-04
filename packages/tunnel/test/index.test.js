@@ -5,7 +5,6 @@ const chai = require('chai')
 const fs = require('fs-extra')
 const assert = chai.assert
 const request = require('superagent')
-const {Crypto} = require('@secrez/core')
 const Secrez = require('@secrez/core').Secrez(Math.random())
 const {TLS} = require('@secrez/tls')
 const {sleep} = require('@secrez/utils')

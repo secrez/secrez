@@ -13,7 +13,7 @@ const Secrez = require('@secrez/core').Secrez(Math.random())
 
 const createServer = require('../src/createServer')
 
-describe.only('Server', () => {
+describe('Server', () => {
 
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
   let secrez = new Secrez()

@@ -47,8 +47,13 @@ describe('#DataCache', function () {
     assert.isTrue(dataCache.is('key', 'two'))
   })
 
+  it('should not load if no data', async function () {
+    dataCache = new DataCache()
+    assert.isFalse(await dataCache.load('none'))
+  })
 
-  it('should load encrypted data from disk, if any', async function () {
+  it('should load plaintext data from disk, if any', async function () {
+
     await dataCache.load('encKey', true)
     await dataCache.puts('encKey', [{
       value: 'one', content: 'uno'
@@ -57,7 +62,9 @@ describe('#DataCache', function () {
     }, {
       value: 'three', content: 'tre'
     }])
+
     dataCache = new DataCache(cacheDir, secrez)
+
     await dataCache.load('encKey', true)
     assert.equal(dataCache.list('encKey').length, 3)
     assert.isTrue(dataCache.is('encKey', 'two'))
@@ -66,6 +73,7 @@ describe('#DataCache', function () {
     assert.equal(dataCache.list('encKey').length, 2)
 
     dataCache = new DataCache(cacheDir, secrez)
+
     await dataCache.load('encKey', true)
     assert.equal(dataCache.list('encKey').length, 2)
 
@@ -76,8 +84,40 @@ describe('#DataCache', function () {
     assert.equal(dataCache.list('encKey').length, 3)
   })
 
+  it('should load encrypted data from disk, if any', async function () {
 
+    dataCache.initEncryption('encKey')
 
+    await dataCache.load('encKey', true)
+    await dataCache.puts('encKey', [{
+      value: 'one', content: 'uno'
+    }, {
+      value: 'two', content: 'due'
+    }, {
+      value: 'three', content: 'tre'
+    }])
 
+    dataCache = new DataCache(cacheDir, secrez)
+    dataCache.initEncryption('encKey')
+
+    await dataCache.load('encKey', true)
+    assert.equal(dataCache.list('encKey').length, 3)
+    assert.isTrue(dataCache.is('encKey', 'two'))
+
+    await dataCache.remove('encKey', 'one')
+    assert.equal(dataCache.list('encKey').length, 2)
+
+    dataCache = new DataCache(cacheDir, secrez)
+    dataCache.initEncryption('encKey')
+
+    await dataCache.load('encKey', true)
+    assert.equal(dataCache.list('encKey').length, 2)
+
+    await dataCache.puts('encKey', [{
+      value: 'four'
+    }], false, true)
+
+    assert.equal(dataCache.list('encKey').length, 3)
+  })
 
 })

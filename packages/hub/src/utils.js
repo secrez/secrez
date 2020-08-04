@@ -53,8 +53,6 @@ const Utils = {
       verified = false
     }
     if (verified && onlyOneTime) {
-      // it can be verified only one time
-      let key = when + signature
       if (validator.isAlreadyValidated(when, signature)) {
         verified = false
       } else {

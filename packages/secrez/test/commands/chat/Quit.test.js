@@ -5,27 +5,21 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 
-const {ConfigUtils} = require('@secrez/core')
 const {sleep} = require('@secrez/utils')
-const {createServer, utils: hubUtils} = require('@secrez/hub')
+const {createServer} = require('@secrez/hub')
 const {Config, Server} = require('@secrez/courier')
-
-const ContactManager = require('../../../src/Managers/ContactManager')
 
 const MainPrompt = require('../../mocks/MainPromptMock')
 const ChatPrompt = require('../../mocks/ChatPromptMock')
 
-const {assertConsole, noPrint, decolorize} = require('../../helpers')
+const {noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../../fixtures')
 
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../../helpers/jlog')
-
-describe('#Leave', function () {
+describe('#Quit', function () {
 
   let prompt
   let hubPort = 4433
@@ -39,6 +33,7 @@ describe('#Leave', function () {
   let server
   let secrez
   let publicKeys = {}
+  let hubServer
 
   before(async function () {
     for (let i = 0; i < 3; i++) {
@@ -70,19 +65,17 @@ describe('#Leave', function () {
   }
 
   beforeEach(async function () {
-    ContactManager.getCache().reset()
     await fs.emptyDir(testDir)
     await startHub()
-    config = new Config({root: courierRoot, hub: `http://${localDomain}:${hubPort}`})
-    server = new Server(config)
-    await server.start()
     prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     secrez = prompt.secrez
+    config = new Config({root: courierRoot, hub: `http://${localDomain}:${hubPort}`, owner: secrez.getPublicKey()})
+    server = new Server(config)
+    await server.start()
     await noPrint(C.courier.courier({
-      authCode: server.authCode,
       port: server.port
     }))
     await noPrint(C.contacts.exec({
@@ -101,18 +94,17 @@ describe('#Leave', function () {
     await sleep(10)
   })
 
-
   it('should return the help', async function () {
 
     inspect = stdout.inspect()
-    await D.leave.exec({help: true})
+    await D.quit.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
     assert.isTrue(/-h, --help/.test(output[4]))
 
   })
 
-  it('should jump leave the chat', async function () {
+  it('should leave the chat', async function () {
 
     await noPrint(D.join.join({
       chat: ['user0']
@@ -120,7 +112,7 @@ describe('#Leave', function () {
 
     assert.equal(C.chat.room[0].contact, 'user0')
 
-    await D.leave.exec({})
+    await D.quit.exec({})
 
     assert.equal(C.chat.room, undefined)
 

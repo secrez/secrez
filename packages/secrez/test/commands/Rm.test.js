@@ -5,15 +5,12 @@ const path = require('path')
 const {config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 const MainPrompt = require('../mocks/MainPromptMock')
-const {assertConsole, decolorize} = require('../helpers')
+const {assertConsole, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Rm', function () {
 

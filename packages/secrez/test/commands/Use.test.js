@@ -4,15 +4,12 @@ const path = require('path')
 const chai = require('chai')
 const assert = chai.assert
 const MainPrompt = require('../mocks/MainPromptMock')
-const {decolorize, noPrint, assertConsole} = require('../helpers')
+const {decolorize, noPrint, assertConsole} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Use', function () {
 
@@ -136,17 +133,6 @@ describe('#Use', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['Wrong parameters'])
-
-  })
-
-  it('#completion should return the list of the datasets', async function () {
-
-    let result = (await C.use.customCompletion({})).sort()
-    assert.equal(result.join(' '), 'main trash')
-    result = (await C.use.customCompletion({
-      dataset: 'ma'
-    })).sort()
-    assert.equal(result.join(' '), 'main')
 
   })
 

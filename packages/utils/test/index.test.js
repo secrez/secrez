@@ -1,8 +1,10 @@
 const chai = require('chai')
 const assert = chai.assert
 const utils = require('../src')
+const {UglyDate} = require('../src')
 const path = require('path')
 const fs = require('fs-extra')
+const {assertThrow} = require('@secrez/test-helpers')
 
 const {yml, yml2} = require('./fixtures')
 
@@ -317,7 +319,7 @@ describe('#utils from core', function () {
   describe('#getKeyValue', async function () {
 
     it('should get key and value of an obj', async function () {
-      let obj = { a: 'b'}
+      let obj = {a: 'b'}
       let kv = utils.getKeyValue(obj, 'a')
       assert.equal(kv.key, 'a')
       assert.equal(kv.value, 'b')
@@ -473,6 +475,112 @@ email: some@example.com`)
       let dir = path.resolve(__dirname, './fixtures/files')
       let result = await utils.execAsync('cat', dir, ['file4.txt'])
       assert.equal(result.error, 'cat: file4.txt: No such file or directory')
+
+    })
+
+  })
+
+  describe('uglifyDate', async function () {
+
+
+    let uglyDate = new UglyDate()
+
+    const prettyDates = [
+      'just now',
+      '1 second ago',
+      '4 seconds ago',
+      '1 minute ago',
+      '3 minutes ago',
+      'an hour ago',
+      '12 hours ago',
+      'yesterday',
+      'a day ago',
+      '2 days ago',
+      '1 month ago',
+      '5 weeks ago',
+      '1 year ago',
+      '3 years ago',
+      '1d',
+      '213m',
+      '3M',
+      '30s',
+      '0m',
+      '3w',
+
+      // wrong
+      '2S',
+      '1S',
+      'days ago',
+      'some',
+      '2 3 days',
+      23,
+      null,
+      undefined
+    ]
+
+    const {
+      second,
+      minute,
+      hour,
+      day,
+      week,
+      month,
+      year
+    } = UglyDate.interval
+
+    let now = Date.now()
+
+    function ts(i) {
+      return uglyDate.uglify(prettyDates[i], now)
+    }
+
+    function sh(i) {
+      return uglyDate.shortify(ts(i), now)
+    }
+
+    it('should convert from pretty dates to timestamps', async function () {
+
+      assert.equal(ts(0), now)
+      assert.equal(ts(1), now - second)
+      assert.equal(ts(2), now - 4 * second)
+      assert.equal(ts(3), now - minute)
+      assert.equal(ts(4), now - 3 * minute)
+      assert.equal(ts(5), now - hour)
+      assert.equal(ts(6), now - 12 * hour)
+      assert.equal(ts(7), now - day)
+      assert.equal(ts(8), now - day)
+      assert.equal(ts(9), now - 2 * day)
+      assert.equal(ts(10), now - month)
+      assert.equal(ts(11), now - 5 * week)
+      assert.equal(ts(12), now - year)
+      assert.equal(ts(13), now - 3 * year)
+      assert.equal(ts(14), now - day)
+      assert.equal(ts(15), now - 213 * minute)
+      assert.equal(ts(16), now - 3 * month)
+      assert.equal(ts(17), now - 30 * second)
+      assert.equal(ts(18), 0)
+      assert.equal(ts(19), now - 3 * week)
+
+      for (let i = 20; i < prettyDates.length; i++) {
+        assertThrow(() => uglyDate.uglify(prettyDates[i]), 'Bad or unsupported format')
+      }
+
+    })
+
+    it('should shortify from timestamps', async function () {
+
+      assert.equal(sh(0), 'now')
+      assert.equal(sh(1), '1s')
+      assert.equal(sh(2), '4s')
+      assert.equal(sh(3), '1m')
+      assert.equal(sh(4), '3m')
+      assert.equal(sh(5), '1h')
+      assert.equal(sh(6), '12h')
+      assert.equal(sh(7), '1d')
+      assert.equal(sh(9), '2d')
+      assert.equal(sh(11), '1M')
+      assert.equal(sh(12), '1y')
+      assert.equal(sh(19), '3w')
 
     })
 

@@ -28,10 +28,6 @@ class Help extends require('../../Command') {
     return this.proto.help()
   }
 
-  async customCompletion() {
-    return []
-  }
-
   async exec(options = {}) {
     let help
     let command = options.command

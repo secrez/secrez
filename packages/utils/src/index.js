@@ -1,6 +1,6 @@
 const _ = require('lodash')
-const isBinaryFile = require('isbinaryfile').isBinaryFile
 const fs = require('fs-extra')
+const isBinaryFile = require('isbinaryfile').isBinaryFile
 const YAML = require('yaml')
 const path = require('path')
 const {spawn} = require('child_process')
@@ -9,6 +9,8 @@ const Case = require('case')
 const util = require('util')
 const Base58 = require('base58')
 const player = require('play-sound')()
+
+const UglyDate = require('./UglyDate')
 
 const utils = {
 
@@ -243,11 +245,20 @@ const utils = {
         resolve()
       })
     })
+  },
+
+  decolorize(str, noTrim) {
+    if (!noTrim) {
+      str = _.trim(str)
+    }
+    // eslint-disable-next-line no-control-regex
+    return str.replace(/\x1b\[[0-9;]*m/g, '')
   }
 
 }
 
 module.exports = utils
+module.exports.UglyDate = UglyDate
 
 
 

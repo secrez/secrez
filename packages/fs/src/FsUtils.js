@@ -2,8 +2,6 @@ const _ = require('lodash')
 const path = require('path')
 const utils = require('@secrez/utils')
 
-// eslint-disable-next-line node/no-unpublished-require
-// const commandLineArgs = require('../../../../../../Repos/command-line-args/dist')
 const commandLineArgs = require('command-line-args')
 
 class FsUtils {

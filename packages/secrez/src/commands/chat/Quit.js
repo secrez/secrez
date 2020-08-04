@@ -1,12 +1,12 @@
 
-class Leave extends require('../../Command') {
+class Quit extends require('../../Command') {
 
   setHelpAndCompletion() {
-    this.cliConfig.chatCompletion.leave = {
+    this.cliConfig.chatCompletion.quit = {
       _func: this.selfCompletion(this),
       _self: this
     }
-    this.cliConfig.chatCompletion.help.leave = true
+    this.cliConfig.chatCompletion.help.quit = true
     this.optionDefinitions = [
       {
         name: 'help',
@@ -20,18 +20,8 @@ class Leave extends require('../../Command') {
     return {
       description: ['Leaves either a room or the chat'],
       examples: [
-        'leave'
+        'quit'
       ]
-    }
-  }
-
-  async customCompletion() {
-    return []
-  }
-
-  selfCompletion(self, extraOptions = {}) {
-    return async () => {
-      return []
     }
   }
 
@@ -40,11 +30,10 @@ class Leave extends require('../../Command') {
       return this.showHelp()
     }
     if (this.prompt.environment.room) {
-      delete this.prompt.environment.room
+      this.prompt.environment.chatPrompt.onBeforeClose()
       await this.prompt.run()
     } else {
       /* istanbul ignore if  */
-      // eslint-disable-next-line no-constant-condition
       if (!options.testing) {
         await this.prompt.saveHistory()
       }
@@ -54,6 +43,6 @@ class Leave extends require('../../Command') {
   }
 }
 
-module.exports = Leave
+module.exports = Quit
 
 

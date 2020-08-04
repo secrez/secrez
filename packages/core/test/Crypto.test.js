@@ -3,7 +3,7 @@ const assert = chai.assert
 const Crypto = require('../src/Crypto')
 const utils = require('@secrez/utils')
 const bs58 = Crypto.bs58
-const {sleep} = require('./helpers')
+const {sleep} = require('@secrez/test-helpers')
 
 const {
   box,

@@ -22,13 +22,23 @@ class App {
 
     this.server = server
     const app = express()
-    let authCode = server.authCode
+    let owner = server.options.owner
     this.db = this.server.db
 
     app.use(bodyParser.json({limit: '100mb'}))
 
-    const authMiddleware = (req, res, next) => {
-      if (req.headers['auth-code'] === authCode) {
+    const setOwner = async publicKey => {
+      server.options.owner = publicKey
+      await server.setOwner()
+      owner = publicKey
+    }
+
+    const authMiddleware = async (req, res, next) => {
+      let {publicKey} = req.parsedPayload
+      if (!owner) {
+        await setOwner(publicKey)
+      }
+      if (publicKey === owner) {
         next()
       } else {
         res.status(401).json({
@@ -38,16 +48,11 @@ class App {
     }
 
     app.get('/admin',
-        authMiddleware,
         this.wellSignedGet,
+        authMiddleware,
         async (req, res) => {
-          let {action, publicKey, url} = req.parsedPayload
-          if (!this.owner) {
-            await this.setOwner(publicKey)
-          }
-          if (this.owner !== publicKey) {
-            return res.status(403).end()
-          } else if (action && action.name) {
+          let {action} = req.parsedPayload
+          if (action && action.name) {
             switch (action.name) {
               case 'ready': {
                 res.json({
@@ -95,12 +100,21 @@ class App {
                       payload,
                       signature
                     }
-                    let response = await superagent.post(url)
-                        .set('Accept', 'application/json')
-                        .send(params)
-                    res.json({
-                      success: response.body.success
-                    })
+                    try {
+                      let response = await superagent
+                          .post(url)
+                          .set('Accept', 'application/json')
+                          .send(params)
+                      await this.db.saveMessage(payload, signature, action.recipient, Db.TO)
+                      res.json({
+                        success: response.body.success
+                      })
+                    } catch (e) {
+                      res.json({
+                        success: false,
+                        error: 'Not found on the hub'
+                      })
+                    }
                   }
                 } else {
                   res.json({
@@ -123,20 +137,18 @@ class App {
         })
 
     app.get('/messages',
-        authMiddleware,
         this.wellSignedGet,
+        authMiddleware,
         async (req, res, next) => {
-          let {minTimestamp, maxTimestamp, from, publicKey, limit} = req.parsedPayload
-          if (this.owner !== publicKey) {
-            res.status(403).end()
-          } else if (!this.server.tunnelActive) {
+          let {minTimestamp, maxTimestamp, from, limit, direction} = req.parsedPayload
+          if (!this.server.tunnelActive) {
             res.json({
               success: false,
               error: 2,
               message: 'Tunnel not active'
             })
           } else {
-            let result = await this.db.getMessages(minTimestamp, maxTimestamp, from, limit)
+            let result = await this.db.getMessages(minTimestamp, maxTimestamp, from, limit, direction)
             res.json({
               success: true,
               result
@@ -147,9 +159,10 @@ class App {
     app.post('/',
         this.wellSignedPost,
         async (req, res, next) => {
-          let {message, publicKey} = req.parsedPayload
+          let {payload, signature} = req.body
+          let {publicKey} = req.parsedPayload
           if (this.db.isTrustedPublicKey(publicKey)) {
-            await this.db.saveMessage(message, publicKey, Db.FROM)
+            await this.db.saveMessage(payload, signature, publicKey, Db.FROM)
             res.json({
               success: true
             })
@@ -185,16 +198,6 @@ class App {
     this.app = app
   }
 
-  async setOwner(publicKey) {
-    let owner = await this.db.getValueFromConfig('owner')
-    if (owner && owner !== publicKey) {
-      throw new Error('This courier has been set up by another user')
-    } else {
-      await this.db.saveKeyValueToConfig('owner', publicKey)
-    }
-    this.owner = publicKey
-  }
-
   wellSignedGet(req, res, next) {
     if (verifyPayloadAndSignature(req, 'query')) {
       next()
@@ -216,6 +219,5 @@ class App {
   }
 
 }
-
 
 module.exports = App

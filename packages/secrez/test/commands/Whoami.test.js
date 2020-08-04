@@ -7,38 +7,34 @@ const path = require('path')
 
 const {ConfigUtils} = require('@secrez/core')
 const {sleep} = require('@secrez/utils')
-const {createServer, utils: hubUtils} = require('@secrez/hub')
+const {createServer} = require('@secrez/hub')
 const {Config, Server} = require('@secrez/courier')
 
-const ContactManager = require('../../../src/Managers/ContactManager')
+const MainPrompt = require('../mocks/MainPromptMock')
+const ChatPrompt = require('../mocks/ChatPromptMock')
 
-const MainPrompt = require('../../mocks/MainPromptMock')
-const ChatPrompt = require('../../mocks/ChatPromptMock')
-
-const {assertConsole, noPrint, decolorize} = require('../../helpers')
+const {noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
-} = require('../../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../../helpers/jlog')
+} = require('../fixtures')
 
 describe('#Whoami', function () {
 
   let prompt
   let hubPort = 4433
-  let testDir = path.resolve(__dirname, '../../../tmp/test')
+  let testDir = path.resolve(__dirname, '../../tmp/test')
   let rootDir = path.resolve(testDir, 'secrez')
   let courierRoot = path.resolve(testDir, 'secrez-courier')
   let localDomain = '127zero0one.com'
   let inspect
-  let C, D
+  let C
   let config
   let server
   let secrez
   let publicKeys = {}
+  let hubServer
 
   before(async function () {
     for (let i = 0; i < 3; i++) {
@@ -70,19 +66,17 @@ describe('#Whoami', function () {
   }
 
   beforeEach(async function () {
-    ContactManager.getCache().reset()
     await fs.emptyDir(testDir)
     await startHub()
-    config = new Config({root: courierRoot, hub: `http://${localDomain}:${hubPort}`})
-    server = new Server(config)
-    await server.start()
     prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     secrez = prompt.secrez
+    config = new Config({root: courierRoot, hub: `http://${localDomain}:${hubPort}`, owner: secrez.getPublicKey()})
+    server = new Server(config)
+    await server.start()
     await noPrint(C.courier.courier({
-      authCode: server.authCode,
       port: server.port
     }))
     await noPrint(C.contacts.exec({
@@ -92,7 +86,6 @@ describe('#Whoami', function () {
     await noPrint(C.chat.chat({
       chatPrompt: new ChatPrompt
     }))
-    D = C.chat.chatPrompt.commands
   })
 
   afterEach(async function () {
@@ -105,7 +98,7 @@ describe('#Whoami', function () {
   it('should return the help', async function () {
 
     inspect = stdout.inspect()
-    await D.whoami.exec({help: true})
+    await C.whoami.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
     assert.isTrue(/-h, --help/.test(output[4]))
@@ -115,7 +108,7 @@ describe('#Whoami', function () {
   it('should see who am I', async function () {
 
     inspect = stdout.inspect()
-    await D.whoami.exec({})
+    await C.whoami.exec({})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
 

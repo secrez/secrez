@@ -2,14 +2,14 @@ const chalk = require('chalk')
 const {ConfigUtils} = require('@secrez/core')
 const clipboardy = require('clipboardy')
 
-class Whoami extends require('../../Command') {
+class Whoami extends require('../Command') {
 
   setHelpAndCompletion() {
-    this.cliConfig.chatCompletion.whoami = {
+    this.cliConfig.completion.whoami = {
       _func: this.selfCompletion(this),
       _self: this
     }
-    this.cliConfig.chatCompletion.help.whoami = true
+    this.cliConfig.completion.help.whoami = true
     this.optionDefinitions = [
       {
         name: 'help',
@@ -33,16 +33,26 @@ class Whoami extends require('../../Command') {
   }
 
   async whoami(options) {
+    let result = {
+      publicKey: this.secrez.getPublicKey()
+    }
     const env = options.env = await ConfigUtils.getEnv(this.secrez.config)
     if (env.courier) {
-      await this.prompt.environment.prompt.commands.courier.preInit(options)
+      await this.prompt.commands.courier.preInit(options)
       if (options.ready) {
-        this.Logger.reset(chalk.grey('Public key: ') + this.prompt.environment.secrez.getPublicKey())
-        this.Logger.reset(chalk.grey('Hub url: ') + env.courier.tunnel.url)
-        this.Logger.reset(chalk.grey('Hub & public key short url: ') + env.courier.tunnel.short_url)
-        await clipboardy.write(env.courier.tunnel.short_url)
-        this.Logger.grey('For your convenience, the short url has been copied to the clipboard.')
+        result.url = env.courier.tunnel.url
+        result.short_url = env.courier.tunnel.short_url
       }
+    }
+    if (options.asIs) {
+      return result
+    }
+    this.Logger.reset(chalk.grey('Public key: ') + result.publicKey)
+    if (result.url) {
+      this.Logger.reset(chalk.grey('Hub url: ') + result.url)
+      this.Logger.reset(chalk.grey('Hub & public key short url: ') + result.short_url)
+      await clipboardy.write(result.short_url)
+      this.Logger.grey('For your convenience, the short url has been copied to the clipboard.')
     }
   }
 

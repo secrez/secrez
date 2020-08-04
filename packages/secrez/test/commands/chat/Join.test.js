@@ -5,25 +5,19 @@ const stdout = require('test-console').stdout
 const fs = require('fs-extra')
 const path = require('path')
 
-const {ConfigUtils} = require('@secrez/core')
 const {sleep} = require('@secrez/utils')
-const {createServer, utils: hubUtils} = require('@secrez/hub')
+const {createServer} = require('@secrez/hub')
 const {Config, Server} = require('@secrez/courier')
-
-const ContactManager = require('../../../src/Managers/ContactManager')
 
 const MainPrompt = require('../../mocks/MainPromptMock')
 const ChatPrompt = require('../../mocks/ChatPromptMock')
 
-const {assertConsole, noPrint, decolorize} = require('../../helpers')
+const {noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../../helpers/jlog')
 
 describe('#Join', function () {
 
@@ -39,6 +33,7 @@ describe('#Join', function () {
   let server
   let secrez
   let publicKeys = {}
+  let hubServer
 
   let options = {
     container: rootDir,
@@ -51,7 +46,7 @@ describe('#Join', function () {
       prompt = new MainPrompt
       await prompt.init(options)
       await prompt.secrez.signup(password, iterations)
-      publicKeys['user' + i] = prompt.secrez.getPublicKey()
+      publicKeys['user' + i + 'x'] = prompt.secrez.getPublicKey()
     }
   })
 
@@ -70,33 +65,31 @@ describe('#Join', function () {
   }
 
   beforeEach(async function () {
-    ContactManager.getCache().reset()
     await fs.emptyDir(testDir)
     await startHub()
-    config = new Config({root: courierRoot, hub: `http://${localDomain}:${hubPort}`})
-    server = new Server(config)
-    await server.start()
     prompt = new MainPrompt
     await prompt.init(options)
     C = prompt.commands
     await prompt.secrez.signup(password, iterations)
     secrez = prompt.secrez
+    config = new Config({root: courierRoot, hub: `http://${localDomain}:${hubPort}`, owner: secrez.getPublicKey()})
+    server = new Server(config)
+    await server.start()
 
     await noPrint(C.courier.courier({
-      authCode: server.authCode,
       port: server.port
     }))
     await noPrint(C.contacts.exec({
-      add: 'user0',
-      publicKey: publicKeys.user0
+      add: 'user0x',
+      publicKey: publicKeys.user0x
     }))
     await noPrint(C.contacts.exec({
-      add: 'user1',
-      publicKey: publicKeys.user1
+      add: 'user1x',
+      publicKey: publicKeys.user1x
     }))
     await noPrint(C.contacts.exec({
-      add: 'user2',
-      publicKey: publicKeys.user2
+      add: 'user2x',
+      publicKey: publicKeys.user2x
     }))
     await noPrint(C.chat.chat({
       chatPrompt: new ChatPrompt
@@ -120,47 +113,77 @@ describe('#Join', function () {
 
   })
 
-  it('should join a chat with user0', async function () {
+  it('should join a chat with user0x', async function () {
 
     await noPrint(
         D.join.join({
-      chat: 'user0'
-    }))
-    assert.equal(C.chat.room[0].contact, 'user0')
+          chat: 'user0x'
+        }))
+    assert.equal(C.chat.room[0].contact, 'user0x')
+  })
+
+  it('should join a chat with user0x', async function () {
+
+    await noPrint(
+        D.join.join({
+          chat: 'user0x'
+        }))
+    assert.equal(C.chat.room[0].contact, 'user0x')
   })
 
   it('should jump between chats', async function () {
 
     await noPrint(D.join.join({
-      chat: 'user0'
+      chat: 'user0x'
     }))
 
-    await noPrint(D.join.join({
-      chat: 'user1'
+    await noPrint(D.join.exec({
+      chat: 'user1x'
     }))
 
-    assert.equal(C.chat.room[0].contact, 'user1')
+    assert.equal(C.chat.room[0].contact, 'user1x')
+
+  })
+
+  it('should return all the users', async function () {
+
+    let all = await D.join.customCompletion({}, undefined, undefined)
+
+    assert.equal(all.join(','), 'user0x,user1x,user2x')
+
+    all = await D.join.customCompletion({
+      chat: ['user1']
+    }, undefined, 'chat')
+
+    assert.equal(all.join(','), 'user1x')
 
   })
 
   it('should throw if contact not found or multiple chat', async function () {
 
     try {
-      await D.join.join({
-        chat: 'nobody'
-      })
+      await D.join.join({})
       assert.isTrue(false)
-    } catch(e) {
-      assert.equal(e.message, 'Contact not found')
+    } catch (e) {
+      assert.equal(e.message, 'Missing parameters')
     }
 
     try {
       await D.join.join({
-        chat: ['user0', 'user1']
+        chat: ['user0x', 'user1x']
       })
       assert.isTrue(false)
-    } catch(e) {
+    } catch (e) {
       assert.equal(e.message, 'Multiple chat not supported yet')
+    }
+
+    try {
+      await D.join.join({
+        chat: 'nobody'
+      })
+      assert.isTrue(false)
+    } catch (e) {
+      assert.equal(e.message, 'Contact not found')
     }
 
   })

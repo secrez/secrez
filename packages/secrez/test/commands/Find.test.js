@@ -4,15 +4,12 @@ const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
 const MainPrompt = require('../mocks/MainPromptMock')
-const {assertConsole, noPrint, decolorize} = require('../helpers')
+const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../fixtures')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('../helpers/jlog')
 
 describe('#Find', function () {
 

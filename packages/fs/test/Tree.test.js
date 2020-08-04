@@ -8,10 +8,7 @@ const Node = require('../src/Node')
 const Tree = require('../src/Tree')
 const InternalFs = require('../src/InternalFs')
 
-const {sleep} = require('./helpers')
-
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
+const {sleep} = require('@secrez/test-helpers')
 
 const {
   password,
@@ -244,7 +241,7 @@ describe('#Tree', function () {
       let files1 = await fs.readdir(`${rootDir}/data`)
       assert.equal(files1.length, 7)
 
-      await sleep(100)
+      await sleep(200)
 
       await startTree()
 
@@ -286,7 +283,7 @@ describe('#Tree', function () {
 
       // jlog(Object.keys(tree.root.flat()))
 
-      await sleep(100)
+      await sleep(200)
 
       await startTree()
 
@@ -449,21 +446,21 @@ describe('#Tree', function () {
 
       let files = (await internalFs.getFileList()).sort()
       assert.equal(files.length, 5)
-      assert.equal(files[0], 'archive')
+      assert.equal(files[0], 'archive:/')
       assert.equal(files[1], 'd')
       assert.equal(files[2], 'e')
-      assert.equal(files[3], 'main')
-      assert.equal(files[4], 'trash')
+      assert.equal(files[3], 'main:/')
+      assert.equal(files[4], 'trash:/')
 
       await internalFs.mountTree(0, true)
 
       files = (await internalFs.getFileList()).sort()
       assert.equal(files.length, 5)
       assert.equal(files[0], 'a')
-      assert.equal(files[1], 'archive')
+      assert.equal(files[1], 'archive:/')
       assert.equal(files[2], 'b')
-      assert.equal(files[3], 'main')
-      assert.equal(files[4], 'trash')
+      assert.equal(files[3], 'main:/')
+      assert.equal(files[4], 'trash:/')
 
       await internalFs.mountTree(2, true)
       assert.equal(internalFs.tree.name, 'archive')

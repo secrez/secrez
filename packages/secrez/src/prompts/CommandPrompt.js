@@ -4,7 +4,7 @@ const fs = require('fs-extra')
 const inquirer = require('inquirer')
 
 // eslint-disable-next-line node/no-unpublished-require
-// const inquirerCommandPrompt = require('../../../../inquirer-command-prompt')
+// const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 const multiEditorPrompt = require('./MultiEditorPrompt')
 inquirer.registerPrompt('command', inquirerCommandPrompt)
@@ -203,6 +203,14 @@ class CommandPrompt {
     return chalk.grey('Available options:')
   }
 
+  noColorOnAnswered() {
+    return false
+  }
+
+  colorOnAnswered() {
+    return 'grey'
+  }
+
   async run(options = {}) {
     await this.firstRun()
     await this.preRun(options)
@@ -210,7 +218,7 @@ class CommandPrompt {
       return
     }
     try {
-      let prefix = this.prePromptMessage(options)
+      let prefix = this.lastPrefix = this.prePromptMessage(options)
       let {cmd} = await inquirer.prompt([
         {
           type: 'command',
@@ -218,8 +226,8 @@ class CommandPrompt {
           autoCompletion: this.getCommands,
           short: this.short,
           prefix,
-          // noColorOnAnswered: true,
-          colorOnAnswered: 'grey',
+          noColorOnAnswered: this.noColorOnAnswered(),
+          colorOnAnswered: this.colorOnAnswered(),
           message: this.promptMessage(),
           ellipsize: true,
           autocompletePrompt: this.availableOptionsMessage(),
@@ -241,6 +249,10 @@ class CommandPrompt {
       console.error(e)
       Logger.red(e.message)
     }
+  }
+
+  getRl() {
+    return inquirerCommandPrompt.getRl()
   }
 
   async exec(cmds, noRun) {

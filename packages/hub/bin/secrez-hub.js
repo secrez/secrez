@@ -95,5 +95,5 @@ Examples:
 
 (async function () {
   const port = await startServer(options)
-  console.log(`Hub listening on port ${port}`)
+  console.info(`Hub listening on port ${port}`)
 })()

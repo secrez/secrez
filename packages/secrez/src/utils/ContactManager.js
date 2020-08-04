@@ -1,21 +1,11 @@
-const {DataCache} = require('@secrez/fs')
-
-let cache = new DataCache
-
 class ContactManager {
 
-  static setCache(dataCache) {
-    if (typeof dataCache === 'object') {
-      cache = dataCache
-    }
-  }
-
-  static getCache() {
-    return cache
+  constructor(cache) {
+    this.cache = cache
   }
 
   get(contact) {
-    return cache.get('contact', contact)
+    return this.cache.get('contact', contact)
   }
 
   validateName(name) {
@@ -29,7 +19,7 @@ class ContactManager {
     if (this.get(options.name)) {
       throw new Error(`A contact named "${options.name}" already exists`)
     }
-    return await cache.puts('contact', {
+    return await this.cache.puts('contact', {
       value: options.name,
       content: JSON.stringify({
         publicKey: options.publicKey,
@@ -39,13 +29,13 @@ class ContactManager {
   }
 
   async remove(contact) {
-    return await cache.remove('contact', contact)
+    return await this.cache.remove('contact', contact)
   }
 
   async empty() {
     let allContacts = Object.keys(this.get())
     for (let contact of allContacts) {
-      await cache.remove('contact', contact)
+      await this.cache.remove('contact', contact)
     }
   }
 

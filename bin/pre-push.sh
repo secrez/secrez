@@ -2,7 +2,7 @@
 
 function get_coverage() {
   echo "Generating coverage report for $2"
-  (cd packages/$1 && npm test >coverage.report)
+  (cd packages/$1 && pnpm test >coverage.report)
   node bin/insert-coverage.js $1
 }
 

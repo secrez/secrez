@@ -2,9 +2,6 @@ const chai = require('chai')
 const assert = chai.assert
 const Entry = require('../src/Entry')
 
-// eslint-disable-next-line no-unused-vars
-const jlog = require('./helpers/jlog')
-
 describe('#Entry', function () {
 
   describe('#constructor', async function () {
