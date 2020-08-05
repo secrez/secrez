@@ -128,46 +128,44 @@ At first run, secrez will ask you for the number of iterations (suggested betwee
 
 ## The commands
 
-From the output of `help`:
-
 ```
-
-Secrez main:/ $ help
-
-Available commands:
-  alias   Create aliases of other commands.
-  bash    Execute a bash command in the current disk folder.
-  cat     Shows the content of a file.
-  cd      Changes the working directory.
-  conf    Configure security data (2FA, password, number of iterations).
-  copy    Copy a text file to the clipboard.
-  edit    Edits a file containing a secret.
-  exit    Exits Secrez.
-  export  Export encrypted data to the OS in the current local folder
-  find    Find a secret.
-  help    This help.
-  import  Import files from the OS into the current folder
-  lcat    Similar to a standard cat in the external fs.
-  lcd     Changes the external working directory.
-  lls     Browses the external directories.
-  lpwd    Shows the path of the external working directory.
-  ls      Browses the directories.
-  mkdir   Creates a directory.
-  mv      Moves and renames files or folders.
-  paste   Paste whatever is in the clipboard in an encrypted entries.
-  pwd     Shows the path of the working directory.
-  rm      Removes one or more files and folders.
-  tag     Tags a file and shows existent tags.
-  totp    Generate a TOTP code if a totp field exists in the card.
-  touch   Creates a file.
-  use     Uses a specific dataset.
-  ver     Shows the version of Secrez.
-  
-To get help about single commands, specify the command, or use the -h option.
-
-Examples:
-  help touch  ()
-  import -h   ()
+  alias     Create aliases of other commands.
+  bash      Execute a bash command in the current disk folder.
+  cat       Shows the content of a file.
+  cd        Changes the working directory.
+  chat      Enters the Secrez chat
+    join    Join rooms.
+    quit    Leaves either a room or the chat
+    send    Sends either a room or the chat
+    show    Show chat history in a room
+  conf      Configure security data (2FA, password, number of iterations).
+  contacts  Gives info about contacts
+  copy      Copy a text file to the clipboard.
+  courier   Configure the connection to a local courier
+  edit      Edits a file containing a secret.
+  exit      << deprecated - use "quit" instead
+  export    Export encrypted data to the OS in the current local folder
+  find      Find a secret.
+  help      This help.
+  import    Import files from the OS into the current folder
+  lcat      Similar to a standard cat in the external fs.
+  lcd       Changes the external working directory.
+  lls       Browses the external directories.
+  lpwd      Shows the path of the external working directory.
+  ls        Browses the directories.
+  mkdir     Creates a directory.
+  mv        Moves and renames files or folders.
+  paste     Paste whatever is in the clipboard in an encrypted entries.
+  pwd       Shows the path of the working directory.
+  quit      Quits Secrez.
+  rm        Removes one or more files and folders.
+  ssh       Opens a new tab and run ssh to connect to a remote server via SSH
+  tag       Tags a file and shows existent tags.
+  totp      Generate a TOTP code if a totp field exists in the card.
+  touch     Creates a file.
+  use       Uses a specific dataset.
+  ver       Shows the version of Secrez.
+  whoami    Show data that other users need to chat with you
   
 ```
 
@@ -601,6 +599,77 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
+  148 passing (23s)
+  1 pending
+
+-----------------------|---------|----------|---------|---------|-----------------------------------
+File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
+-----------------------|---------|----------|---------|---------|-----------------------------------
+All files              |   65.35 |    53.21 |   67.95 |   65.26 |                                   
+ src                   |      60 |     54.1 |      55 |   61.76 |                                   
+  Command.js           |   81.82 |    85.71 |   76.92 |   86.54 | 35,54-59,68                       
+  PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
+  cliConfig.js         |     100 |      100 |     100 |     100 |                                   
+ src/commands          |   74.32 |    60.48 |    84.4 |   74.08 |                                   
+  Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
+  Bash.js              |   93.33 |    66.67 |     100 |   93.33 | 48                                
+  Cat.js               |   98.89 |    88.89 |     100 |   98.89 | 143                               
+  Cd.js                |   96.43 |    86.67 |     100 |   96.43 | 45                                
+  Chat.js              |   19.51 |        0 |   16.67 |   19.51 | 24-130                            
+  Conf.js              |    4.39 |        0 |   10.53 |    4.39 | 87-485                            
+  Contacts.js          |   71.43 |    65.93 |   86.67 |   71.24 | ...72-192,216,221,233,289,302,312 
+  Copy.js              |   94.87 |    74.51 |     100 |   94.81 | 96,141,158,183                    
+  Courier.js           |   63.83 |    41.86 |   85.71 |   64.13 | ...06,124,139-156,167,179,192-198 
+  Edit.js              |   14.49 |        0 |      40 |   14.49 | 77-175                            
+  Exit.js              |      75 |        0 |   66.67 |      75 | 21-22                             
+  Export.js            |     100 |    64.29 |     100 |     100 | 56,76,88-93,100                   
+  Find.js              |   93.24 |    86.67 |     100 |   93.06 | 90,150,187-191,197                
+  Help.js              |     100 |       80 |     100 |     100 | 30                                
+  Import.js            |   94.87 |    85.11 |     100 |   94.81 | 172,230,232,245,251,293,320-324   
+  Lcat.js              |     100 |    85.71 |     100 |     100 | 55                                
+  Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 49                                
+  Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 90                                
+  Lpwd.js              |   92.31 |      100 |     100 |   92.31 | 38                                
+  Ls.js                |   88.89 |    68.75 |     100 |    87.5 | 67,71,92                          
+  Mkdir.js             |     100 |    66.67 |     100 |     100 | 39-45                             
+  Mv.js                |   91.01 |    77.36 |     100 |    90.8 | 114,137,148-154                   
+  Paste.js             |   87.23 |       75 |     100 |   87.23 | 66,72,75,83,107,124               
+  Pwd.js               |   92.31 |      100 |     100 |   92.31 | 36                                
+  Quit.js              |      90 |       50 |     100 |      90 | 29                                
+  Rm.js                |   96.67 |       90 |     100 |   96.55 | 76                                
+  Ssh.js               |      25 |        0 |      40 |      25 | 64-104                            
+  Tag.js               |      99 |    93.75 |     100 |   98.95 | 161                               
+  Totp.js              |     100 |    79.49 |     100 |     100 | 69-91,141,170-175,199-211,222     
+  Touch.js             |     100 |    71.43 |     100 |     100 | 57,68                             
+  Use.js               |     100 |     96.3 |     100 |     100 | 102                               
+  Ver.js               |      90 |    66.67 |     100 |      90 | 27                                
+  Whoami.js            |   93.55 |    63.64 |      80 |   93.55 | 32,67                             
+  chat.js              |   85.37 |    53.85 |     100 |   85.37 | 94,103-116,122,128                
+  index.js             |   91.67 |       60 |     100 |    91.3 | 23,32                             
+ src/commands/chat     |      80 |    66.67 |     100 |   79.86 |                                   
+  Help.js              |   86.67 |       60 |     100 |   86.67 | 38-39                             
+  Join.js              |   95.65 |    82.61 |     100 |   95.56 | 42,105                            
+  Quit.js              |   76.92 |       50 |     100 |   76.92 | 37-41                             
+  Send.js              |   67.65 |    46.67 |     100 |   67.65 | 40,44,47,74,83-92                 
+  Show.js              |   68.75 |    70.59 |     100 |   68.75 | 63-67,76,91-97                    
+ src/prompts           |   11.11 |     0.57 |    1.89 |   11.27 |                                   
+  ChatPrompt.js        |    5.95 |        0 |       0 |    5.95 | 9-158                             
+  ClearScreen.js       |   26.09 |        0 |       0 |   26.09 | 12-42                             
+  CommandPrompt.js     |   11.27 |        0 |       0 |   11.43 | 26-280                            
+  Completion.js        |    4.41 |        0 |       0 |    4.62 | 7-107                             
+  MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 8-35                              
+  SigintManager.js     |   27.78 |     12.5 |      25 |   27.78 | 9-33                              
+ src/utils             |    68.7 |     62.1 |   54.17 |   68.31 |                                   
+  AliasManager.js      |     100 |    91.67 |     100 |     100 | 48                                
+  ContactManager.js    |   71.43 |       60 |   85.71 |   71.43 | 13,36-38                          
+  Fido2Client.js       |    9.62 |        0 |       0 |    9.62 | 9-101                             
+  HelpProto.js         |    91.6 |    83.08 |     100 |   91.45 | 44,137-138,155-160,179            
+  Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
+-----------------------|---------|----------|---------|---------|-----------------------------------
+
+> secrez@0.8.0-beta.0 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
+
 
 ```
 
