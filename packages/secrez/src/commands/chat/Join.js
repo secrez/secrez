@@ -26,10 +26,9 @@ class Join extends require('../../Command') {
 
   help() {
     return {
-      description: ['Manages joins.'],
+      description: ['Joins conversation.'],
       examples: [
-        ['join pan', 'joins a conversation with the previously-added user "pan"'],
-        ['/join ema', 'jumps from the current conversation to the a new one with "ema". Notice the initial slash to disambiguate the command.']
+        ['join pan', 'joins a conversation with the previously-added user "pan"']
       ]
     }
   }
@@ -44,7 +43,7 @@ class Join extends require('../../Command') {
 
   async customCompletion(options, originalLine, currentOption) {
     const existingUsers = await this.getAllUsers()
-    if (currentOption === 'chat') {
+    if (options.chat) {
       let lastUser = options.chat[options.chat.length - 1]
       return existingUsers.filter(e => {
         return RegExp('^' + lastUser).test(e)
