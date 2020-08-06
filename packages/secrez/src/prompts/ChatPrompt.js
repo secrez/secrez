@@ -62,7 +62,7 @@ class ChatPrompt extends require('./CommandPrompt') {
     }
   }
 
-  nicks(name) {
+  nicks(name = '') {
     let max = Math.max(2, name.length)
     let result = [
       'me' + ' '.repeat(max - 2),
