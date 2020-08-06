@@ -86,7 +86,7 @@ class ChatPrompt extends require('./CommandPrompt') {
       process.stdout.write(options.lastLine + '\n')
     }
     if (!options.fromHistory) {
-      process.stdout.write(this.lastPrefix + ' ' + chalk.bold(':') + ' ')
+      process.stdout.write(this.lastPrefix + ' ' + chalk.bold('>') + ' ')
     }
     process.stdout.write(presetLine)
     process.stdout.moveCursor(-diff)

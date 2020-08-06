@@ -160,25 +160,28 @@ class Conf extends require('../Command') {
 
   async setUpCorier(options) {
     const port = options.port
-    const body = await this.callCourier({action: {name: 'ready'}}, port, undefined, '/admin')
-    if (body.success) {
-      let previousTunnel
-      if (options.env.courier && options.env.courier.port === port) {
-        previousTunnel = options.env.courier.tunnel
+    try {
+      const body = await this.callCourier({action: {name: 'ready'}}, port, undefined, '/admin')
+      if (body.success) {
+        let previousTunnel
+        if (options.env.courier && options.env.courier.port === port) {
+          previousTunnel = options.env.courier.tunnel
+        }
+        options.env.courier = {
+          port,
+          caCrt: body.caCrt,
+          tunnel: previousTunnel
+        }
+        body.tunnel = await this.publishToHubIfNotYet(options)
+        options.env.courier.tunnel = body.tunnel
+        await ConfigUtils.putEnv(this.secrez.config, options.env)
+        this.Logger.reset('Connected')
+      } else {
+        throw new Error('Courier not found')
       }
-      options.env.courier = {
-        port,
-        caCrt: body.caCrt,
-        tunnel: previousTunnel
-      }
-      body.tunnel = await this.publishToHubIfNotYet(options)
-      options.env.courier.tunnel = body.tunnel
-      await ConfigUtils.putEnv(this.secrez.config, options.env)
-      this.Logger.reset('Connected')
-    } else {
-      this.Logger.red('Courier not found')
+    } catch(e) {
+      throw new Error('Courier not available')
     }
-
   }
 
   async courier(options) {
