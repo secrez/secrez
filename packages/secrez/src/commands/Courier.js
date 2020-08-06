@@ -140,7 +140,7 @@ class Conf extends require('../Command') {
       this.Logger.reset(`A courier is already set and is listening on port ${env.courier.port}`)
     } else {
       let yes = await this.useConfirm({
-        message: 'No Secrez Courier configured yet.\nIf you launched it, do you have the auth code?',
+        message: 'No Secrez Courier configured yet.\nDid you launch one?',
         default: true
       })
       if (yes) {

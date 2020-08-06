@@ -96,7 +96,7 @@ describe('Server', async function () {
     assert.equal(res.body.hello, 'world')
   })
 
-  it('should accept /admin requests with auth-code', async function () {
+  it('should accept /admin requests', async function () {
 
     const {payload, signature} = setPayloadAndSignIt(secrez1, {
       some: 'thing'
