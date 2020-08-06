@@ -62,7 +62,7 @@ class ChatPrompt extends require('./CommandPrompt') {
     }
   }
 
-  nicks(name) {
+  nicks(name = '') {
     let max = Math.max(2, name.length)
     let result = [
       'me' + ' '.repeat(max - 2),
@@ -86,7 +86,7 @@ class ChatPrompt extends require('./CommandPrompt') {
       process.stdout.write(options.lastLine + '\n')
     }
     if (!options.fromHistory) {
-      process.stdout.write(this.lastPrefix + ' ' + chalk.bold(':') + ' ')
+      process.stdout.write(this.lastPrefix + ' ' + chalk.bold('>') + ' ')
     }
     process.stdout.write(presetLine)
     process.stdout.moveCursor(-diff)

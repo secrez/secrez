@@ -65,10 +65,8 @@ Options:
   -H, --hub             The remote host (by default https://secrez.cc)
   -r, --root            Root folder (by default ~/.secrez-courier)
   -o, --owner           The public key of the secrez account using it
-  --new-random-port     Force the refresh of a new random port (modifying the auth-code)
+  --new-random-port     Force the refresh of a new random port
                           
-Everytime you change auth-code or port, you must re-init the courier in Secrez. If not, Secrez cannot find the listening courier. 
-                      
 Examples:
   $ secrez-courier                          All defaults (uses secrez.cc as remote hub)
   $ secrez-courier -H https://example.org   Uses example.org as remote hub
