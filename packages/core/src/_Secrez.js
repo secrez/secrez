@@ -1,6 +1,7 @@
-const Crypto = require('./Crypto')
 const fs = require('fs-extra')
 const utils = require('@secrez/utils')
+
+const Crypto = require('./Crypto')
 const bs58 = Crypto.bs58
 
 const $ = {}
