@@ -603,13 +603,13 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  148 passing (23s)
+  149 passing (21s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   65.34 |    53.17 |   67.95 |   65.25 |                                   
+All files              |   65.45 |    53.17 |   68.22 |   65.36 |                                   
  src                   |      60 |     54.1 |      55 |   61.76 |                                   
   Command.js           |   81.82 |    85.71 |   76.92 |   86.54 | 35,54-59,68                       
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
@@ -663,15 +663,15 @@ All files              |   65.34 |    53.17 |   67.95 |   65.25 |
   Completion.js        |    4.41 |        0 |       0 |    4.62 | 7-107                             
   MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 8-35                              
   SigintManager.js     |   27.78 |     12.5 |      25 |   27.78 | 9-33                              
- src/utils             |    68.7 |     62.1 |   54.17 |   68.31 |                                   
+ src/utils             |   69.92 |     62.1 |   56.25 |   69.55 |                                   
   AliasManager.js      |     100 |    91.67 |     100 |     100 | 48                                
   ContactManager.js    |   71.43 |       60 |   85.71 |   71.43 | 13,36-38                          
-  Fido2Client.js       |    9.62 |        0 |       0 |    9.62 | 9-101                             
+  Fido2Client.js       |   15.38 |        0 |   11.11 |   15.38 | 15-101                            
   HelpProto.js         |    91.6 |    83.08 |     100 |   91.45 | 44,137-138,155-160,179            
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@0.8.0 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@0.8.1 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 
