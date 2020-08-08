@@ -370,6 +370,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.8.2__
+* update dependencies
+
 __0.8.1__
 * fix bug in `conf` setting a 2FA
 * improve encapsulation of the `_Secrez` class
@@ -603,7 +606,7 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  149 passing (21s)
+  149 passing (22s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
@@ -671,7 +674,7 @@ All files              |   65.45 |    53.17 |   68.22 |   65.36 |
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@0.8.1 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@0.8.2 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 

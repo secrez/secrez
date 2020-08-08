@@ -7,7 +7,7 @@ const {execSync} = require('child_process')
 let packages = {}
 execSync(`git diff master --name-only`).toString().split('\n').map(e => {
   let m = e.split('/')
-  if (m[0] === 'packages' && m[2] === 'src') {
+  if (m[0] === 'packages' && (m[2] === 'src' || m[2] === 'package.json')) {
     packages[m[1]] = true
   }
   return e
@@ -28,19 +28,24 @@ function getExistingVersion(pkg) {
   return execSync(`npm view ${pkg} | grep latest`).toString().split('\n')[0].split(' ')[1]
 }
 
-
 function updateOtherPackages(package, name, newVersion) {
   console.log('Patching '+package+' to version '+ newVersion)
-  for (let p in packages) {
+  for (let p in packagesJson) {
     if (p === package) {
       continue
     }
     let json = packagesJson[p]
+    let yes = false
     if (json.dependencies[name]) {
-      json.dependencies[name] = 'workspace:^'+ newVersion
+      json.dependencies[name] = 'workspace:~'+ newVersion
+      yes = true
     }
     if (json.devDependencies[name]) {
-      json.devDependencies[name] = 'workspace:^'+ newVersion
+      json.devDependencies[name] = 'workspace:~'+ newVersion
+      yes = true
+    }
+    if (yes) {
+      console.log('Updating dependencies in', p)
     }
   }
 }
