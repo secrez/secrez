@@ -370,9 +370,6 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
-__0.8.2__
-* update dependencies
-
 __0.8.1__
 * fix bug in `conf` setting a 2FA
 * improve encapsulation of the `_Secrez` class
