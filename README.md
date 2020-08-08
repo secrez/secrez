@@ -1,12 +1,12 @@
 # Secrez
-A secrets manager as an encrypted file system.
 
-# This is a work in progress. Any suggestion, advice, critic is very welcome. But use at your own risk.
-
+Secrez is:
+* a CLI secret manager working as an encrypted file system;
+* a decentralized surveillance-resistant end-to-end encrypted messaging system.
 
 ## Intro
 
-Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `mkdir`, `ls`, `mv`, etc.
+At the very basic, Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `mkdir`, `ls`, `mv`, etc.
 
 The idea is to interact with encrypted virtual files as if they are just files in a standard file system.
 
@@ -370,6 +370,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.8.1__
+* fix bug in `conf` setting a 2FA
+* improve encapsulation of the `_Secrez` class
+
 __0.8.0__
 * add `contacts` to manage trusted users, i.e, trusted public keys
 * add `whoami` to get info about the account
@@ -605,12 +609,12 @@ Thanks a lot for any contribution 😉
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   65.35 |    53.21 |   67.95 |   65.26 |                                   
+All files              |   65.34 |    53.17 |   67.95 |   65.25 |                                   
  src                   |      60 |     54.1 |      55 |   61.76 |                                   
   Command.js           |   81.82 |    85.71 |   76.92 |   86.54 | 35,54-59,68                       
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   74.32 |    60.48 |    84.4 |   74.08 |                                   
+ src/commands          |   74.29 |    60.48 |    84.4 |   74.05 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |   93.33 |    66.67 |     100 |   93.33 | 48                                
   Cat.js               |   98.89 |    88.89 |     100 |   98.89 | 143                               
@@ -619,7 +623,7 @@ All files              |   65.35 |    53.21 |   67.95 |   65.26 |
   Conf.js              |    4.39 |        0 |   10.53 |    4.39 | 87-485                            
   Contacts.js          |   71.43 |    65.93 |   86.67 |   71.24 | ...72-192,216,221,233,289,302,312 
   Copy.js              |   94.87 |    74.51 |     100 |   94.81 | 96,141,158,183                    
-  Courier.js           |   63.83 |    41.86 |   85.71 |   64.13 | ...06,124,139-156,167,179,192-198 
+  Courier.js           |   63.54 |    41.86 |   85.71 |   63.83 | ...24,139-156,168,180-183,195-201 
   Edit.js              |   14.49 |        0 |      40 |   14.49 | 77-175                            
   Exit.js              |      75 |        0 |   66.67 |      75 | 21-22                             
   Export.js            |     100 |    64.29 |     100 |     100 | 56,76,88-93,100                   
@@ -648,11 +652,11 @@ All files              |   65.35 |    53.21 |   67.95 |   65.26 |
   index.js             |   91.67 |       60 |     100 |    91.3 | 23,32                             
  src/commands/chat     |      80 |    66.67 |     100 |   79.86 |                                   
   Help.js              |   86.67 |       60 |     100 |   86.67 | 38-39                             
-  Join.js              |   95.65 |    82.61 |     100 |   95.56 | 42,105                            
+  Join.js              |   95.65 |    82.61 |     100 |   95.56 | 41,104                            
   Quit.js              |   76.92 |       50 |     100 |   76.92 | 37-41                             
   Send.js              |   67.65 |    46.67 |     100 |   67.65 | 40,44,47,74,83-92                 
   Show.js              |   68.75 |    70.59 |     100 |   68.75 | 63-67,76,91-97                    
- src/prompts           |   11.11 |     0.57 |    1.89 |   11.27 |                                   
+ src/prompts           |   11.11 |     0.56 |    1.89 |   11.27 |                                   
   ChatPrompt.js        |    5.95 |        0 |       0 |    5.95 | 9-158                             
   ClearScreen.js       |   26.09 |        0 |       0 |   26.09 | 12-42                             
   CommandPrompt.js     |   11.27 |        0 |       0 |   11.43 | 26-280                            
@@ -667,7 +671,7 @@ All files              |   65.35 |    53.21 |   67.95 |   65.26 |
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@0.8.0-beta.0 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@0.8.0 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 

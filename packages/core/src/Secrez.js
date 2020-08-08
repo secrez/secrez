@@ -39,7 +39,7 @@ module.exports = function (rand) {
       if (!await fs.pathExists(this.config.keysPath)) {
 
         let id = Crypto.b58Hash(Crypto.generateKey())
-        $[rand] = new _Secrez
+        $[rand] = new _Secrez(this)
 
         let derivationVersion = _Secrez.derivationVersion.TWO
         if (process.env.NODE_ENV === 'test' && testDerivationVersion) {
@@ -203,7 +203,7 @@ module.exports = function (rand) {
       iterations = parseInt(iterations)
       const conf = await this.readConf()
       const data = conf.data
-      $[rand] = new _Secrez
+      $[rand] = new _Secrez(this)
       await $[rand].init(password, iterations, data.derivationVersion)
       /* istanbul ignore if  */
       if (!data.key && !data.keys) {

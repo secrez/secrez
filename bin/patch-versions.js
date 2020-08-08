@@ -30,6 +30,7 @@ function getExistingVersion(pkg) {
 
 
 function updateOtherPackages(package, name, newVersion) {
+  console.log('Patching '+package+' to version '+ newVersion)
   for (let p in packages) {
     if (p === package) {
       continue
@@ -60,3 +61,5 @@ for (let p in packages) {
 for (let p in packagesJson) {
   fs.writeFileSync(path.resolve(__dirname, '../packages', p, 'package.json'), JSON.stringify(packagesJson[p], null, 2))
 }
+
+console.log('Done')

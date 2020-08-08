@@ -486,6 +486,24 @@ describe('#Secrez', function () {
         assert.equal(name, decryptedData)
       })
 
+      it('should throw trying to get box and sign secret keys', async function () {
+        await secrez.signup(password, iterations)
+        let conf = await secrez.getConf()
+        try {
+          secrez.decryptData(conf.data.sign.secretKey)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'Attempt to hack the keys')
+        }
+
+        try {
+          secrez.decryptData(conf.data.box.secretKey)
+          assert.isTrue(false)
+        } catch (e) {
+          assert.equal(e.message, 'Attempt to hack the keys')
+        }
+      })
+
     })
 
     describe('preEncryptData and preDecryptData', async function () {

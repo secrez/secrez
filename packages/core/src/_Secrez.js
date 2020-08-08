@@ -1,4 +1,5 @@
 const Crypto = require('./Crypto')
+const fs = require('fs-extra')
 const utils = require('@secrez/utils')
 const bs58 = Crypto.bs58
 
@@ -10,6 +11,10 @@ module.exports = function (rand) {
   $[rand].sharedKeys = {}
 
   class _Secrez {
+
+    constructor(secrez) {
+      this.secrez = secrez
+    }
 
     async init(password, iterations, derivationVersion) {
       $[rand].password = password
@@ -80,8 +85,8 @@ module.exports = function (rand) {
     async signin(data) {
       try {
         $[rand].masterKey = await this.preDecrypt(data.key, true)
-        $[rand].boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
-        $[rand].signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
+        $[rand].boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey, true))
+        $[rand].signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey, true))
       } catch (e) {
         throw new Error('Wrong password or wrong number of iterations')
       }
@@ -101,8 +106,8 @@ module.exports = function (rand) {
           throw new Error('Hash on file does not match the master key')
         }
         $[rand].masterKey = masterKey
-        $[rand].boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey))
-        $[rand].signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey))
+        $[rand].boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey, true))
+        $[rand].signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey, true))
         return data.hash
       } catch (e) {
         throw new Error('Wrong data/secret')
@@ -125,7 +130,13 @@ module.exports = function (rand) {
       return Crypto.encrypt(data, $[rand].masterKey)
     }
 
-    decrypt(encryptedData) {
+    decrypt(encryptedData, unsafeMode) {
+      if (!unsafeMode && (
+          encryptedData === this.conf.data.box.secretKey
+          || encryptedData === this.conf.data.sign.secretKey
+      )) {
+        throw new Error('Attempt to hack the keys')
+      }
       return Crypto.decrypt(encryptedData, $[rand].masterKey)
     }
 
@@ -133,12 +144,27 @@ module.exports = function (rand) {
       return Crypto.encrypt(data, $[rand].derivedPassword)
     }
 
+    readConf() {
+      /* istanbul ignore if  */
+      if (!this.secrez) {
+        throw new Error('Secrez not initiated')
+      }
+      /* istanbul ignore if  */
+      if (!fs.existsSync(this.secrez.config.keysPath)) {
+        throw new Error('Account not set yet')
+      }
+      return JSON.parse(fs.readFileSync(this.secrez.config.keysPath, 'utf8'))
+    }
+
     preDecrypt(encryptedData, unsafeMode) {
-      let data = Crypto.decrypt(encryptedData, $[rand].derivedPassword)
-      if (!unsafeMode && data === $[rand].masterKey) {
+      let conf = this.conf
+      if (!conf) {
+        conf = this.readConf()
+      }
+      if (!unsafeMode && encryptedData === conf.data.key) {
         throw new Error('Attempt to hack the master key')
       }
-      return data
+      return Crypto.decrypt(encryptedData, $[rand].derivedPassword)
     }
 
     getSharedKey(publicKey) {

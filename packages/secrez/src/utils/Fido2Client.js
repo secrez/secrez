@@ -8,7 +8,7 @@ class Fido2Client {
   constructor(secrez) {
     this.keys = {}
     this.secrez = secrez
-    this.scriptsPath = path.resolve(__dirname, '../scripts')
+    this.scriptsPath = path.resolve(__dirname, '../../scripts')
   }
 
   async updateConf() {
@@ -60,7 +60,7 @@ class Fido2Client {
     if (result.code !== 0 || typeof result.message === 'undefined') {
       throw new Error('The Fido2 module requires Python. Please install it on your computer.')
     }
-    result =  await execAsync('python', this.scriptsPath, ['is_fido2_ready.py'])
+    result = await execAsync('python', this.scriptsPath, ['is_fido2_ready.py'])
     if (result.message !== 'Ready') {
       throw new Error('Python-fido2 is required. Install it with "pip install fido2"')
     }
