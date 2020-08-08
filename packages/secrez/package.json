@@ -15,11 +15,10 @@
     "exclude": []
   },
   "dependencies": {
-    "@secrez/core": "workspace:^0.8.4",
-    "@secrez/courier": "workspace:^0.1.3",
-    "@secrez/fs": "workspace:^0.8.3",
-    "@secrez/hub": "workspace:^0.1.4",
-    "@secrez/utils": "workspace:^0.1.4",
+    "@secrez/core": "workspace:~0.8.4",
+    "@secrez/fs": "workspace:~0.8.3",
+    "@secrez/hub": "workspace:~0.1.4",
+    "@secrez/utils": "workspace:~0.1.4",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
     "clear": "^0.1.0",
@@ -38,7 +37,8 @@
     "tiny-cli-editor": "^0.1.1"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:^0.1.2",
+    "@secrez/courier": "workspace:~0.1.3",
+    "@secrez/test-helpers": "workspace:~0.1.2",
     "chai": "^4.2.0",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.2",

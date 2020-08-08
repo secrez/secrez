@@ -37,11 +37,11 @@ function updateOtherPackages(package, name, newVersion) {
     let json = packagesJson[p]
     let yes = false
     if (json.dependencies[name]) {
-      json.dependencies[name] = 'workspace:^'+ newVersion
+      json.dependencies[name] = 'workspace:~'+ newVersion
       yes = true
     }
     if (json.devDependencies[name]) {
-      json.devDependencies[name] = 'workspace:^'+ newVersion
+      json.devDependencies[name] = 'workspace:~'+ newVersion
       yes = true
     }
     if (yes) {
