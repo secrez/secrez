@@ -311,7 +311,7 @@ class Conf extends require('../Command') {
         }
       }
     } else {
-      throw new Error('Invalid signature')
+      throw new Error('Operation canceled')
     }
   }
 
