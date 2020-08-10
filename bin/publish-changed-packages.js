@@ -13,6 +13,7 @@ if (gitDiff.length > 0 && gitDiff[0]) {
 
 function checkAndPublish(dir) {
   const pkg = dir === 'secrez' ? '' : '@secrez/'
+  console.log(`Checking  ${pkg}${dir}...`)
   const version = require(`../packages/${dir}/package.json`).version
   const currVersion = execSync(`npm view ${pkg}${dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
   if (version !== currVersion) {
