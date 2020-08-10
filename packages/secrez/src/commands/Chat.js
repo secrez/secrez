@@ -59,7 +59,7 @@ class Chat extends require('../Command') {
       payload: {
         minTimestamp,
         maxTimestamp,
-        publickey: this.room[0].publicKey,
+        from: this.room[0].publicKey,
         limit: 1000
       }
     })

@@ -66,7 +66,7 @@ When I have a moment, I will write a post on how to do it using Let's Encrypt.
 
 ## Test coverage
 ```
-  5 passing (138ms)
+  5 passing (132ms)
 
 -------------------|---------|----------|---------|---------|---------------------------------------
 File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                     

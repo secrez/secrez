@@ -153,7 +153,7 @@ describe('#Secrez', function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
         masterKeyHash = secrez.masterKeyHash
-        assert.isTrue(secrez.verifyPassword(password))
+        assert.isTrue(await secrez.verifyPassword(password))
         await secrez.upgradeAccount(newPassword, iterations + 100)
         secrez.signout()
         assert.isUndefined(secrez.masterKeyHash)

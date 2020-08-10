@@ -311,7 +311,7 @@ class Conf extends require('../Command') {
         }
       }
     } else {
-      throw new Error('Invalid signature')
+      throw new Error('Operation canceled')
     }
   }
 
@@ -376,7 +376,7 @@ class Conf extends require('../Command') {
           type: 'password'
         })
         if (oldPassword) {
-          if (!this.secrez.verifyPassword(oldPassword)) {
+          if (!(await this.secrez.verifyPassword(oldPassword))) {
             throw new Error('Wrong password. Try again')
           }
           let newPassword = await this.useInput({

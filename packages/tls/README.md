@@ -8,7 +8,7 @@ A documentation will come soon.
 ## Test coverage
 
 ```
-  4 passing (533ms)
+  4 passing (871ms)
 
 ----------|---------|----------|---------|---------|-------------------
 File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 

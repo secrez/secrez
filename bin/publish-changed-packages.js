@@ -16,14 +16,14 @@ function checkAndPublish(dir) {
 }
 
 checkAndPublish('utils', '@secrez')
+checkAndPublish('test-helpers', '@secrez')
 checkAndPublish('core', '@secrez')
 checkAndPublish('courier', '@secrez')
 checkAndPublish('fs', '@secrez')
 checkAndPublish('hub', '@secrez')
 checkAndPublish('tls', '@secrez')
 checkAndPublish('tunnel', '@secrez')
-checkAndPublish('test-helpers', '@secrez')
-// checkAndPublish('secrez')
+checkAndPublish('secrez')
 
 if (!changes) {
   console.log('No upgrade needed.')

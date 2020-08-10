@@ -371,7 +371,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 ## History
 
 __0.8.2__
-* update dependencies
+* fix bug in `show` which listed all the messages
 
 __0.8.1__
 * fix bug in `conf` setting a 2FA
@@ -606,7 +606,7 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  149 passing (22s)
+  149 passing (23s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------

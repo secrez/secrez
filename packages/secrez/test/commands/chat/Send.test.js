@@ -9,7 +9,7 @@ const {ConfigUtils} = require('@secrez/core')
 const {sleep} = require('@secrez/utils')
 const {createServer, utils: hubUtils} = require('@secrez/hub')
 const {Config, Server} = require('@secrez/courier')
-const Secrez = require('@secrez/core').Secrez(Math.random())
+const Secrez = require('@secrez/core').Secrez()
 
 const MainPrompt = require('../../mocks/MainPromptMock')
 const ChatPrompt = require('../../mocks/ChatPromptMock')

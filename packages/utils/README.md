@@ -8,7 +8,7 @@ This is a utils library used by other packages in the @secrez suite.
 ## Test coverage
 
 ```
-  37 passing (171ms)
+  37 passing (168ms)
 
 -------------|---------|----------|---------|---------|-------------------
 File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 

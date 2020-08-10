@@ -1,5 +1,5 @@
 const path = require('path')
-const Secrez = require('@secrez/core').Secrez(Math.random())
+const Secrez = require('@secrez/core').Secrez()
 const {InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 
