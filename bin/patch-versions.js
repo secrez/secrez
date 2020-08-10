@@ -64,7 +64,7 @@ for (let p in packages) {
 }
 
 for (let p in packagesJson) {
-  fs.writeFileSync(path.resolve(__dirname, '../packages', p, 'package.json'), JSON.stringify(packagesJson[p], null, 2))
+  fs.writeFileSync(path.resolve(__dirname, '../packages', p, 'package.json'), JSON.stringify(packagesJson[p], null, 2) + '\n')
 }
 
 console.log('Done')
