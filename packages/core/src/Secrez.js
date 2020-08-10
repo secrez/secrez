@@ -176,8 +176,8 @@ module.exports = function () {
       _secrez.setConf(await this.signAndSave(data), true)
     }
 
-    verifyPassword(password) {
-      return _secrez.isItRight(password)
+    async verifyPassword(password) {
+      return await _secrez.verifyPassword(password)
     }
 
     signMessage(message) {

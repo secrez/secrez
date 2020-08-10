@@ -52,9 +52,8 @@ module.exports = function () {
       return Crypto.getSignature(message, __.signPrivateKey)
     }
 
-    isItRight(password) {
-      // to allow to change it
-      return password === __.password
+    async verifyPassword(password) {
+      return __.derivedPassword === await _Secrez.derivePassword(password, __.iterations, _Secrez.derivationVersion.TWO)
     }
 
     async changePassword(password = __.password, iterations = __.iterations) {

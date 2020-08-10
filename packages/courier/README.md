@@ -50,7 +50,7 @@ The connected Secrez account will then be able to receive message in real time o
 ## Test coverage
 
 ```
-  12 passing (7s)
+  12 passing (6s)
 
 ------------|---------|----------|---------|---------|----------------------------------------------
 File        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                            
