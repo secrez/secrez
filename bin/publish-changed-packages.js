@@ -6,9 +6,7 @@ let changes
 
 let gitDiff = execSync('git diff --name-only').toString().split('\n')
 
-console.log(gitDiff)
-
-if (gitDiff.length > 0) {
+if (gitDiff.length > 0 && gitDiff[0]) {
   console.error('The repo is not committed.')
   process.exit(1)
 }
