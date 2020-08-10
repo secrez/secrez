@@ -4,8 +4,16 @@ const {execSync} = require('child_process')
 
 let changes
 
+let gitDiff = execSync('git diff --name-only').toString().split('\n')
+
+if (gitDiff.length > 0 && gitDiff[0]) {
+  console.error('The repo is not committed.')
+  process.exit(1)
+}
+
 function checkAndPublish(dir) {
   const pkg = dir === 'secrez' ? '' : '@secrez/'
+  console.log(`Checking  ${pkg}${dir}`)
   const version = require(`../packages/${dir}/package.json`).version
   const currVersion = execSync(`npm view ${pkg}${dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
   if (version !== currVersion) {
