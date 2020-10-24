@@ -26,14 +26,13 @@ class MainPrompt extends require('./CommandPrompt') {
       completion: 'completion',
       commands: (new Commands(this, cliConfig)).getCommands()
     })
+    this.cache = {}
   }
 
   async preRun(options = {}) {
     if (!this.loggedIn) {
-      // this.getCommands = Completion(cliConfig.completion)
-      // this.basicCommands = await this.getCommands()
-      // this.getCommands.bind(this)
       await welcome.start(this.secrez, options)
+      this.startSigintManager()
       this.internalFs.init().then(() => delete this.showLoading)
       this.loadingMessage = 'Initializing'
       await this.loading()
@@ -48,6 +47,28 @@ class MainPrompt extends require('./CommandPrompt') {
       await this.secrez.cache.load('contact')
       this.aliasManager = new AliasManager(this.secrez.cache)
       this.contactManager = new ContactManager(this.secrez.cache)
+    }
+  }
+
+  setCache(name, index, content) {
+    if (!this.cache[name]) {
+      this.resetCache(name)
+    }
+    this.cache[name][index] = content
+  }
+
+  resetCache(name) {
+    this.cache[name] = {}
+  }
+
+  getCache(name, index) {
+    if (!this.cache[name]) {
+      return null
+    }
+    if (typeof index !== 'undefined') {
+      return this.cache[name][index]
+    } else {
+      return this.cache[name]
     }
   }
 

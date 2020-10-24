@@ -137,6 +137,9 @@ class Find extends require('../Command') {
   formatList(list, options) {
     let re = Node.getFindRe(options)
     let i = 0
+    const setCache = (i, e) => {
+      this.prompt.setCache('findResult', i, e)
+    }
     return list.map(e => {
       i++
       let k = this.formatIndex(list.length, i)
@@ -149,6 +152,7 @@ class Find extends require('../Command') {
         } else {
           e[2] = undefined
         }
+        setCache(i, e)
         return [
           k,
           '  ',
@@ -160,6 +164,7 @@ class Find extends require('../Command') {
         ].join('')
 
       } else {
+        setCache(i, e)
         return [
           k,
           '  ',

@@ -18,18 +18,22 @@ class MainPromptMock {
     this.externalFs = new ExternalFs(this.secrez)
     this.commands = (new Commands(this, cliConfig)).getCommands()
     this.commandPrompt = inquirerCommandPrompt
+    this.cache = {}
+  }
+
+  setCache() {
+  }
+
+  getCache() {
   }
 
   async run(options) {
-
   }
 
   async exec(cmds, noRun) {
-
   }
 
   async loading() {
-
   }
 }
 

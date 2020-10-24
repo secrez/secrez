@@ -67,6 +67,9 @@ class Command extends PreCommand {
         if (currentOption !== 'path') {
           options.path = options[currentOption]
         }
+        if (self.prompt.cache && self.prompt.cache.findResult && /^#\d+$/.test(options.path)) {
+          return [options.path + self.prompt.cache.findResult[options.path.replace(/^#/, '')][1] || undefined]
+        }
         return await self.prompt[extraOptions.external ? 'externalFs' : 'internalFs'].getFileList(options, true)
       } else {
         return []
@@ -87,7 +90,11 @@ class Command extends PreCommand {
 
   validate(options, mandatoryOptions) {
     if (options._unknown) {
-      throw new Error(`Unknown option: ${options._unknown} `+ chalk.grey(`(run "${this.constructor.name.toLowerCase()} -h" for help)`))
+      throw new Error(`Unknown option: ${options._unknown} ` + chalk.grey(`(run "${this.constructor.name.toLowerCase()} -h" for help)`))
+    }
+    let re = /^#\d+/
+    if (options.path && re.test(options.path)) {
+      options.path = options.path.replace(re, '')
     }
     if (mandatoryOptions) {
       let err = ''

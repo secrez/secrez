@@ -40,9 +40,6 @@ class CommandPrompt {
     this.environment = options.environment
     this.clearScreen = new ClearScreen(this.secrez.config)
     this.context = options.context || 0
-    // process.on('SIGINT', async () => {
-    //   await sigintManager.onSigint(this)
-    // })
     await this.setSigintPosition()
   }
 
@@ -52,6 +49,10 @@ class CommandPrompt {
     if (runNow) {
       await this.run()
     }
+  }
+
+  startSigintManager() {
+    sigintManager.start()
   }
 
   async firstRun() {

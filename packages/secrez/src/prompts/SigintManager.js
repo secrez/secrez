@@ -4,11 +4,15 @@ class SigintManager {
     this.prompts = []
     this.siginted = false
     this.lastCalled = Date.now()
+    this.started = false
+  }
 
-    if (process.env.NODE_ENV !== 'test') {
+  start() {
+    if (!this.started && process.env.NODE_ENV !== 'test') {
       process.on('SIGINT', async () => {
         await this.onSigint()
       })
+      this.started = true
     }
   }
 
