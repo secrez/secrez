@@ -92,9 +92,8 @@ class Command extends PreCommand {
     if (options._unknown) {
       throw new Error(`Unknown option: ${options._unknown} ` + chalk.grey(`(run "${this.constructor.name.toLowerCase()} -h" for help)`))
     }
-    let re = /^#\d+/
-    if (options.path && re.test(options.path)) {
-      options.path = options.path.replace(re, '')
+    if (options.path && /^#\d+\//.test(options.path)) {
+      options.path = options.path.replace(/^#\d+/, '')
     }
     if (mandatoryOptions) {
       let err = ''
