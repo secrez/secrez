@@ -370,6 +370,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.8.4__
+* fix issue if a file starts with #\d, like `#2something`
+
 __0.8.3__
 * add autocomplete based on `find` results; for example `cat #2` and press `tab` will complete with the second result in the search
 
