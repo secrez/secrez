@@ -1,5 +1,31 @@
 # Secrez
 
+<h1 align="center">
+  <img align="center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez.png" width="400"/>
+</h1>
+
+<p align="center">
+  <a href="https://discord.gg/whsgXj">
+    <img src="https://img.shields.io/badge/chat-on%20discord-brightgreen.svg">
+  </a>
+
+  <a href="https://github.com/secrez/secrez/issues">
+    <img src="https://img.shields.io/github/issues/secrez/secrez.svg">
+  </a>
+
+  <a href="https://github.com/secrez/secrez/pulls">
+    <img src="https://img.shields.io/github/issues-pr/secrez/secrez.svg">
+  </a>
+
+  <a href="https://github.com/secrez/secrez/graphs/contributors">
+    <img src="https://img.shields.io/github/contributors/secrez/secrez.svg">
+  </a>
+
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/secrez/secrez.svg">
+  </a>
+</p>
+
 Secrez is:
 * a CLI secret manager working as an encrypted file system;
 * a decentralized surveillance-resistant end-to-end encrypted messaging system.
@@ -369,6 +395,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ## History
+
+__0.8.5__
+* Fix issue with find results when they include datasets.
+* Improve scripts (getting coverage only for modified packages)
+* Add a secrez.png as a generic asset
 
 __0.8.4__
 * fix issue if a file starts with #\d, like `#2something`
