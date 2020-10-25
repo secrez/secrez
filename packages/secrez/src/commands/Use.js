@@ -32,16 +32,6 @@ class Use extends require('../Command') {
     ]
   }
 
-  // async customCompletion(options, originalLine, defaultOption) {
-  //   let datasetsInfo = await this.internalFs.getDatasetsInfo()
-  //   options.forAutoComplete = true
-  //   if (options.dataset) {
-  //     return datasetsInfo.map(e => e.name).filter(e => RegExp('^' + options.dataset).test(e))
-  //   } else {
-  //     return datasetsInfo.map(e => e.name)
-  //   }
-  // }
-
   help() {
     return {
       description: ['Uses a specific dataset.'],
@@ -52,6 +42,13 @@ class Use extends require('../Command') {
         ['use main', 'uses the default dataset;', 'the default dataset cannot be renamed']
       ]
     }
+  }
+
+  isValid(n) {
+    if (/^\d+/.test(n)) {
+      throw new Error('The name of the dataset cannot start with a number')
+    }
+    return true
   }
 
   async use(options) {
@@ -69,7 +66,7 @@ class Use extends require('../Command') {
       if (!newSet && !options.create) {
         throw new Error('The dataset does not exist; add "-c" to create it')
       }
-      if (newSet && options.rename) {
+      if (newSet && options.rename && this.isValid(options.rename)) {
         if (['main', 'trash'].includes(options.dataset)) {
           throw new Error('main and trash cannot be renamed')
         }
@@ -89,7 +86,7 @@ class Use extends require('../Command') {
         return `You are already using ${options.dataset}`
       } else if (newSet) {
         await this.internalFs.mountTree(newSet.index, true)
-      } else {
+      } else if (this.isValid(options.dataset)){
         let index = datasetsInfo[datasetsInfo.length - 1].index + 1
         await this.internalFs.mountTree(index, true)
         await this.internalFs.tree.nameDataset(options.dataset)
@@ -115,9 +112,5 @@ class Use extends require('../Command') {
     await this.prompt.run()
   }
 }
-
-/*
-(archive:/DigitalOcean) Secrez $
- */
 
 module.exports = Use
