@@ -77,7 +77,6 @@ class Command extends PreCommand {
     }
   }
 
-
   threeRedDots(large) {
     return chalk.cyan(large ? '•••' : '···')
   }
@@ -92,7 +91,7 @@ class Command extends PreCommand {
     if (options._unknown) {
       throw new Error(`Unknown option: ${options._unknown} ` + chalk.grey(`(run "${this.constructor.name.toLowerCase()} -h" for help)`))
     }
-    if (options.path && /^#\d+\//.test(options.path)) {
+    if (options.path && (/^#\d+\//.test(options.path) || /^#\d+\w+:\//.test(options.path))) {
       options.path = options.path.replace(/^#\d+/, '')
     }
     if (mandatoryOptions) {
