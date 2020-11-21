@@ -212,6 +212,13 @@ class CommandPrompt {
     return 'grey'
   }
 
+  onBeforeRewrite(line) {
+    if (/ #\d+(\w+:|)\/[\w/]+/.test(line)) {
+      line = line.replace(/ #\d+((\w+:|)\/[\w/]+)/,' $1')
+    }
+    return line
+  }
+
   async run(options = {}) {
     await this.firstRun()
     await this.preRun(options)
@@ -233,6 +240,7 @@ class CommandPrompt {
           ellipsize: true,
           autocompletePrompt: this.availableOptionsMessage(),
           onBeforeKeyPress: this.clearScreen.setLastCommandAt,
+          onBeforeRewrite: this.onBeforeRewrite,
           context: this.context,
           onClose: () => {
             fs.emptyDirSync(this.secrez.config.tmpPath)
