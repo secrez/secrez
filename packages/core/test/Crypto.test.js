@@ -104,6 +104,7 @@ describe('#Crypto', function () {
       let ts = 1576126788489..toString(16)
       let expected = [1, 110, 248, 122, 51, 137]
       let result = Crypto.hexToUint8Array(ts)
+      assert.isTrue(Crypto.isUint8Array(result))
       for (let i = 0; i < result.length; i++) {
         assert.equal(result[i], expected[i])
       }

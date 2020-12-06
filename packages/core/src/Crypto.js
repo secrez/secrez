@@ -238,8 +238,13 @@ class Crypto {
     return pair
   }
 
-  static generateSignatureKeyPair(noEncode) {
-    const pair = sign.keyPair()
+  static generateSignatureKeyPair(noEncode, seed) {
+    let pair
+    if (seed) {
+      pair = sign.keyPair.fromSeed(seed)
+    } else {
+      pair = sign.keyPair()
+    }
     return pair
   }
 
