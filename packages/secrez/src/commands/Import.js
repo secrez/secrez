@@ -261,7 +261,7 @@ class Import extends require('../Command') {
       }
       let name = path.basename(p)
       if (!isYaml(name)) {
-        name += '.yml'
+        name += '.yaml'
       }
       name = await this.internalFs.tree.getVersionedBasename(path.join(dirname, name), dir)
       this.Logger.reset(path.join(dirname, name))

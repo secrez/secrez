@@ -22,7 +22,7 @@
   },
   "preferGlobal": true,
   "dependencies": {
-    "@secrez/core": "workspace:~0.8.5",
+    "@secrez/core": "workspace:~0.8.6",
     "@secrez/tls": "workspace:~0.1.3",
     "@secrez/utils": "workspace:~0.1.5",
     "book": "1.3.3",

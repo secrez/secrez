@@ -396,6 +396,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.8.7__
+* Importing from a CSV file generates `.yaml` file instead of `.yml` 
+
 __0.8.6__
 * Uses new onBeforeRewrite in [inquirer-command-prompt](https://github.com/sullof/inquirer-command-prompt) to remove the `#\d` when autocompleting the result of a search
 
