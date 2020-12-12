@@ -96,7 +96,7 @@ class Import extends require('../Command') {
         ['import ~/data -s', 'simulates the process listing all involved files'],
         ['import backup.csv -e /imported', 'imports a backup creating files in the "/imported"'],
         ['import backup.json -e .', 'imports a backup in the current folder'],
-        ['import backup.csv -e /', 'imports a backup in the root'],
+        ['import backup.csv -e / -m', 'imports a backup in the root, deleting the CSV file from the disk'],
         ['import backup.csv -te /', 'imports a backup saving the tags field as actual tags'],
         ['import backup.csv -ute /fromPasspack',
           'uses the tags to prefix the path and keeps the tags;',
@@ -336,7 +336,7 @@ class Import extends require('../Command') {
       } else {
         if (/\.csv$/i.test(options.path)) {
           let yes = await this.useConfirm({
-            message: `You are importing a CSV file as a single file.\nMaybe, you wanted to import from a backup and forgot to specify the expand (-e) option.\nAre you sure you want to proceed?`,
+            message: 'You are importing a CSV file as a single file.\nMaybe, you wanted to import from a backup and forgot to specify the expand (-e) option.\nAre you sure you want to proceed?',
             default: false
           })
           if (!yes) {

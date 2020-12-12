@@ -115,13 +115,40 @@ To mitigate this risk, you can create a new Git repo, save everything as the fir
 
 Secrez manages trees as single immutable files. During a session, temporary files are deleted to keep their number low, but at the exit, the last file remains in the repo.
 
-## Security details when launching secrez
 
-When you initially create a secrez database (stored, by default, in `~/.secrez`) you should indicate the number of iterations.
+## How to install it
+
+First, Secrez require at least Node 10. If you have installed a previous version it will generates unclear errors and refuse to install or work. I suggest you install Node using `nvm`, if you can. For more info look at [https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm).
+
+To install Secrez globally you can use Npm
+
+```
+npm install -g secrez
+```
+
+but, since this monorepo uses pnpm, it is even better if you use pnpm because the lock file will be used avoid unespected conflicts among modules.  
+To install pnpm run
+
+```
+npm i -g pnpm
+```
+and later
+```
+pnpm i -g secrez
+```
+
+## How to use it
+
+In the simplest case, you can just run
+```
+secrez
+```
+
+At first run, Secrez will ask you for the number of iterations (suggested between 500000 and 1000000, but the more the better) and a master password — ideally a phrase hard to guess, but easy to remember and type, something like, for example "heavy march with 2 eggs" or "grace was a glad president".
 
 Since Secrez derives a master key from your password using `crypto.pbkdf2`, the number of iterations is a significant addition to the general security because the number of iterations is part of the salt used for the derivation. Even if you use a not-very-hard-to-guess password, if the attacker does not know the number of iterations, he has to try all the possible ones. Considering that 2,000,000 iterations require a second or so, customizable iterations increases enormously the overall security.
 
-You can set up the number of iterations calling
+At first launch, you can also explicitly set up the number of iterations:
 ```
 secrez -i 1023896
 ```
@@ -131,31 +158,65 @@ secrez -si 876352
 ```
 where the `-s` option saves the number locally in a git-ignored `env.json` file. This way you don't have to retype it all the time to launch Secrez (typing a wrong number of iterations, of course, will produce an error).
 
-If you don't explicitly set up the number of iterations, a value for that is asked during the set up, before your password, and, if you passed the options `-s`, is saved in `env.json`.
+You can save locally the number of iterations adding the options `-s`, like:
+```
+secrez -s
+```
 
-Starting from version 0.7.0, you can change the number of iterations using, as well as the password, using `conf`.
+It is possible that the number of iterations you chose makes the initial decryption too slow. You can change it inside the Secrez CLI with the command `conf`. 
 
-Other options are:
+Other options at launch are:
 
 - `-l` to set up the initial "external" folder on you computer
-- `-c` to set up the folder where the encrypted data are located
+- `-c` to set up the container (i.e, the folder) where the encrypted data are located
 
-Both are your homedir (`~`) by default.
-Basically, running Secrez in different containers (`-c` option) you can set up multiple independent encrypted databases. For example:
+By default, both folders are your homedir (`~`).
+
+Running Secrez in different containers (with the `-c` option), you can set up multiple independent encrypted databases. For example:
 ```
 secrez -c ~/data/secrez
 ```
 
+## How to set up a Git repo for the data
 
+The best way to go is to set up a repo on your own server. If you can't do that, using a private repo on a service like GitHub is not a bad option. Let's see how you can configure it in this second case.
 
-
-## Install
+First, you go to GitHub and create a new private repo. Don't add anything like README, Licence, etc. In the next page, GitHub will show you the command you must run to set up it locally. Here is an example, imagining that your data are in the default folder
 
 ```
-npm install -g secrez
+cd ~/.secrez
+git init
+git commit -m "first commit"
+git branch -M main
+git remote add origin git@github.com:sullof/jarrabish.git
+git push -u origin main
+
 ```
 
-At first run, secrez will ask you for the number of iterations (suggested between 500000 and 1000000, but the more the better) and a master password — ideally a phrase hard to guess, but easy to remember and type, something like, for example "heavy march with 2 eggs" or "grace was a glad president".
+In the future, I will add a `git` command inside the Secrez CLI. For now, you can use the `bash` command to update your repo when you change something, like
+```
+bash "git add . --all"
+bash "git commit -m 'some change'"
+bash "git push origin main"
+```
+
+To get faster, you can create an alias like
+```
+alias gitpush -c "lcd ~/.secrez && bash 'git add . --all' && bash 'git commit Something' && bash 'git push origin main'"
+
+```
+and, later, just execute
+```
+gitpush
+```
+every time you want to push changes to the repo.
+
+_Notice that I refer to `main` as the master branch, because recently GitHub is using that by default._ 
+
+**What about Mercurial or Subversion?**
+
+Of course, you can use a different version control system.  
+If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.  
 
 ## The commands
 
@@ -333,6 +394,23 @@ You can also simulate the process to see which files will be created with the op
 
 If in the CSV file there is also the field `tags`, you can tag automatically any entries with the options `-t, --tags`. If you don't use the option, instead, they will be saved in the yaml file like any other field.
 
+**What if there is no path field?**
+
+Let's say that you want to import a CSV file exported by LastPass. There is not `path` field but you probably want to use the fields `grouping` and `name` to build the path. From version `0.8.8`, you can do it, launching, for example:
+```
+import ~/Downloads/lastpass_export.csv -e lastpass -P grouping name
+```
+or, if you like to put everything in the folder `lastpass` without generating any subfolder, you can just run
+```
+import ~/Downloads/lastpass_export.csv -e lastpass -P name -m
+```
+using only the `name` field. Still, if in the name there is any slash, a subfolder will be created. The `-m` option will remove the csv file from the OS.
+
+**Best practices**
+
+For security reason, if would be better if you do the export from you password manager and the import into Secrez as fast as possible, removing the exported file from your OS using `-m`.
+
+Still, it is convenient to edit the exported file to fix paths and names. Doing it after than the data is imported can require a lot more time. Think about it.
 
 ## Second factor authentication
 
@@ -400,6 +478,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ## History
+
+__0.8.8__
+* Add the option `pathFrom` in `import` to build the `path` field using other fields
 
 __0.8.7__
 * Importing from a CSV file generates `.yaml` file instead of `.yml` 

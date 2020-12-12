@@ -5,17 +5,11 @@ const {execSync} = require('child_process')
 let packages = {}
 execSync(`git diff master --name-only`).toString().split('\n').map(e => {
   let m = e.split('/')
-  console.log(m)
   if (m[0] === 'packages' && (m[2] === 'src' || m[2] === 'package.json')) {
     packages[m[1]] = true
   }
   return e
 })
-
-console.log(JSON.stringify(packages, null, 2))
-
-process.exit()
-
 
 let packagesFolder = fs.readdirSync(path.resolve(__dirname, '../packages'))
 
