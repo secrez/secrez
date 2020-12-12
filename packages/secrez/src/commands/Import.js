@@ -1,6 +1,8 @@
 const fs = require('fs-extra')
 const path = require('path')
 const utils = require('@secrez/utils')
+const Case = require('case')
+const _ = require('lodash')
 const {config, Entry} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 const {fromCsvToJson, yamlStringify, isYaml} = require('@secrez/utils')
@@ -63,6 +65,12 @@ class Import extends require('../Command') {
         name: 'use-tags-for-paths',
         alias: 'u',
         type: Boolean
+      },
+      {
+        name: 'path-from',
+        alias: 'P',
+        type: String,
+        multiple: true
       }
     ]
   }
@@ -75,7 +83,9 @@ class Import extends require('../Command') {
         'To include them, use the -b option.',
         'During a move, only the imported files are moved. To avoid problems',
         'you can simulate the process using -s and see which ones will be imported.',
-        'Import can import data from password managers and other software. If in CSV format, the first line must list the field names and one field must be "path". Similarly, if in JSON format, a "path" key is mandatory in any item. Path should be relative. If not, it will be converted.'
+        'Import can import data from password managers and other software. If in CSV format, the first line must list the field names and one field must be "path". Similarly, if in JSON format, a "path" key is mandatory in any item. Path should be relative. If not, it will be converted.',
+        'Also notice that to import from a CSV file you must specify where to expand the data, if not',
+        'the file will be imported as a single file.'
       ],
       examples: [
         ['import seed.json', 'copies seed.json from the disk into the current directory'],
@@ -87,14 +97,19 @@ class Import extends require('../Command') {
         ['import backup.csv -e /imported', 'imports a backup creating files in the "/imported"'],
         ['import backup.json -e .', 'imports a backup in the current folder'],
         ['import backup.csv -e /', 'imports a backup in the root'],
-        ['import backup.csv -t /', 'imports a backup saving the tags field as actual tags'],
-        ['import backup.csv -ut /fromPasspack',
+        ['import backup.csv -te /', 'imports a backup saving the tags field as actual tags'],
+        ['import backup.csv -ute /fromPasspack',
           'uses the tags to prefix the path and keeps the tags;',
           'ex: if "google" is tagged "web,email" the path becomes',
           '"./web/email/google" or "./email/web/google"',
           'based on the tag weight'
         ],
-        ['import backup.csv -u /fromPasspack', 'uses the tags to prefix the path without saving the tags']
+        ['import backup.csv -ue /fromPasspack', 'uses the tags to prefix the path without saving the tags'],
+        ['import lastpass.csv -e /imports -P grouping name', 'concatenates the fields "grouping" and "name" to obtain the path'],
+        ['import backup.csv -e /imports -P "entry name"',
+          'uses the field "entry name" for the path,',
+          'i.e., puts everything in the directory /imports,',
+          'without creating any subdirectory']
       ]
     }
   }
@@ -196,7 +211,22 @@ class Import extends require('../Command') {
       return this.Logger.red('The data is empty')
     }
     if (!data[0].path) {
-      return this.Logger.red('The data misses a path field')
+      if (options.pathFrom) {
+        let pathFrom = options.pathFrom.map(e => Case.snake(_.trim(e)))
+        for (let item of data) {
+          let p = ''
+          for (let f of pathFrom) {
+            p += (p ? '/' : '') + (typeof item[f] !== 'undefined' ? item[f] : '')
+            delete item[f]
+          }
+          if (!p) {
+            throw new Error('Path cannot be built from the specified fields')
+          }
+          item.path = p.replace(/\/+/g, '/')
+        }
+      } else {
+        return this.Logger.red('The data misses a path field')
+      }
     }
     if (options.useTagsForPaths) {
       let weightedTags = {}
@@ -304,6 +334,16 @@ class Import extends require('../Command') {
       if (options.expand) {
         await this.expand(options)
       } else {
+        if (/\.csv$/i.test(options.path)) {
+          let yes = await this.useConfirm({
+            message: `You are importing a CSV file as a single file.\nMaybe, you wanted to import from a backup and forgot to specify the expand (-e) option.\nAre you sure you want to proceed?`,
+            default: false
+          })
+          if (!yes) {
+            await this.prompt.run()
+            return
+          }
+        }
         let files = await this.import(options)
         if (files.length) {
           let extra = ''

@@ -40,7 +40,7 @@ describe('#Import', function () {
     await C.import.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
-    assert.isTrue(/-h, --help/.test(output[9]))
+    assert.isTrue(/-h, --help/.test(output[11]))
 
   })
 
@@ -271,14 +271,14 @@ describe('#Import', function () {
     inspect.restore()
     assertConsole(inspect, [
       'Imported files:',
-      '/folder/imported/webs/SampleEntryTitle.yml',
-      '/folder/imported/passwords/twitter/Multi-Line Test Entry.yml',
-      '/folder/imported/tests/Entry To Test/Special Characters.yml',
-      '/folder/imported/tests/Entry To Test/JSON data/1.yml',
-      '/folder/imported/webs/SampleEntryTitle.2.yml'
+      '/folder/imported/webs/SampleEntryTitle.yaml',
+      '/folder/imported/passwords/twitter/Multi-Line Test Entry.yaml',
+      '/folder/imported/tests/Entry To Test/Special Characters.yaml',
+      '/folder/imported/tests/Entry To Test/JSON data/1.yaml',
+      '/folder/imported/webs/SampleEntryTitle.2.yaml'
     ])
 
-    let newSecret = await C.cat.cat({path: '/folder/imported/webs/SampleEntryTitle.yml', unformatted: true})
+    let newSecret = await C.cat.cat({path: '/folder/imported/webs/SampleEntryTitle.yaml', unformatted: true})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     let content = fromSimpleYamlToJson(newSecret[0].content)
     assert.equal(content.password, 'ycXfARD2G1AOBzLlhtbn')
@@ -296,20 +296,20 @@ describe('#Import', function () {
     inspect.restore()
     assertConsole(inspect, [
       'Imported files:',
-      '/imported2/webs/SampleEntryTitle.yml',
-      '/imported2/passwords/twitter/Multi-Line Test Entry.yml',
-      '/imported2/tests/Entry To Test/Special Characters.yml',
-      '/imported2/tests/Entry To Test/JSON data/1.yml',
-      '/imported2/webs/SampleEntryTitle.2.yml'
+      '/imported2/webs/SampleEntryTitle.yaml',
+      '/imported2/passwords/twitter/Multi-Line Test Entry.yaml',
+      '/imported2/tests/Entry To Test/Special Characters.yaml',
+      '/imported2/tests/Entry To Test/JSON data/1.yaml',
+      '/imported2/webs/SampleEntryTitle.2.yaml'
     ])
 
-    let newSecret = await C.cat.cat({path: '/imported2/webs/SampleEntryTitle.yml', unformatted: true})
+    let newSecret = await C.cat.cat({path: '/imported2/webs/SampleEntryTitle.yaml', unformatted: true})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     let content = fromSimpleYamlToJson(newSecret[0].content)
     assert.equal(content.password, 'ycXfARD2G1AOBzLlhtbn')
     assert.isUndefined(content.tags)
 
-    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/webs/SampleEntryTitle.yml')
+    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/webs/SampleEntryTitle.yaml')
     assert.equal(prompt.internalFs.tree.getTags(node).join(' '), 'email eth')
 
   })
@@ -326,20 +326,20 @@ describe('#Import', function () {
     inspect.restore()
     assertConsole(inspect, [
       'Imported files:',
-      '/imported2/eth/email/webs/SampleEntryTitle.yml',
-      '/imported2/some/two/passwords/twitter/Multi-Line Test Entry.yml',
-      '/imported2/tests/Entry To Test/Special Characters.yml',
-      '/imported2/eth/web/tests/Entry To Test/JSON data/1.yml',
-      '/imported2/webs/SampleEntryTitle.yml'
+      '/imported2/eth/email/webs/SampleEntryTitle.yaml',
+      '/imported2/some/two/passwords/twitter/Multi-Line Test Entry.yaml',
+      '/imported2/tests/Entry To Test/Special Characters.yaml',
+      '/imported2/eth/web/tests/Entry To Test/JSON data/1.yaml',
+      '/imported2/webs/SampleEntryTitle.yaml'
     ])
 
-    let newSecret = await C.cat.cat({path: '/imported2/eth/email/webs/SampleEntryTitle.yml', unformatted: true})
+    let newSecret = await C.cat.cat({path: '/imported2/eth/email/webs/SampleEntryTitle.yaml', unformatted: true})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     let content = fromSimpleYamlToJson(newSecret[0].content)
     assert.equal(content.password, 'ycXfARD2G1AOBzLlhtbn')
     assert.isUndefined(content.tags)
 
-    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/eth/email/webs/SampleEntryTitle.yml')
+    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/eth/email/webs/SampleEntryTitle.yaml')
     assert.equal(prompt.internalFs.tree.getTags(node).length, 2)
 
   })
@@ -355,21 +355,59 @@ describe('#Import', function () {
     inspect.restore()
     assertConsole(inspect, [
       'Imported files:',
-      '/imported2/eth/email/webs/SampleEntryTitle.yml',
-      '/imported2/some/two/passwords/twitter/Multi-Line Test Entry.yml',
-      '/imported2/tests/Entry To Test/Special Characters.yml',
-      '/imported2/eth/web/tests/Entry To Test/JSON data/1.yml',
-      '/imported2/webs/SampleEntryTitle.yml'
+      '/imported2/eth/email/webs/SampleEntryTitle.yaml',
+      '/imported2/some/two/passwords/twitter/Multi-Line Test Entry.yaml',
+      '/imported2/tests/Entry To Test/Special Characters.yaml',
+      '/imported2/eth/web/tests/Entry To Test/JSON data/1.yaml',
+      '/imported2/webs/SampleEntryTitle.yaml'
     ])
 
-    let newSecret = await C.cat.cat({path: '/imported2/eth/email/webs/SampleEntryTitle.yml', unformatted: true})
+    let newSecret = await C.cat.cat({path: '/imported2/eth/email/webs/SampleEntryTitle.yaml', unformatted: true})
     assert.equal(newSecret[0].type, prompt.secrez.config.types.TEXT)
     let content = fromSimpleYamlToJson(newSecret[0].content)
     assert.equal(content.password, 'ycXfARD2G1AOBzLlhtbn')
     assert.isUndefined(content.tags)
 
-    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/eth/email/webs/SampleEntryTitle.yml')
+    let node = prompt.internalFs.tree.root.getChildFromPath('/imported2/eth/email/webs/SampleEntryTitle.yaml')
     assert.equal(prompt.internalFs.tree.getTags(node).length, 0)
+
+  })
+
+  it('should import from a LastPass-like csv setting the path from "grouping" and "name"', async function () {
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../lastpass_export.csv',
+      expand: './lastpass',
+      pathFrom: ['grouping', 'name'],
+      useTagsForPaths: true
+    })
+
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/lastpass/News/Reference/HackerNews/YC.yaml',
+      '/lastpass/Productivity Tools/asana.com.yaml',
+      '/lastpass/lombardstreet.io WP.yaml',
+      '/lastpass/amazon.it personal.yaml'
+    ])
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../lastpass_export.csv',
+      expand: './lastpass2',
+      pathFrom: ['not_existing', 'name'],
+      useTagsForPaths: true
+    })
+
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/lastpass2/HackerNews/YC.yaml',
+      '/lastpass2/asana.com.yaml',
+      '/lastpass2/lombardstreet.io WP.yaml',
+      '/lastpass2/amazon.it personal.yaml'
+    ])
 
   })
 
@@ -383,10 +421,10 @@ describe('#Import', function () {
     inspect.restore()
     assertConsole(inspect, [
       'Imported files:',
-      '/imported3/webs/SampleEntryTitle.yml',
-      '/imported3/passwords/twitter/Multi-Line Test Entry.yml',
-      '/imported3/tests/Entry To Test/Special Characters.yml',
-      '/imported3/tests/Entry To Test/JSON data/1.yml'
+      '/imported3/webs/SampleEntryTitle.yaml',
+      '/imported3/passwords/twitter/Multi-Line Test Entry.yaml',
+      '/imported3/tests/Entry To Test/Special Characters.yaml',
+      '/imported3/tests/Entry To Test/JSON data/1.yaml'
     ])
 
   })
@@ -425,6 +463,20 @@ describe('#Import', function () {
     })
     inspect.restore()
     assertConsole(inspect, ['The header of the CSV looks wrong'])
+
+  })
+
+  it('should throw importing a CSV indicating wrong fields to generate the path', async function () {
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../lastpass_export.csv',
+      expand: './lastpass',
+      pathFrom: ['folder'],
+      useTagsForPaths: true
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Path cannot be built from the specified fields'])
 
   })
 

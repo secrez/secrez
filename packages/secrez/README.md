@@ -115,7 +115,7 @@ To mitigate this risk, you can create a new Git repo, save everything as the fir
 
 Secrez manages trees as single immutable files. During a session, temporary files are deleted to keep their number low, but at the exit, the last file remains in the repo.
 
-## Security details
+## Security details when launching secrez
 
 When you initially create a secrez database (stored, by default, in `~/.secrez`) you should indicate the number of iterations.
 
@@ -141,7 +141,12 @@ Other options are:
 - `-c` to set up the folder where the encrypted data are located
 
 Both are your homedir (`~`) by default.
-Basically, running Secrez with different containers (`-c` option) you can set up multiple independent encrypted databases.
+Basically, running Secrez in different containers (`-c` option) you can set up multiple independent encrypted databases. For example:
+```
+secrez -c ~/data/secrez
+```
+
+
 
 
 ## Install
