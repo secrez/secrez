@@ -71,7 +71,7 @@ class Conf extends require('../Command') {
         ['conf -s', 'shows the general settings'],
         ['conf --fido2 -r solo',
           'registers a new key saving it as "solo"; if there are registered keys, it will checks if the new one is one of them before adding it.'],
-        ['conf', 'lists all settings, included second factors'],
+        ['conf -l', 'lists second factors'],
         ['conf --recovery-code -r memo',
           'registers an emergency recovery code called "memo" to be used if all the factors are lost'],
         ['conf --recovery-code -r seed --use-this "salad spring peace silk snake real they thunder please final clinic close"', 'registers an emergency recovery code called "seed" using the seed passed with the parameter "--use-this"'],
@@ -131,12 +131,10 @@ class Conf extends require('../Command') {
 
   async showConf(options) {
     const env = await ConfigUtils.getEnv(this.secrez.config)
-
-    // this.Logger.reset('Account settings:')
     this.Logger.reset(chalk.grey('Container: ') + this.secrez.config.container)
+    this.Logger.reset(chalk.grey('Number of iterations: ') + (env.iterations || chalk.yellow('-- not saved locally --')))
     let seconds = env.clearScreenAfter || this.cliConfig.clearScreenAfter
-    this.Logger.grey(`Clean screen after ${chalk.reset(seconds)} ${chalk.grey('seconds')}`)
-
+    this.Logger.grey(`Clean screen after: ${chalk.reset(seconds)} ${chalk.grey('seconds')}`)
   }
 
   async setClearScreenTime(options) {
@@ -407,7 +405,7 @@ class Conf extends require('../Command') {
             }
           }
         }
-      } else {
+      } else if (it) {
         let iterations = await this.useInput({
           message: 'Type the new number of iterations',
           name: 'password',
@@ -467,9 +465,9 @@ class Conf extends require('../Command') {
       return this.showHelp()
     }
     try {
-      if (!Object.keys(options).length) {
-        options.list = true
-      }
+      // if (!Object.keys(options).length) {
+      //   options.list = true
+      // }
       this.validate(options)
       if (options.fido2 && options.recoveryCode) {
         throw new Error('Conflicting params. Launch "conf -h" for examples.')
