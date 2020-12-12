@@ -5,7 +5,6 @@ const basex = require('base-x')
 const microtime = require('microtime')
 const shamir = require('shamir')
 const bip39 = require('bip39')
-const blake3 = require('blake3')
 
 const {
   box,
@@ -93,10 +92,6 @@ class Crypto {
     const hash = new Keccak(256)
     hash.update(data)
     return hash.digest()
-  }
-
-  static toBlake3(data, key) {
-    return blake3.hash(data + (key ? key : ''))
   }
 
   static getRandomString(length = 12, encode = 'hex') {

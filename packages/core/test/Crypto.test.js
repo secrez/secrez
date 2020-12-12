@@ -14,7 +14,6 @@ const {
 const {
   password,
   b58Hash,
-  blake3Keyed,
   b32Hash,
   passwordSHA3Hex,
   passwordB64,
@@ -167,10 +166,6 @@ describe('#Crypto', function () {
       assert.equal(Crypto.b32Hash(password), b32Hash)
       assert.equal(Crypto.b32Hash(password, 10), b32Hash.substring(0,10))
       assert.isTrue(Crypto.isValidB32Hash(b32Hash))
-    })
-
-    it('should generate a blake3 hash', async function () {
-      assert.equal(Crypto.toBase32(Crypto.toBlake3(password, salt)), blake3Keyed)
     })
 
   })

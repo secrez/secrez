@@ -2,7 +2,6 @@ module.exports = {
   password: 'unaSTRANA342',
   newPassword: 'sa7sau3h33y2hhes',
   b58Hash: 'J5JDehfYiYFyRcySdHQNiCJdVrsrUyVtpCEXU7fBQ6q3',
-  blake3Keyed: 'b6w7z3g8ycgw4fx3imigf4n61k4qip8e36f6nif48jrxckspsg16',
   b32Hash: 'b9poxy4pq63ow7ex8ckksbioyb3o7az1zpjkoozhxdm15ngeryhq',
   passwordSHA3Hex: 'fdb07834d77b30a750f3b14ab06b000730ee2f2bb52a842fc78d72d88c82038e',
   passwordB64: 'dW5hU1RSQU5BMzQy',
