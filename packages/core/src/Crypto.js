@@ -233,7 +233,15 @@ class Crypto {
     return pair
   }
 
-  static generateSignatureKeyPair(noEncode, seed) {
+  static seedFromPassphrase(passphrase) {
+    if (typeof passphrase === 'string' && passphrase.length > 0) {
+      return Uint8Array.from(Crypto.SHA3(passphrase))
+    } else {
+      throw new Error('Not a valid string')
+    }
+  }
+
+  static generateSignatureKeyPair(seed) {
     let pair
     if (seed) {
       pair = sign.keyPair.fromSeed(seed)
@@ -243,11 +251,20 @@ class Crypto {
     return pair
   }
 
-  static isValidPublicKey(pk) {
-    if (pk instanceof Uint8Array) {
-      return pk.length === box.publicKeyLength
+  static isValidPublicKey(key) {
+    if (key instanceof Uint8Array) {
+      return key.length === 32
+    } else {
+      return false
     }
-    return false
+  }
+
+  static isValidSecretKey(key) {
+    if (key instanceof Uint8Array) {
+      return key.length === 64
+    } else {
+      return false
+    }
   }
 
   static getSharedSecret(theirPublicKey, mySecretKey) {

@@ -19,7 +19,9 @@ const {
   passwordB64,
   salt,
   iterations,
-  hash23456iterations
+  hash23456iterations,
+  passphrase,
+  signaturePair
 } = require('./fixtures')
 
 describe('#Crypto', function () {
@@ -157,14 +159,14 @@ describe('#Crypto', function () {
 
     it('should generate a sha3 in b58 format', async function () {
       assert.equal(Crypto.b58Hash(password), b58Hash)
-      assert.equal(Crypto.b58Hash(password, 10), b58Hash.substring(0,10))
+      assert.equal(Crypto.b58Hash(password, 10), b58Hash.substring(0, 10))
       assert.isTrue(Crypto.isValidB58Hash(b58Hash))
     })
 
     it('should generate a sha3 in b32 format', async function () {
       this.timeout(20000)
       assert.equal(Crypto.b32Hash(password), b32Hash)
-      assert.equal(Crypto.b32Hash(password, 10), b32Hash.substring(0,10))
+      assert.equal(Crypto.b32Hash(password, 10), b32Hash.substring(0, 10))
       assert.isTrue(Crypto.isValidB32Hash(b32Hash))
     })
 
@@ -274,6 +276,35 @@ describe('#Crypto', function () {
       const verified = Crypto.verifySignature(msg, signature, pair.publicKey)
       assert.isTrue(verified)
 
+    })
+
+    it('should derive a valid seed from a passphrase', async function () {
+      let passphrase = 'some random passphrase'
+      let seed = Crypto.seedFromPassphrase(passphrase)
+      assert.isTrue(Crypto.isUint8Array(seed))
+      assert.equal(seed.length, 32)
+
+      try {
+        Crypto.seedFromPassphrase(234)
+      } catch (e) {
+        assert.equal(e.message, 'Not a valid string')
+      }
+
+      try {
+        Crypto.seedFromPassphrase('')
+      } catch (e) {
+        assert.equal(e.message, 'Not a valid string')
+      }
+
+    })
+
+    it('should generate an ed25519 key pair from a seed', async function () {
+      let seed = Crypto.seedFromPassphrase(passphrase)
+      let pair = Crypto.generateSignatureKeyPair(seed)
+      assert.isTrue(Crypto.isValidPublicKey(pair.publicKey))
+      assert.isTrue(Crypto.isValidSecretKey(pair.secretKey))
+      assert.equal(pair.publicKey.join(','), signaturePair.publicKey.join(','))
+      assert.equal(pair.secretKey.join(','), signaturePair.secretKey.join(','))
     })
 
   })
