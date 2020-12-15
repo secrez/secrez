@@ -191,7 +191,7 @@ describe('#Crypto', function () {
     it('should encrypt and decrypt a string', async function () {
       const key = Crypto.generateKey()
 
-      let encrypted = Crypto.encrypt(hash23456iterations, key, undefined)
+      let encrypted = Crypto.encrypt(hash23456iterations, key)
       let decrypted = Crypto.decrypt(encrypted, key)
       assert.equal(hash23456iterations, decrypted)
     })
@@ -203,6 +203,17 @@ describe('#Crypto', function () {
       let recoveredNonce = Crypto.getNonceFromMessage(encrypted)
       for (let i = 0; i < nonce.length; i++) {
         assert.equal(nonce[i], recoveredNonce[i])
+      }
+    })
+
+    it('should throw if the encrypted data is wrong', async function () {
+      const key = Crypto.generateKey()
+      try {
+        let encrypted = Crypto.encrypt(hash23456iterations, key) + '5F'
+        Crypto.decrypt(encrypted, key)
+        assert.equal(true, 'Should throw')
+      } catch (e) {
+        assert.equal(e.message, 'Could not decrypt message')
       }
     })
   })
@@ -242,14 +253,6 @@ describe('#Crypto', function () {
       const msg = 'Some message'
       try {
         let encrypted = Crypto.boxEncrypt(sharedA, msg, key) + '5F'
-        Crypto.boxDecrypt(sharedB, encrypted, key)
-        assert.equal(true, 'Should throw')
-      } catch (e) {
-        assert.equal(e.message, 'Could not decrypt message')
-      }
-      try {
-        let encrypted = Crypto.boxEncrypt(sharedA, msg, key)
-        encrypted = encrypted.substring(0, encrypted.length - 2)
         Crypto.boxDecrypt(sharedB, encrypted, key)
         assert.equal(true, 'Should throw')
       } catch (e) {
