@@ -17,6 +17,7 @@ function checkAndGetCoverage(dir) {
 
 checkAndGetCoverage('utils')
 checkAndGetCoverage('test-helpers')
+checkAndGetCoverage('crypto')
 checkAndGetCoverage('core')
 checkAndGetCoverage('courier')
 checkAndGetCoverage('fs')

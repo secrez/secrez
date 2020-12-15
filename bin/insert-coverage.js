@@ -12,6 +12,7 @@ let target = process.argv[2]
 if (![
   'core',
   'courier',
+  'crypto',
   'fs',
   'hub',
   'secrez',

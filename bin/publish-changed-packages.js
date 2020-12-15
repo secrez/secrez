@@ -25,6 +25,7 @@ function checkAndPublish(dir) {
 
 checkAndPublish('utils', '@secrez')
 checkAndPublish('test-helpers', '@secrez')
+checkAndPublish('crypto', '@secrez')
 checkAndPublish('core', '@secrez')
 checkAndPublish('courier', '@secrez')
 checkAndPublish('fs', '@secrez')
