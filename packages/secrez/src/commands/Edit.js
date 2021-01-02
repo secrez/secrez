@@ -172,7 +172,7 @@ class Edit extends require('../Command') {
         if (!result.message || result.code === 1) {
           result = await execAsync('which', __dirname, ['vim'])
           if (!result.message || result.code === 1) {
-            throw new Error('No text editor found. Set up the EDITOR env variable or use the -e option to use your text editor. Type "edit -h" for more options.')
+            throw new Error('No text editor found. Set up the EDITOR env variable or use the -e option. Type "edit -h" for more options.')
           } else {
             process.env.EDITOR = 'vim'
           }
