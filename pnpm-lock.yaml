@@ -27,9 +27,9 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/crypto': 'workspace:~0.1.1'
-      '@secrez/test-helpers': 'workspace:~0.1.3'
-      '@secrez/utils': 'workspace:~0.1.5'
+      '@secrez/crypto': 'workspace:~0.1.3'
+      '@secrez/test-helpers': 'workspace:~0.1.4'
+      '@secrez/utils': 'workspace:~0.1.6'
       base-x: ^3.0.8
       bip39: ^3.0.2
       chai: ^4.2.0
@@ -72,13 +72,13 @@ importers:
       eslint: 6.8.0
       mocha: 7.2.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.8'
-      '@secrez/fs': 'workspace:~0.8.4'
-      '@secrez/hub': 'workspace:~0.1.5'
-      '@secrez/test-helpers': 'workspace:~0.1.3'
-      '@secrez/tls': 'workspace:~0.1.3'
-      '@secrez/tunnel': 'workspace:~0.1.3'
-      '@secrez/utils': 'workspace:~0.1.5'
+      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/fs': 'workspace:~0.8.5'
+      '@secrez/hub': 'workspace:~0.1.6'
+      '@secrez/test-helpers': 'workspace:~0.1.4'
+      '@secrez/tls': 'workspace:~0.1.4'
+      '@secrez/tunnel': 'workspace:~0.1.4'
+      '@secrez/utils': 'workspace:~0.1.6'
       body-parser: ^1.19.0
       chai: ^4.2.0
       chalk: ^3.0.0
@@ -103,7 +103,7 @@ importers:
       tweetnacl: 1.0.3
       tweetnacl-util: 0.15.1
     devDependencies:
-      '@secrez/test-helpers': 'link:../test-helpers'
+      '@secrez/utils': 'link:../utils'
       chai: 4.2.0
       cross-env: 7.0.2
       eslint: 6.8.0
@@ -111,7 +111,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/test-helpers': 'workspace:~0.1.3'
+      '@secrez/utils': 'workspace:~0.1.6'
       base-x: ^3.0.8
       bip39: ^3.0.2
       chai: ^4.2.0
@@ -140,9 +140,9 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.8'
-      '@secrez/test-helpers': 'workspace:~0.1.3'
-      '@secrez/utils': 'workspace:~0.1.5'
+      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/test-helpers': 'workspace:~0.1.4'
+      '@secrez/utils': 'workspace:~0.1.6'
       chai: ^4.2.0
       command-line-args: ^5.1.1
       cross-env: ^7.0.2
@@ -176,10 +176,10 @@ importers:
       supertest: 4.0.2
       ws: 7.3.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.8'
-      '@secrez/test-helpers': 'workspace:~0.1.3'
-      '@secrez/tls': 'workspace:~0.1.3'
-      '@secrez/utils': 'workspace:~0.1.5'
+      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/test-helpers': 'workspace:~0.1.4'
+      '@secrez/tls': 'workspace:~0.1.4'
+      '@secrez/utils': 'workspace:~0.1.6'
       book: 1.3.3
       chai: 4.2.0
       chalk: ^3.0.0
@@ -229,12 +229,12 @@ importers:
       nyc: 15.1.0
       test-console: 1.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.8'
-      '@secrez/courier': 'workspace:~0.1.4'
-      '@secrez/fs': 'workspace:~0.8.4'
-      '@secrez/hub': 'workspace:~0.1.5'
-      '@secrez/test-helpers': 'workspace:~0.1.3'
-      '@secrez/utils': 'workspace:~0.1.5'
+      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/courier': 'workspace:~0.1.5'
+      '@secrez/fs': 'workspace:~0.8.5'
+      '@secrez/hub': 'workspace:~0.1.6'
+      '@secrez/test-helpers': 'workspace:~0.1.4'
+      '@secrez/utils': 'workspace:~0.1.6'
       case: ^1.6.3
       chai: ^4.2.0
       chalk: ^3.0.0
@@ -277,10 +277,10 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.8'
-      '@secrez/fs': 'workspace:~0.8.4'
-      '@secrez/hub': 'workspace:~0.1.5'
-      '@secrez/utils': 'workspace:~0.1.5'
+      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/fs': 'workspace:~0.8.5'
+      '@secrez/hub': 'workspace:~0.1.6'
+      '@secrez/utils': 'workspace:~0.1.6'
       chai: ^4.2.0
       chalk: ^3.0.0
       cross-env: ^7.0.2
@@ -307,8 +307,8 @@ importers:
       eslint: 6.8.0
       mocha: 7.2.0
     specifiers:
-      '@secrez/test-helpers': 'workspace:~0.1.3'
-      '@secrez/utils': 'workspace:~0.1.5'
+      '@secrez/test-helpers': 'workspace:~0.1.4'
+      '@secrez/utils': 'workspace:~0.1.6'
       chai: ^4.2.0
       chalk: ^4.1.0
       command-line-args: ^5.1.1
@@ -338,11 +338,11 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.8'
-      '@secrez/hub': 'workspace:~0.1.5'
-      '@secrez/test-helpers': 'workspace:~0.1.3'
-      '@secrez/tls': 'workspace:~0.1.3'
-      '@secrez/utils': 'workspace:~0.1.5'
+      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/hub': 'workspace:~0.1.6'
+      '@secrez/test-helpers': 'workspace:~0.1.4'
+      '@secrez/tls': 'workspace:~0.1.4'
+      '@secrez/utils': 'workspace:~0.1.6'
       chai: ^4.2.0
       chalk: ^3.0.0
       command-line-args: ^5.1.1
@@ -374,7 +374,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/test-helpers': 'workspace:~0.1.3'
+      '@secrez/test-helpers': 'workspace:~0.1.4'
       base58: ^2.0.1
       case: ^1.6.3
       chai: ^4.2.0
