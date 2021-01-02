@@ -27,7 +27,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/crypto': 'workspace:~0.1.0'
+      '@secrez/crypto': 'workspace:~0.1.1'
       '@secrez/test-helpers': 'workspace:~0.1.3'
       '@secrez/utils': 'workspace:~0.1.5'
       base-x: ^3.0.8
@@ -98,7 +98,6 @@ importers:
     dependencies:
       base-x: 3.0.8
       bip39: 3.0.2
-      microtime: 3.0.0
       sha3: 2.1.2
       shamir: 0.7.1
       tweetnacl: 1.0.3
@@ -119,7 +118,6 @@ importers:
       cross-env: ^7.0.2
       eslint: ^6.8.0
       eslint-plugin-node: ^11.1.0
-      microtime: ^3.0.0
       mocha: ^7.1.2
       nyc: ^15.1.0
       sha3: ^2.1.2

@@ -3,7 +3,6 @@ const assert = chai.assert
 const Crypto = require('../src')
 const utils = require('@secrez/utils')
 const bs58 = Crypto.bs58
-const {sleep} = require('@secrez/test-helpers')
 
 const {
   box,
@@ -168,20 +167,6 @@ describe('#Crypto', function () {
       assert.equal(Crypto.b32Hash(password), b32Hash)
       assert.equal(Crypto.b32Hash(password, 10), b32Hash.substring(0, 10))
       assert.isTrue(Crypto.isValidB32Hash(b32Hash))
-    })
-
-  })
-
-  describe('#fromTsToDate', async function () {
-
-    it('should recover a date from a timestamp with microseconds', async function () {
-
-      for (let i = 0; i < 20; i++) {
-        let ts = Crypto.getTimestampWithMicroseconds().join('.')
-        let d = (new Date).toISOString().substring(0, 18)
-        assert.isTrue(RegExp('^' + d).test(Crypto.fromTsToDate(ts)[0]))
-        sleep(1)
-      }
     })
 
   })

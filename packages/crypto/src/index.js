@@ -2,7 +2,6 @@ const crypto = require('crypto')
 const util = require('util')
 const {Keccak} = require('sha3')
 const basex = require('base-x')
-const microtime = require('microtime')
 const shamir = require('shamir')
 const bip39 = require('bip39')
 
@@ -100,25 +99,6 @@ class Crypto {
 
   static deriveKey(key, salt, iterations, size = 32, digest = 'sha512') {
     return crypto.pbkdf2Sync(key, salt, iterations, size, digest)
-  }
-
-  static getTimestampWithMicroseconds() {
-    let tmp = microtime.nowDouble().toString().split('.')
-    for (; ;) {
-      if (tmp[1].length === 6) {
-        break
-      }
-      tmp[1] += '0'
-    }
-    tmp = tmp.map(e => parseInt(e))
-    return tmp
-  }
-
-  static fromTsToDate(ts) {
-    let [seconds, microseconds] = ts.split('.')
-    let milliseconds = microseconds.substring(0, 3)
-    let timestamp = parseInt(seconds) * 1000 + parseInt(milliseconds)
-    return [(new Date(timestamp)).toISOString(), parseInt(microseconds.substring(3))]
   }
 
   static b58Hash(data, size) {
