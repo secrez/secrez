@@ -479,6 +479,12 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.8.10__
+* If the default editor is not defined (env variable EDITOR) try to use nano or vim
+
+__0.8.9__
+* Pause clearScreen during editing
+
 __0.8.8__
 * Add the option `pathFrom` in `import` to build the `path` field using other fields
 

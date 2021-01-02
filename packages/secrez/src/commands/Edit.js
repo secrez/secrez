@@ -5,7 +5,7 @@ require('tiny-cli-editor')
 const _ = require('lodash')
 const path = require('path')
 const fs = require('fs-extra')
-const {isYaml, yamlParse, yamlStringify} = require('@secrez/utils')
+const {isYaml, yamlParse, yamlStringify, execAsync} = require('@secrez/utils')
 
 class Edit extends require('../Command') {
 
@@ -166,6 +166,19 @@ class Edit extends require('../Command') {
         process.env.EDITOR = this.getTinyCliEditorBinPath()
       } else if (options.editor) {
         process.env.EDITOR = options.editor
+      }
+      if (!process.env.EDITOR) {
+        let result = await execAsync('which', __dirname, ['nano'])
+        if (!result.message || result.code === 1) {
+          result = await execAsync('which', __dirname, ['vim'])
+          if (!result.message || result.code === 1) {
+            this.Logger.red('No text editor found')
+          } else {
+            process.env.EDITOR = 'vim'
+          }
+        } else {
+          process.env.EDITOR = 'nano'
+        }
       }
       await this.edit(options)
     } catch (e) {
