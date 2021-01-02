@@ -172,7 +172,7 @@ class Edit extends require('../Command') {
         if (!result.message || result.code === 1) {
           result = await execAsync('which', __dirname, ['vim'])
           if (!result.message || result.code === 1) {
-            this.Logger.red('No text editor found')
+            process.env.EDITOR = this.getTinyCliEditorBinPath()
           } else {
             process.env.EDITOR = 'vim'
           }
