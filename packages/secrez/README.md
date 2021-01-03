@@ -472,6 +472,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.9.2__
+* fix issue in `ls -l` that was working only in the current dataset
+* fix dates in `ls -l` in UTC time, instead than in local time
+
 __0.9.1__
 * `ls -l` returns details: size, creation date, last update date,  number of versions and name
 
@@ -748,12 +752,12 @@ Thanks a lot for any contribution 😉
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   66.02 |    53.23 |    68.6 |   65.91 |                                   
+All files              |   66.01 |    53.28 |    68.6 |    65.9 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |    74.8 |    60.36 |   85.15 |   74.54 |                                   
+ src/commands          |   74.75 |    60.38 |   85.15 |   74.49 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |   93.33 |    66.67 |     100 |   93.33 | 48                                
   Cat.js               |   98.89 |    88.89 |     100 |   98.89 | 143                               
@@ -774,7 +778,7 @@ All files              |   66.02 |    53.23 |    68.6 |   65.91 |
   Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 49                                
   Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 90                                
   Lpwd.js              |   92.31 |      100 |     100 |   92.31 | 38                                
-  Ls.js                |   93.44 |    73.08 |     100 |   92.98 | 91,95,110,153                     
+  Ls.js                |   89.86 |    70.59 |     100 |   89.23 | 91,99,110-112,126,169             
   Mkdir.js             |     100 |    66.67 |     100 |     100 | 39-45                             
   Mv.js                |   91.01 |    77.36 |     100 |    90.8 | 114,137,148-154                   
   Paste.js             |   87.23 |       75 |     100 |   87.23 | 66,72,75,83,107,124               
@@ -811,7 +815,7 @@ All files              |   66.02 |    53.23 |    68.6 |   65.91 |
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@0.9.1 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@0.9.2 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 

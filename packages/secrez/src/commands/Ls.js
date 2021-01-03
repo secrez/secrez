@@ -69,7 +69,7 @@ class Ls extends require('../Command') {
     let currentYear = today.getFullYear()
     let year = d.getFullYear()
     if (year === currentYear) {
-      year = d.toISOString().substring(11, 16)
+      year = this.prependWithSpace(d.getHours(),2) + ':' + this.prependWithSpace(d.getMinutes(),2)
     }
     return [
       months[d.getMonth()],
@@ -90,6 +90,10 @@ class Ls extends require('../Command') {
       if (!options.path) {
         options.path = '.'
       }
+      let ds
+      if (/^[a-zA-Z]{1}\w{1,15}:/.test(options.path)) {
+        ds = options.path.split(':')[0]
+      }
       options.ignoreDatasets = true
       if (datasetInfo.map(e => e.name).includes(options.path)) {
         options.path += ':'
@@ -99,9 +103,21 @@ class Ls extends require('../Command') {
         let maxLength = 0
         let maxVersionNumber = 0
         let finalList = []
+        let tree
         for (let i = 0; i < list.length; i++) {
+          if (!tree) {
+            if (ds) {
+              for (let d of datasetInfo) {
+                if (d.name === ds) {
+                  tree = this.internalFs.trees[d.index]
+                }
+              }
+            } else {
+              tree = this.internalFs.tree
+            }
+          }
           let ts = list[i].lastTs
-          let details = await this.internalFs.tree.getEntryDetails(list[i], ts)
+          let details = await tree.getEntryDetails(list[i], ts)
           let ts0 = ts = parseInt(ts.split('.')[0]) * 1000
           let versions = Object.keys(list[i].versions)
           for (let v of versions) {
