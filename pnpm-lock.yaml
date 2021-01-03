@@ -72,8 +72,8 @@ importers:
       eslint: 6.8.0
       mocha: 7.2.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.9'
-      '@secrez/fs': 'workspace:~0.8.5'
+      '@secrez/core': 'workspace:~0.8.10'
+      '@secrez/fs': 'workspace:~0.8.7'
       '@secrez/hub': 'workspace:~0.1.6'
       '@secrez/test-helpers': 'workspace:~0.1.4'
       '@secrez/tls': 'workspace:~0.1.4'
@@ -140,7 +140,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/core': 'workspace:~0.8.10'
       '@secrez/test-helpers': 'workspace:~0.1.4'
       '@secrez/utils': 'workspace:~0.1.6'
       chai: ^4.2.0
@@ -176,7 +176,7 @@ importers:
       supertest: 4.0.2
       ws: 7.3.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/core': 'workspace:~0.8.10'
       '@secrez/test-helpers': 'workspace:~0.1.4'
       '@secrez/tls': 'workspace:~0.1.4'
       '@secrez/utils': 'workspace:~0.1.6'
@@ -229,9 +229,9 @@ importers:
       nyc: 15.1.0
       test-console: 1.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/core': 'workspace:~0.8.10'
       '@secrez/courier': 'workspace:~0.1.5'
-      '@secrez/fs': 'workspace:~0.8.5'
+      '@secrez/fs': 'workspace:~0.8.7'
       '@secrez/hub': 'workspace:~0.1.6'
       '@secrez/test-helpers': 'workspace:~0.1.4'
       '@secrez/utils': 'workspace:~0.1.6'
@@ -277,8 +277,8 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.9'
-      '@secrez/fs': 'workspace:~0.8.5'
+      '@secrez/core': 'workspace:~0.8.10'
+      '@secrez/fs': 'workspace:~0.8.7'
       '@secrez/hub': 'workspace:~0.1.6'
       '@secrez/utils': 'workspace:~0.1.6'
       chai: ^4.2.0
@@ -338,7 +338,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.9'
+      '@secrez/core': 'workspace:~0.8.10'
       '@secrez/hub': 'workspace:~0.1.6'
       '@secrez/test-helpers': 'workspace:~0.1.4'
       '@secrez/tls': 'workspace:~0.1.4'

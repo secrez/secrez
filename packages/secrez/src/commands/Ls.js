@@ -50,12 +50,36 @@ class Ls extends require('../Command') {
         'ls coin',
         'ls ../passwords',
         'ls ~',
+        ['ls -l', 'Shows details:',
+          'size, creation date, last update date,',
+          ' number of versions and name'
+        ],
         ['ls -al', 'Includes hidden files'],
         ['ls -o d', 'Lists only the directories'],
         ['ls -o f', 'Lists only the files'],
         ['ls -d', 'Lists the existent datasets']
       ]
     }
+  }
+
+  formatTs(ts) {
+    let months = 'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec'.split(',')
+    let d = new Date(ts)
+    let today = new Date()
+    let currentYear = today.getFullYear()
+    let year = d.getFullYear()
+    if (year === currentYear) {
+      year = d.toISOString().substring(11, 16)
+    }
+    return [
+      months[d.getMonth()],
+      this.prependWithSpace(d.getDate().toString(), 2),
+      this.prependWithSpace(year.toString(), 5)
+    ].join(' ')
+  }
+
+  prependWithSpace(str, max) {
+    return ' '.repeat(max - str.length) + str
   }
 
   async ls(options = {}) {
@@ -70,7 +94,44 @@ class Ls extends require('../Command') {
       if (datasetInfo.map(e => e.name).includes(options.path)) {
         options.path += ':'
       }
-      return await this.internalFs.fileList(options, true)
+      if (options.list) {
+        let list = await this.internalFs.fileList(options, false, true)
+        let maxLength = 0
+        let maxVersionNumber = 0
+        let finalList = []
+        for (let i = 0; i < list.length; i++) {
+          let ts = list[i].lastTs
+          let details = await this.internalFs.tree.getEntryDetails(list[i], ts)
+          let ts0 = ts = parseInt(ts.split('.')[0]) * 1000
+          let versions = Object.keys(list[i].versions)
+          for (let v of versions) {
+            let timestamp = parseInt(v.split('.')[0]) * 1000
+            if (timestamp < ts0) {
+              ts0 = timestamp
+            }
+          }
+          details.ts0 = ts0
+          details.ts = ts
+          details.size = (details.content || '').length.toString()
+          maxLength = Math.max(maxLength, details.size.length)
+          details.versions = versions.length.toString()
+          maxVersionNumber = Math.max(maxVersionNumber, details.versions.length)
+          finalList.push(details)
+        }
+        finalList = finalList.map(e => {
+          return [
+            this.prependWithSpace(e.size, maxLength),
+            this.formatTs(e.ts0),
+            this.formatTs(e.ts),
+            this.prependWithSpace(e.versions, maxVersionNumber),
+            e.name + (e.type === this.secrez.config.types.DIR ? '/' : '')
+          ].join('  ')
+        })
+        return finalList
+
+      } else {
+        return await this.internalFs.fileList(options, true)
+      }
     }
   }
 

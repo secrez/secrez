@@ -159,7 +159,7 @@ You can save locally the number of iterations adding the options `-s`, like:
 secrez -s
 ```
 
-It is possible that the number of iterations you chose makes the initial decryption too slow. You can change it inside the Secrez CLI with the command `conf`.
+It is possible that the number of iterations you chose makes the initial decryption too slow. You can change it inside the Secrez CLI with the command `conf`. 
 
 Other options at launch are:
 
@@ -207,12 +207,12 @@ gitpush
 ```
 every time you want to push changes to the repo.
 
-_Notice that I refer to `main` as the master branch, because recently GitHub is using that by default._
+_Notice that I refer to `main` as the master branch, because recently GitHub is using that by default._ 
 
 **What about Mercurial or Subversion?**
 
 Of course, you can use a different version control system.  
-If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.
+If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.  
 
 ## The commands
 
@@ -320,7 +320,7 @@ M github.yml
 ```
 It is fantastic, isn’t it?
 
-_Btw, using a TOTP factor in Secrez is a bit of a contradiction, because you are converting a second factor (something that you have) in a first factor (something that you know). So, use this feature only when it makes sense._
+_Btw, using a TOTP factor in Secrez is a bit of a contradiction, because you are converting a second factor (something that you have) in a first factor (something that you know). So, use this feature only when it makes sense._ 
 
 ## Importing from other password/secret managers
 
@@ -472,9 +472,12 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.9.1__
+* `ls -l` returns details: size, creation date, last update date,  number of versions and name
+
 __0.9.0__
 * Add `ds` to manage datasets
-* `ds` is also able to delete a dataset (moving its content to the `trash` dataset)
+* `ds` is also able to delete a dataset (moving its content to the `trash` dataset)  
 * Remove feature `--rename` from `use`, since now `ds` manages the datasets
 
 __0.8.10__
@@ -487,7 +490,7 @@ __0.8.8__
 * Add the option `pathFrom` in `import` to build the `path` field using other fields
 
 __0.8.7__
-* Importing from a CSV file generates `.yaml` file instead of `.yml`
+* Importing from a CSV file generates `.yaml` file instead of `.yml` 
 
 __0.8.6__
 * Uses new onBeforeRewrite in [inquirer-command-prompt](https://github.com/sullof/inquirer-command-prompt) to remove the `#\d` when autocompleting the result of a search
@@ -662,7 +665,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 
 Firs off, take a look at Secrez's [Code of conduct](https://github.com/secrez/secrez/blob/master/CODE_OF_CONDUCT.md)
 
-Second, join the brand-new [Secrez's Discord group](https://discord.gg/whsgXj)
+Second, join the brand-new [Secrez's Discord group](https://discord.gg/whsgXj) 
 
 #### Fork this repo
 
@@ -745,12 +748,12 @@ Thanks a lot for any contribution 😉
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   65.65 |    53.05 |   68.35 |   65.54 |                                   
+All files              |   66.02 |    53.23 |    68.6 |   65.91 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   74.41 |    60.17 |   84.96 |   74.16 |                                   
+ src/commands          |    74.8 |    60.36 |   85.15 |   74.54 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |   93.33 |    66.67 |     100 |   93.33 | 48                                
   Cat.js               |   98.89 |    88.89 |     100 |   98.89 | 143                               
@@ -771,7 +774,7 @@ All files              |   65.65 |    53.05 |   68.35 |   65.54 |
   Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 49                                
   Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 90                                
   Lpwd.js              |   92.31 |      100 |     100 |   92.31 | 38                                
-  Ls.js                |   88.89 |    68.75 |     100 |    87.5 | 67,71,92                          
+  Ls.js                |   93.44 |    73.08 |     100 |   92.98 | 91,95,110,153                     
   Mkdir.js             |     100 |    66.67 |     100 |     100 | 39-45                             
   Mv.js                |   91.01 |    77.36 |     100 |    90.8 | 114,137,148-154                   
   Paste.js             |   87.23 |       75 |     100 |   87.23 | 66,72,75,83,107,124               
@@ -808,7 +811,7 @@ All files              |   65.65 |    53.05 |   68.35 |   65.54 |
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@0.8.11 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@0.9.1 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 
