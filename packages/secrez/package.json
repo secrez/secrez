@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=dev bin/secrez.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
