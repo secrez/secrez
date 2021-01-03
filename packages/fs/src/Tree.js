@@ -620,13 +620,17 @@ class Tree {
     this.previousTags = tags
   }
 
+  validateDatasetName(name) {
+    if (!/^[a-zA-Z]{1}\w{1,15}$/.test(name)) {
+      throw new Error('Dataset name must be alphanumeric, start with a letter, and at most 16 characters long')
+    }
+  }
+
   async nameDataset(name) {
     if ([0, 1].includes(this.datasetIndex)) {
       throw new Error('Main and trash dataset cannot be renamed')
     }
-    if (!/^[a-zA-Z]{1}\w{1,15}$/.test(name)) {
-      throw new Error('Dataset name must be alphanumeric, start with a letter, and at most 16 characters long')
-    }
+    this.validateDatasetName(name)
     if (name !== this.name) {
       let entry = new Entry({
         name,

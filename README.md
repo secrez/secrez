@@ -1,9 +1,5 @@
 # Secrez
 
-<h1 align="center">
-  <img align="center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez.png" width="400"/>
-</h1>
-
 <p align="center">
   <a href="https://discord.gg/whsgXj">
     <img src="https://img.shields.io/badge/chat-on%20discord-brightgreen.svg">
@@ -163,7 +159,7 @@ You can save locally the number of iterations adding the options `-s`, like:
 secrez -s
 ```
 
-It is possible that the number of iterations you chose makes the initial decryption too slow. You can change it inside the Secrez CLI with the command `conf`. 
+It is possible that the number of iterations you chose makes the initial decryption too slow. You can change it inside the Secrez CLI with the command `conf`.
 
 Other options at launch are:
 
@@ -211,12 +207,12 @@ gitpush
 ```
 every time you want to push changes to the repo.
 
-_Notice that I refer to `main` as the master branch, because recently GitHub is using that by default._ 
+_Notice that I refer to `main` as the master branch, because recently GitHub is using that by default._
 
 **What about Mercurial or Subversion?**
 
 Of course, you can use a different version control system.  
-If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.  
+If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.
 
 ## The commands
 
@@ -226,14 +222,11 @@ If you do so, though, be careful to correctly set up in the directory the equiva
   cat       Shows the content of a file.
   cd        Changes the working directory.
   chat      Enters the Secrez chat
-    join    Join rooms.
-    quit    Leaves either a room or the chat
-    send    Sends either a room or the chat
-    show    Show chat history in a room
   conf      Configure security data (2FA, password, number of iterations).
   contacts  Gives info about contacts
   copy      Copy a text file to the clipboard.
   courier   Configure the connection to a local courier
+  ds        Manages datasets
   edit      Edits a file containing a secret.
   exit      << deprecated - use "quit" instead
   export    Export encrypted data to the OS in the current local folder
@@ -327,7 +320,7 @@ M github.yml
 ```
 It is fantastic, isn’t it?
 
-_Btw, using a TOTP factor in Secrez is a bit of a contradiction, because you are converting a second factor (something that you have) in a first factor (something that you know). So, use this feature only when it makes sense._ 
+_Btw, using a TOTP factor in Secrez is a bit of a contradiction, because you are converting a second factor (something that you have) in a first factor (something that you know). So, use this feature only when it makes sense._
 
 ## Importing from other password/secret managers
 
@@ -479,6 +472,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.9.0__
+* Add `ds` to manage datasets
+* `ds` is also able to delete a dataset (moving its content to the `trash` dataset)
+* Remove feature `--rename` from `use`, since now `ds` manages the datasets
+
 __0.8.10__
 * If the default editor is not defined (env variable EDITOR) try to use nano or vim
 
@@ -489,7 +487,7 @@ __0.8.8__
 * Add the option `pathFrom` in `import` to build the `path` field using other fields
 
 __0.8.7__
-* Importing from a CSV file generates `.yaml` file instead of `.yml` 
+* Importing from a CSV file generates `.yaml` file instead of `.yml`
 
 __0.8.6__
 * Uses new onBeforeRewrite in [inquirer-command-prompt](https://github.com/sullof/inquirer-command-prompt) to remove the `#\d` when autocompleting the result of a search
@@ -664,7 +662,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 
 Firs off, take a look at Secrez's [Code of conduct](https://github.com/secrez/secrez/blob/master/CODE_OF_CONDUCT.md)
 
-Second, join the brand-new [Secrez's Discord group](https://discord.gg/whsgXj) 
+Second, join the brand-new [Secrez's Discord group](https://discord.gg/whsgXj)
 
 #### Fork this repo
 
@@ -741,6 +739,78 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
+  155 passing (23s)
+  1 pending
+
+-----------------------|---------|----------|---------|---------|-----------------------------------
+File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
+-----------------------|---------|----------|---------|---------|-----------------------------------
+All files              |   65.65 |    53.05 |   68.35 |   65.54 |                                   
+ src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
+  Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
+  PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
+  cliConfig.js         |     100 |      100 |     100 |     100 |                                   
+ src/commands          |   74.41 |    60.17 |   84.96 |   74.16 |                                   
+  Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
+  Bash.js              |   93.33 |    66.67 |     100 |   93.33 | 48                                
+  Cat.js               |   98.89 |    88.89 |     100 |   98.89 | 143                               
+  Cd.js                |   96.43 |    86.67 |     100 |   96.43 | 45                                
+  Chat.js              |   19.51 |        0 |   16.67 |   19.51 | 24-130                            
+  Conf.js              |    4.39 |        0 |   10.53 |    4.39 | 87-483                            
+  Contacts.js          |   71.43 |    65.93 |   86.67 |   71.24 | ...72-192,216,221,233,289,302,312 
+  Copy.js              |   94.87 |    74.51 |     100 |   94.81 | 96,141,158,183                    
+  Courier.js           |   63.54 |    41.86 |   85.71 |   63.83 | ...24,139-156,168,180-183,195-201 
+  Ds.js                |   91.04 |    76.92 |     100 |   90.91 | 95,104-109,121,135                
+  Edit.js              |   12.66 |        0 |      40 |   12.66 | 77-190                            
+  Exit.js              |      75 |        0 |   66.67 |      75 | 21-22                             
+  Export.js            |     100 |    64.29 |     100 |     100 | 56,76,88-93,100                   
+  Find.js              |   93.59 |    86.67 |     100 |   93.42 | 90,153,192-196,202                
+  Help.js              |     100 |       80 |     100 |     100 | 30                                
+  Import.js            |   93.68 |    83.96 |     100 |   93.57 | ...60,262,275,281,323,338-344,360 
+  Lcat.js              |     100 |    85.71 |     100 |     100 | 55                                
+  Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 49                                
+  Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 90                                
+  Lpwd.js              |   92.31 |      100 |     100 |   92.31 | 38                                
+  Ls.js                |   88.89 |    68.75 |     100 |    87.5 | 67,71,92                          
+  Mkdir.js             |     100 |    66.67 |     100 |     100 | 39-45                             
+  Mv.js                |   91.01 |    77.36 |     100 |    90.8 | 114,137,148-154                   
+  Paste.js             |   87.23 |       75 |     100 |   87.23 | 66,72,75,83,107,124               
+  Pwd.js               |   92.31 |      100 |     100 |   92.31 | 36                                
+  Quit.js              |      90 |       50 |     100 |      90 | 29                                
+  Rm.js                |   96.67 |       90 |     100 |   96.55 | 76                                
+  Ssh.js               |      25 |        0 |      40 |      25 | 64-104                            
+  Tag.js               |      99 |    93.75 |     100 |   98.95 | 161                               
+  Totp.js              |     100 |    79.49 |     100 |     100 | 69-91,141,170-175,199-211,222     
+  Touch.js             |     100 |    71.43 |     100 |     100 | 57,68                             
+  Use.js               |   96.77 |    89.47 |     100 |   96.77 | 64                                
+  Ver.js               |      90 |    66.67 |     100 |      90 | 27                                
+  Whoami.js            |   93.55 |    63.64 |      80 |   93.55 | 32,67                             
+  chat.js              |   85.37 |    53.85 |     100 |   85.37 | 94,103-116,122,128                
+  index.js             |   91.67 |       60 |     100 |    91.3 | 23,32                             
+ src/commands/chat     |      80 |    66.67 |     100 |   79.86 |                                   
+  Help.js              |   86.67 |       60 |     100 |   86.67 | 38-39                             
+  Join.js              |   95.65 |    82.61 |     100 |   95.56 | 41,104                            
+  Quit.js              |   76.92 |       50 |     100 |   76.92 | 37-41                             
+  Send.js              |   67.65 |    46.67 |     100 |   67.65 | 40,44,47,74,83-92                 
+  Show.js              |   68.75 |    70.59 |     100 |   68.75 | 63-67,76,91-97                    
+ src/prompts           |   10.92 |        0 |    1.79 |   11.08 |                                   
+  ChatPrompt.js        |    5.95 |        0 |       0 |    5.95 | 9-158                             
+  ClearScreen.js       |   26.09 |        0 |       0 |   26.09 | 12-42                             
+  CommandPrompt.js     |   10.96 |        0 |       0 |   11.11 | 26-289                            
+  Completion.js        |    4.41 |        0 |       0 |    4.62 | 7-107                             
+  MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 8-35                              
+  SigintManager.js     |      25 |        0 |      20 |      25 | 11-37                             
+ src/utils             |   69.92 |     62.1 |   56.25 |   69.55 |                                   
+  AliasManager.js      |     100 |    91.67 |     100 |     100 | 48                                
+  ContactManager.js    |   71.43 |       60 |   85.71 |   71.43 | 13,36-38                          
+  Fido2Client.js       |   15.38 |        0 |   11.11 |   15.38 | 15-101                            
+  HelpProto.js         |    91.6 |    83.08 |     100 |   91.45 | 44,137-138,155-160,179            
+  Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
+-----------------------|---------|----------|---------|---------|-----------------------------------
+
+> secrez@0.8.11 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
+
 
 ```
 
