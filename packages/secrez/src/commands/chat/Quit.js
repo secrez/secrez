@@ -34,7 +34,7 @@ class Quit extends require('../../Command') {
       await this.prompt.run()
     } else {
       /* istanbul ignore if  */
-      if (!options.testing) {
+      if (process.env.NODE_ENV !== 'test') {
         await this.prompt.saveHistory()
       }
       delete this.prompt.environment.chatPrompt

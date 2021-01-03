@@ -158,8 +158,7 @@ describe('#Ds', function () {
 
     inspect = stdout.inspect()
     await C.ds.exec({
-      delete: 'archive',
-      testing: true
+      delete: 'archive'
     })
     inspect.restore()
     assertConsole(inspect, ['You can not delete the active dataset'])
@@ -170,8 +169,7 @@ describe('#Ds', function () {
 
     inspect = stdout.inspect()
     await C.ds.exec({
-      delete: 'archive',
-      testing: true
+      delete: 'archive'
     })
     inspect.restore()
     assertConsole(inspect, ['The dataset archive has been canceled. Its content has been moved to the "trash" dataset'])
