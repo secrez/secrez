@@ -32,7 +32,7 @@ describe('#Quit', function () {
   it('should show the content of an external file via bash', async function () {
 
     inspect = stdout.inspect()
-    await C.quit.exec({testing: true})
+    await C.quit.exec({})
     inspect.restore()
     assertConsole(inspect, 'Bye bye :o)')
 

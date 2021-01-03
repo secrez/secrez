@@ -100,7 +100,7 @@ class Ds extends require('../Command') {
       let list = await this.prompt.commands.ls.ls({
         path: `${name}:/`
       })
-      if (list.length > 0 && !options.testing) {
+      if (list.length > 0 && process.env.NODE_ENV !== 'test') {
         let yes = await this.useConfirm({
           message: `The dataset ${name} contains files. Are you sure you want to delete it?`,
           default: false
