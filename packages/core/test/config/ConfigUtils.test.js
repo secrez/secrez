@@ -59,6 +59,19 @@ describe('#ConfigUtils', function () {
 
   })
 
+  it('#deleteDataset should delete a dataset path', async function () {
+
+    let config = require('../../src/config')
+    config = await ConfigUtils.setSecrez(config, rootDir)
+    let dataPath = await ConfigUtils.setAndGetDataset(config, 1)
+    assert.equal(dataPath, path.join(rootDir, 'data.1'))
+    assert.isTrue(await fs.pathExists(dataPath))
+
+    assert.isTrue(await ConfigUtils.deleteDataset(config, 1))
+    assert.isFalse(await fs.pathExists(dataPath))
+
+  })
+
   it('#getDatasetPath should get a dataset path', async function () {
 
     let config = require('../../src/config')

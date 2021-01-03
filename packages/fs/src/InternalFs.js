@@ -417,6 +417,16 @@ class InternalFs {
     return result
   }
 
+  async deleteDataset(index) {
+    if (ConfigUtils.deleteDataset(this.secrez.config, index)) {
+      delete this.trees[index]
+      this.deleteFromTreeCache(index)
+      return true
+    } else {
+      return false
+    }
+  }
+
   async getDatasetInfo(name) {
     let datasets = await this.getDatasetsInfo()
     for (let dataset of datasets) {
@@ -429,6 +439,10 @@ class InternalFs {
 
   updateTreeCache(index, name) {
     this.treeCache[index] = name
+  }
+
+  deleteFromTreeCache(index) {
+    delete this.treeCache[index]
   }
 }
 

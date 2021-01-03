@@ -98,6 +98,18 @@ local
     return dataPath
   }
 
+  static deleteDataset(config, index) {
+    let dataPath = config.dataPath
+    if (typeof index === 'number' && parseInt(index.toString()) === index && index > 0) {
+      dataPath += '.' + index
+      if (fs.existsSync(dataPath)) {
+        fs.removeSync(dataPath)
+        return true
+      }
+    }
+    return false
+  }
+
   static getLastDataset(config) {
     return ConfigUtils.listDatasets(config).pop()
   }
