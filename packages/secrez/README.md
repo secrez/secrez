@@ -474,6 +474,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 __0.9.2__
 * fix issue in `ls -l` that was working only in the current dataset
+* fix dates in `ls -l` in UTC time, instead than in local time
 
 __0.9.1__
 * `ls -l` returns details: size, creation date, last update date,  number of versions and name
