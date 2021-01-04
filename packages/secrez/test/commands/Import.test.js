@@ -409,6 +409,23 @@ describe('#Import', function () {
       '/lastpass2/amazon.it personal.yaml'
     ])
 
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../lastpass_export.csv',
+      expand: './lastpass3',
+      pathFrom: ['name'],
+      useTagsForPaths: true
+    })
+
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/lastpass3/HackerNews/YC.yaml',
+      '/lastpass3/asana.com.yaml',
+      '/lastpass3/lombardstreet.io WP.yaml',
+      '/lastpass3/amazon.it personal.yaml'
+    ])
+
   })
 
   it('should import from a json', async function () {

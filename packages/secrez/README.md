@@ -399,6 +399,8 @@ import ~/Downloads/lastpass_export.csv -e lastpass -P name -m
 ```
 using only the `name` field. Still, if in the name there is any slash, a subfolder will be created. The `-m` option will remove the csv file from the OS.
 
+In these two example, be sure that any of your entries in LastPass has a name. If not, the import will fail because it does't know how to call the file.
+
 **Best practices**
 
 For security reason, if would be better if you do the export from you password manager and the import into Secrez as fast as possible, removing the exported file from your OS using `-m`.

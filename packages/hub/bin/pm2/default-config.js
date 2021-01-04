@@ -4,7 +4,7 @@
 
 module.exports = {
   port: 8433,
-  secure: false,
+  secure: true,
   domain: undefined,
   landing: undefined,
   address: undefined,
