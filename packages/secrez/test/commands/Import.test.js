@@ -388,7 +388,7 @@ describe('#Import', function () {
       'Imported files:',
       '/lastpass/News/Reference/HackerNews/YC.yaml',
       '/lastpass/Productivity Tools/asana.com.yaml',
-      '/lastpass/lombardstreet.io WP.yaml',
+      '/lastpass/http_/lombardstreet.io WP.yaml',
       '/lastpass/amazon.it personal.yaml'
     ])
 
@@ -405,8 +405,25 @@ describe('#Import', function () {
       'Imported files:',
       '/lastpass2/HackerNews/YC.yaml',
       '/lastpass2/asana.com.yaml',
-      '/lastpass2/lombardstreet.io WP.yaml',
+      '/lastpass2/http_/lombardstreet.io WP.yaml',
       '/lastpass2/amazon.it personal.yaml'
+    ])
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: '../lastpass_export.csv',
+      expand: './lastpass3',
+      pathFrom: ['name'],
+      useTagsForPaths: true
+    })
+
+    inspect.restore()
+    assertConsole(inspect, [
+      'Imported files:',
+      '/lastpass3/HackerNews/YC.yaml',
+      '/lastpass3/asana.com.yaml',
+      '/lastpass3/http_/lombardstreet.io WP.yaml',
+      '/lastpass3/amazon.it personal.yaml'
     ])
 
   })
