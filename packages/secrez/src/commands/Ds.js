@@ -15,8 +15,7 @@ class Ds extends require('../Command') {
       {
         name: 'list',
         alias: 'l',
-        defaultOption: true,
-        type: String
+        type: Boolean
       },
       {
         name: 'create',
@@ -41,7 +40,7 @@ class Ds extends require('../Command') {
     return {
       description: ['Manages datasets'],
       examples: [
-        ['ds', 'lists all datasets, same as "ds -l"'],
+        ['ds -l', 'lists all datasets'],
         ['ds -c archive', 'create the dataset named "archive";', 'if the dataset does not exists it creates it'],
         ['ds -r archive unused', 'if the "archive" dataset exists, renames it "unused"'],
         ['ds -d cryptos', 'deletes the dataset "cryptos" if it exists']

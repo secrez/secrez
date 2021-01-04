@@ -472,6 +472,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.9.3__
+* fix bug with `ds -l` not working
+
 __0.9.2__
 * fix issue in `ls -l` that was working only in the current dataset
 * fix dates in `ls -l` in UTC time, instead than in local time
@@ -746,18 +749,18 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  155 passing (23s)
+  155 passing (25s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   66.01 |    53.28 |    68.6 |    65.9 |                                   
+All files              |   66.05 |    53.41 |    68.6 |   65.93 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   74.75 |    60.38 |   85.15 |   74.49 |                                   
+ src/commands          |    74.8 |    60.56 |   85.15 |   74.54 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |   93.33 |    66.67 |     100 |   93.33 | 48                                
   Cat.js               |   98.89 |    88.89 |     100 |   98.89 | 143                               
@@ -767,7 +770,7 @@ All files              |   66.01 |    53.28 |    68.6 |    65.9 |
   Contacts.js          |   71.43 |    65.93 |   86.67 |   71.24 | ...72-192,216,221,233,289,302,312 
   Copy.js              |   94.87 |    74.51 |     100 |   94.81 | 96,141,158,183                    
   Courier.js           |   63.54 |    41.86 |   85.71 |   63.83 | ...24,139-156,168,180-183,195-201 
-  Ds.js                |   91.04 |    76.92 |     100 |   90.91 | 95,104-109,121,135                
+  Ds.js                |   92.54 |    82.05 |     100 |   92.42 | 94,103-108,120                    
   Edit.js              |   12.66 |        0 |      40 |   12.66 | 77-190                            
   Exit.js              |      75 |        0 |   66.67 |      75 | 21-22                             
   Export.js            |     100 |    64.29 |     100 |     100 | 56,76,88-93,100                   
@@ -815,7 +818,7 @@ All files              |   66.01 |    53.28 |    68.6 |    65.9 |
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@0.9.2 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@0.9.3 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 
