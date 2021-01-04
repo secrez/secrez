@@ -50,6 +50,11 @@ describe('#Ds', function () {
     inspect.restore()
     assertConsole(inspect, ['main     trash'])
 
+    inspect = stdout.inspect()
+    await C.ds.exec()
+    inspect.restore()
+    assertConsole(inspect, ['main     trash'])
+
   })
 
   it('should create a new dataset', async function () {
