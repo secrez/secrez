@@ -1,5 +1,9 @@
 # Secrez
 
+<h1 align="center">
+  <img align="center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez_2.png" width="300"/>
+</h1>
+
 <p align="center">
   <a href="https://discord.gg/whsgXj">
     <img src="https://img.shields.io/badge/chat-on%20discord-brightgreen.svg">
