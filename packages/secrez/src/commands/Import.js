@@ -222,7 +222,7 @@ class Import extends require('../Command') {
           if (!p) {
             throw new Error('Path cannot be built from the specified fields')
           }
-          item.path = p.replace(/\/+/g, '/')
+          item.path = p.replace(/\/+/g, '/').replace(/:+/g, '_')
         }
       } else {
         return this.Logger.red('The data misses a path field')
