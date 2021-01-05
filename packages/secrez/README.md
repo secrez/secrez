@@ -1,5 +1,9 @@
 # Secrez
 
+<h1 align="center">
+  <img align="center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez_2.png" width="300"/>
+</h1>
+
 <p align="center">
   <a href="https://discord.gg/whsgXj">
     <img src="https://img.shields.io/badge/chat-on%20discord-brightgreen.svg">
@@ -474,6 +478,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.9.4__
+* fix bug during import, if a `path` contains `:`; now, they are replaced with `_`
+
 __0.9.3__
 * fix bug with `ds -l` not working
 
@@ -751,7 +758,7 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  155 passing (25s)
+  155 passing (23s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
@@ -820,7 +827,7 @@ All files              |   66.05 |    53.41 |    68.6 |   65.93 |
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@0.9.3 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@0.9.4 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 
