@@ -5,19 +5,20 @@ const Router = require('koa-router')
 const {version} = require('../package.json')
 const {Crypto} = require('@secrez/core')
 
-const Shortener = require('./lib/Shortener')
 const ClientManager = require('./lib/ClientManager')
 const debug = Debug('hub:server')
-const {getRandomId, isValidRandomId, verifyPayload, getClientIdFromHostname} = require('./utils')
+const {getRandomId, isValidRandomId, verifyPayload, getClientIdFromHostname, getPublicKeyFromId, initDb} = require('./utils')
 
-const allIds = {}
 const oneMinute = 60 * 1000
 
-module.exports = function (opt) {
+async function createServer(opt) {
   opt = opt || {}
 
+  await initDb()
+
   const landingPage = opt.landing
-  const shortener = new Shortener
+
+  const adminCode = opt.code
 
   const manager = new ClientManager(opt)
 
@@ -37,6 +38,11 @@ module.exports = function (opt) {
   }
 
   router.get('/api/v1/status', async (ctx, next) => {
+    let q = ctx.request.query
+    if (!adminCode || (adminCode && q.code !== adminCode)) {
+      error(ctx, 404, 'Not found')
+      return
+    }
     const stats = manager.stats
     ctx.body = {
       tunnels: stats.tunnels,
@@ -45,13 +51,17 @@ module.exports = function (opt) {
   })
 
   router.get('/api/v1/tunnels/:id/status', async (ctx, next) => {
+    let q = ctx.request.query
+    if (!adminCode || (adminCode && q.code !== adminCode)) {
+      error(ctx, 404, 'Not found')
+      return
+    }
     const clientId = ctx.params.id
     const client = manager.getClient(clientId)
     if (!client) {
       error(ctx, 404, 'Not found')
       return
     }
-
     const stats = client.stats()
     ctx.body = {
       connected_sockets: stats.connectedSockets,
@@ -59,17 +69,16 @@ module.exports = function (opt) {
   })
 
   router.get('/api/v1/tunnel/new', async (ctx, next) => {
-    let payload, signature, id, publicKey, reqId, keepShortUrl
+    let payload, signature, publicKey, reset
     try {
       let q = ctx.request.query
       payload = q.payload
       signature = q.signature
-      keepShortUrl = q.keepShortUrl
+      reset = q.reset
       let parsedPayload = JSON.parse(payload)
-      id = parsedPayload.id
       publicKey = parsedPayload.publicKey
-      reqId = id !== 0 ? id : undefined
-    } catch(e) {
+    } catch (e) {
+      // console.log(e)
       error(ctx, 400, 'Wrong parameters')
       return
     }
@@ -81,15 +90,7 @@ module.exports = function (opt) {
       error(ctx, 400, 'Wrong signature')
       return
     }
-    if (reqId) {
-      if (!isValidRandomId(reqId)) {
-        error(ctx, 400, 'Wrong id')
-        return
-      }
-    }
-    if (!reqId) {
-      reqId = getRandomId(publicKey, allIds)
-    }
+    let reqId = await getRandomId(publicKey, reset)
     let info
     if (manager.hasClient(reqId)) {
       debug('returning existing client with id %s', reqId)
@@ -100,28 +101,29 @@ module.exports = function (opt) {
     }
     const url = schema + '://' + info.id + '.' + ctx.request.host
     info.url = url
-    info.short_url = schema + '://' + ctx.request.host + '/s/' + shortener.set(publicKey, url, keepShortUrl)
     ctx.body = info
-    allIds[reqId] = true
   })
 
-  router.get('/s/:id', async (ctx, next) => {
-
+  router.get('/api/v1/publickey/:id', async (ctx, next) => {
     const id = ctx.params.id
-    const shortened = shortener.get(id)
-    if (shortened) {
-      ctx.status = 200
-      ctx.body = shortened
-      return
-    } else {
-      const result = {
-        status_code: 404,
-        message: 'Not found'
+    let publickey
+    try {
+      publickey = await getPublicKeyFromId(id)
+      if (publickey) {
+        ctx.status = 200
+        ctx.body = {
+          publickey
+        }
+        return
       }
-      ctx.status = 404
-      ctx.body = result
-      return
+    } catch (e) {
     }
+    const result = {
+      status_code: 404,
+      message: 'Not found'
+    }
+    ctx.status = 404
+    ctx.body = result
   })
 
   app.use(router.routes())
@@ -145,7 +147,7 @@ module.exports = function (opt) {
       ctx.body = {
         welcome_to: 'This is a Secrez hub',
         version,
-        more_info_at: 'https://secrez.github.io/secrez'
+        more_info_at: 'https://github.com/secrez/secrez'
       }
       return
     }
@@ -168,7 +170,7 @@ module.exports = function (opt) {
 
     const reqId = parts[1]
 
-    if (!isValidRandomId(reqId)) {
+    if (!(await isValidRandomId(reqId))) {
       error(ctx, 400, 'Wrong requested id')
       return
     }
@@ -254,3 +256,5 @@ module.exports = function (opt) {
 
   return server
 }
+
+module.exports = createServer

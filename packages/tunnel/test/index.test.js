@@ -9,7 +9,7 @@ const Secrez = require('@secrez/core').Secrez(Math.random())
 const {TLS} = require('@secrez/tls')
 const {sleep} = require('@secrez/utils')
 const {createServer, utils: hubUtils} = require('@secrez/hub')
-const {isValidRandomId, getRandomId, setPayloadAndSignIt} = hubUtils
+const {isValidRandomId, setPayloadAndSignIt} = hubUtils
 
 const localDomain = '127zero0one.com' // '127zero0one.com'
 
@@ -38,14 +38,20 @@ describe('tunnel', async function () {
 
   // process.env.AS_DEV = true
 
+  process.env.DBDIR = path.resolve(__dirname, '../tmp/test/db')
+
   before(async function () {
     await fs.emptyDir(rootDir)
     await secrez.init(rootDir)
     await secrez.signup('password', 1000)
   })
 
+
   const startHub = async () => {
-    hubServer = createServer({
+
+    await fs.emptyDir(process.env.DBDIR)
+
+    hubServer = await createServer({
       secure: false,
       domain: localDomain,
       max_tcp_sockets: 4,
@@ -89,6 +95,7 @@ describe('tunnel', async function () {
   }
 
   beforeEach(async function () {
+    await fs.emptyDir(process.env.DBDIR)
     await startHttpServer()
     await startHub()
   })
@@ -96,10 +103,11 @@ describe('tunnel', async function () {
   afterEach(async function () {
     await new Promise(resolve => hubServer.close(resolve))
     await new Promise(resolve => localServer.close(resolve))
+    await hubUtils.resetDb()
     await sleep(10)
   })
 
-  it('query localtunnel server w/out ident', async function () {
+  it('query localtunnel server', async function () {
 
     const {payload, signature} = setPayloadAndSignature()
 
@@ -107,7 +115,7 @@ describe('tunnel', async function () {
 
     let result = tunnel.url.split('//')[1].split('.')
 
-    assert.isTrue(isValidRandomId(result[0], JSON.parse(payload).publicKey))
+    assert.isTrue(await isValidRandomId(result[0], JSON.parse(payload).publicKey))
     assert.equal(result[1], localDomain.split('.')[0])
 
     let res = await request.get(tunnel.url)
@@ -121,20 +129,25 @@ describe('tunnel', async function () {
     tunnel.close()
   })
 
-  it('query localtunnel server with ident', async function () {
+  it('query localtunnel server resetting id', async function () {
 
-    expected = 'Enjoy!'
-    const {payload, signature} = setPayloadAndSignature(getRandomId(secrez.getPublicKey()))
-
+    const {payload, signature} = setPayloadAndSignature()
     tunnel = await localtunnel({host, port: localPort, payload, signature})
+    const url = tunnel.url
+    tunnel.close()
 
-    let result = tunnel.url.split('//')[1].split('.')
+    const {payload: payload2, signature: signature2} = setPayloadAndSignature()
+    tunnel = await localtunnel({host, port: localPort, payload: payload2, signature: signature2})
+    const url2 = tunnel.url
+    tunnel.close()
 
-    assert.isTrue(isValidRandomId(result[0], JSON.parse(payload).publicKey))
-    assert.equal(result[1], localDomain.split('.')[0])
+    assert.equal(url, url2)
 
-    const res = await request.get(tunnel.url)
-    assert.equal(res.text, expected)
+    const {payload: payload3, signature: signature3} = setPayloadAndSignature()
+    tunnel = await localtunnel({host, port: localPort, payload: payload3, signature: signature3, reset: true})
+    const url3 = tunnel.url
+
+    assert.notEqual(url, url3)
 
     tunnel.close()
   })

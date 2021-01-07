@@ -27,7 +27,7 @@ function getExistingVersion(pkg) {
 }
 
 function updateOtherPackages(package, name, newVersion) {
-  console.log('Patching '+package+' to version '+ newVersion)
+  console.debug('Patching '+package+' to version '+ newVersion)
   for (let p in packagesJson) {
     if (p === package) {
       continue
@@ -43,7 +43,7 @@ function updateOtherPackages(package, name, newVersion) {
       yes = true
     }
     if (yes) {
-      console.log('Updating dependencies in', p)
+      console.debug('Updating dependencies in', p)
     }
   }
 }
@@ -65,4 +65,4 @@ for (let p in packagesJson) {
   fs.writeFileSync(path.resolve(__dirname, '../packages', p, 'package.json'), JSON.stringify(packagesJson[p], null, 2) + '\n')
 }
 
-console.log('Done')
+console.debug('Done')

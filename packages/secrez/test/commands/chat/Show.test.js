@@ -23,9 +23,9 @@ describe('#Show', function () {
   let prompt1, prompt2
   let hubPort = 4433
   let testDir = path.resolve(__dirname, '../../../tmp/test')
-  let rootDir = path.resolve(testDir, 'secrez')
+  let rootDir = path.resolve(testDir, 'secrez1')
   let rootDir2 = path.resolve(testDir, 'secrez2')
-  let courierRoot = path.resolve(testDir, 'secrez-courier')
+  let courierRoot = path.resolve(testDir, 'secrez-courier1')
   let courierRoot2 = path.resolve(testDir, 'secrez-courier2')
 
   let localDomain = '127zero0one.com'
@@ -46,9 +46,8 @@ describe('#Show', function () {
     localDir: __dirname
   }
 
-
   const startHub = async () => {
-    hubServer = createServer({
+    hubServer = await createServer({
       secure: false,
       domain: localDomain,
       max_tcp_sockets: 4,
@@ -62,7 +61,6 @@ describe('#Show', function () {
   }
 
   beforeEach(async function () {
-
     await fs.emptyDir(testDir)
     await startHub()
 

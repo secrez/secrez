@@ -1,11 +1,22 @@
 // Next line is to avoid that npm-check-unused reports it
 require('sqlite3')
 //
+
+const path = require('path')
+const fs = require('fs-extra')
+
 const {Crypto} = require('@secrez/core')
 
 class Db {
 
-  constructor(filename) {
+  constructor() {
+
+    const dbDir = process.env.NODE_ENV === 'test'
+        ? process.env.DBDIR || path.resolve(__dirname, '../../tmp/db')
+        : path.resolve(__dirname, '../../db')
+
+    fs.ensureDirSync(dbDir)
+    const filename = path.join(dbDir, 'tunnels.sqlite3')
 
     this.knex = require('knex')({
       client: 'sqlite3',
@@ -16,119 +27,43 @@ class Db {
     })
   }
 
-  async init() {
-
-    if (!(await this.knex.schema.hasTable('config'))) {
-      await this.knex.schema.createTable('config', function (table) {
-        table.string('key').unique()
-        table.string('value')
-      })
-    }
-    if (!(await this.knex.schema.hasTable('publickeys'))) {
-      await this.knex.schema.createTable('publickeys', function (table) {
-        table.integer('addedAt').unsigned()
-        table.integer('updatedAt').unsigned()
-        table.text('publickey').unique()
-        table.text('url').unique()
-      })
-    }
-    // await this.knex.schema.dropTable('messages')
-    if (!(await this.knex.schema.hasTable('messages'))) {
-      await this.knex.schema.createTable('messages', function (table) {
-        table.integer('timestamp').unsigned()
-        // table.integer('microseconds').unsigned()
-        table.integer('direction')
-        table.text('payload')
-        table.text('signature')
-        table.text('publickey')
-        table.index('timestamp', 'index_timestamp')
-      })
-    }
-  }
-
-  async insert(options, table) {
-    return this.knex.insert(options).into(table)
-  }
-
-  async select(what = '*', table, where = {}) {
-    return this.knex.select(what).from(table).where(where)
-  }
-
-  async getValueFromConfig(key) {
-    let result = await this.select('*', 'config', {key})
-    if (result && result[0]) {
-      return result[0].value
-    }
-  }
-
-  async saveKeyValueToConfig(key, value) {
-    if (await this.getValueFromConfig(key)) {
-      return this.knex('config').update({value}).where({key})
-    } else {
-      return this.insert({key, value}, 'config')
-    }
-  }
-
-  async trustPublicKey(publickey, url) {
-    if (!(await this.isTrustedPublicKey(publickey))) {
-      let ts = Crypto.getTimestampWithMicroseconds()
-      return this.insert({
-        addedAt: ts[0],
-        updatedAt: ts[0],
-        publickey,
-        url
-      }, 'publickeys')
-    } else {
-      let existentUrl = await this.getTrustedPublicKeyUrl(publickey)
-      if (existentUrl !== url) {
-        let ts = Crypto.getTimestampWithMicroseconds()
-        return this.knex('publickeys').update({
-          updatedAt: ts[0],
-          url
-        }).where({
-          publickey
-        })
+  async init(reset) {
+    if (reset) {
+      if (await this.knex.schema.hasTable('tunnels')) {
+        await this.knex.schema.dropTable('tunnels')
       }
     }
+    if (!(await this.knex.schema.hasTable('tunnels'))) {
+      await this.knex.schema.createTable('tunnels', function (table) {
+        table.text('publickey').unique()
+        table.text('id').unique()
+      })
+    }
   }
 
-  async isTrustedPublicKey(publickey) {
-    let query = await this.select('*', 'publickeys', {publickey})
-    return !!query[0]
+  static newId() {
+    return [
+      Crypto.getRandomBase32String(2),
+      Crypto.getRandomBase32String(3),
+      Crypto.getRandomBase32String(2)
+    ].join('-')
   }
 
-  async getTrustedPublicKeyUrl(publickey) {
-    let query = await this.select('*', 'publickeys', {publickey})
-    return query[0] ? query[0].url : undefined
-  }
-
-  async saveMessage(payload, signature, publickey, direction) {
-    return this.insert({
-      timestamp: Date.now(), //ts[0],
-      // microseconds: ts[1],
-      payload,
-      signature,
-      publickey,
-      direction
-    }, 'messages')
-  }
-
-  async getMessages(minTimestamp = 0, maxTimestamp = Date.now() + 1000, publickey, limit = 10, direction) {
-    let messages = await this.knex.select('*').from('messages')
-        .where('timestamp', '>=', minTimestamp)
-        .andWhere('timestamp', '<=', maxTimestamp)
-        .andWhere('publickey', publickey ? '=' : '!=', publickey ? publickey : '-')
-        .andWhere('direction', direction ? '=' : '>', direction ? direction : 0)
-        .orderBy('timestamp', 'asc')
-        .limit(limit)
-    return messages
+  static isValidId(id) {
+    try {
+      id = id.split('-')
+      return (
+          Crypto.isBase32String(id.join('')) &&
+          id[0].length === 2 &&
+          id[1].length === 3 &&
+          id[2].length === 2
+      )
+    } catch (e) {
+    }
+    return false
   }
 
 }
-
-Db.FROM = 1
-Db.TO = 2
-
 
 module.exports = Db
 

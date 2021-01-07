@@ -94,7 +94,7 @@ describe('#Contacts', function () {
 
   it('should list contacts', async function () {
 
-    let randomId = hubUtils.getRandomId(publicKeys.user1)
+    let randomId = hubUtils.newId(publicKeys.user1)
     let url = `https://${randomId}.secrez.cc`
 
     await noPrint(C.contacts.contacts({
@@ -120,7 +120,7 @@ describe('#Contacts', function () {
 
   it('should update a contact', async function () {
 
-    let randomId = hubUtils.getRandomId(publicKeys.user1)
+    let randomId = hubUtils.newId(publicKeys.user1)
     let url = `https://${randomId}.secrez.cc`
 
     await C.contacts.contacts({
@@ -131,7 +131,7 @@ describe('#Contacts', function () {
 
     assert.equal((await C.contacts.list())[0][1].url, url)
 
-    randomId = hubUtils.getRandomId(publicKeys.user1)
+    randomId = hubUtils.newId(publicKeys.user1)
     url = `https://${randomId}.secrez.cc`
 
     await C.contacts.contacts({
@@ -192,7 +192,7 @@ describe('#Contacts', function () {
 
   it('should throw if there are errors', async function () {
 
-    let randomId = hubUtils.getRandomId(publicKeys.user1)
+    let randomId = hubUtils.newId(publicKeys.user1)
     let url = `https://${randomId}9999.secrez.cc`
 
     try {
@@ -203,7 +203,7 @@ describe('#Contacts', function () {
       })
       assert.isTrue(false)
     } catch (e) {
-      assert.equal(e.message, 'The url is not a valid one')
+      assert.equal(e.message, 'The url does not look valid')
     }
 
     url = 'https://somerandom.secrez.cc'
@@ -216,21 +216,7 @@ describe('#Contacts', function () {
       })
       assert.isTrue(false)
     } catch (e) {
-      assert.equal(e.message, 'The url is not a valid one')
-    }
-
-    randomId = hubUtils.getRandomId(publicKeys.user2)
-    url = `https://${randomId}.secrez.cc`
-
-    try {
-      await C.contacts.contacts({
-        add: 'user1',
-        publicKey: publicKeys.user1,
-        url
-      })
-      assert.isTrue(false)
-    } catch (e) {
-      assert.equal(e.message, 'The url is not a valid one')
+      assert.equal(e.message, 'The url does not look valid')
     }
 
     await noPrint(C.contacts.exec({

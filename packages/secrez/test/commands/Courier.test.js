@@ -39,7 +39,7 @@ describe('#Courier', function () {
   }
 
   const startHub = async () => {
-    hubServer = createServer({
+    hubServer = await createServer({
       secure: false,
       domain: localDomain,
       max_tcp_sockets: 4,

@@ -422,7 +422,6 @@ describe('#Import', function () {
       'Imported files:',
       '/lastpass3/HackerNews/YC.yaml',
       '/lastpass3/asana.com.yaml',
-      '/lastpass3/lombardstreet.io WP.yaml',
       '/lastpass3/http_/lombardstreet.io WP.yaml',
       '/lastpass3/amazon.it personal.yaml'
     ])

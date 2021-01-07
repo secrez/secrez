@@ -47,7 +47,7 @@ describe('#Whoami', function () {
   })
 
   const startHub = async () => {
-    hubServer = createServer({
+    hubServer = await createServer({
       secure: false,
       domain: localDomain,
       max_tcp_sockets: 4,
@@ -112,12 +112,11 @@ describe('#Whoami', function () {
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
 
-    assert.equal(output.length, 4)
+    assert.equal(output.length, 3)
     const env = await ConfigUtils.getEnv(secrez.config)
     assert.equal(output[0], 'Public key: ' + secrez.getPublicKey())
     assert.equal(output[1], 'Hub url: ' + env.courier.tunnel.url)
-    assert.equal(output[2], 'Hub & public key short url: ' + env.courier.tunnel.short_url)
-    assert.equal(output[3], 'For your convenience, the short url has been copied to the clipboard.')
+    assert.equal(output[2], 'For your convenience, the url has been copied to the clipboard.')
 
   })
 

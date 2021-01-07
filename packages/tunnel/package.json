@@ -1,7 +1,7 @@
 {
   "name": "@secrez/tunnel",
   "description": "Expose localhost for secure messaging",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -30,7 +30,7 @@
     "posttest": "nyc check-coverage --statements 80 --branches 45 --functions 80 --lines 80"
   },
   "dependencies": {
-    "@secrez/core": "workspace:~0.8.10",
+    "@secrez/core": "workspace:~0.8.11",
     "@secrez/utils": "workspace:~0.1.6",
     "chalk": "^3.0.0",
     "command-line-args": "^5.1.1",
@@ -39,8 +39,8 @@
     "superagent": "^5.3.1"
   },
   "devDependencies": {
-    "@secrez/hub": "workspace:~0.1.6",
-    "@secrez/test-helpers": "workspace:~0.1.4",
+    "@secrez/hub": "workspace:~0.2.0",
+    "@secrez/test-helpers": "workspace:~0.1.5",
     "@secrez/tls": "workspace:~0.1.4",
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",

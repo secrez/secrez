@@ -478,6 +478,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.10.0__
+* use @secrez/hub 0.2.0 and @secrez/courier 0.2.0 (which are incompatible with the previous versions)
+* duplicate `whoami` and `contacts` to make them working inside the `chat` environment
+
 __0.9.4__
 * fix bug during import, if a `path` contains `:`; now, they are replaced with `_`
 

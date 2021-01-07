@@ -17,6 +17,5 @@
   },
   "license": "MIT",
   "dependencies": {
-    "yarn": "^1.22.4"
   }
 }

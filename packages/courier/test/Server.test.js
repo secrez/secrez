@@ -7,7 +7,7 @@ const Secrez = require('@secrez/core').Secrez(Math.random())
 const Secrez2 = require('@secrez/core').Secrez(Math.random())
 const {sleep} = require('@secrez/utils')
 const {createServer, utils: hubUtils} = require('@secrez/hub')
-const {isValidRandomId, setPayloadAndSignIt} = hubUtils
+const {setPayloadAndSignIt} = hubUtils
 const Config = require('../src/Config')
 const Server = require('../src/Server')
 
@@ -33,7 +33,7 @@ describe('Server', async function () {
   // process.env.AS_DEV = true
 
   const startHub = async () => {
-    hubServer = createServer({
+    hubServer = await createServer({
       secure: false,
       domain: localDomain,
       max_tcp_sockets: 4,
@@ -47,7 +47,7 @@ describe('Server', async function () {
   }
 
   const startHub2 = async () => {
-    hubServer2 = createServer({
+    hubServer2 = await createServer({
       secure: false,
       domain: localDomain,
       max_tcp_sockets: 4,
@@ -145,11 +145,7 @@ describe('Server', async function () {
         .query({payload, signature})
         .ca(await server.tls.getCa())
 
-    assert.isTrue(/\/s\/\w{6}$/.test(res.body.info.short_url))
-
-    let result = res.body.info.url.split('//')[1].split('.')
-    assert.isTrue(isValidRandomId(result[0], JSON.parse(payload).publicKey))
-    assert.isTrue(res.body.success)
+    assert.isTrue(await hubUtils.isValidUrl(res.body.info.url))
   })
 
   it('should change the listening port if requested', async function () {

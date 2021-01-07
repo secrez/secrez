@@ -54,7 +54,7 @@ class Contacts extends require('../Command') {
 
   help() {
     return {
-      description: ['Gives info about contacts'],
+      description: ['Manages your contacts'],
       examples: [
         ['contacts -a pan', 'adds a new trusted contact pan, asking for his public key  and hub url'],
         ['contacts -u pan', 'updates the hub url'],
@@ -66,25 +66,17 @@ class Contacts extends require('../Command') {
     }
   }
 
-  async getType(options) {
-    let type = await this.useSelect({
-      choices: ['Short url', 'Public key & url'],
-      message: 'Which data would you use?'
-    })
-    if (!type) {
-      throw new Error('Operation canceled')
-    }
-    return type
-  }
-
-  async getShortUrl(shortUrl) {
+  async getPublicKeyFromUrl(url) {
     try {
+      url = new URL(url)
+      let id = hubUtils.getClientIdFromHostname(url.hostname)
+      let apiurl = url.protocol + '//'+ url.host.split(id + '.')[1]
       let res = await superagent
-          .get(shortUrl)
+          .get(`${apiurl}/api/v1/publickey/${id}`)
           .set('Accept', 'application/json')
-      return res.body
+      return res.body.publickey
     } catch (e) {
-      throw new Error('Inactive/wrong short url')
+      throw new Error('Inactive/wrong url')
     }
   }
 
@@ -106,40 +98,32 @@ class Contacts extends require('../Command') {
     if (existingDataIfSo) {
       throw new Error(`A contact named "${name}" already exists`)
     }
-    let publicKey = options.publicKey
-    let url = options.url
+    let publicKey
+    let url
+    if (process.env.NODE_ENV === 'test') {
+      publicKey = options.publicKey
+      url = options.url
+    }
     if (!publicKey) {
-      let type = await this.getType(options)
-      if (type === 'Short url') {
-        let shortUrl = await this.useInput(Object.assign(options, {
-          message: `Paste ${name}'s short url`
-        }))
-        if (!shortUrl) {
-          throw new Error('Operation canceled')
-        }
-        let data = await this.getShortUrl(shortUrl)
-        publicKey = data.publicKey
-        url = data.url
-      } else {
-        publicKey = await this.useInput(Object.assign(options, {
-          message: `Paste ${name}'s public key`
-        }))
-        if (!publicKey) {
-          throw new Error('Operation canceled')
-        }
-        url = await this.useInput(Object.assign(options, {
-          message: `Paste ${name}'s url (or type 0 if you want to skip it for now)`
-        }))
-        if (url === 0) {
-          url = undefined
-        }
+      url = await this.useInput(Object.assign(options, {
+        message: `Paste ${name}'s url on hub`
+      }))
+      if (!url) {
+        throw new Error('Operation canceled')
+      }
+      try {
+        publicKey = await this.getPublicKeyFromUrl(url)
+      } catch (e) {
+      }
+      if (!publicKey) {
+        throw new Error('Client not found on hub')
       }
     }
     if (!Crypto.isValidSecrezPublicKey(publicKey)) {
       throw new Error('The public hey is not a valid one')
     }
-    if (url && !hubUtils.isValidUrl(url, publicKey)) {
-      throw new Error('The url is not a valid one')
+    if (url && !hubUtils.isValidUrl(url)) {
+      throw new Error('The url does not look valid')
     }
     this.checkIfAlreadyExists(name, publicKey, url)
     await this.createContact(Object.assign(options, {publicKey, url}))
@@ -156,6 +140,10 @@ class Contacts extends require('../Command') {
         } else if (url && content.url === url) {
           throw new Error(`The contact "${contact}" is already associated to this url`)
         }
+      } else {
+        if (publicKey && content.publicKey !== publicKey) {
+          throw new Error(`"${contact}" is associated to a different public key. Verify your contact, please`)
+        }
       }
     }
   }
@@ -166,31 +154,25 @@ class Contacts extends require('../Command') {
     if (!existingDataIfSo) {
       throw new Error('Contact not found')
     }
-    let publicKey = options.publicKey
-    let url = options.url
+    let publicKey
+    let url
+    if (process.env.NODE_ENV === 'test') {
+      publicKey = options.publicKey
+      url = options.url
+    }
     if (!url) {
-      let type = await this.getType(options)
-      if (type === 'Short url') {
-        let shortUrl = await this.useInput(Object.assign(options, {
-          message: `Paste ${name}'s short url`
-        }))
-        if (!shortUrl) {
-          throw new Error('Operation canceled')
-        }
-        let data = await this.getShortUrl(shortUrl)
-        publicKey = data.publicKey
-        url = data.url
-      } else {
-        publicKey = existingDataIfSo.content.publicKey
-        url = await this.useInput(Object.assign(options, {
-          message: `Paste ${name}'s url`
-        }))
-        if (!url) {
-          throw new Error('Operation canceled')
-        }
-        if (!hubUtils.isValidUrl(url, publicKey)) {
-          throw new Error('The url is not a valid one')
-        }
+      url = await this.useInput(Object.assign(options, {
+        message: `Paste ${name}'s url on hub`
+      }))
+      if (!url) {
+        throw new Error('Operation canceled')
+      }
+      try {
+        publicKey = await this.getPublicKeyFromUrl(url)
+      } catch (e) {
+      }
+      if (!publicKey) {
+        throw new Error('Url not active')
       }
     } else {
       publicKey = JSON.parse(existingDataIfSo.content).publicKey

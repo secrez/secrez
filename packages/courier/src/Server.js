@@ -49,8 +49,7 @@ class Server {
         this.tunnel.on('close', this.onTunnelClose)
         return {
           clientId: this.tunnel.clientId,
-          url: this.tunnel.url,
-          short_url: this.tunnel.short_url
+          url: this.tunnel.url
         }
       } else {
         this.tunnel.close()
@@ -62,8 +61,7 @@ class Server {
     } else {
       return {
         clientId: this.tunnel.clientId,
-        url: this.tunnel.url,
-        short_url: this.tunnel.short_url
+        url: this.tunnel.url
       }
     }
   }

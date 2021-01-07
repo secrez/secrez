@@ -1,6 +1,6 @@
 const crypto = require('crypto')
 const Crypto = require('@secrez/crypto')
-const microtime = require('microtime')
+const μs = require('microseconds')
 
 Crypto.getSignPublicKeyFromSecretPublicKey = publicKey => {
   return Crypto.fromBase58(publicKey.split('0')[1])
@@ -26,14 +26,9 @@ Crypto.isValidSecrezPublicKey = pk => {
 }
 
 Crypto.getTimestampWithMicroseconds = () => {
-  let tmp = microtime.nowDouble().toString().split('.')
-  for (; ;) {
-    if (tmp[1].length === 6) {
-      break
-    }
-    tmp[1] += '0'
-  }
-  tmp = tmp.map(e => parseInt(e))
+  let now = Date.now()
+  let tmp = [Math.floor(now/1000), μs.parse(μs.now()).microseconds.toString()]
+  tmp[1] = parseInt(now.toString().substr(- 3) + '0'.repeat(3 - tmp[1].length) + tmp[1])
   return tmp
 }
 
