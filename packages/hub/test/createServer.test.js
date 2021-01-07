@@ -7,8 +7,10 @@ const {Server} = require('ws')
 const WebSocketServer = Server
 const WebSocket = require('ws')
 const net = require('net')
-const {getRandomId, setPayloadAndSignIt} = require('../src/utils')
-const {Crypto} = require('@secrez/core')
+
+process.env.DBDIR = path.resolve(__dirname, '../tmp/test/db')
+
+let {setPayloadAndSignIt, isValidRandomId, resetDb} = require('../src/utils')
 const Secrez = require('@secrez/core').Secrez(Math.random())
 
 const createServer = require('../src/createServer')
@@ -16,7 +18,9 @@ const createServer = require('../src/createServer')
 describe('Server', () => {
 
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-  let secrez = new Secrez()
+
+  let secrez
+  fs.emptyDirSync(process.env.DBDIR)
 
   function setPayloadAndSignature(id = 0) {
     return setPayloadAndSignIt(secrez, {
@@ -24,20 +28,22 @@ describe('Server', () => {
     })
   }
 
-  before(async function () {
+  beforeEach(async function () {
     await fs.emptyDir(rootDir)
+    resetDb()
+    secrez = new Secrez()
     await secrez.init(rootDir)
     await secrez.signup('password', 1000)
   })
 
   it('server starts and stops', async () => {
-    const server = createServer()
+    const server = await createServer()
     await new Promise(resolve => server.listen(resolve))
     await new Promise(resolve => server.close(resolve))
   })
 
   it('should show the welcome json', async () => {
-    const server = createServer()
+    const server = await createServer()
     const res = await request(server).get('/')
     assert.equal(res.statusCode, 200)
     assert.equal(res.body.welcome_to, 'This is a Secrez hub')
@@ -45,10 +51,8 @@ describe('Server', () => {
 
   it('should upgrade websocket requests', async () => {
 
-    // process.env.AS_DEV = true
-
-    const hostname = 'uzcmscmbx5y9j61k94r66akycscjbepzwyz9aam7dn4gqmwkyi60c3uc9urw'
-    const server = createServer({
+    const hostname = 'uz-3ms-cm'
+    const server = await createServer({
       domain: 'example.com',
       port: 9699,
     })
@@ -98,7 +102,10 @@ describe('Server', () => {
   })
 
   it('should create a tunnel and support the /api/v1/tunnels/:id/status endpoint', async () => {
-    const server = createServer()
+    const code = 'asdcfde'
+    const server = await createServer({
+      code
+    })
     await new Promise(resolve => server.listen(resolve))
 
     // no such tunnel yet
@@ -111,75 +118,75 @@ describe('Server', () => {
       signature
     })
 
-    let {short_url, id, url} = res.body
+    let {id} = res.body
 
-    assert.equal(id.substring(0, 4), Crypto.b32Hash(Crypto.getSignPublicKeyFromSecretPublicKey(secrez.getPublicKey())).substring(0, 4))
+    assert.isTrue(await isValidRandomId(id, secrez.getPublicKey()))
 
-    res = await request(server).get(`/api/v1/tunnels/${id}/status`)
+    res = await request(server).get(`/api/v1/tunnels/${id}/status?code=${code}`)
     assert.equal(res.statusCode, 200)
     assert.deepEqual(res.body, {
       connected_sockets: 0,
     })
 
-    let parsedUrl = new URL(short_url)
-
-    res = await request(server).get(parsedUrl.pathname)
+    res = await request(server).get(`/api/v1/publickey/${id}`)
     assert.equal(res.statusCode, 200)
     assert.deepEqual(res.body, {
-      publicKey: secrez.getPublicKey(),
-      url
+      publickey: secrez.getPublicKey()
     })
 
     await new Promise(resolve => server.close(resolve))
   })
 
-  it('should support the /api/v1/tunnels/:id/status endpoint with fixed reqId', async () => {
-    const server = createServer()
+  it('should support the /api/v1/tunnels/:id/status endpoint with same id', async () => {
+
+    // process.env.AS_DEV = true
+
+    const code = 'asdcfde'
+    const server = await createServer({
+      code
+    })
     await new Promise(resolve => server.listen(resolve))
 
-    // no such tunnel yet
+    // not authorized
     let res = await request(server).get('/api/v1/tunnels/foobar-test/status')
     assert.equal(res.statusCode, 404)
 
+
+    // no such tunnel yet
+    res = await request(server).get(`/api/v1/tunnels/foobar-test/status?code=${code}`)
+    assert.equal(res.statusCode, 404)
+
     // request a new client called foobar-test
-    const publicKeyId = getRandomId(secrez.getPublicKey())
-    const {payload, signature} = setPayloadAndSignature(publicKeyId)
+    const {payload, signature} = setPayloadAndSignature()
 
     res = await request(server).get('/api/v1/tunnel/new').query({
       payload,
       signature
     })
-    let {id, short_url: shortUrl} = res.body
 
-    assert.equal(id, publicKeyId)
+    let {id} = res.body
 
-    res = await request(server).get(`/api/v1/tunnels/${id}/status`)
+    const {payload: payload1, signature: signature1} = setPayloadAndSignature()
+    res = await request(server).get('/api/v1/tunnel/new').query({
+      payload: payload1,
+      signature: signature1
+    })
+
+    let {id: newId} = res.body
+
+    assert.equal(id, newId)
+
+    res = await request(server).get(`/api/v1/tunnels/${id}/status?code=${code}`)
     assert.equal(res.statusCode, 200)
     assert.deepEqual(res.body, {
       connected_sockets: 0,
     })
 
-    const {payload: payload2, signature: signature2} = setPayloadAndSignature(publicKeyId)
-
-    res = await request(server).get('/api/v1/tunnel/new').query({
-      payload: payload2,
-      signature: signature2,
-      keepShortUrl: true
-    })
-    assert.equal(res.body.short_url, shortUrl)
-    assert.equal(res.body.id, id)
-
-    res = await request(server).get('/api/v1/tunnel/new').query({
-      payload,
-      signature
-    })
-    assert.notEqual(res.body.short_url, shortUrl)
-
     try {
       // reusing the same payload is not allowed
       res = await request(server).get('/api/v1/tunnel/new').query({
-        payload: payload2,
-        signature: signature2,
+        payload: payload1,
+        signature: signature1,
         keepShortUrl: true
       })
       assert.isTrue(false)
@@ -187,6 +194,39 @@ describe('Server', () => {
       assert.isTrue(!!e.message)
     }
 
+    await new Promise(resolve => server.close(resolve))
+  })
+
+  it('should reset the id when asked', async () => {
+
+    // process.env.AS_DEV = true
+
+    const code = 'asdcfde'
+    const server = await createServer({
+      code
+    })
+    await new Promise(resolve => server.listen(resolve))
+
+    // request a new client called foobar-test
+    const {payload, signature} = setPayloadAndSignature()
+
+    let res = await request(server).get('/api/v1/tunnel/new').query({
+      payload,
+      signature
+    })
+
+    let {id} = res.body
+
+    const {payload: payload1, signature: signature1} = setPayloadAndSignature()
+    res = await request(server).get('/api/v1/tunnel/new').query({
+      payload: payload1,
+      signature: signature1,
+      reset: true
+    })
+
+    let {id: newId} = res.body
+
+    assert.notEqual(id, newId)
 
     await new Promise(resolve => server.close(resolve))
   })

@@ -15,6 +15,8 @@ class Tunnel extends EventEmitter {
     if (opts.timeout) {
       globalOptions.timeout = opts.timeout
     }
+    // console.log(opts)
+
     this.closed = false
   }
 
@@ -55,11 +57,19 @@ class Tunnel extends EventEmitter {
     let now = Date.now()
 
     function getUrl() {
+
+      // console.log({
+      //   payload: opt.payload,
+      //   signature: opt.signature,
+      //   reset: opt.reset
+      // })
+
       request
           .get(uri)
           .query({
             payload: opt.payload,
-            signature: opt.signature
+            signature: opt.signature,
+            reset: opt.reset
           })
           .set('Accept', 'application/json')
           .then(res => {

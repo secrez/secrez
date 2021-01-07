@@ -9,7 +9,6 @@ const {ConfigUtils} = require('@secrez/core')
 const {sleep} = require('@secrez/utils')
 const {createServer, utils: hubUtils} = require('@secrez/hub')
 const {Config, Server} = require('@secrez/courier')
-const Secrez = require('@secrez/core').Secrez()
 
 const MainPrompt = require('../../mocks/MainPromptMock')
 const ChatPrompt = require('../../mocks/ChatPromptMock')
@@ -37,7 +36,7 @@ describe('#Send', function () {
   let config, config2
   let server, server2
   let secrez
-  let secrez2 = new Secrez()
+  let secrez2 = new (require('@secrez/core').Secrez())
   let publicKeys = {}
   let hubServer
   let res
@@ -58,7 +57,7 @@ describe('#Send', function () {
   })
 
   const startHub = async () => {
-    hubServer = createServer({
+    hubServer = await createServer({
       secure: false,
       domain: localDomain,
       max_tcp_sockets: 4,

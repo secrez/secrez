@@ -13,12 +13,12 @@ if (gitDiff.length > 0 && gitDiff[0]) {
 
 function checkAndPublish(dir) {
   const pkg = dir === 'secrez' ? '' : '@secrez/'
-  console.log(`Checking  ${pkg}${dir}`)
+  console.debug(`Checking  ${pkg}${dir}`)
   const version = require(`../packages/${dir}/package.json`).version
   const currVersion = execSync(`npm view ${pkg}${dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
   if (version !== currVersion) {
-    console.log(`Publishing  ${pkg}${dir} v${version}`)
-    console.log(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
+    console.debug(`Publishing  ${pkg}${dir} v${version}`)
+    console.debug(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
     changes = true
   }
 }
@@ -35,5 +35,5 @@ checkAndPublish('tunnel', '@secrez')
 checkAndPublish('secrez')
 
 if (!changes) {
-  console.log('No upgrade needed.')
+  console.debug('No upgrade needed.')
 }

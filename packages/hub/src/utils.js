@@ -1,48 +1,76 @@
 const {Crypto} = require('@secrez/core')
 const validator = require('./Validator')
+const Db = require('./lib/Db')
+let db
 
 const Utils = {
 
-  getRandomId(publicKey, allIds = {}) {
-    let id
-    let prefix = Crypto.b32Hash(Crypto.getSignPublicKeyFromSecretPublicKey(publicKey))
-    for (; ;) {
-      id = [prefix, Crypto.getRandomBase32String(8)].join('0')
-      if (allIds[id]) {
-        continue
-      }
-      return id
-    }
+  async initDb(reset) {
+    db = new Db()
+    await db.init(reset)
   },
 
-  isValidUrl(url, publicKey) {
-    let id = Utils.getClientIdFromHostname(url)
-    if (id) {
-      return Utils.isValidRandomId(id, publicKey)
+  async resetDb() {
+    await Utils.initDb(true)
+  },
+
+  newId() {
+    return Db.newId()
+  },
+
+  async getRandomId(publickey, reset) {
+    let result = await db.knex.select('*').from('tunnels').where({publickey})
+    let extId
+    if (result && result[0]) {
+      extId = result[0].id
+    }
+    if (extId && !reset) {
+      return extId
+    }
+    let id
+    for (; ;) {
+      id = Db.newId()
+      result = await db.knex.select('*').from('tunnels').where({id})
+      if (result && result[0]) {
+        continue
+      } else {
+        break
+      }
+    }
+    if (extId && reset) {
+      await db.knex('tunnels').update({id}).where({publickey})
+    } else {
+      await db.knex.insert({publickey, id}).into('tunnels')
+    }
+    return id
+  },
+
+  isValidUrl(url) {
+    return !!Utils.getClientIdFromHostname(url)
+  },
+
+  async isValidRandomId(id, publickey) {
+    try {
+      if (Db.isValidId(id)) {
+        if (publickey) {
+          let result = await db.knex.select('*').from('tunnels').where({id})
+          if (result && result[0]) {
+            return publickey === result[0].publickey
+          }
+        } else {
+          return true
+        }
+      }
+    } catch (e) {
     }
     return false
   },
 
-  isValidRandomId(id = '', publicKey) {
-    id = id.split('0')
-    return (
-        Crypto.isBase32String(id[0]) &&
-        id[1] &&
-        id[1].length === 8 &&
-        Crypto.isBase32String(id[1]) && (
-            publicKey
-                ? Crypto.b32Hash(Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)) === id[0]
-                : Crypto.fromBase32(id[0]).length === 32
-        )
-    )
-  },
-
-  shortId(id) {
-    if (typeof id !== 'string' || !id.length) {
-      return ''
+  async getPublicKeyFromId(id) {
+    let result = await db.knex.select('*').from('tunnels').where({id})
+    if (result && result[0]) {
+      return result[0].publickey
     }
-    id = id.split('0')
-    return id[0].substring(0, 4) + (id[1] ? '...' + id[1] : '')
   },
 
   verifyPayload(payload, signature, validFor, onlyOneTime) {
@@ -79,12 +107,13 @@ const Utils = {
       hostname = hostname.replace(/^[^/]+\/\//, '')
       hostname = hostname.toString().split('.')
       for (let part of hostname) {
-        if (Utils.isValidRandomId(part)) {
+        if (Db.isValidId(part)) {
           return part
         }
       }
-    } catch(e) {
+    } catch (e) {
     }
+    return false
   }
 }
 

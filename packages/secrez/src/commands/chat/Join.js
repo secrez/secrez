@@ -85,7 +85,7 @@ class Join extends require('../../Command') {
       if (options.ready) {
           await this.joinRoom(options)
           if (!this.hint) {
-            this.Logger.grey('In a room, by default, you send messages, but you can execute commands. If a message looks like a command, for example "join me tonight", disambiguate it by prefixing it with a slash, like "/join me tonight".')
+            this.Logger.grey('In a room, by default, you send messages, but you can also execute commands. If a message looks like a command, for example "join me tonight", disambiguate it by prefixing it with a slash, like "/join me tonight".')
             this.hint = true
           }
         }

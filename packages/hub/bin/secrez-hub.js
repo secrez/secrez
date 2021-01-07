@@ -40,6 +40,11 @@ const optionDefinitions = [
     name: 'max-sockets',
     alias: 'm',
     type: Number
+  },
+  {
+    name: 'code',
+    alias: 'c',
+    type: String
   }
 ]
 
@@ -84,7 +89,8 @@ Options:
                           a hub from a subdomain (i.e. lt.example.dom where clients 
                           will be huw7y3dl.lt.example.com).
   -m, --max-sockets       Maximum number of tcp sockets each client is allowed 
-                          to establish at one time (the tunnels); default: 4.           
+                          to establish at one time (the tunnels); default: 4. 
+  -c, --code              Activate admin API (like /api/v1/status?code=xxxxx)                          
                       
 Examples:
   $ secrez-hub -p 9494

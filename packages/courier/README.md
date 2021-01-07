@@ -47,6 +47,11 @@ The courier just work as a post office. It is able to send and receive messages 
 The connected Secrez account will then be able to receive message in real time or to get the history specifying the interval.
 
 
+## History
+
+__0.2.0__
+* Align to @secrez/hub 0.2.0
+
 ## Test coverage
 
 ```
@@ -55,12 +60,12 @@ The connected Secrez account will then be able to receive message in real time o
 ------------|---------|----------|---------|---------|----------------------------------------------
 File        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                            
 ------------|---------|----------|---------|---------|----------------------------------------------
-All files   |   79.44 |    63.87 |   79.55 |   79.35 |                                              
- App.js     |   79.35 |    60.98 |   69.23 |   79.35 | ...0,145,170,175-177,181-182,191-193,205,215 
+All files   |    79.2 |    63.87 |   79.55 |   79.12 |                                              
+ App.js     |   78.49 |    60.98 |   69.23 |   78.49 | ...5,150,175,180-182,186-187,196-198,210,220 
  Config.js  |     100 |      100 |     100 |     100 |                                              
  Courier.js |   83.33 |        0 |      50 |   83.33 | 12                                           
- Db.js      |    91.3 |    74.19 |     100 |    91.3 | 82-85                                        
- Server.js  |   69.66 |     56.1 |   71.43 |   69.32 | 16,56-63,93,96,113,137-153,158-162,167-178   
+ Db.js      |   91.49 |    74.19 |     100 |   91.49 | 84-87                                        
+ Server.js  |   69.66 |     56.1 |   71.43 |   69.32 | 16,55-62,91,94,111,135-151,156-160,165-176   
 ------------|---------|----------|---------|---------|----------------------------------------------
 ```
 ## Copyright

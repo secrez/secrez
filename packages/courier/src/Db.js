@@ -7,6 +7,8 @@ class Db {
 
   constructor(filename) {
 
+    this.filename = filename
+
     this.knex = require('knex')({
       client: 'sqlite3',
       connection: {

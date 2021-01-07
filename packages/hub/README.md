@@ -59,28 +59,35 @@ Finally, you can set up the maximum number of sockets allowed by ID. By default 
 
 To make an hub accessible to, for example, your company, you should:
 
-Run the hub, setup a proxy, for example with Nginx, and set up SSL certificates, for the domain and any subdomain. The hub, to work, requires that the firewall allows access to port from 32k to 64k, because those ports are randomly used to generate the tunnels.
+Run the hub, setup a proxy, for example with Nginx, and set up SSL certificates, for the domain and any subdomain.
 
 When I have a moment, I will write a post on how to do it using Let's Encrypt.
+
+## History
+
+__0.2.0__
+* reduce the subdomain to a short one (like 'ch-rt2-9p')
+* persist the ID until the user explicitly reset it
+* remove short urls, no more necessary
 
 
 ## Test coverage
 ```
-  5 passing (179ms)
+  24 passing (6s)
 
 -------------------|---------|----------|---------|---------|---------------------------------------
 File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                     
 -------------------|---------|----------|---------|---------|---------------------------------------
-All files          |   73.48 |    60.61 |   70.69 |   73.42 |                                       
- src               |   78.16 |    68.24 |   90.48 |   78.16 |                                       
+All files          |    84.5 |    71.52 |    87.3 |   84.47 |                                       
+ src               |   80.09 |    70.83 |    87.5 |   80.09 |                                       
   Validator.js     |      80 |       50 |     100 |      80 | 28-30,34                              
-  createServer.js  |   76.55 |    69.57 |      90 |   76.55 | ...04,216-228,235-236,241-242,248-249 
-  utils.js         |   82.93 |     69.7 |   85.71 |   82.93 | 12,19-23,42,53                        
- src/lib           |   68.42 |    46.81 |   59.46 |   68.25 |                                       
-  Client.js        |   60.71 |       40 |   42.86 |      60 | 21,37,44,53-83,91-94,101-102,107-109  
-  ClientManager.js |   70.27 |     37.5 |   71.43 |   70.27 | 35,57,70-84                           
-  Shortener.js     |     100 |    83.33 |     100 |     100 | 20                                    
-  TunnelAgent.js   |   65.82 |    43.48 |   61.54 |   65.82 | ...19,132-136,148-149,160-163,171-172 
+  createServer.js  |   75.52 |     62.5 |      90 |   75.52 | ...06,218-230,237-238,243-244,250-251 
+  utils.js         |   91.38 |    83.33 |      80 |   91.38 | 18,35,49,66,81                        
+ src/lib           |   89.58 |    72.73 |   87.18 |   89.53 |                                       
+  Client.js        |   83.93 |       40 |   78.57 |   83.64 | 44,91-94,101-102,107-109              
+  ClientManager.js |   94.59 |     87.5 |     100 |   94.59 | 70-72                                 
+  Db.js            |   95.24 |    85.71 |     100 |   95.24 | 63                                    
+  TunnelAgent.js   |   89.74 |    73.91 |   84.62 |   89.74 | 51,59-62,83,118,147-148               
 -------------------|---------|----------|---------|---------|---------------------------------------
 ```
 
@@ -88,7 +95,7 @@ All files          |   73.48 |    60.61 |   70.69 |   73.42 |
 
 Secrez-hub is based on [Localtunnel Server](https://github.com/localtunnel/server), which is Copyright (c) 2015 Roman Shtylman  
 
-It has been modified by [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>). Any opinion, help, suggestion, critic is very welcome.
+It has been heavily modified by [Francesco Sullo](https://francesco.sullo.co) (<francesco@sullo.co>). Any opinion, help, suggestion, critic is very welcome.
 
 
 ## Licence

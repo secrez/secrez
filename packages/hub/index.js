@@ -5,7 +5,7 @@ const createServer = require('./src/createServer')
 
 const startServer = async options => {
 
-  const server = createServer({
+  const server = await createServer({
     max_tcp_sockets: options.maxSockets,
     secure: options.secure,
     domain: options.domain,

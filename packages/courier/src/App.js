@@ -60,8 +60,7 @@ class App {
                   caCrt: await this.server.tls.getCa(),
                   tunnel: this.server.tunnelActive ? {
                     clientId: this.server.tunnel.clientId,
-                    url: this.server.tunnel.url,
-                    short_url: this.server.tunnel.short_url
+                    url: this.server.tunnel.url
                   } : {}
                 })
                 break
@@ -91,10 +90,11 @@ class App {
                   let url = await this.db.getTrustedPublicKeyUrl(action.recipient)
                   if (url) {
                     if (/http:.*\.localhost:/.test(url)) {
+                      // workaround to manage subdomains on localhost
+                      // using 127zero0one.com that points to 127.0.0.1
                       url = url.replace(/\.localhost:/, '.127zero0one.com:')
                     }
                     let message = action.message
-                    // this are specifically for the message
                     let {payload, signature} = message
                     const params = {
                       payload,
@@ -115,11 +115,16 @@ class App {
                         error: 'Not found on the hub'
                       })
                     }
+                  } else {
+                    res.json({
+                      success: false,
+                      error: 'No url found for the public key'
+                    })
                   }
                 } else {
                   res.json({
                     success: false,
-                    error: 'No url found for the public key'
+                    error: 'Invalid public key in payload'
                   })
                 }
               }

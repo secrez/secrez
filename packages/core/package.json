@@ -1,6 +1,6 @@
 {
   "name": "@secrez/core",
-  "version": "0.8.10",
+  "version": "0.8.11",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -20,14 +20,14 @@
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
     "lodash": "^4.17.15",
-    "microtime": "^3.0.0",
+    "microseconds": "^0.2.0",
     "sha3": "^2.1.2",
     "shamir": "^0.7.1",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~0.1.4",
+    "@secrez/test-helpers": "workspace:~0.1.5",
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",

@@ -41,7 +41,6 @@ class Whoami extends require('../Command') {
       await this.prompt.commands.courier.preInit(options)
       if (options.ready) {
         result.url = env.courier.tunnel.url
-        result.short_url = env.courier.tunnel.short_url
       }
     }
     if (options.asIs) {
@@ -50,9 +49,8 @@ class Whoami extends require('../Command') {
     this.Logger.reset(chalk.grey('Public key: ') + result.publicKey)
     if (result.url) {
       this.Logger.reset(chalk.grey('Hub url: ') + result.url)
-      this.Logger.reset(chalk.grey('Hub & public key short url: ') + result.short_url)
-      await clipboardy.write(result.short_url)
-      this.Logger.grey('For your convenience, the short url has been copied to the clipboard.')
+      await clipboardy.write(result.url)
+      this.Logger.grey('For your convenience, the url has been copied to the clipboard.')
     }
   }
 
