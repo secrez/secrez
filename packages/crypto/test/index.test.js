@@ -1,5 +1,8 @@
 const chai = require('chai')
 const assert = chai.assert
+const fs = require('fs')
+const path = require('path')
+
 const Crypto = require('../src')
 const utils = require('@secrez/utils')
 const bs58 = Crypto.bs58
@@ -179,6 +182,10 @@ describe('#Crypto', function () {
       let encrypted = Crypto.encrypt(hash23456iterations, key)
       let decrypted = Crypto.decrypt(encrypted, key)
       assert.equal(hash23456iterations, decrypted)
+
+      encrypted = Crypto.encrypt(hash23456iterations, key, undefined, undefined, true)
+      decrypted = Crypto.decryptUint8Array(encrypted, key)
+      assert.equal(hash23456iterations, decrypted)
     })
 
     it('should get the nonce of an encrypted string', async function () {
@@ -189,6 +196,14 @@ describe('#Crypto', function () {
       for (let i = 0; i < nonce.length; i++) {
         assert.equal(nonce[i], recoveredNonce[i])
       }
+    })
+
+    it('should encrypt and decrypt a binary file', async function () {
+      const key = Crypto.generateKey()
+      let buf = fs.readFileSync(path.resolve(__dirname, 'fixtures/favicon.ico'))
+      let encrypted = Crypto.encryptBuffer(buf, key)
+      let decrypted = Crypto.decrypt(encrypted, key, true)
+      assert.equal(buf.toString(), Buffer.from(decrypted).toString())
     })
 
     it('should throw if the encrypted data is wrong', async function () {

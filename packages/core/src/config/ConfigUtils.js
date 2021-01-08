@@ -9,12 +9,7 @@ class ConfigUtils {
 
   static isValidType(type) {
     type = parseInt(type)
-    for (let t in config.types) {
-      if (config.types[t] === type) {
-        return true
-      }
-    }
-    return false
+    return Object.values(config.types).indexOf(type) !== -1
   }
 
   static async setSecrez(

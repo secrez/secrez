@@ -29,7 +29,7 @@ describe('#Secrez', function () {
 
   const D = config.types.DIR
   const F = config.types.TEXT
-
+  const B = config.types.BINARY
 
   describe('default secrez dir', function () {
 
@@ -300,6 +300,20 @@ describe('#Secrez', function () {
         assert.equal(name, secrez.decryptEntry(encryptedData).name)
         assert.equal(content, secrez.decryptEntry(encryptedData).content)
       })
+
+
+      // it.only('should encrypt a binary file and decrypt it', async function () {
+      //   await secrez.signup(password, iterations)
+      //   let buf = await fs.readFile(path.resolve(__dirname, 'fixtures/files/file1.tar.gz'))
+      //   let name = 'some random data'
+      //   let id = Crypto.getRandomId()
+      //   let encryptedData = secrez.encryptEntry(new Entry({id, type: B2, name, buffer: buf}))
+      //   let decryptedData = secrez.decryptEntry(encryptedData)
+      //
+      //   assert.equal(name, secrez.decryptEntry(encryptedData).name)
+      //   assert.equal(content, secrez.decryptEntry(encryptedData).content)
+      // })
+
 
       it('should encrypt only the content and decrypt it', async function () {
         await secrez.signup(password, iterations)

@@ -149,7 +149,6 @@ class Import extends require('../Command') {
           continue
         }
         let isBinary = await utils.isBinary(fn)
-
         if (isBinary && !options.binaryToo) {
           continue
         }
