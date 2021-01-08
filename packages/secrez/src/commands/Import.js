@@ -152,7 +152,7 @@ class Import extends require('../Command') {
         if (isBinary && !options.binaryToo) {
           continue
         }
-        content.push([fn, isBinary, await fs.readFile(fn, isBinary ? 'base64' : 'utf8')])
+        content.push([fn, isBinary, await fs.readFile(fn, isBinary ? undefined : 'utf8')])
       }
       for (let fn of content) {
         let basename = Entry.sanitizeName(path.basename(fn[0]), '-')

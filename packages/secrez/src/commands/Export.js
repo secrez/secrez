@@ -73,7 +73,7 @@ class Export extends require('../Command') {
       let newPath = path.join(dir, path.basename(p))
       let name = await efs.getVersionedBasename(newPath)
       options.filePath = path.join(dir, name)
-      await fs.writeFile(options.filePath, entry.content, Node.isBinary(entry) ? 'base64' : undefined)
+      await fs.writeFile(options.filePath, entry.content, Node.isBinary(entry) && typeof entry.content === 'string' ? 'base64' : undefined)
       if (options.duration) {
         this.deleteFromDisk(options)
       }
