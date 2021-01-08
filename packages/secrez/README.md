@@ -473,8 +473,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## TODO
 
-- Documentation
-- More commands, included a Git command to manage the repo
+- Good documentation
 - Plugin architecture to allow others to add their own commands
 
 ## History
