@@ -226,8 +226,15 @@ If you do so, though, be careful to correctly set up in the directory the equiva
   cat       Shows the content of a file.
   cd        Changes the working directory.
   chat      Enters the Secrez chat
+      contacts  Manages your contacts
+      help      This help.
+      join      Joins conversation.
+      quit      Leaves either a room or the chat
+      send      Sends either a room or the chat
+      show      Show chat history in a room
+      whoami    Show data that other users need to chat with you
   conf      Configure security data (2FA, password, number of iterations).
-  contacts  Gives info about contacts
+  contacts  Manages your contacts
   copy      Copy a text file to the clipboard.
   courier   Configure the connection to a local courier
   ds        Manages datasets
@@ -235,6 +242,7 @@ If you do so, though, be careful to correctly set up in the directory the equiva
   exit      << deprecated - use "quit" instead
   export    Export encrypted data to the OS in the current local folder
   find      Find a secret.
+  git       Pushes to a repo and pulls from a repo.
   help      This help.
   import    Import files from the OS into the current folder
   lcat      Similar to a standard cat in the external fs.
