@@ -163,7 +163,7 @@ You can save locally the number of iterations adding the options `-s`, like:
 secrez -s
 ```
 
-It is possible that the number of iterations you chose makes the initial decryption too slow. You can change it inside the Secrez CLI with the command `conf`. 
+It is possible that the number of iterations you chose makes the initial decryption too slow. You can change it inside the Secrez CLI with the command `conf`.
 
 Other options at launch are:
 
@@ -193,30 +193,21 @@ git push -u origin main
 
 ```
 
-In the future, I will add a `git` command inside the Secrez CLI. For now, you can use the `bash` command to update your repo when you change something, like
+Since version 0.10.2 you can use the internal `git` command.
+It is very easy. To push any change run
 ```
-bash "git add . --all"
-bash "git commit -m 'some change'"
-bash "git push origin main"
+git -p
 ```
-
-To get faster, you can create an alias like
+and, if you pushed changes to the repo on some other computer, to pull and merge, run
 ```
-alias gitpush -c "lcd ~/.secrez && bash 'git add . --all' && bash 'git commit Something' && bash 'git push origin main'"
-
+git -P
 ```
-and, later, just execute
-```
-gitpush
-```
-every time you want to push changes to the repo.
-
-_Notice that I refer to `main` as the master branch, because recently GitHub is using that by default._ 
+Notice that the lowercase `p` is an alias for `push` and the uppercase `P` for `pull`.
 
 **What about Mercurial or Subversion?**
 
 Of course, you can use a different version control system.  
-If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.  
+If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.
 
 ## The commands
 
@@ -332,7 +323,7 @@ M github.yml
 ```
 It is fantastic, isn’t it?
 
-_Btw, using a TOTP factor in Secrez is a bit of a contradiction, because you are converting a second factor (something that you have) in a first factor (something that you know). So, use this feature only when it makes sense._ 
+_Btw, using a TOTP factor in Secrez is a bit of a contradiction, because you are converting a second factor (something that you have) in a first factor (something that you know). So, use this feature only when it makes sense._
 
 ## Importing from other password/secret managers
 
@@ -514,7 +505,7 @@ __0.9.1__
 
 __0.9.0__
 * Add `ds` to manage datasets
-* `ds` is also able to delete a dataset (moving its content to the `trash` dataset)  
+* `ds` is also able to delete a dataset (moving its content to the `trash` dataset)
 * Remove feature `--rename` from `use`, since now `ds` manages the datasets
 
 __0.8.10__
@@ -527,7 +518,7 @@ __0.8.8__
 * Add the option `pathFrom` in `import` to build the `path` field using other fields
 
 __0.8.7__
-* Importing from a CSV file generates `.yaml` file instead of `.yml` 
+* Importing from a CSV file generates `.yaml` file instead of `.yml`
 
 __0.8.6__
 * Uses new onBeforeRewrite in [inquirer-command-prompt](https://github.com/sullof/inquirer-command-prompt) to remove the `#\d` when autocompleting the result of a search
@@ -702,7 +693,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 
 Firs off, take a look at Secrez's [Code of conduct](https://github.com/secrez/secrez/blob/master/CODE_OF_CONDUCT.md)
 
-Second, join the brand-new [Secrez's Discord group](https://discord.gg/whsgXj) 
+Second, join the brand-new [Secrez's Discord group](https://discord.gg/whsgXj)
 
 #### Fork this repo
 

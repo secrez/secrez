@@ -193,25 +193,16 @@ git push -u origin main
 
 ```
 
-In the future, I will add a `git` command inside the Secrez CLI. For now, you can use the `bash` command to update your repo when you change something, like
+Since version 0.10.2 you can use the internal `git` command.
+It is very easy. To push any change run
 ```
-bash "git add . --all"
-bash "git commit -m 'some change'"
-bash "git push origin main"
+git -p
 ```
-
-To get faster, you can create an alias like
+and, if you pushed changes to the repo on some other computer, to pull and merge, run
 ```
-alias gitpush -c "lcd ~/.secrez && bash 'git add . --all' && bash 'git commit Something' && bash 'git push origin main'"
-
+git -P
 ```
-and, later, just execute
-```
-gitpush
-```
-every time you want to push changes to the repo.
-
-_Notice that I refer to `main` as the master branch, because recently GitHub is using that by default._ 
+Notice that the lowercase `p` is an alias for `push` and the uppercase `P` for `pull`.
 
 **What about Mercurial or Subversion?**
 
