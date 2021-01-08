@@ -12,6 +12,9 @@ API documentation
 
 ## History
 
+__0.1.4__
+* adds more methods to encrypt and decrypt buffers too
+
 __0.1.2__
 * moving all methods that don't work in a browser back to @secrez/core
 
@@ -22,13 +25,13 @@ __0.1.0__
 ## Test coverage
 
 ```
-  31 passing (713ms)
+  32 passing (2s)
 
 ----------|---------|----------|---------|---------|-------------------
 File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 ----------|---------|----------|---------|---------|-------------------
-All files |     100 |    92.31 |     100 |     100 |                   
- index.js |     100 |    92.31 |     100 |     100 | 27-34,71,112      
+All files |     100 |    91.38 |     100 |     100 |                   
+ index.js |     100 |    91.38 |     100 |     100 | 27-34,71,112,172  
 ----------|---------|----------|---------|---------|-------------------
 ```
 

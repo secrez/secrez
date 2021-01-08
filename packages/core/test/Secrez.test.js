@@ -30,7 +30,6 @@ describe('#Secrez', function () {
   const D = config.types.DIR
   const F = config.types.TEXT
 
-
   describe('default secrez dir', function () {
 
     it('should throw trying to test in the default ~/.secrez folder', async function () {

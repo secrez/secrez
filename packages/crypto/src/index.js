@@ -169,17 +169,13 @@ class Crypto {
     return typeof key === 'object' && key.constructor === Uint8Array
   }
 
-  static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce) {
+  static encryptUint8Array(messageUint8, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, noEncode) {
     const keyUint8Array = Crypto.bs58.decode(key)
-
-    const messageUint8 = decodeUTF8(message)
     const box = secretbox(messageUint8, nonce, keyUint8Array)
-
     const fullMessage = new Uint8Array(nonce.length + box.length)
     fullMessage.set(nonce)
     fullMessage.set(box, nonce.length)
-    const encoded = Crypto.bs58.encode(Buffer.from(fullMessage))
-
+    const encoded = noEncode ? fullMessage : Crypto.bs58.encode(Buffer.from(fullMessage))
     if (getNonce) {
       return [nonce, encoded]
     } else {
@@ -187,19 +183,30 @@ class Crypto {
     }
   }
 
-  static decrypt(messageWithNonce, key) {
+  static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array) {
+    return Crypto.encryptUint8Array(decodeUTF8(message), key, nonce, getNonce, returnUint8Array)
+  }
+
+  static encryptBuffer(buf, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array) {
+    return Crypto.encryptUint8Array(new Uint8Array(buf), key, nonce, getNonce, returnUint8Array)
+  }
+
+  static decryptUint8Array(messageWithNonceAsUint8Array, key, returnUint8Array) {
     const keyUint8Array = Crypto.bs58.decode(key)
-    const messageWithNonceAsUint8Array = Crypto.bs58.decode(messageWithNonce)
     const nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
     const message = messageWithNonceAsUint8Array.slice(
         secretbox.nonceLength,
-        messageWithNonce.length
+        messageWithNonceAsUint8Array.length
     )
     const decrypted = secretbox.open(message, nonce, keyUint8Array)
     if (!decrypted) {
       throw new Error('Could not decrypt message')
     }
-    return encodeUTF8(decrypted)
+    return returnUint8Array ? decrypted : encodeUTF8(decrypted)
+  }
+
+  static decrypt(messageWithNonce, key, returnUint8Array) {
+    return Crypto.decryptUint8Array(Crypto.bs58.decode(messageWithNonce), key, returnUint8Array)
   }
 
   static getNonceFromMessage(messageWithNonce) {

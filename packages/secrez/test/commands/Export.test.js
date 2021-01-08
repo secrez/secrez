@@ -6,6 +6,7 @@ const path = require('path')
 
 const MainPrompt = require('../mocks/MainPromptMock')
 const {assertConsole, noPrint, decolorize, sleep} = require('@secrez/test-helpers')
+const {execAsync} = require('@secrez/utils')
 
 const {
   password,
@@ -76,6 +77,43 @@ describe('#Export', function () {
     content2 = await C.lcat.lcat({path: path.join(await C.lpwd.lpwd(), 'file.2')})
     assert.equal(content2, content)
 
+  })
+
+  it('should export a binary file to the current local folder', async function () {
+
+    await noPrint(C.mkdir.exec({
+      path: '/folder'
+    }))
+    await noPrint(C.cd.exec({
+      path: '/folder'
+    }))
+
+    await noPrint(C.lcd.exec({
+      path: '../../test/fixtures/files/folder1'
+    }))
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: 'file1.tar.gz',
+      binaryToo: true
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Imported files:', '/folder/file1.tar.gz'])
+
+    await noPrint(C.lcd.exec({
+      path: '../../../../tmp/test'
+    }))
+
+    inspect = stdout.inspect()
+    await C.export.exec({
+      path: 'file1.tar.gz'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Exported file:', 'file1.tar.gz'])
+
+    let currFolder = await C.lpwd.lpwd()
+    let result = await execAsync('file', currFolder, ['file1.tar.gz'])
+    assert.isTrue(/gzip compressed data/.test(result.message))
   })
 
   it('should export a file and delete it after 1 second', async function () {

@@ -16,7 +16,7 @@
     "secrez-courier": "bin/secrez-courier.js"
   },
   "dependencies": {
-    "@secrez/core": "workspace:~0.8.11",
+    "@secrez/core": "workspace:~0.8.12",
     "@secrez/fs": "workspace:~0.8.7",
     "@secrez/hub": "workspace:~0.2.0",
     "@secrez/tls": "workspace:~0.1.4",
