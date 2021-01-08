@@ -30,6 +30,12 @@ class InternalFs {
     return path.join(this.dataPath, entry.encryptedName)
   }
 
+  cleanPreviousRootEntry() {
+    for (let t of this.trees) {
+      delete t.previousRootEntry
+    }
+  }
+
   async make(options) {
     let data = await this.getTreeIndexAndPath(options.path)
     options.path = data.path
