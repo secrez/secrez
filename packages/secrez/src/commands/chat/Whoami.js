@@ -24,13 +24,17 @@ class Whoami extends require('../../Command') {
     return []
   }
 
+  async whoami(options) {
+    return await this.prompt.environment.prompt.commands.whoami.whoami(options)
+  }
+
   async exec(options = {}) {
     if (options.help) {
       return this.showHelp()
     }
     try {
       this.validate(options)
-      await this.prompt.environment.prompt.commands.whoami.whoami(options)
+      await this.whoami(options)
     } catch (e) {
       this.Logger.red(e.message)
     }

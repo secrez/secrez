@@ -6,6 +6,7 @@ const path = require('path')
 const {Node} = require('@secrez/fs')
 const MainPrompt = require('../mocks/MainPromptMock')
 const {assertConsole, decolorize, noPrint} = require('@secrez/test-helpers')
+const {sleep} = require('@secrez/utils')
 
 const {
   password,
@@ -24,6 +25,7 @@ describe('#Mv', function () {
   }
 
   beforeEach(async function () {
+    await sleep(10)
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
     prompt = new MainPrompt
     await prompt.init(options)

@@ -27,13 +27,19 @@ class Bash extends require('../Command') {
       description: ['Execute a bash command in the current disk folder.'],
       examples: [
         'bash "ls"',
-        ['bash "mv wallet1 wallet2"', 'renames an external file']
+        ['bash "mv wallet1 wallet2"', 'renames an external file'],
+        ['bash', 'asks to type the command to execute']
       ]
     }
   }
 
   async bash(options) {
     let pwd = await this.prompt.commands.lpwd.lpwd()
+    if (!options.command) {
+      options.command = await this.useInput(Object.assign(options, {
+        message: 'Type the command'
+      }))
+    }
     return execSync(`cd ${pwd} && ${options.command}`).toString()
   }
 

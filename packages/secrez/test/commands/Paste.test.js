@@ -5,7 +5,7 @@ const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
 
-const {yamlParse} = require('@secrez/utils')
+const {yamlParse, sleep} = require('@secrez/utils')
 const MainPrompt = require('../mocks/MainPromptMock')
 const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 
@@ -26,6 +26,7 @@ describe('#Paste', function () {
   }
 
   beforeEach(async function () {
+    sleep(10)
     await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
     prompt = new MainPrompt
     await prompt.init(options)
