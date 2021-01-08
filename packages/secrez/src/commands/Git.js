@@ -41,9 +41,8 @@ class Git extends require('../Command') {
       description: ['Pushes to a repo and pulls from a repo.', 'The repo must be set up outside secrez!'],
       examples: [
         ['git -p', 'adds, commits and pushes to the remote repo; a message is not allowed because it is better not to give any help to a possible hacker about whatever you are committing'],
-        ['git -m', 'pulls from origin and merges'],
-        ['git -i', 'get info about the repo, like the remote url'],
-        ['git -s', 'get the status of the repo']
+        ['git --push', 'pulls from origin and merges'],
+        ['git -i', 'get info about the repo, like the remote url']
       ]
     }
   }
