@@ -122,6 +122,12 @@ describe('#Show', function () {
 
     inspect.restore()
 
+    let whoami1b = await D.whoami.whoami({asIs: true})
+    let whoami2b = await D2.whoami.whoami({asIs: true})
+
+    assert.deepEqual(whoami1, whoami1b)
+    assert.deepEqual(whoami2, whoami2b)
+
   })
 
   afterEach(async function () {

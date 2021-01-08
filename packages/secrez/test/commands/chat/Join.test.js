@@ -79,22 +79,22 @@ describe('#Join', function () {
     await noPrint(C.courier.courier({
       port: server.port
     }))
-    await noPrint(C.contacts.exec({
-      add: 'user0x',
-      publicKey: publicKeys.user0x
-    }))
-    await noPrint(C.contacts.exec({
-      add: 'user1x',
-      publicKey: publicKeys.user1x
-    }))
-    await noPrint(C.contacts.exec({
-      add: 'user2x',
-      publicKey: publicKeys.user2x
-    }))
     await noPrint(C.chat.chat({
       chatPrompt: new ChatPrompt
     }))
     D = C.chat.chatPrompt.commands
+    await noPrint(D.contacts.exec({
+      add: 'user0x',
+      publicKey: publicKeys.user0x
+    }))
+    await noPrint(D.contacts.exec({
+      add: 'user1x',
+      publicKey: publicKeys.user1x
+    }))
+    await noPrint(D.contacts.exec({
+      add: 'user2x',
+      publicKey: publicKeys.user2x
+    }))
   })
 
   afterEach(async function () {

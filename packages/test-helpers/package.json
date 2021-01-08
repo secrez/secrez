@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@secrez/core": "workspace:~0.8.12",
-    "@secrez/fs": "workspace:~0.8.7",
+    "@secrez/fs": "workspace:~0.8.8",
     "@secrez/hub": "workspace:~0.2.0",
     "@secrez/utils": "workspace:~0.1.6",
     "chai": "^4.2.0",

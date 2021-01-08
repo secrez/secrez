@@ -46,7 +46,6 @@ describe('#Bash', function () {
 
     await noPrint(C.lcd.exec({path: 'folder1'}))
 
-    // inspect = stdout.inspect()
     let result = await C.bash.bash({command: 'cat file1'})
     assert.equal(result, 'Some secret\n')
 

@@ -56,6 +56,10 @@ class Contacts extends require('../../Command') {
     return []
   }
 
+  async contacts(options) {
+    return await this.prompt.environment.prompt.commands.contacts.contacts(options)
+  }
+
   async exec(options = {}) {
     if (options.help) {
       return this.showHelp()
@@ -65,7 +69,7 @@ class Contacts extends require('../../Command') {
         options.list = true
       }
       this.validate(options)
-      let result = await this.prompt.environment.prompt.commands.contacts.contacts(options)
+      let result = await this.contacts(options)
       if (!Array.isArray(result)) {
         result = [result]
       }
