@@ -472,7 +472,9 @@ Starting from version 0.8.0, Secrez allows to exchange encrypted messages with o
 
 ## A quick demo
 
-If you like to watch a quick demo, [you can take a look at this video on Youtube](https://www.youtube.com/watch?v=qGoBTpG0Fj0).
+If you like to watch a general demo, [you can take a look at this nine minutes video on Youtube](https://www.youtube.com/watch?v=qGoBTpG0Fj0).
+
+If you like to watch a demo about how to communicate with secrez, [you can take a look at this six minutes video on Youtube](https://www.youtube.com/watch?v=ciMl_Zhxjcs).
 
 ## Some thoughts
 
