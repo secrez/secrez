@@ -478,6 +478,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.10.3__
+* since it's not possible to clear the entire terminal, the clear screen process creates a false sense of security and has been removed
+* fix bug in `ls -l` when there are empty files
+* add message to suggest user to clear or close the terminal after quitting
+
 __0.10.2__
 * add a `git` command to push changes to the repo and pull changes
 * allow to run `bash` without parameters, asking later for the shell command
@@ -775,34 +780,34 @@ Thanks a lot for any contribution 😉
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   65.44 |    52.51 |   68.45 |   65.32 |                                   
+All files              |   66.15 |    53.08 |   69.51 |   66.04 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   73.74 |    59.26 |   84.55 |   73.48 |                                   
+ src/commands          |   74.26 |    59.65 |   84.91 |      74 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |   88.24 |       60 |     100 |   88.24 | 39,54                             
   Cat.js               |   98.89 |    88.89 |     100 |   98.89 | 143                               
   Cd.js                |   96.43 |    86.67 |     100 |   96.43 | 45                                
-  Chat.js              |    18.6 |        0 |   16.67 |    18.6 | 24-132                            
-  Conf.js              |    4.39 |        0 |   10.53 |    4.39 | 87-483                            
+  Chat.js              |   19.51 |        0 |   16.67 |   19.51 | 24-132                            
+  Conf.js              |    4.61 |        0 |   11.11 |    4.61 | 82-478                            
   Contacts.js          |   79.02 |    73.03 |   92.86 |   78.87 | ...64-175,198,203,215,271,284,294 
   Copy.js              |   94.87 |    74.51 |     100 |   94.81 | 96,141,158,183                    
   Courier.js           |   63.54 |    41.86 |   85.71 |   63.83 | ...24,139-156,168,180-183,195-201 
   Ds.js                |   92.54 |    82.05 |     100 |   92.42 | 94,103-108,120                    
-  Edit.js              |   12.66 |        0 |      40 |   12.66 | 77-190                            
+  Edit.js              |   12.99 |        0 |      40 |   12.99 | 77-190                            
   Exit.js              |      75 |        0 |   66.67 |      75 | 21-22                             
   Export.js            |     100 |    68.75 |     100 |     100 | 56,76,88-93,100                   
   Find.js              |   93.59 |    86.67 |     100 |   93.42 | 90,153,192-196,202                
-  Git.js               |   19.64 |        0 |      40 |   19.64 | 52-122                            
+  Git.js               |   19.64 |        0 |      40 |   19.64 | 51-121                            
   Help.js              |     100 |       80 |     100 |     100 | 30                                
   Import.js            |   93.68 |    83.96 |     100 |   93.57 | ...59,261,274,280,322,337-343,359 
   Lcat.js              |     100 |    85.71 |     100 |     100 | 55                                
   Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 49                                
   Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 90                                
   Lpwd.js              |   92.31 |      100 |     100 |   92.31 | 38                                
-  Ls.js                |   89.86 |    70.59 |     100 |   89.23 | 91,99,110-112,126,169             
+  Ls.js                |   89.86 |    72.22 |     100 |   89.23 | 91,99,110-112,126,169             
   Mkdir.js             |     100 |    66.67 |     100 |     100 | 39-45                             
   Mv.js                |   91.01 |    77.36 |     100 |    90.8 | 114,137,148-154                   
   Paste.js             |   87.23 |       75 |     100 |   87.23 | 66,72,75,83,107,124               
@@ -816,7 +821,7 @@ All files              |   65.44 |    52.51 |   68.45 |   65.32 |
   Use.js               |   96.77 |    89.47 |     100 |   96.77 | 64                                
   Ver.js               |      90 |    66.67 |     100 |      90 | 27                                
   Whoami.js            |    93.1 |    63.64 |      80 |    93.1 | 32,65                             
-  chat.js              |   86.05 |    53.85 |     100 |   86.05 | 94,103-116,122,129                
+  chat.js              |   85.37 |    53.85 |     100 |   85.37 | 94,103-116,122,129                
   index.js             |   91.67 |       60 |     100 |    91.3 | 23,32                             
  src/commands/chat     |   77.01 |    61.84 |   91.67 |   76.88 |                                   
   Contacts.js          |      80 |    42.86 |      80 |      80 | 56,65,69,82                       
@@ -826,10 +831,9 @@ All files              |   65.44 |    52.51 |   68.45 |   65.32 |
   Send.js              |   67.65 |    46.67 |     100 |   67.65 | 40,44,47,74,83-92                 
   Show.js              |   68.75 |    70.59 |     100 |   68.75 | 63-67,76,91-97                    
   Whoami.js            |   42.86 |        0 |      60 |   42.86 | 24,32-41                          
- src/prompts           |   10.92 |        0 |    1.79 |   11.08 |                                   
-  ChatPrompt.js        |    5.95 |        0 |       0 |    5.95 | 9-158                             
-  ClearScreen.js       |   26.09 |        0 |       0 |   26.09 | 12-42                             
-  CommandPrompt.js     |   10.96 |        0 |       0 |   11.11 | 26-289                            
+ src/prompts           |    9.73 |        0 |    1.96 |    9.88 |                                   
+  ChatPrompt.js        |    6.17 |        0 |       0 |    6.17 | 9-158                             
+  CommandPrompt.js     |   10.42 |        0 |       0 |   10.56 | 26-289                            
   Completion.js        |    4.41 |        0 |       0 |    4.62 | 7-107                             
   MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 8-35                              
   SigintManager.js     |      25 |        0 |      20 |      25 | 11-37                             
@@ -841,7 +845,7 @@ All files              |   65.44 |    52.51 |   68.45 |   65.32 |
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@0.10.2 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@0.10.3 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 

@@ -1,4 +1,5 @@
 const utils = require('@secrez/utils')
+const chalk = require('chalk')
 
 class Quit extends require('../Command') {
 
@@ -28,13 +29,16 @@ class Quit extends require('../Command') {
     if (options.help) {
       return this.showHelp()
     }
-    this.Logger.reset('Bye bye :o)')
     /* istanbul ignore if  */
     // eslint-disable-next-line no-constant-condition
     if (process.env.NODE_ENV !== 'test') {
       await this.prompt.saveHistory()
+      this.Logger.bold('Clear or close the terminal. If not, your history will be visible scrolling up.')
+      this.Logger.reset('Bye bye :o)')
       /*eslint-disable-next-line*/
       process.exit(0)
+    } else {
+      this.Logger.reset('Bye bye :o)')
     }
   }
 }

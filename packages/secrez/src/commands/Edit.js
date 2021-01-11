@@ -155,7 +155,6 @@ class Edit extends require('../Command') {
     if (options.help) {
       return this.showHelp()
     }
-    this.prompt.clearScreen.pause(true)
     let currentEditor
     try {
       this.validate(options, {
@@ -186,7 +185,6 @@ class Edit extends require('../Command') {
     }
     // eslint-disable-next-line require-atomic-updates
     process.env.EDITOR = currentEditor
-    this.prompt.clearScreen.pause(false)
     await this.prompt.run()
   }
 }

@@ -18,9 +18,6 @@ class MainPromptMock {
     this.externalFs = new ExternalFs(this.secrez)
     this.commands = (new Commands(this, cliConfig)).getCommands()
     this.commandPrompt = inquirerCommandPrompt
-    this.clearScreen = {
-      pause: new Function
-    }
     this.cache = {}
   }
 
