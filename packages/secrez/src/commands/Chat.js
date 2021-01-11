@@ -121,14 +121,14 @@ It will show the port where it is listening to. Copy it and come back to Secrez.
     if (options.help) {
       return this.showHelp()
     }
-    this.prompt.clearScreen.pause(true)
+    // this.prompt.clearScreen.pause(true)
     try {
       await this.chat(options)
     } catch (e) {
       // console.log(e)
       this.Logger.red(e.message)
     }
-    this.prompt.clearScreen.pause(false)
+    // this.prompt.clearScreen.pause(false)
     await this.prompt.run()
   }
 }

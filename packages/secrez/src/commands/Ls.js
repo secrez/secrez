@@ -128,7 +128,7 @@ class Ls extends require('../Command') {
           }
           details.ts0 = ts0
           details.ts = ts
-          details.size = (details.content || '').length.toString()
+          details.size = ((details.content || '').length || 0).toString()
           maxLength = Math.max(maxLength, details.size.length)
           details.versions = versions.length.toString()
           maxVersionNumber = Math.max(maxVersionNumber, details.versions.length)

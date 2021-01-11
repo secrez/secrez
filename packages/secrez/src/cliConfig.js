@@ -22,7 +22,7 @@ const cliConfig = Object.assign(require('@secrez/core').config, {
     help: {}
   },
   completionTypes,
-  clearScreenAfter: 300
+  // clearScreenAfter: 300
 })
 
 module.exports = cliConfig

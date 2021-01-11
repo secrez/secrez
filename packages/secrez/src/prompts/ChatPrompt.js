@@ -42,14 +42,14 @@ class ChatPrompt extends require('./CommandPrompt') {
 
   prePromptMessage(options = {}) {
     if (this.environment.room) {
-      this.clearScreen.pause(true)
+      // this.clearScreen.pause(true)
       let nicks = this.nicks(this.environment.room[0].contact)
       return [
         chalk.grey(' ' + nicks[0]),
         // chalk.bold(this.environment.room[0].contact)
       ].join('')
     } else {
-      this.clearScreen.pause(false)
+      // this.clearScreen.pause(false)
       return chalk.reset('Secrez/chat')
     }
   }
@@ -146,7 +146,7 @@ class ChatPrompt extends require('./CommandPrompt') {
   onBeforeClose() {
     delete this.environment.room
     this.stop = true
-    this.clearScreen.pause(false)
+    // this.clearScreen.pause(false)
   }
 
   async postRun(options = {}) {
