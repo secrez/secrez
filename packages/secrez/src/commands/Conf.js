@@ -128,22 +128,7 @@ class Conf extends require('../Command') {
     const env = await ConfigUtils.getEnv(this.secrez.config)
     this.Logger.reset(chalk.grey('Container: ') + this.secrez.config.container)
     this.Logger.reset(chalk.grey('Number of iterations: ') + (env.iterations || chalk.yellow('-- not saved locally --')))
-    // let seconds = env.clearScreenAfter || this.cliConfig.clearScreenAfter
-    // this.Logger.grey(`Clean screen after: ${chalk.reset(seconds)} ${chalk.grey('seconds')}`)
   }
-
-  // async setClearScreenTime(options) {
-  //   if (options.setClearScreenTime >= 0) {
-  //     const env = await ConfigUtils.getEnv(this.secrez.config)
-  //     env.clearScreenAfter = options.setClearScreenTime
-  //     await ConfigUtils.putEnv(this.secrez.config, env)
-  //     this.Logger.grey(`Screen will be cleared after ${chalk.reset(env.clearScreenAfter)} ${chalk.grey('seconds')}`)
-  //     this.prompt.clearScreen.clear(this.secrez.config)
-  //   } else {
-  //     throw new Error('The clear screen time must be >= 0. 0 deactivate the clear screen feature.')
-  //   }
-  // }
-
 
   async showList(options) {
     let allFactors = await this.getAllFactors()
@@ -439,8 +424,6 @@ class Conf extends require('../Command') {
       await this.showList(options)
     } else if (options.show) {
       await this.showConf(options)
-    // } else if (options.setClearScreenTime) {
-    //   await this.setClearScreenTime(options)
     } else if (options.recoveryCode) {
       await this.setRecoveryCode(options)
     } else if (options.fido2) {
