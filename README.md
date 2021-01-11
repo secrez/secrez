@@ -491,6 +491,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 __0.10.3__
 * since it's not possible to clear the entire terminal, the clear screen process creates a false sense of security and has been removed
 * fix bug in `ls -l` when there are empty files
+* add message to suggest user to clear or close the terminal after quitting
 
 __0.10.2__
 * add a `git` command to push changes to the repo and pull changes
