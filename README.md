@@ -130,7 +130,7 @@ To install Secrez globally you can use Npm
 npm install -g secrez
 ```
 
-but, since this monorepo uses pnpm, it is even better if you use pnpm because the lock file will be used avoid unespected conflicts among modules.  
+but, since this monorepo uses pnpm, it is even better if you use pnpm because the lock file will be used avoiding unespected conflicts among modules.  
 To install pnpm run
 
 ```
