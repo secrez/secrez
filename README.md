@@ -115,6 +115,10 @@ To mitigate this risk, you can create a new Git repo, save everything as the fir
 
 Secrez manages trees as single immutable files. During a session, temporary files are deleted to keep their number low, but at the exit, the last file remains in the repo.
 
+## The cryptographic foundation
+
+After comparing many possibilities, Secrez uses [NaCl](https://github.com/dchest/tweetnacl-js) as a crypto library. The advantage is that the library includes many algorithms for synchronous and asynchronous encryption.
+
 
 ## How to install it
 
