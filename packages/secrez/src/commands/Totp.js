@@ -46,6 +46,10 @@ class Totp extends require('../Command') {
         name: 'from-image',
         alias: 'i',
         type: String
+      },
+      {
+        name: 'test',
+        type: String
       }
     ]
   }
@@ -59,7 +63,8 @@ class Totp extends require('../Command') {
         ['totp coinbase.yml', 'prints a totp code and copies it to the clipboard for 5 seconds'],
         ['totp coinbase.yml -d 2', 'keeps it in the clipboard for 2 seconds'],
         ['totp github.yml --from-clipboard', 'get a secret from a qr code copied in the clipboard and add a field "totp" with the secret in "github.yml"'],
-        ['totp github.yml --from-image qrcode.png', 'get a secret from the image']
+        ['totp github.yml --from-image qrcode.png', 'get a secret from the image'],
+        ['totp --test "IHSG UY6T WTGS"', 'tests a secret']
       ]
     }
   }
@@ -141,6 +146,10 @@ class Totp extends require('../Command') {
   async totp(options = {}) {
     let secret
     let originalPath = options.path
+    if (options.test) {
+      const token = authenticator.generate(options.test.replace(/\s/g, ''))
+      return token
+    }
     if (options.fromImage || options.fromClipboard) {
       /* istanbul ignore if  */
       if (options.fromClipboard) {
@@ -191,7 +200,7 @@ class Totp extends require('../Command') {
               `Try it, running "totp ${node.getPath()}"`
             ].join('\n')
           } else {
-            let totp = parsed.totp
+            let totp = parsed.totp.replace(/\s/g, '')
             if (totp) {
               const token = authenticator.generate(totp)
               this.prompt.commands.copy.copy({
@@ -219,7 +228,9 @@ class Totp extends require('../Command') {
         this.Logger.grey(token)
       } else {
         this.Logger.grey('TOTP token: ' + this.chalk.bold.black(token))
-        this.Logger.grey(`It will stay in the clipboard for ${options.duration || 5} seconds`)
+        if (!options.test) {
+          this.Logger.grey(`It will stay in the clipboard for ${options.duration || 5} seconds`)
+        }
       }
     } catch (e) {
       this.Logger.red(e.message)
