@@ -1,5 +1,4 @@
 const utils = require('@secrez/utils')
-const chalk = require('chalk')
 
 class Quit extends require('../Command') {
 

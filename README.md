@@ -482,6 +482,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.10.4__
+* remove spaces in secret when launching `totp`
+* add a `--test` option, to test a secret
+* remove deprecated `exit`
+  
 __0.10.3__
 * since it's not possible to clear the entire terminal, the clear screen process creates a false sense of security and has been removed
 * fix bug in `ls -l` when there are empty files
