@@ -228,7 +228,9 @@ class Totp extends require('../Command') {
         this.Logger.grey(token)
       } else {
         this.Logger.grey('TOTP token: ' + this.chalk.bold.black(token))
-        this.Logger.grey(`It will stay in the clipboard for ${options.duration || 5} seconds`)
+        if (!options.test) {
+          this.Logger.grey(`It will stay in the clipboard for ${options.duration || 5} seconds`)
+        }
       }
     } catch (e) {
       this.Logger.red(e.message)
