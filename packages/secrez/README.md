@@ -482,6 +482,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.10.5__
+* use `£` and alternative to `#` when getting find results (whoops, I made this for myself, because I use English and Italian keyboards)
+* fix minor bug in `git`
+
 __0.10.4__
 * remove spaces in secret when launching `totp`
 * add a `--test` option, to test a secret

@@ -3,8 +3,8 @@ importers:
     specifiers: {}
   packages/core:
     dependencies:
-      '@secrez/crypto': 'link:../crypto'
-      '@secrez/utils': 'link:../utils'
+      '@secrez/crypto': link:../crypto
+      '@secrez/utils': link:../utils
       base-x: 3.0.8
       bip39: 3.0.2
       fs-extra: 8.1.0
@@ -16,7 +16,7 @@ importers:
       tweetnacl: 1.0.3
       tweetnacl-util: 0.15.1
     devDependencies:
-      '@secrez/test-helpers': 'link:../test-helpers'
+      '@secrez/test-helpers': link:../test-helpers
       chai: 4.2.0
       cross-env: 7.0.2
       eslint: 6.8.0
@@ -24,9 +24,9 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/crypto': 'workspace:~0.1.3'
-      '@secrez/test-helpers': 'workspace:~0.1.5'
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/crypto': workspace:~0.1.3
+      '@secrez/test-helpers': workspace:~0.1.5
+      '@secrez/utils': workspace:~0.1.6
       base-x: ^3.0.8
       bip39: ^3.0.2
       chai: ^4.2.0
@@ -45,12 +45,12 @@ importers:
       tweetnacl-util: ^0.15.1
   packages/courier:
     dependencies:
-      '@secrez/core': 'link:../core'
-      '@secrez/fs': 'link:../fs'
-      '@secrez/hub': 'link:../hub'
-      '@secrez/tls': 'link:../tls'
-      '@secrez/tunnel': 'link:../tunnel'
-      '@secrez/utils': 'link:../utils'
+      '@secrez/core': link:../core
+      '@secrez/fs': link:../fs
+      '@secrez/hub': link:../hub
+      '@secrez/tls': link:../tls
+      '@secrez/tunnel': link:../tunnel
+      '@secrez/utils': link:../utils
       body-parser: 1.19.0
       chalk: 3.0.0
       command-line-args: 5.1.1
@@ -64,18 +64,18 @@ importers:
       sqlite3: 5.0.0
       superagent: 5.3.1
     devDependencies:
-      '@secrez/test-helpers': 'link:../test-helpers'
+      '@secrez/test-helpers': link:../test-helpers
       chai: 4.2.0
       eslint: 6.8.0
       mocha: 7.2.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.11'
-      '@secrez/fs': 'workspace:~0.8.7'
-      '@secrez/hub': 'workspace:~0.2.0'
-      '@secrez/test-helpers': 'workspace:~0.1.5'
-      '@secrez/tls': 'workspace:~0.1.4'
-      '@secrez/tunnel': 'workspace:~0.1.5'
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/core': workspace:~0.8.11
+      '@secrez/fs': workspace:~0.8.7
+      '@secrez/hub': workspace:~0.2.0
+      '@secrez/test-helpers': workspace:~0.1.5
+      '@secrez/tls': workspace:~0.1.4
+      '@secrez/tunnel': workspace:~0.1.5
+      '@secrez/utils': workspace:~0.1.6
       body-parser: ^1.19.0
       chai: ^4.2.0
       chalk: ^3.0.0
@@ -100,7 +100,7 @@ importers:
       tweetnacl: 1.0.3
       tweetnacl-util: 0.15.1
     devDependencies:
-      '@secrez/utils': 'link:../utils'
+      '@secrez/utils': link:../utils
       chai: 4.2.0
       cross-env: 7.0.2
       eslint: 6.8.0
@@ -108,7 +108,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/utils': workspace:~0.1.6
       base-x: ^3.0.8
       bip39: ^3.0.2
       chai: ^4.2.0
@@ -123,13 +123,13 @@ importers:
       tweetnacl-util: ^0.15.1
   packages/fs:
     dependencies:
-      '@secrez/core': 'link:../core'
-      '@secrez/utils': 'link:../utils'
+      '@secrez/core': link:../core
+      '@secrez/utils': link:../utils
       command-line-args: 5.1.1
       fs-extra: 8.1.0
       lodash: 4.17.19
     devDependencies:
-      '@secrez/test-helpers': 'link:../test-helpers'
+      '@secrez/test-helpers': link:../test-helpers
       chai: 4.2.0
       cross-env: 7.0.2
       eslint: 6.8.0
@@ -137,9 +137,9 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.11'
-      '@secrez/test-helpers': 'workspace:~0.1.5'
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/core': workspace:~0.8.11
+      '@secrez/test-helpers': workspace:~0.1.5
+      '@secrez/utils': workspace:~0.1.6
       chai: ^4.2.0
       command-line-args: ^5.1.1
       cross-env: ^7.0.2
@@ -151,9 +151,9 @@ importers:
       nyc: ^15.1.0
   packages/hub:
     dependencies:
-      '@secrez/core': 'link:../core'
-      '@secrez/tls': 'link:../tls'
-      '@secrez/utils': 'link:../utils'
+      '@secrez/core': link:../core
+      '@secrez/tls': link:../tls
+      '@secrez/utils': link:../utils
       book: 1.3.3
       chalk: 3.0.0
       command-line-args: 5.1.1
@@ -164,7 +164,7 @@ importers:
       pump: 3.0.0
       sqlite3: 5.0.0
     devDependencies:
-      '@secrez/test-helpers': 'link:../test-helpers'
+      '@secrez/test-helpers': link:../test-helpers
       chai: 4.2.0
       cross-env: 7.0.2
       eslint: 6.8.0
@@ -175,10 +175,10 @@ importers:
       supertest: 4.0.2
       ws: 7.3.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.11'
-      '@secrez/test-helpers': 'workspace:~0.1.5'
-      '@secrez/tls': 'workspace:~0.1.4'
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/core': workspace:~0.8.11
+      '@secrez/test-helpers': workspace:~0.1.5
+      '@secrez/tls': workspace:~0.1.4
+      '@secrez/utils': workspace:~0.1.6
       book: 1.3.3
       chai: 4.2.0
       chalk: ^3.0.0
@@ -199,10 +199,10 @@ importers:
       ws: 7.3.0
   packages/secrez:
     dependencies:
-      '@secrez/core': 'link:../core'
-      '@secrez/fs': 'link:../fs'
-      '@secrez/hub': 'link:../hub'
-      '@secrez/utils': 'link:../utils'
+      '@secrez/core': link:../core
+      '@secrez/fs': link:../fs
+      '@secrez/hub': link:../hub
+      '@secrez/utils': link:../utils
       case: 1.6.3
       chalk: 3.0.0
       clear: 0.1.0
@@ -212,7 +212,7 @@ importers:
       fs-extra: 8.1.0
       homedir: 0.6.0
       inquirer: 7.3.1
-      inquirer-command-prompt: 0.0.32
+      inquirer-command-prompt: 0.1.0
       jimp: 0.13.0
       lodash: 4.17.19
       otplib: 12.0.1
@@ -220,8 +220,8 @@ importers:
       superagent: 5.3.1
       tiny-cli-editor: 0.1.1
     devDependencies:
-      '@secrez/courier': 'link:../courier'
-      '@secrez/test-helpers': 'link:../test-helpers'
+      '@secrez/courier': link:../courier
+      '@secrez/test-helpers': link:../test-helpers
       chai: 4.2.0
       cross-env: 7.0.2
       eslint: 6.8.0
@@ -230,12 +230,12 @@ importers:
       nyc: 15.1.0
       test-console: 1.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.12'
-      '@secrez/courier': 'workspace:~0.2.0'
-      '@secrez/fs': 'workspace:~0.8.7'
-      '@secrez/hub': 'workspace:~0.2.0'
-      '@secrez/test-helpers': 'workspace:~0.1.5'
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/core': workspace:~0.8.12
+      '@secrez/courier': workspace:~0.2.0
+      '@secrez/fs': workspace:~0.8.8
+      '@secrez/hub': workspace:~0.2.0
+      '@secrez/test-helpers': workspace:~0.1.5
+      '@secrez/utils': workspace:~0.1.6
       case: ^1.6.3
       chai: ^4.2.0
       chalk: ^3.0.0
@@ -249,7 +249,7 @@ importers:
       fs-extra: ^8.1.0
       homedir: ^0.6.0
       inquirer: ^7.1.0
-      inquirer-command-prompt: ^0.0.32
+      inquirer-command-prompt: ^0.1.0
       jimp: ^0.13.0
       lodash: ^4.17.15
       mocha: ^7.1.1
@@ -261,10 +261,10 @@ importers:
       tiny-cli-editor: ^0.1.1
   packages/test-helpers:
     dependencies:
-      '@secrez/core': 'link:../core'
-      '@secrez/fs': 'link:../fs'
-      '@secrez/hub': 'link:../hub'
-      '@secrez/utils': 'link:../utils'
+      '@secrez/core': link:../core
+      '@secrez/fs': link:../fs
+      '@secrez/hub': link:../hub
+      '@secrez/utils': link:../utils
       chai: 4.2.0
       chalk: 3.0.0
       fs-extra: 8.1.0
@@ -278,10 +278,10 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.11'
-      '@secrez/fs': 'workspace:~0.8.7'
-      '@secrez/hub': 'workspace:~0.2.0'
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/core': workspace:~0.8.11
+      '@secrez/fs': workspace:~0.8.7
+      '@secrez/hub': workspace:~0.2.0
+      '@secrez/utils': workspace:~0.1.6
       chai: ^4.2.0
       chalk: ^3.0.0
       cross-env: ^7.0.2
@@ -295,7 +295,7 @@ importers:
       test-console: ^1.1.0
   packages/tls:
     dependencies:
-      '@secrez/utils': 'link:../utils'
+      '@secrez/utils': link:../utils
       chalk: 4.1.0
       command-line-args: 5.1.1
       cross-env: 7.0.2
@@ -303,13 +303,13 @@ importers:
       fs-extra: 8.1.0
       nyc: 15.1.0
     devDependencies:
-      '@secrez/test-helpers': 'link:../test-helpers'
+      '@secrez/test-helpers': link:../test-helpers
       chai: 4.2.0
       eslint: 6.8.0
       mocha: 7.2.0
     specifiers:
-      '@secrez/test-helpers': 'workspace:~0.1.5'
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/test-helpers': workspace:~0.1.5
+      '@secrez/utils': workspace:~0.1.6
       chai: ^4.2.0
       chalk: ^4.1.0
       command-line-args: ^5.1.1
@@ -321,17 +321,17 @@ importers:
       nyc: ^15.1.0
   packages/tunnel:
     dependencies:
-      '@secrez/core': 'link:../core'
-      '@secrez/utils': 'link:../utils'
+      '@secrez/core': link:../core
+      '@secrez/utils': link:../utils
       chalk: 3.0.0
       command-line-args: 5.1.1
       fs-extra: 9.0.1
       openurl: 1.1.1
       superagent: 5.3.1
     devDependencies:
-      '@secrez/hub': 'link:../hub'
-      '@secrez/test-helpers': 'link:../test-helpers'
-      '@secrez/tls': 'link:../tls'
+      '@secrez/hub': link:../hub
+      '@secrez/test-helpers': link:../test-helpers
+      '@secrez/tls': link:../tls
       chai: 4.2.0
       cross-env: 7.0.2
       eslint: 6.8.0
@@ -339,11 +339,11 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': 'workspace:~0.8.11'
-      '@secrez/hub': 'workspace:~0.2.0'
-      '@secrez/test-helpers': 'workspace:~0.1.5'
-      '@secrez/tls': 'workspace:~0.1.4'
-      '@secrez/utils': 'workspace:~0.1.6'
+      '@secrez/core': workspace:~0.8.11
+      '@secrez/hub': workspace:~0.2.0
+      '@secrez/test-helpers': workspace:~0.1.5
+      '@secrez/tls': workspace:~0.1.4
+      '@secrez/utils': workspace:~0.1.6
       chai: ^4.2.0
       chalk: ^3.0.0
       command-line-args: ^5.1.1
@@ -366,7 +366,7 @@ importers:
       play-sound: 1.1.3
       yaml: 1.10.0
     devDependencies:
-      '@secrez/test-helpers': 'link:../test-helpers'
+      '@secrez/test-helpers': link:../test-helpers
       chai: 4.2.0
       chalk: 3.0.0
       cross-env: 7.0.2
@@ -375,7 +375,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/test-helpers': 'workspace:~0.1.5'
+      '@secrez/test-helpers': workspace:~0.1.5
       base58: ^2.0.1
       case: ^1.6.3
       chai: ^4.2.0
@@ -1063,13 +1063,8 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-w7M6te42DYbg5ijwRorn7yfWVN8=
-  /ansi-regex/3.0.0:
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha1-7QMXwyIGT3lGbAKWa922Bas32Zg=
   /ansi-regex/4.1.0:
+    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -1094,6 +1089,13 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-9VGjrMsG1vePxcSweQsN20KY/c4zN0h9fLjqAbwbPfahM3t+NL+M9HC8xeXG2I8pX5NoamTGNuomEUFI7fcUjA==
+  /ansi-styles/4.3.0:
+    dependencies:
+      color-convert: 2.0.1
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==
   /any-base/1.1.0:
     dev: false
     resolution:
@@ -1493,8 +1495,8 @@ packages:
       integrity: sha512-4D3B6Wf41KOYRFdszmDqMCGq5VV/uMAB273JILmO+3jAlh8X4qDtdtgCR3fxtbLEMzSx22QdhnDcJvu2u1fVwg==
   /chalk/4.1.0:
     dependencies:
-      ansi-styles: 4.2.1
-      supports-color: 7.1.0
+      ansi-styles: 4.3.0
+      supports-color: 7.2.0
     engines:
       node: '>=10'
     resolution:
@@ -1568,14 +1570,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-qMjRnoL+JDPJHeLePZJuao6+8orzHMGP04A8CdwCNsKhRbOnKRjefxONR7bwILT3MHecxKBjHkKL/tkZ8r4Uzw==
-  /cli-cursor/2.1.0:
-    dependencies:
-      restore-cursor: 2.0.0
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha1-s12sN2R5+sw+lHR9QdDQ9SOP/LU=
   /cli-cursor/3.1.0:
     dependencies:
       restore-cursor: 3.1.0
@@ -1583,10 +1577,6 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-I/zHAwsKf9FqGoXM4WWRACob9+SNukZTd94DWF57E4toouRulbCxcUh6RKUEOQlYTHJnzkPMySvPNaaSLNfLZw==
-  /cli-width/2.2.1:
-    dev: false
-    resolution:
-      integrity: sha512-GRMWDxpOB6Dgk2E5Uo+3eEBvtOOlimMmpbFiKuLFnQzYDavtLFY3K5ona41jgN/WdRZtG7utuVSVTL4HbZHGkw==
   /cli-width/3.0.0:
     engines:
       node: '>= 10'
@@ -1834,7 +1824,7 @@ packages:
   /debug/3.2.6:
     dependencies:
       ms: 2.1.2
-    deprecated: 'Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)'
+    deprecated: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
     resolution:
       integrity: sha512-mel+jf7nrtEl5Pn1Qx46zARXKDpBbvzezse7p7LqINmdoIk8PYP5SySaxEmYv6TZ0JyEKA1hsCId6DIhgITtWQ==
   /debug/4.1.1:
@@ -2392,14 +2382,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-Utm6CdzT+6xsDk2m8S6uL8VHxNwI6Jub+e9NYTcAms28T84pTa25GJQV9j0CY0N1rM8hK4x6grpF2BQf+2qwVA==
-  /figures/2.0.0:
-    dependencies:
-      escape-string-regexp: 1.0.5
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha1-OrGi0qYsi/tDGgyUy3l6L84nyWI=
   /figures/3.2.0:
     dependencies:
       escape-string-regexp: 1.0.5
@@ -2539,7 +2521,7 @@ packages:
   /flat/4.1.0:
     dependencies:
       is-buffer: 2.0.4
-    deprecated: 'Fixed a prototype pollution security issue in 4.1.0, please upgrade to ^4.1.1 or ^5.0.1.'
+    deprecated: Fixed a prototype pollution security issue in 4.1.0, please upgrade to ^4.1.1 or ^5.0.1.
     dev: true
     hasBin: true
     resolution:
@@ -3082,35 +3064,15 @@ packages:
     dev: false
     resolution:
       integrity: sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==
-  /inquirer-command-prompt/0.0.32:
+  /inquirer-command-prompt/0.1.0:
     dependencies:
       chalk: 2.4.2
       fs-extra: 8.1.0
-      inquirer: 6.5.2
-      lodash: 4.17.19
+      inquirer: 7.3.3
+      lodash: 4.17.20
     dev: false
     resolution:
-      integrity: sha512-7ss70a258zwP3plFMMFkeM3ojJ3NDGXC9ok1Sk8aWFAH0NcQhuFqz6PtSsPeKQPEHJ4gBGbB40Z02yIRn/PbQg==
-  /inquirer/6.5.2:
-    dependencies:
-      ansi-escapes: 3.2.0
-      chalk: 2.4.2
-      cli-cursor: 2.1.0
-      cli-width: 2.2.1
-      external-editor: 3.1.0
-      figures: 2.0.0
-      lodash: 4.17.19
-      mute-stream: 0.0.7
-      run-async: 2.4.1
-      rxjs: 6.6.2
-      string-width: 2.1.1
-      strip-ansi: 5.2.0
-      through: 2.3.8
-    dev: false
-    engines:
-      node: '>=6.0.0'
-    resolution:
-      integrity: sha512-cntlB5ghuB0iuO65Ovoi8ogLHiWGs/5yNrtUcKjFhSSiVeAIVpD7koaSU9RM8mpXw5YDi9RdYXGQMaOURB7ycQ==
+      integrity: sha512-H8z8wQt1aMgTyP3vhDmLm2vCDfOT/uezlu/xxT4SQG3zgYohTyKbsP6pWde6hWP39OPJ57c6e4oE2f2p40r8yQ==
   /inquirer/7.3.1:
     dependencies:
       ansi-escapes: 4.3.1
@@ -3130,6 +3092,26 @@ packages:
       node: '>=8.0.0'
     resolution:
       integrity: sha512-/+vOpHQHhoh90Znev8BXiuw1TDQ7IDxWsQnFafUEoK5+4uN5Eoz1p+3GqOj/NtzEi9VzWKQcV9Bm+i8moxedsA==
+  /inquirer/7.3.3:
+    dependencies:
+      ansi-escapes: 4.3.1
+      chalk: 4.1.0
+      cli-cursor: 3.1.0
+      cli-width: 3.0.0
+      external-editor: 3.1.0
+      figures: 3.2.0
+      lodash: 4.17.20
+      mute-stream: 0.0.8
+      run-async: 2.4.1
+      rxjs: 6.6.3
+      string-width: 4.2.0
+      strip-ansi: 6.0.0
+      through: 2.3.8
+    dev: false
+    engines:
+      node: '>=8.0.0'
+    resolution:
+      integrity: sha512-JG3eIAj5V9CwcGvuOmoo6LB9kbAYT8HXffUl6memuszlwDC/qvFAJw49XJ5NROSFNPxp3iQg1GqkFhaY/CR0IA==
   /interpret/2.2.0:
     dev: false
     engines:
@@ -3277,6 +3259,7 @@ packages:
     resolution:
       integrity: sha1-754xOG8DGn8NZDr4L95QxFfvAMs=
   /is-fullwidth-code-point/2.0.0:
+    dev: true
     engines:
       node: '>=4'
     resolution:
@@ -3932,12 +3915,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-RZKhC3EmpBchfTGBVb8fb+RL2cWyw/32lshnsETttkBAyAUXSGHxbEJWWRXc751DrIxG1q04b8QwMbAwkRPpUA==
-  /mimic-fn/1.2.0:
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha512-jf84uxzwiuiIVKiOLpfYk7N46TSy8ubTonmneY9vrpHNAnp0QBt2BxWV9dO3/j+BoVAb+a5G6YDPW3M5HOdMWQ==
   /mimic-fn/2.1.0:
     engines:
       node: '>=6'
@@ -4060,10 +4037,6 @@ packages:
   /ms/2.1.2:
     resolution:
       integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
-  /mute-stream/0.0.7:
-    dev: false
-    resolution:
-      integrity: sha1-MHXOk7whuPq0PhvE2n6BFe0ee6s=
   /mute-stream/0.0.8:
     resolution:
       integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
@@ -4388,21 +4361,13 @@ packages:
       wrappy: 1.0.2
     resolution:
       integrity: sha1-WDsap3WWHUsROsF9nFC6753Xa9E=
-  /onetime/2.0.1:
-    dependencies:
-      mimic-fn: 1.2.0
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha1-BnQoIw/WdEOyeUsiu6UotoZ5YtQ=
-  /onetime/5.1.0:
+  /onetime/5.1.2:
     dependencies:
       mimic-fn: 2.1.0
     engines:
       node: '>=6'
     resolution:
-      integrity: sha512-5NcSkPHhwTVFIQN+TUqXoS5+dlElHXdpAWu9I0HP20YOtIi+aZ0Ct82jdlILDxjLEAWwvm+qj1m6aEtsDVmm6Q==
+      integrity: sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==
   /only/0.0.2:
     dev: false
     resolution:
@@ -4924,7 +4889,7 @@ packages:
       tough-cookie: 2.5.0
       tunnel-agent: 0.6.0
       uuid: 3.4.0
-    deprecated: 'request has been deprecated, see https://github.com/request/request/issues/3142'
+    deprecated: request has been deprecated, see https://github.com/request/request/issues/3142
     dev: false
     engines:
       node: '>= 6'
@@ -4960,7 +4925,7 @@ packages:
     resolution:
       integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==
   /resolve-url/0.2.1:
-    deprecated: 'https://github.com/lydell/resolve-url#deprecated'
+    deprecated: https://github.com/lydell/resolve-url#deprecated
     dev: false
     resolution:
       integrity: sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
@@ -4975,18 +4940,9 @@ packages:
       path-parse: 1.0.6
     resolution:
       integrity: sha512-rArEXAgsBG4UgRGcynxWIWKFvh/XZCcS8UJdHhwy91zwAvCZIbcs+vAbflgBnNjYMs/i/i+/Ux6IZhML1yPvxg==
-  /restore-cursor/2.0.0:
-    dependencies:
-      onetime: 2.0.1
-      signal-exit: 3.0.3
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha1-n37ih/gv0ybU/RYpI9YhKe7g368=
   /restore-cursor/3.1.0:
     dependencies:
-      onetime: 5.1.0
+      onetime: 5.1.2
       signal-exit: 3.0.3
     engines:
       node: '>=8'
@@ -5029,14 +4985,14 @@ packages:
       npm: '>=2.0.0'
     resolution:
       integrity: sha512-3HMA8z/Oz61DUHe+SdOiQyzIf4tOx5oQHmMir7IZEu6TMqCLHT4LRcmNaUS0NwOz8VLvmmBduMsoaUvMaIiqzg==
-  /rxjs/6.6.2:
+  /rxjs/6.6.3:
     dependencies:
-      tslib: 1.13.0
+      tslib: 1.14.1
     dev: false
     engines:
       npm: '>=2.0.0'
     resolution:
-      integrity: sha512-BHdBMVoWC2sL26w//BCu3YzKT4s2jip/WhwsGEDmeKYBhKDZeYezVUnHatYB7L85v5xs0BAQmg6BEYJEKxBabg==
+      integrity: sha512-trsQc+xYYXZ3urjOiJOuCOa5N3jAZ3eiSpQB5hIT8zGlL2QfnHLJ2r7GMkBGuIausdJN1OneaI6gQlsqNHHmZQ==
   /safe-buffer/5.1.2:
     resolution:
       integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==
@@ -5333,15 +5289,6 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-EYvfW4zcUaKn5w0hHgfisLmxB9M=
-  /string-width/2.1.1:
-    dependencies:
-      is-fullwidth-code-point: 2.0.0
-      strip-ansi: 4.0.0
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==
   /string-width/3.1.0:
     dependencies:
       emoji-regex: 7.0.3
@@ -5393,17 +5340,10 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-ajhfuIU9lS1f8F0Oiq+UJ43GPc8=
-  /strip-ansi/4.0.0:
-    dependencies:
-      ansi-regex: 3.0.0
-    dev: false
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha1-qEeQIusaw2iocTibY1JixQXuNo8=
   /strip-ansi/5.2.0:
     dependencies:
       ansi-regex: 4.1.0
+    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -5509,6 +5449,13 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-oRSIpR8pxT1Wr2FquTNnGet79b3BWljqOuoW/h4oBhxJ/HUbX5nX6JSruTkvXDCFMwDPvsaTTbvMLKZWSy0R5g==
+  /supports-color/7.2.0:
+    dependencies:
+      has-flag: 4.0.0
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
   /table/5.4.6:
     dependencies:
       ajv: 6.12.3
@@ -5666,6 +5613,10 @@ packages:
   /tslib/1.13.0:
     resolution:
       integrity: sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
+  /tslib/1.14.1:
+    dev: false
+    resolution:
+      integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
   /tsscmp/1.0.6:
     dev: false
     engines:
@@ -5793,7 +5744,7 @@ packages:
     resolution:
       integrity: sha512-B0yRTzYdUCCn9n+F4+Gh4yIDtMQcaJsmYBDsTSG8g/OejKBodLQ2IHfN3bM7jUsRXndopT7OIXWdYqc1fjmV6g==
   /urix/0.1.0:
-    deprecated: 'Please see https://github.com/lydell/urix#deprecated'
+    deprecated: Please see https://github.com/lydell/urix#deprecated
     dev: false
     resolution:
       integrity: sha1-2pN/emLiH+wf0Y1Js1wpNQZ6bHI=
@@ -6058,5 +6009,5 @@ packages:
     dev: false
     name: readable-stream
     resolution:
-      tarball: 'https://github.com/jeffbski/readable-stream/archive/v1.0.2-object-transform2-ret-self.tar.gz'
+      tarball: https://github.com/jeffbski/readable-stream/archive/v1.0.2-object-transform2-ret-self.tar.gz
     version: 1.0.2

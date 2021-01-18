@@ -67,8 +67,8 @@ class Command extends PreCommand {
         if (currentOption !== 'path') {
           options.path = options[currentOption]
         }
-        if (self.prompt.cache && self.prompt.cache.findResult && /^#\d+$/.test(options.path)) {
-          return [options.path + self.prompt.cache.findResult[options.path.replace(/^#/, '')][1] || undefined]
+        if (self.prompt.cache && self.prompt.cache.findResult && /^(#|£)\d+$/.test(options.path)) {
+          return [options.path + self.prompt.cache.findResult[options.path.replace(/^(#|£)/, '')][1] || undefined]
         }
         return await self.prompt[extraOptions.external ? 'externalFs' : 'internalFs'].getFileList(options, true)
       } else {
@@ -91,8 +91,8 @@ class Command extends PreCommand {
     if (options._unknown) {
       throw new Error(`Unknown option: ${options._unknown} ` + chalk.grey(`(run "${this.constructor.name.toLowerCase()} -h" for help)`))
     }
-    if (options.path && (/^#\d+\//.test(options.path) || /^#\d+\w+:\//.test(options.path))) {
-      options.path = options.path.replace(/^#\d+/, '')
+    if (options.path && (/^(#|£)\d+\//.test(options.path) || /^(#|£)\d+\w+:\//.test(options.path))) {
+      options.path = options.path.replace(/^(#|£)\d+/, '')
     }
     if (mandatoryOptions) {
       let err = ''

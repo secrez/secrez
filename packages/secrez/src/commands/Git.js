@@ -76,7 +76,7 @@ class Git extends require('../Command') {
       throw new Error('No active branch found')
     }
     let branch = _.trim(result.message)
-    result = await execAsync('git', containerPath, ['diff',`origin/${branch}`, '--name-only'])
+    result = await execAsync('git', containerPath, ['diff', `origin/${branch}`, '--name-only'])
     let count = 0
     if (_.trim(result.message)) {
       count = _.trim(result.message).split('\n').length
@@ -94,16 +94,12 @@ Number of changed files: ${chalk.bold(count)}`
       await execAsync('git', containerPath, ['commit', '-m', 'another-commit'])
     }
 
-    if (options.push || options.pull) {
-      if (options.pull) {
-        await addAndCommit()
-        return execSync(`cd ${containerPath} && git pull origin ${branch}`).toString()
-      } else if (count) {
-        await addAndCommit()
-        return execSync(`cd ${containerPath} && git push origin ${branch}`).toString()
-      } else {
-        return 'Already up to date'
-      }
+    if (options.pull) {
+      await addAndCommit()
+      return execSync(`cd ${containerPath} && git pull origin ${branch}`).toString()
+    } else if (options.push) {
+      await addAndCommit()
+      return execSync(`cd ${containerPath} && git push origin ${branch}`).toString()
     }
     throw new Error('Wrong parameters')
   }
