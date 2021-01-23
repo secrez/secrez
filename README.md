@@ -460,16 +460,15 @@ Adding or removing a second factor changes the keys.json file. So, if you are us
 
 As a rule of thumb, if you use a git repo, always pull before running Secrez, and always commit and push after exiting.
 
-## End-to-end encrypted communication with other accounts
+## (experimental) End-to-end encrypted communication with other accounts
 
-Starting from version 0.8.0, Secrez allows to exchange encrypted messages with other users. To do it, you must set up a local Courier ([look here for more info](https://github.com/secrez/secrez/tree/master/packages/courier)). A blob post about it will come soon.
+Starting from version 0.8.0, Secrez allows to exchange encrypted messages with other users. To do it, you must set up a local Courier ([look here for more info](https://github.com/secrez/secrez/tree/master/packages/courier)).
 
+## Blog posts
 
-## A quick demo
+[Secrez — a secrets manager in time of cryptocurrencies](https://sullof.medium.com/secrez-a-secrets-manager-in-time-of-cryptocurrencies-b15120c5aa14) - an intro to Secrez
 
-If you like to watch a general demo, [you can take a look at this nine minutes video on Youtube](https://www.youtube.com/watch?v=qGoBTpG0Fj0).
-
-If you like to watch a demo about how to communicate with secrez, [you can take a look at this six minutes video on Youtube](https://www.youtube.com/watch?v=ciMl_Zhxjcs).
+[Send encrypted messages via Secrez](https://sullof.medium.com/send-encrypted-messages-via-secrez-a8321b561af3) - an intro to the experimental messaging
 
 ## Some thoughts
 
@@ -481,6 +480,10 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ## History
+
+__10.0.5__
+* fix bug in `git` wrongly returning `already up to date`
+* fix `git`'s help
 
 __0.10.4__
 * remove spaces in secret when launching `totp`

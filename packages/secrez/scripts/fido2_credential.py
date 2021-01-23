@@ -29,7 +29,7 @@ from __future__ import print_function, absolute_import, unicode_literals
 
 from fido2.hid import CtapHidDevice
 from fido2.client import Fido2Client
-from fido2.extensions import HmacSecretExtension
+from fido2.ctap2.extensions import HmacSecretExtension
 from fido2.utils import websafe_encode
 
 import sys, getopt, random, string

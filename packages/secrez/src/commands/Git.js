@@ -41,7 +41,7 @@ class Git extends require('../Command') {
       description: ['Pushes to a repo and pulls from a repo.', 'The repo must be set up outside secrez!'],
       examples: [
         ['git -p', 'adds, commits and pushes to the remote repo; a message is not allowed because it is better not to give any help to a possible hacker about whatever you are committing'],
-        ['git --push', 'pulls from origin and merges'],
+        ['git -P', '(notice the uppercase P) pulls from origin and merges'],
         ['git -i', 'get info about the repo, like the remote url']
       ]
     }
@@ -95,14 +95,11 @@ Number of changed files: ${chalk.bold(count)}`
     }
 
     if (options.push || options.pull) {
+      await addAndCommit()
       if (options.pull) {
-        await addAndCommit()
         return execSync(`cd ${containerPath} && git pull origin ${branch}`).toString()
-      } else if (count) {
-        await addAndCommit()
-        return execSync(`cd ${containerPath} && git push origin ${branch}`).toString()
       } else {
-        return 'Already up to date'
+        return execSync(`cd ${containerPath} && git push origin ${branch}`).toString()
       }
     }
     throw new Error('Wrong parameters')
