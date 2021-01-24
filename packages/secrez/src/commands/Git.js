@@ -93,18 +93,10 @@ Remote url: ${chalk.bold(remoteUrl)}
 Number of changed files: ${chalk.bold(count)}`
     }
 
-    if (options.push || options.pull) {
-      result = execSync(`cd ${containerPath} && git pull origin ${branch}`).toString()
-      if (options.pull) {
-        return result
-      } else {
-        if (count) {
-          return execSync(`cd ${containerPath} && git push origin ${branch}`).toString()
-        } else {
-          return 'Already up to date'
-        }
-      }
+    if (options.pull || options.push) {
+      return execSync(`cd ${containerPath} && git ${options.pull ? 'pull' : 'push'} origin ${branch}`).toString()
     }
+
     throw new Error('Wrong parameters')
   }
 
