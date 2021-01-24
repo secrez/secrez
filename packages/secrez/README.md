@@ -482,6 +482,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.10.7__
+* fix bug in `git -i` showing less changed that expected
+
 __0.10.6__
 * use `£` as an alternative to `#` when getting find results (whoops, I made this for myself, because I use both English and Italian keyboards)
 * add `leave` to leave a room
