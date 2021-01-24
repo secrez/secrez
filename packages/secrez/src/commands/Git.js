@@ -76,7 +76,7 @@ class Git extends require('../Command') {
       throw new Error('No active branch found')
     }
     let branch = _.trim(result.message)
-    result = await execAsync('git', containerPath, ['diff',`origin/${branch}`, '--name-only'])
+    result = await execAsync('git', containerPath, ['diff', `origin/${branch}`, '--name-only'])
     let count = 0
     if (_.trim(result.message)) {
       count = _.trim(result.message).split('\n').length

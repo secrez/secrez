@@ -12,14 +12,14 @@ const {Config, Server} = require('@secrez/courier')
 const MainPrompt = require('../../mocks/MainPromptMock')
 const ChatPrompt = require('../../mocks/ChatPromptMock')
 
-const {noPrint, decolorize, assertConsole} = require('@secrez/test-helpers')
+const {noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {
   password,
   iterations
 } = require('../../fixtures')
 
-describe('#Quit', function () {
+describe('#Leave', function () {
 
   let prompt
   let hubPort = 4433
@@ -28,7 +28,7 @@ describe('#Quit', function () {
   let courierRoot = path.resolve(testDir, 'secrez-courier')
   let localDomain = '127zero0one.com'
   let inspect
-  let C
+  let C, D
   let config
   let server
   let secrez
@@ -82,6 +82,10 @@ describe('#Quit', function () {
       add: 'user0',
       publicKey: publicKeys.user0
     }))
+    await noPrint(C.chat.chat({
+      chatPrompt: new ChatPrompt
+    }))
+    D = C.chat.chatPrompt.commands
   })
 
   afterEach(async function () {
@@ -92,32 +96,25 @@ describe('#Quit', function () {
 
   it('should return the help', async function () {
 
-    await noPrint(C.chat.chat({
-      chatPrompt: new ChatPrompt
-    }))
     inspect = stdout.inspect()
-    await C.chat.chatPrompt.commands.quit.exec({help: true})
+    await D.leave.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
     assert.isTrue(/-h, --help/.test(output[4]))
 
   })
 
-  it('should quit the chat, even if inside a room', async function () {
-
-    await noPrint(C.chat.chat({
-      chatPrompt: new ChatPrompt
-    }))
-    let D = C.chat.chatPrompt.commands
+  it('should leave the room', async function () {
 
     await noPrint(D.join.join({
       chat: ['user0']
     }))
 
-    inspect = stdout.inspect()
-    D.quit.exec({})
-    inspect.restore()
-    assertConsole(inspect, 'Chat quit')
+    assert.equal(C.chat.room[0].contact, 'user0')
+
+    await D.leave.exec({})
+
+    assert.equal(C.chat.room, undefined)
 
   })
 

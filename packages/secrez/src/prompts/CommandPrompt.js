@@ -211,8 +211,8 @@ class CommandPrompt {
   }
 
   onBeforeRewrite(line) {
-    if (/ #\d+(\w+:|)\/[\w/]+/.test(line)) {
-      line = line.replace(/ #\d+((\w+:|)\/[\w/]+)/,' $1')
+    if (/ (#|£)\d+(\w+:|)\/[\w/]+/.test(line)) {
+      line = line.replace(/ (#|£)\d+((\w+:|)\/[\w/]+)/,' $2')
     }
     return line
   }

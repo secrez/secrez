@@ -1,4 +1,3 @@
-
 class Quit extends require('../../Command') {
 
   setHelpAndCompletion() {
@@ -18,7 +17,7 @@ class Quit extends require('../../Command') {
 
   help() {
     return {
-      description: ['Leaves either a room or the chat'],
+      description: ['Quits the chat environment'],
       examples: [
         'quit'
       ]
@@ -29,16 +28,13 @@ class Quit extends require('../../Command') {
     if (options.help) {
       return this.showHelp()
     }
-    if (this.prompt.environment.room) {
-      this.prompt.environment.chatPrompt.onBeforeClose()
-      await this.prompt.run()
-    } else {
-      /* istanbul ignore if  */
-      if (process.env.NODE_ENV !== 'test') {
-        await this.prompt.saveHistory()
-      }
+    /* istanbul ignore if  */
+    if (process.env.NODE_ENV !== 'test') {
+      await this.prompt.saveHistory()
       delete this.prompt.environment.chatPrompt
       await this.prompt.environment.prompt.setSigintPosition()
+    } else {
+      this.Logger.reset('Chat quit')
     }
   }
 }
