@@ -15,16 +15,10 @@
   "dependencies": {
     "@secrez/crypto": "workspace:~0.1.4",
     "@secrez/utils": "workspace:~0.1.6",
-    "base-x": "^3.0.8",
-    "bip39": "^3.0.2",
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
     "lodash": "^4.17.15",
-    "microseconds": "^0.2.0",
-    "sha3": "^2.1.2",
-    "shamir": "^0.7.1",
-    "tweetnacl": "^1.0.3",
-    "tweetnacl-util": "^0.15.1"
+    "microseconds": "^0.2.0"
   },
   "devDependencies": {
     "@secrez/test-helpers": "workspace:~0.1.5",

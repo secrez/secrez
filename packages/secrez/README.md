@@ -224,7 +224,8 @@ If you do so, though, be careful to correctly set up in the directory the equiva
       contacts  Manages your contacts
       help      This help.
       join      Joins conversation.
-      quit      Leaves either a room or the chat
+      leave     Leaves a room
+      quit      Quit the chat environment
       send      Sends either a room or the chat
       show      Show chat history in a room
       whoami    Show data that other users need to chat with you
@@ -483,6 +484,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 __0.10.6__
 * use `£` as an alternative to `#` when getting find results (whoops, I made this for myself, because I use both English and Italian keyboards)
+* add `leave` to leave a room
 
 __10.0.5__
 * fix bug in `git` wrongly returning `already up to date`
