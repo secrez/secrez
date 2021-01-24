@@ -76,6 +76,11 @@ class Git extends require('../Command') {
       throw new Error('No active branch found')
     }
     let branch = _.trim(result.message)
+
+    this.internalFs.cleanPreviousRootEntry()
+    await execAsync('git', containerPath, ['add', '-A'])
+    await execAsync('git', containerPath, ['commit', '-m', 'another-commit'])
+
     result = await execAsync('git', containerPath, ['diff', `origin/${branch}`, '--name-only'])
     let count = 0
     if (_.trim(result.message)) {
@@ -88,18 +93,16 @@ Remote url: ${chalk.bold(remoteUrl)}
 Number of changed files: ${chalk.bold(count)}`
     }
 
-    const addAndCommit = async () => {
-      this.internalFs.cleanPreviousRootEntry()
-      await execAsync('git', containerPath, ['add', '-A'])
-      await execAsync('git', containerPath, ['commit', '-m', 'another-commit'])
-    }
-
     if (options.push || options.pull) {
-      await addAndCommit()
+      result = execSync(`cd ${containerPath} && git pull origin ${branch}`).toString()
       if (options.pull) {
-        return execSync(`cd ${containerPath} && git pull origin ${branch}`).toString()
+        return result
       } else {
-        return execSync(`cd ${containerPath} && git push origin ${branch}`).toString()
+        if (count) {
+          return execSync(`cd ${containerPath} && git push origin ${branch}`).toString()
+        } else {
+          return 'Already up to date'
+        }
       }
     }
     throw new Error('Wrong parameters')
