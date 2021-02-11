@@ -1,0 +1,72 @@
+{
+  "name": "@secrez/migrate",
+  "version": "0.0.1",
+  "license": "MIT",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=dev bin/secrez-migrate.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
+    "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/*.test.js' 'test/**/*.js' 'test/**/**/*.js'",
+    "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js test/**/**/*.js --exit",
+    "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js test/**/**/*.js --exit",
+    "posttest": "nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65",
+    "build-helpers": "cd test/helpers/os && ./build.sh"
+  },
+  "nyc": {
+    "include": "src",
+    "exclude": []
+  },
+  "dependencies": {
+    "@secrez/core": "workspace:~0.10.0",
+    "secrez-core-0-8-2": "npm:@secrez/core@0.8.12",
+    "@secrez/fs": "workspace:~0.9.0",
+    "@secrez/hub": "workspace:~0.2.0",
+    "@secrez/utils": "workspace:~0.1.6",
+    "case": "^1.6.3",
+    "chalk": "^3.0.0",
+    "clipboardy": "^2.3.0",
+    "command-line-args": "^5.1.1",
+    "external-editor": "^3.1.0",
+    "fs-extra": "^8.1.0",
+    "homedir": "^0.6.0",
+    "inquirer": "^7.1.0",
+    "inquirer-command-prompt": "^0.1.0",
+    "jimp": "^0.13.0",
+    "lodash": "^4.17.15",
+    "otplib": "^12.0.1",
+    "qrcode-reader": "^1.0.4",
+    "superagent": "^5.3.1",
+    "tiny-cli-editor": "^0.1.1"
+  },
+  "devDependencies": {
+    "@secrez/courier": "workspace:~0.2.0",
+    "@secrez/test-helpers": "workspace:~0.1.5",
+    "chai": "^4.2.0",
+    "chalk": "^3.0.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-node": "^11.0.0",
+    "mocha": "^7.1.1",
+    "nyc": "^15.1.0",
+    "test-console": "^1.1.0"
+  },
+  "bin": {
+    "secrez": "bin/secrez-migrate.js"
+  },
+  "preferGlobal": true,
+  "description": "A secrets manager in times of crypto coins.",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/secrez/secrez.git"
+  },
+  "author": {
+    "name": "Francesco Sullo",
+    "email": "francesco@sullo.co"
+  },
+  "bugs": {
+    "url": "https://github.com/secrez/secrez/issues"
+  },
+  "homepage": "https://github.com/secrez/secrez#readme",
+  "engines": {
+    "node": ">=10.0.0"
+  }
+}

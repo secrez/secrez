@@ -8,19 +8,9 @@ module.exports = {
   salt: 'someSalt',
   iterations: 23456,
   iterationsB58: '7Yq',
-  hash23456iterations: 'GCF7ytpi9DyMPbuDhLj6vW1oSe99nBTLzABcb1qvTeLY',
-  hash23456iterationsNoSalt: 'ErQE64oXPPs7QqbirznqzCap3KNyMKDZZZBexRfhS7Pb',
-  hash23456iterationsNoSaltVersionTwo: '621vXeh5P96cRCjRvEtiquBjQ9nDv5vWqpzENyMoWia5',
-  secondFactor: {
-    authenticator: 'yubo',
-    id: '7sheywt3rfse',
-    salt: 'jskeywhetduw63t4f45stwgeyrhtteur',
-    secret: 'sadsasewiuwnefdnsd09f38092erdu9feaofjfwy2feqoasz',
-    credential: 'sadadada',
-    recoveryCode: 'salad spring peace silk snake real they thunder please final clinic close',
-    wrongMnemonic: 'they thunder please final clinic close salad spring peace silk snake real'
-  },
+  hash23456iterations: '4cCoowvUdCQEazGvYJeGn7MvpFzNU8ZLwYj3ZQ/UvQE=',
   passphrase: 'when John breaks the cronicle',
+  samesecret: 'my combination is 354246534',
   signaturePair: {
     publicKey: [
       144, 197, 186, 79, 209, 26, 15, 35,

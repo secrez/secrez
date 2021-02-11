@@ -2,7 +2,7 @@ const fs = require('fs-extra')
 const utils = require('@secrez/utils')
 
 const Crypto = require('./Crypto')
-const bs58 = Crypto.bs58
+const bs64 = Crypto.bs64
 
 module.exports = function () {
 
@@ -10,7 +10,7 @@ module.exports = function () {
     sharedKeys: {},
     getSharedKey(publicKey) {
       if (!__.sharedKeys[publicKey]) {
-        let publicKeyArr = Crypto.fromBase58(publicKey.split('0')[0])
+        let publicKeyArr = Crypto.fromBase64(publicKey.split('$')[0])
         __.sharedKeys[publicKey] = Crypto.getSharedSecret(publicKeyArr, __.boxPrivateKey)
       }
       return __.sharedKeys[publicKey]
@@ -23,10 +23,10 @@ module.exports = function () {
       this.secrez = secrez
     }
 
-    async init(password, iterations, derivationVersion) {
+    async init(password, iterations) {
       __.password = password
       __.iterations = iterations
-      __.derivedPassword = await _Secrez.derivePassword(password, iterations, derivationVersion)
+      __.derivedPassword = await _Secrez.derivePassword(password, iterations)
     }
 
     async isInitiated() {
@@ -35,8 +35,9 @@ module.exports = function () {
 
     async signup() {
       __.masterKey = Crypto.generateKey()
+      __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
       let key = this.preEncrypt(__.masterKey)
-      let hash = Crypto.b58Hash(__.masterKey)
+      let hash = Crypto.b64Hash(__.masterKey)
       return {
         key,
         hash
@@ -53,18 +54,16 @@ module.exports = function () {
     }
 
     async verifyPassword(password) {
-      return __.derivedPassword === await _Secrez.derivePassword(password, __.iterations, _Secrez.derivationVersion.TWO)
+      return __.derivedPassword === await _Secrez.derivePassword(password, __.iterations)
     }
 
     async changePassword(password = __.password, iterations = __.iterations) {
       let data = this.conf.data
-      let dv = _Secrez.derivationVersion.TWO
       __.password = password
       __.iterations = iterations
-      __.derivedPassword = await _Secrez.derivePassword(password, iterations, dv)
+      __.derivedPassword = await _Secrez.derivePassword(password, iterations)
       delete data.keys
       data.key = this.preEncrypt(__.masterKey)
-      data.derivationVersion = dv
       return data
     }
 
@@ -84,19 +83,20 @@ module.exports = function () {
     }
 
     verifySavedData(conf) {
-      let publicKey = Crypto.fromBase58(conf.data.sign.publicKey)
+      let publicKey = Crypto.fromBase64(conf.data.sign.publicKey)
       return Crypto.verifySignature(JSON.stringify(this.sortObj(conf.data)), conf.signature, publicKey)
     }
 
     async signin(data) {
       try {
         __.masterKey = await this.preDecrypt(data.key, true)
-        __.boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey, true))
-        __.signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey, true))
+        __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
+        __.boxPrivateKey = this.decrypt(data.box.secretKey, true, true)
+        __.signPrivateKey = this.decrypt(data.sign.secretKey, true, true)
       } catch (e) {
         throw new Error('Wrong password or wrong number of iterations')
       }
-      if (utils.secureCompare(Crypto.b58Hash(__.masterKey), data.hash)) {
+      if (utils.secureCompare(Crypto.b64Hash(__.masterKey), data.hash)) {
         return data.hash
       } else {
         throw new Error('Hash on file does not match the master key')
@@ -108,12 +108,13 @@ module.exports = function () {
       try {
         let masterKey = this.recoverSharedSecrets(key.parts, secret)
         /* istanbul ignore if  */
-        if (!utils.secureCompare(Crypto.b58Hash(masterKey), data.hash)) {
+        if (!utils.secureCompare(Crypto.b64Hash(masterKey), data.hash)) {
           throw new Error('Hash on file does not match the master key')
         }
         __.masterKey = masterKey
-        __.boxPrivateKey = Crypto.fromBase58(this.decrypt(data.box.secretKey, true))
-        __.signPrivateKey = Crypto.fromBase58(this.decrypt(data.sign.secretKey, true))
+        __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
+        __.boxPrivateKey = this.decrypt(data.box.secretKey, true, true)
+        __.signPrivateKey = this.decrypt(data.sign.secretKey, true, true)
         return data.hash
       } catch (e) {
         throw new Error('Wrong data/secret')
@@ -122,28 +123,25 @@ module.exports = function () {
 
     static async derivePassword(
         password = __.password,
-        iterations,
-        derivationVersion
+        iterations
     ) {
       password = Crypto.SHA3(password)
-      let salt = derivationVersion === _Secrez.derivationVersion.TWO
-          ? Crypto.SHA3(password + iterations.toString())
-          : Crypto.SHA3(password)
-      return bs58.encode(Crypto.deriveKey(password, salt, iterations, 32))
+      let salt = Crypto.SHA3(password + iterations.toString())
+      return bs64.encode(Crypto.deriveKey(password, salt, iterations, 32))
     }
 
     encrypt(data) {
-      return Crypto.encrypt(data, __.masterKey)
+      return Crypto.encrypt(data, __.masterKeyArray)
     }
 
-    decrypt(encryptedData, unsafeMode) {
+    decrypt(encryptedData, unsafeMode, returnUint8Array) {
       if (!unsafeMode && (
           encryptedData === this.conf.data.box.secretKey
           || encryptedData === this.conf.data.sign.secretKey
       )) {
         throw new Error('Attempt to hack the keys')
       }
-      return Crypto.decrypt(encryptedData, __.masterKey)
+      return Crypto.decrypt(encryptedData, __.masterKeyArray, returnUint8Array)
     }
 
     preEncrypt(data) {
@@ -182,21 +180,21 @@ module.exports = function () {
     }
 
     encodeSignature(secret) {
-      const encoded = bs58.encode(Buffer.from(Crypto.SHA3(secret)))
+      const encoded = bs64.encode(Crypto.SHA3(secret))
       return encoded
     }
 
     generateSharedSecrets(secret) {
       let parts = Crypto.splitSecret(__.masterKey, 2, 2)
-      parts[1] = this.preEncrypt(bs58.encode(Buffer.from(parts['1'])))
-      parts[2] = Crypto.encrypt(bs58.encode(Buffer.from(parts['2'])), this.encodeSignature(secret))
+      parts[1] = this.preEncrypt(bs64.encode(parts['1']))
+      parts[2] = Crypto.encrypt(bs64.encode(parts['2']), this.encodeSignature(secret))
       return parts
     }
 
     recoverSharedSecrets(parts, secret) {
       parts = {
-        1: new Uint8Array(bs58.decode(this.preDecrypt(parts[1]))),
-        2: new Uint8Array(bs58.decode(Crypto.decrypt(parts[2], this.encodeSignature(secret))))
+        1: new Uint8Array(bs64.decode(this.preDecrypt(parts[1]))),
+        2: new Uint8Array(bs64.decode(Crypto.decrypt(parts[2], this.encodeSignature(secret))))
       }
       return Crypto.joinSecret(parts)//, true)
     }
@@ -221,11 +219,6 @@ module.exports = function () {
       return sortedData
     }
 
-  }
-
-  _Secrez.derivationVersion = {
-    ONE: '1',
-    TWO: '2'
   }
 
   return _Secrez

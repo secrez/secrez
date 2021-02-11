@@ -4,6 +4,8 @@ const {Keccak} = require('sha3')
 const basex = require('base-x')
 const shamir = require('shamir')
 const bip39 = require('bip39')
+const {bytesToBase64, base64ToBytes} = require('byte-base64')
+const { encode: urlSafeEncode, decode: urlSafeDecode} = require('url-safe-base64')
 
 const {
   box,
@@ -23,6 +25,18 @@ class Crypto {
     return Buffer.from(data).toString('base64')
   }
 
+  static fromBase64(data) {
+    return Buffer.from(data, 'base64').toString('utf-8')
+  }
+
+  static fromBase64ToUrlSafeBase64(data) {
+    return urlSafeEncode(data)
+  }
+
+  static fromUrlSafeBase64ToBase64(data) {
+    return urlSafeDecode(data)
+  }
+
   static toBase58(data) {
     if (!Buffer.isBuffer(data)) {
       data = Buffer.from(data)
@@ -30,19 +44,15 @@ class Crypto {
     return Crypto.bs58.encode(data)
   }
 
+  static fromBase58(data) {
+    return Crypto.bs58.decode(data)
+  }
+
   static toBase32(data) {
     if (!Buffer.isBuffer(data)) {
       data = Buffer.from(data)
     }
     return Crypto.bs32.encode(data)
-  }
-
-  static fromBase64(data) {
-    return Buffer.from(data, 'base64').toString('utf-8')
-  }
-
-  static fromBase58(data) {
-    return Crypto.bs58.decode(data)
   }
 
   static fromBase32(data) {
@@ -108,6 +118,10 @@ class Crypto {
     return Crypto.bs58.encode(Crypto.SHA3(data)).substring(0, size)
   }
 
+  static b64Hash(data, size) {
+    return Crypto.bs64.encode(Crypto.SHA3(data)).substring(0, size)
+  }
+
   static b32Hash(data, size) {
     if (!Buffer.isBuffer(data)) {
       data = Buffer.from(data)
@@ -150,9 +164,12 @@ class Crypto {
     return parseInt(ts, 16)
   }
 
-  static generateKey(noEncode) {
+  static generateKey(noEncode, codec = 'bs64') {
     let key = randomBytes(secretbox.keyLength)
-    return noEncode ? key : Crypto.bs58.encode(Buffer.from(key))
+    if (codec === 'bs58') {
+      key = Buffer.from(key)
+    }
+    return noEncode ? key : Crypto[codec].encode(key)
   }
 
   static isBase58String(str) {
@@ -169,13 +186,26 @@ class Crypto {
     return typeof key === 'object' && key.constructor === Uint8Array
   }
 
-  static encryptUint8Array(messageUint8, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, noEncode) {
-    const keyUint8Array = Crypto.bs58.decode(key)
+  // encrypt
+
+  static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array, codec) {
+    return Crypto.encryptUint8Array(decodeUTF8(message), key, nonce, getNonce, returnUint8Array, codec)
+  }
+
+  static encryptBuffer(buf, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array, codec) {
+    return Crypto.encryptUint8Array(new Uint8Array(buf), key, nonce, getNonce, returnUint8Array, codec)
+  }
+
+  static encryptUint8Array(messageUint8, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, noEncode, codec = 'bs64') {
+    const keyUint8Array = typeof key === 'string' ? Crypto[codec].decode(key) : key
     const box = secretbox(messageUint8, nonce, keyUint8Array)
-    const fullMessage = new Uint8Array(nonce.length + box.length)
+    let fullMessage = new Uint8Array(nonce.length + box.length)
     fullMessage.set(nonce)
     fullMessage.set(box, nonce.length)
-    const encoded = noEncode ? fullMessage : Crypto.bs58.encode(Buffer.from(fullMessage))
+    if (codec === 'bs58') {
+      fullMessage = Buffer.from(fullMessage)
+    }
+    const encoded = noEncode ? fullMessage : Crypto[codec].encode(fullMessage)
     if (getNonce) {
       return [nonce, encoded]
     } else {
@@ -183,16 +213,15 @@ class Crypto {
     }
   }
 
-  static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array) {
-    return Crypto.encryptUint8Array(decodeUTF8(message), key, nonce, getNonce, returnUint8Array)
+  // decrypt
+
+  static decrypt(messageWithNonce, key, returnUint8Array, codec = 'bs64') {
+    const decoded = Crypto[codec].decode(messageWithNonce)
+    return Crypto.decryptUint8Array(decoded, key, returnUint8Array, codec)
   }
 
-  static encryptBuffer(buf, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array) {
-    return Crypto.encryptUint8Array(new Uint8Array(buf), key, nonce, getNonce, returnUint8Array)
-  }
-
-  static decryptUint8Array(messageWithNonceAsUint8Array, key, returnUint8Array) {
-    const keyUint8Array = Crypto.bs58.decode(key)
+  static decryptUint8Array(messageWithNonceAsUint8Array, key, returnUint8Array, codec = 'bs64') {
+    const keyUint8Array = typeof key === 'string' ? Crypto[codec].decode(key) : key
     const nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
     const message = messageWithNonceAsUint8Array.slice(
         secretbox.nonceLength,
@@ -205,14 +234,9 @@ class Crypto {
     return returnUint8Array ? decrypted : encodeUTF8(decrypted)
   }
 
-  static decrypt(messageWithNonce, key, returnUint8Array) {
-    return Crypto.decryptUint8Array(Crypto.bs58.decode(messageWithNonce), key, returnUint8Array)
-  }
 
-  static getNonceFromMessage(messageWithNonce) {
-    const messageWithNonceAsUint8Array = Crypto.bs58.decode(messageWithNonce)
-    let nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
-    return Crypto.hexToUint8Array(nonce.toString('hex'))
+  static getNonceFromMessage(messageWithNonce, codec = 'bs64') {
+    return Crypto[codec].decode(messageWithNonce).slice(0, secretbox.nonceLength)
   }
 
   static generateBoxKeyPair(noEncode) {
@@ -258,17 +282,19 @@ class Crypto {
     return box.before(theirPublicKey, mySecretKey)
   }
 
-  static boxEncrypt(secretOrSharedKey, message, key, nonce = randomBytes(box.nonceLength), getNonce) {
+  static boxEncrypt(secretOrSharedKey, message, key, nonce = randomBytes(box.nonceLength), getNonce, codec = 'bs64') {
     const messageUint8 = decodeUTF8(message)
     const encrypted = key
         ? box(messageUint8, nonce, key, secretOrSharedKey)
         : box.after(messageUint8, nonce, secretOrSharedKey)
 
-    const fullMessage = new Uint8Array(nonce.length + encrypted.length)
+    let fullMessage = new Uint8Array(nonce.length + encrypted.length)
     fullMessage.set(nonce)
     fullMessage.set(encrypted, nonce.length)
-    const encoded = Crypto.bs58.encode(Buffer.from(fullMessage))
-
+    if (codec === 'bs58') {
+      fullMessage = Buffer.from(fullMessage)
+    }
+    const encoded = Crypto[codec].encode(fullMessage)
     if (getNonce) {
       return [nonce, encoded]
     } else {
@@ -276,8 +302,8 @@ class Crypto {
     }
   }
 
-  static boxDecrypt(secretOrSharedKey, messageWithNonce, key) {
-    const messageWithNonceAsUint8Array = Crypto.bs58.decode(messageWithNonce)
+  static boxDecrypt(secretOrSharedKey, messageWithNonce, key, codec = 'bs64') {
+    const messageWithNonceAsUint8Array = Crypto[codec].decode(messageWithNonce)
     const nonce = messageWithNonceAsUint8Array.slice(0, box.nonceLength)
     const message = messageWithNonceAsUint8Array.slice(
         box.nonceLength,
@@ -293,13 +319,16 @@ class Crypto {
     return encodeUTF8(decrypted)
   }
 
-  static getSignature(message, secretKey) {
+  static getSignature(message, secretKey, codec = 'bs64') {
     let signature = sign.detached(decodeUTF8(message), secretKey)
-    return Crypto.bs58.encode(Buffer.from(signature))
+    if (codec === 'bs58') {
+      signature = Buffer.from(signature)
+    }
+    return Crypto[codec].encode(signature)
   }
 
-  static verifySignature(message, signature, publicKey) {
-    let verified = sign.detached.verify(decodeUTF8(message), Crypto.bs58.decode(signature), publicKey)
+  static verifySignature(message, signature, publicKey, codec = 'bs64') {
+    let verified = sign.detached.verify(decodeUTF8(message), Crypto[codec].decode(signature), publicKey)
     return verified
   }
 
@@ -324,6 +353,17 @@ Crypto.bs58 = basex(Crypto.base58Alphabet)
 
 Crypto.zBase32Alphabet = 'ybndrfg8ejkmcpqxot1uwisza345h769'
 Crypto.bs32 = basex(Crypto.zBase32Alphabet)
+
+Crypto.bs64 = {
+
+  encode: data => {
+    return bytesToBase64(data)
+  },
+
+  decode: data => {
+    return base64ToBytes(data)
+  }
+}
 
 Crypto.randomBytes = randomBytes
 

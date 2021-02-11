@@ -23,13 +23,15 @@ const {
   iterations,
   hash23456iterations,
   passphrase,
-  signaturePair
+  signaturePair,
+  samesecret
 } = require('./fixtures')
 
 describe('#Crypto', function () {
 
+  const u = undefined
 
-  describe('utils', async function () {
+    describe('utils', async function () {
 
     it('should encode a string as base64', async function () {
       let coded = Crypto.toBase64(password)
@@ -100,7 +102,7 @@ describe('#Crypto', function () {
 
     it('should generate key', async function () {
       const newKey = Crypto.generateKey()
-      assert.equal(bs58.decode(newKey).length, 32)
+      assert.equal(Crypto.bs64.decode(newKey).length, 32)
     })
 
     it('should convert a decimal to an uint8array', async function () {
@@ -133,7 +135,7 @@ describe('#Crypto', function () {
 
     it('should derive a password and obtain a predeterminded hash', async function () {
       let derivedPassword = await Crypto.deriveKey(password, salt, iterations)
-      assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterations)
+      assert.equal(Crypto.b64Hash(derivedPassword), hash23456iterations)
     })
 
     it('should generate a random string', async function () {
@@ -174,23 +176,22 @@ describe('#Crypto', function () {
 
   })
 
-  describe('#encrypt/decrypt', async function () {
+  describe('#encrypt/decrypt version 1', async function () {
 
     it('should encrypt and decrypt a string', async function () {
       const key = Crypto.generateKey()
-
-      let encrypted = Crypto.encrypt(hash23456iterations, key)
+      let encrypted = Crypto.encrypt(samesecret, key)
       let decrypted = Crypto.decrypt(encrypted, key)
-      assert.equal(hash23456iterations, decrypted)
+      assert.equal(samesecret, decrypted)
 
-      encrypted = Crypto.encrypt(hash23456iterations, key, undefined, undefined, true)
+      encrypted = Crypto.encrypt(samesecret, key, u, u, true)
       decrypted = Crypto.decryptUint8Array(encrypted, key)
-      assert.equal(hash23456iterations, decrypted)
+      assert.equal(samesecret, decrypted)
     })
 
     it('should get the nonce of an encrypted string', async function () {
       const key = Crypto.generateKey()
-      let [nonce, encrypted] = Crypto.encrypt(hash23456iterations, key, undefined, true)
+      let [nonce, encrypted] = Crypto.encrypt(samesecret, key, u, true)
       assert.equal(nonce.length, 24)
       let recoveredNonce = Crypto.getNonceFromMessage(encrypted)
       for (let i = 0; i < nonce.length; i++) {
@@ -209,11 +210,11 @@ describe('#Crypto', function () {
     it('should throw if the encrypted data is wrong', async function () {
       const key = Crypto.generateKey()
       try {
-        let encrypted = Crypto.encrypt(hash23456iterations, key) + '5F'
+        let encrypted = Crypto.encrypt(samesecret, key) + '5F'
         Crypto.decrypt(encrypted, key)
         assert.equal(true, 'Should throw')
       } catch (e) {
-        assert.equal(e.message, 'Could not decrypt message')
+        assert.isTrue(e.message === 'Could not decrypt message' || e.message === 'Unable to parse base64 string.')
       }
     })
   })
@@ -233,7 +234,7 @@ describe('#Crypto', function () {
 
     it('should encrypt and decrypt using keys combination', async function () {
       const msg = 'Some message'
-      const [nonce, encrypted] = Crypto.boxEncrypt(sharedA, msg, undefined, undefined, true)
+      const [nonce, encrypted] = Crypto.boxEncrypt(sharedA, msg, u, u, true)
       const decrypted = Crypto.boxDecrypt(sharedB, encrypted)
       assert.equal(msg, decrypted)
       assert.equal(nonce.length, box.nonceLength)
@@ -256,10 +257,9 @@ describe('#Crypto', function () {
         Crypto.boxDecrypt(sharedB, encrypted, key)
         assert.equal(true, 'Should throw')
       } catch (e) {
-        assert.equal(e.message, 'Could not decrypt message')
+        assert.isTrue(e.message === 'Could not decrypt message' || e.message === 'Unable to parse base64 string.')
       }
     })
-
   })
 
   describe('sign a message with a secretKey', function () {
@@ -276,7 +276,6 @@ describe('#Crypto', function () {
     })
 
     it('should derive a valid seed from a passphrase', async function () {
-      let passphrase = 'some random passphrase'
       let seed = Crypto.seedFromPassphrase(passphrase)
       assert.isTrue(Crypto.isUint8Array(seed))
       assert.equal(seed.length, 32)
@@ -360,6 +359,42 @@ describe('#Crypto', function () {
       assert.equal(secret.toString(), recovered.toString())
 
     })
+
+  })
+
+  describe.skip('performance comparision between V1 and V2', async function () {
+
+    it('should compare encryption V1 and V2', async function() {
+      this.timeout(10000)
+      let key = Crypto.generateKey(u, 'bs58')
+      let str = samesecret.repeat(500)
+      let now = Date.now()
+      Crypto.encrypt(str, key, u, u, u, 'bs58')
+      console.log('Milliseconds w/ V1:', Date.now() - now)
+      now = Date.now()
+      key = Crypto.generateKey()
+      Crypto.encrypt(str, key)
+      console.log('Milliseconds w/ V2:', Date.now() - now)
+    })
+
+    it('should compare urlSafeBase64 encoding with base68 encoding', async function() {
+      this.timeout(10000)
+      let key = Crypto.generateKey(true)
+      let now = Date.now()
+      for (let i =0; i< 10000; i++) {
+          let encoded = Crypto.bs58.encode(key)
+        Crypto.bs58.decode(encoded)
+      }
+      console.log('Milliseconds w/ V1:', Date.now() - now)
+      now = Date.now()
+      for (let i =0; i< 10000; i++) {
+        let encoded = Crypto.fromBase64ToUrlSafeBase64(Crypto.bs64.encode(key))
+        Crypto.bs64.decode(Crypto.fromUrlSafeBase64ToBase64(encoded))
+      }
+      console.log('Milliseconds w/ V2:', Date.now() - now)
+
+    })
+
 
   })
 

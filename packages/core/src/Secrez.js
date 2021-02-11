@@ -37,15 +37,10 @@ module.exports = function () {
       }
       if (!await fs.pathExists(this.config.keysPath)) {
 
-        let id = Crypto.b58Hash(Crypto.generateKey())
+        let id = Crypto.b64Hash(Crypto.generateKey())
         _secrez = new _Secrez(this)
 
-        let derivationVersion = _Secrez.derivationVersion.TWO
-        if (process.env.NODE_ENV === 'test' && testDerivationVersion) {
-          derivationVersion = testDerivationVersion
-        }
-
-        await _secrez.init(password, iterations, derivationVersion)
+        await _secrez.init(password, iterations)
 
         let {key, hash} = await _secrez.signup()
         this.masterKeyHash = hash
@@ -53,15 +48,15 @@ module.exports = function () {
         // x25519-xsalsa20-poly1305
         const boxPair = Crypto.generateBoxKeyPair()
         const box = {
-          secretKey: _secrez.encrypt(Crypto.toBase58(boxPair.secretKey)),
-          publicKey: Crypto.toBase58(boxPair.publicKey)
+          secretKey: _secrez.encrypt(Crypto.bs64.encode(boxPair.secretKey)),
+          publicKey: Crypto.bs64.encode(boxPair.publicKey)
         }
 
         // ed25519
         const ed25519Pair = Crypto.generateSignatureKeyPair()
         const sign = {
-          secretKey: _secrez.encrypt(Crypto.toBase58(ed25519Pair.secretKey)),
-          publicKey: Crypto.toBase58(ed25519Pair.publicKey)
+          secretKey: _secrez.encrypt(Crypto.bs64.encode(ed25519Pair.secretKey)),
+          publicKey: Crypto.bs64.encode(ed25519Pair.publicKey)
         }
 
         _secrez.initPrivateKeys(boxPair.secretKey, ed25519Pair.secretKey)
@@ -72,10 +67,7 @@ module.exports = function () {
           box,
           key,
           hash,
-          when: utils.intToBase58(Date.now())
-        }
-        if (derivationVersion === _Secrez.derivationVersion.TWO) {
-          data.derivationVersion = derivationVersion
+          when: Date.now()
         }
         _secrez.setConf(await this.signAndSave(data), true)
       } else {
@@ -83,8 +75,8 @@ module.exports = function () {
       }
     }
 
-    async derivePassword(password, iterations, derivationVersion) {
-      return await _Secrez.derivePassword(password, iterations, derivationVersion)
+    async derivePassword(password, iterations) {
+      return await _Secrez.derivePassword(password, iterations)
     }
 
     async signAndSave(data) {
@@ -157,7 +149,7 @@ module.exports = function () {
     }
 
     getPublicKey() {
-      return _secrez.conf.data.box.publicKey + '0' + _secrez.conf.data.sign.publicKey
+      return _secrez.conf.data.box.publicKey + '$' + _secrez.conf.data.sign.publicKey
     }
 
     async readConf() {
@@ -185,7 +177,7 @@ module.exports = function () {
     }
 
     verifySignedMessage(message, signature, publicKey) {
-      return Crypto.verifySignature(message, signature, Crypto.fromBase58(publicKey || this.getConf().data.sign.publicKey))
+      return Crypto.verifySignature(message, signature, Crypto.bs64.decode(publicKey || this.getConf().data.sign.publicKey))
     }
 
     async signin(password, iterations) {
@@ -203,7 +195,7 @@ module.exports = function () {
       const conf = await this.readConf()
       const data = conf.data
       _secrez = new _Secrez(this)
-      await _secrez.init(password, iterations, data.derivationVersion)
+      await _secrez.init(password, iterations)
       /* istanbul ignore if  */
       if (!data.key && !data.keys) {
         throw new Error('No valid data found')
@@ -211,10 +203,6 @@ module.exports = function () {
       if (data.key) {
         let masterKeyHash = await _secrez.signin(data)
         this.setMasterKeyHash(conf, masterKeyHash)
-        if (!data.derivationVersion) {
-          await this.upgradeAccount()
-          return 1
-        }
       } else {
         throw new Error('A second factor is required')
       }
@@ -249,10 +237,6 @@ module.exports = function () {
       }
       let masterKeyHash = await _secrez.sharedSignin(data, authenticator, secret)
       this.setMasterKeyHash(conf, masterKeyHash)
-      if (!data.derivationVersion) {
-        await this.upgradeAccount()
-        return 1
-      }
       return 0
     }
 

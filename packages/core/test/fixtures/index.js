@@ -9,8 +9,7 @@ module.exports = {
   iterations: 23456,
   iterationsB58: '7Yq',
   hash23456iterations: 'GCF7ytpi9DyMPbuDhLj6vW1oSe99nBTLzABcb1qvTeLY',
-  hash23456iterationsNoSalt: 'ErQE64oXPPs7QqbirznqzCap3KNyMKDZZZBexRfhS7Pb',
-  hash23456iterationsNoSaltVersionTwo: '621vXeh5P96cRCjRvEtiquBjQ9nDv5vWqpzENyMoWia5',
+  hash23456iterationsNoSalt: 'Ie0UBSFx4087Vpz5en70+Giitq/zAZYKRGDzAFFk1Ik=',
   secondFactor: {
     authenticator: 'yubo',
     id: '7sheywt3rfse',

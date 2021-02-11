@@ -8,17 +8,17 @@ const Crypto = require('../src/Crypto')
 const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')
+const {jlog} = require('@secrez/test-helpers')
 
 const {
   password,
   newPassword,
   iterations,
   hash23456iterationsNoSalt,
-  hash23456iterationsNoSaltVersionTwo,
   secondFactor
 } = require('./fixtures')
 
-describe('#Secrez', function () {
+describe.only('#Secrez', function () {
 
   let rootDir = path.resolve(__dirname, '../tmp/test/secrez')
   let rootDir2 = path.resolve(__dirname, '../tmp/test/secrez2')
@@ -60,12 +60,7 @@ describe('#Secrez', function () {
 
       it('should derive a password and obtain a predeterminded hash', async function () {
         let derivedPassword = await secrez.derivePassword(password, iterations)
-        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterationsNoSalt)
-      })
-
-      it('should derive a password and obtain a predeterminded hash with version two', async function () {
-        let derivedPassword = await secrez.derivePassword(password, iterations, '2')
-        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterationsNoSaltVersionTwo)
+        assert.equal(Crypto.b64Hash(derivedPassword), hash23456iterationsNoSalt)
       })
 
     })
@@ -77,7 +72,7 @@ describe('#Secrez', function () {
         secrez = new Secrez()
       })
 
-      it('should signup the user and signin without saving the iterations', async function () {
+      it.only('should signup the user and signin without saving the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
         assert.isTrue(await fs.pathExists(secrez.config.keysPath))
