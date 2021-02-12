@@ -186,17 +186,8 @@ class Crypto {
     return typeof key === 'object' && key.constructor === Uint8Array
   }
 
-  // encrypt
-
-  static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array, codec) {
-    return Crypto.encryptUint8Array(decodeUTF8(message), key, nonce, getNonce, returnUint8Array, codec)
-  }
-
-  static encryptBuffer(buf, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array, codec) {
-    return Crypto.encryptUint8Array(new Uint8Array(buf), key, nonce, getNonce, returnUint8Array, codec)
-  }
-
-  static encryptUint8Array(messageUint8, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, noEncode, codec = 'bs64') {
+  static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array, codec = 'bs64') {
+    let messageUint8 = Buffer.isBuffer(message) ? new Uint8Array(message) : typeof message === 'string' ? decodeUTF8(message) : message
     const keyUint8Array = typeof key === 'string' ? Crypto[codec].decode(key) : key
     const box = secretbox(messageUint8, nonce, keyUint8Array)
     let fullMessage = new Uint8Array(nonce.length + box.length)
@@ -205,7 +196,7 @@ class Crypto {
     if (codec === 'bs58') {
       fullMessage = Buffer.from(fullMessage)
     }
-    const encoded = noEncode ? fullMessage : Crypto[codec].encode(fullMessage)
+    const encoded = returnUint8Array ? fullMessage : Crypto[codec].encode(fullMessage)
     if (getNonce) {
       return [nonce, encoded]
     } else {
@@ -213,16 +204,13 @@ class Crypto {
     }
   }
 
-  // decrypt
-
   static decrypt(messageWithNonce, key, returnUint8Array, codec = 'bs64') {
-    const decoded = Crypto[codec].decode(messageWithNonce)
-    return Crypto.decryptUint8Array(decoded, key, returnUint8Array, codec)
-  }
-
-  static decryptUint8Array(messageWithNonceAsUint8Array, key, returnUint8Array, codec = 'bs64') {
+    const messageWithNonceAsUint8Array = typeof messageWithNonce === 'string' ? Crypto[codec].decode(messageWithNonce) : messageWithNonce
     const keyUint8Array = typeof key === 'string' ? Crypto[codec].decode(key) : key
-    const nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)
+    const nonce = messageWithNonceAsUint8Array.slice(
+        0,
+        secretbox.nonceLength
+    )
     const message = messageWithNonceAsUint8Array.slice(
         secretbox.nonceLength,
         messageWithNonceAsUint8Array.length
@@ -343,7 +331,7 @@ class Crypto {
   static joinSecret(parts, asUint8Array) {
     const utf8Decoder = new util.TextDecoder()
     const recovered = shamir.join(parts)
-    return asUint8Array ? recovered : utf8Decoder.decode(recovered)
+    return asUint8Array ? recovered : Buffer.from(recovered).toString('utf8')
   }
 
 }

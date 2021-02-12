@@ -31,7 +31,9 @@ const config = {
      RECOVERY_CODE: 2
   },
 
-  secrez: {}
+  secrez: {},
+
+  VERSION: 3
 
 }
 

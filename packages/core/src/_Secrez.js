@@ -10,7 +10,7 @@ module.exports = function () {
     sharedKeys: {},
     getSharedKey(publicKey) {
       if (!__.sharedKeys[publicKey]) {
-        let publicKeyArr = Crypto.fromBase64(publicKey.split('$')[0])
+        let publicKeyArr = Crypto.bs64.decode(publicKey.split('$')[0])
         __.sharedKeys[publicKey] = Crypto.getSharedSecret(publicKeyArr, __.boxPrivateKey)
       }
       return __.sharedKeys[publicKey]
@@ -83,7 +83,7 @@ module.exports = function () {
     }
 
     verifySavedData(conf) {
-      let publicKey = Crypto.fromBase64(conf.data.sign.publicKey)
+      let publicKey = Crypto.bs64.decode(conf.data.sign.publicKey)
       return Crypto.verifySignature(JSON.stringify(this.sortObj(conf.data)), conf.signature, publicKey)
     }
 
@@ -117,6 +117,7 @@ module.exports = function () {
         __.signPrivateKey = this.decrypt(data.sign.secretKey, true, true)
         return data.hash
       } catch (e) {
+        console.log(e)
         throw new Error('Wrong data/secret')
       }
     }
@@ -130,8 +131,8 @@ module.exports = function () {
       return bs64.encode(Crypto.deriveKey(password, salt, iterations, 32))
     }
 
-    encrypt(data) {
-      return Crypto.encrypt(data, __.masterKeyArray)
+    encrypt(data, returnUint8Array) {
+      return Crypto.encrypt(data, __.masterKeyArray, undefined, undefined, returnUint8Array)
     }
 
     decrypt(encryptedData, unsafeMode, returnUint8Array) {
@@ -179,24 +180,19 @@ module.exports = function () {
       return Crypto.boxDecrypt(__.getSharedKey(publicKey), encryptedData)
     }
 
-    encodeSignature(secret) {
-      const encoded = bs64.encode(Crypto.SHA3(secret))
-      return encoded
-    }
-
     generateSharedSecrets(secret) {
       let parts = Crypto.splitSecret(__.masterKey, 2, 2)
-      parts[1] = this.preEncrypt(bs64.encode(parts['1']))
-      parts[2] = Crypto.encrypt(bs64.encode(parts['2']), this.encodeSignature(secret))
+      parts[1] = this.preEncrypt(parts['1'])
+      parts[2] = Crypto.encrypt(parts['2'], Crypto.SHA3(secret))
       return parts
     }
 
     recoverSharedSecrets(parts, secret) {
       parts = {
-        1: new Uint8Array(bs64.decode(this.preDecrypt(parts[1]))),
-        2: new Uint8Array(bs64.decode(Crypto.decrypt(parts[2], this.encodeSignature(secret))))
+        1: this.preDecrypt(parts[1]),
+        2: Crypto.decrypt(parts[2], Crypto.SHA3(secret))
       }
-      return Crypto.joinSecret(parts)//, true)
+      return Crypto.joinSecret(parts)
     }
 
     signData(data) {

@@ -185,7 +185,7 @@ describe('#Crypto', function () {
       assert.equal(samesecret, decrypted)
 
       encrypted = Crypto.encrypt(samesecret, key, u, u, true)
-      decrypted = Crypto.decryptUint8Array(encrypted, key)
+      decrypted = Crypto.decrypt(encrypted, key)
       assert.equal(samesecret, decrypted)
     })
 
@@ -202,7 +202,7 @@ describe('#Crypto', function () {
     it('should encrypt and decrypt a binary file', async function () {
       const key = Crypto.generateKey()
       let buf = fs.readFileSync(path.resolve(__dirname, 'fixtures/favicon.ico'))
-      let encrypted = Crypto.encryptBuffer(buf, key)
+      let encrypted = Crypto.encrypt(buf, key)
       let decrypted = Crypto.decrypt(encrypted, key, true)
       assert.equal(buf.toString(), Buffer.from(decrypted).toString())
     })

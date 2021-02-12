@@ -5,6 +5,7 @@ const Crypto = require('./Crypto')
 const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
 const utils = require('@secrez/utils')
+const pkg = require('../package.json')
 
 module.exports = function () {
 
@@ -67,7 +68,8 @@ module.exports = function () {
           box,
           key,
           hash,
-          when: Date.now()
+          when: _secrez.encrypt(Date.now().toString()),
+          version: this.config.VERSION
         }
         _secrez.setConf(await this.signAndSave(data), true)
       } else {
@@ -267,7 +269,7 @@ module.exports = function () {
     }
 
     preEncryptData(data) {
-      return _secrez.preEncrypt(data)
+      return _secrez.preEncrypt(data, undefined)
     }
 
     preDecryptData(encryptedData) {

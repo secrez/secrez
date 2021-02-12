@@ -72,7 +72,7 @@ describe.only('#Secrez', function () {
         secrez = new Secrez()
       })
 
-      it.only('should signup the user and signin without saving the iterations', async function () {
+      it('should signup the user and signin without saving the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
         assert.isTrue(await fs.pathExists(secrez.config.keysPath))
@@ -539,7 +539,7 @@ describe.only('#Secrez', function () {
 
       let {authenticator, secret, id, salt, credential, recoveryCode, wrongMnemonic} = secondFactor
 
-      it('should set up a second factor', async function () {
+      it.only('should set up a second factor', async function () {
         await secrez.signup(password, iterations)
 
         let parts = secrez.generateSharedSecrets(secret)
