@@ -140,7 +140,7 @@ describe('#Tree', function () {
       tree = internalFs.tree
     }
 
-    it('should load a tree with tags', async function () {
+    it.only('should load a tree with tags', async function () {
 
       signedUp = false
 
@@ -469,37 +469,4 @@ describe('#Tree', function () {
 
   })
 
-  describe('Convert from single to multi data sets', async function () {
-
-    let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-    let secrez
-    let internalFs
-
-    it('should load a 0.5.x format and, if finds deleted files, move them to the trash dataset', async function () {
-
-      let p = path.resolve(__dirname, 'fixtures', secrez0_5x.path)
-      let d = path.resolve(__dirname, '../tmp/test/.secrez')
-
-      await fs.emptyDir(d)
-      execSync(`cp -r ${p}/* ${d}`)
-
-      secrez = new Secrez()
-      await secrez.init(rootDir)
-      await secrez.signin(secrez0_5x.password, secrez0_5x.iterations)
-      internalFs = new InternalFs(secrez)
-      await internalFs.init()
-      tree = internalFs.tree
-
-      let found = []
-      for (let c in tree.root.children) {
-        let child = tree.root.children[c]
-        if (/^TRASH_\d{14}$/.test(child.getName())) {
-          found.push(child.getName())
-        }
-      }
-      assert.equal(found.length, 1)
-
-    })
-
-  })
 })

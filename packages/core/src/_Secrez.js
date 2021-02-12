@@ -130,18 +130,25 @@ module.exports = function () {
       return bs64.encode(Crypto.deriveKey(password, salt, iterations, 32))
     }
 
-    encrypt(data, returnUint8Array) {
-      return Crypto.encrypt(data, __.masterKeyArray, undefined, undefined, returnUint8Array)
+    encrypt(data, urlSafe) {
+      let encrypted = Crypto.encrypt(data, __.masterKeyArray)
+      if (urlSafe) {
+        encrypted = Crypto.fromBase64ToUrlSafeBase64(encrypted)
+      }
+      return encrypted
     }
 
-    decrypt(encryptedData, unsafeMode, returnUint8Array) {
+    decrypt(encryptedData, urlSafe, unsafeMode) {
+      if (urlSafe) {
+        encryptedData = Crypto.fromUrlSafeBase64ToBase64(encryptedData)
+      }
       if (!unsafeMode && (
           encryptedData === this.conf.data.box.secretKey
           || encryptedData === this.conf.data.sign.secretKey
       )) {
         throw new Error('Attempt to hack the keys')
       }
-      return Crypto.decrypt(encryptedData, __.masterKeyArray, returnUint8Array)
+      return Crypto.decrypt(encryptedData, __.masterKeyArray)
     }
 
     preEncrypt(data) {

@@ -260,16 +260,16 @@ module.exports = function () {
       return next
     }
 
-    encryptData(data) {
-      return _secrez.encrypt(data)
+    encryptData(data, urlSafe) {
+      return _secrez.encrypt(data, urlSafe)
     }
 
-    decryptData(encryptedData) {
-      return _secrez.decrypt(encryptedData)
+    decryptData(encryptedData, urlSafe) {
+      return _secrez.decrypt(encryptedData, urlSafe)
     }
 
     preEncryptData(data) {
-      return _secrez.preEncrypt(data, undefined)
+      return _secrez.preEncrypt(data)
     }
 
     preDecryptData(encryptedData) {
@@ -316,7 +316,7 @@ module.exports = function () {
             i: id,
             t: ts,
             n: name
-          }))
+          }), true)
           let extraName
           if (encryptedName.length > 255) {
             extraName = encryptedName.substring(254)
@@ -352,7 +352,7 @@ module.exports = function () {
       }
     }
 
-    decryptEntry(encryptedEntry) {
+    decryptEntry(encryptedEntry, urlSafe) {
 
       if (!encryptedEntry || encryptedEntry.constructor.name !== 'Entry') {
         throw new Error('An Entry instance is expected as parameter')
@@ -377,7 +377,7 @@ module.exports = function () {
               data = encryptedName.substring(0, 254) + extraName
             }
             let type = parseInt(data.substring(0, 1))
-            let e = JSON.parse(_secrez.decrypt(data.substring(1)))
+            let e = JSON.parse(_secrez.decrypt(data.substring(1), true))
             let id = e.i
             let ts = e.t
             let name = e.n

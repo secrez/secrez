@@ -38,7 +38,7 @@ class Tree {
     if (file[file.length - 1] === 'O') {
       // there is an extraName
       let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
-      content = content.split('I')
+      content = content.split('$')
       entry.set({
         encryptedName: file.substring(0, 254) + content[1]
       })
@@ -63,7 +63,7 @@ class Tree {
       if (decryptedEntry.type === config.types.ROOT) {
         let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
         entry.set({
-          encryptedContent: content.split('I')[0]
+          encryptedContent: content.split('$')[0]
         })
         decryptedEntry = this.secrez.decryptEntry(entry)
         allIndexes.push(decryptedEntry)
@@ -309,7 +309,7 @@ class Tree {
         // must be read from disk
         let entry = node.getEntry(ts)
         let fullPath = this.getFullPath(entry)
-        let [encryptedContent, extraName] = (await fs.readFile(fullPath, 'utf8')).split('I')
+        let [encryptedContent, extraName] = (await fs.readFile(fullPath, 'utf8')).split('$')
         entry.encryptedContent = encryptedContent
         entry.extraName = extraName
         let decryptedEntry = this.secrez.decryptEntry(entry)
@@ -456,7 +456,7 @@ class Tree {
             ? (entry.encryptedContent || '') +
             (
                 entry.extraName
-                    ? 'I' + entry.extraName
+                    ? '$' + entry.extraName
                     : ''
             )
             : ''
@@ -502,7 +502,7 @@ class Tree {
       allTags = allTags.sort(Node.sortEntry)[0]
       let content = await fs.readFile(path.join(this.dataPath, allTags.encryptedName), 'utf8')
       allTags.set({
-        encryptedContent: content.split('I')[0]
+        encryptedContent: content.split('$')[0]
       })
       allTags = this.secrez.decryptEntry(allTags)
       allTags.content = JSON.parse(allTags.content)
