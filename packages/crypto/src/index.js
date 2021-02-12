@@ -320,10 +320,12 @@ class Crypto {
     return verified
   }
 
+  // const utf8Encoder = new util.TextEncoder()
+  // secretBytes = utf8Encoder.encode(secretBytes)
+
   static splitSecret(secretBytes, parts, quorum) {
     if (!Crypto.isUint8Array(secretBytes)) {
-      const utf8Encoder = new util.TextEncoder()
-      secretBytes = utf8Encoder.encode(secretBytes)
+      secretBytes = decodeUTF8(secretBytes)
     }
     return shamir.split(Crypto.randomBytes, parts, quorum, secretBytes)
   }

@@ -539,7 +539,7 @@ describe.only('#Secrez', function () {
 
       let {authenticator, secret, id, salt, credential, recoveryCode, wrongMnemonic} = secondFactor
 
-      it.only('should set up a second factor', async function () {
+      it('should set up a second factor', async function () {
         await secrez.signup(password, iterations)
 
         let parts = secrez.generateSharedSecrets(secret)
@@ -884,7 +884,7 @@ describe.only('#Secrez', function () {
         let signPublicKey = Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)
         let boxPublicKey = Crypto.getBoxPublicKeyFromSecretPublicKey(publicKey)
 
-        publicKey = publicKey.split('0').map(e => Crypto.fromBase58(e))
+        publicKey = publicKey.split('$').map(e => Crypto.bs64.decode(e))
         assert.equal(publicKey[0].toString(), boxPublicKey.toString())
         assert.equal(publicKey[1].toString(), signPublicKey.toString())
 

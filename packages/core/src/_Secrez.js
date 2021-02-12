@@ -117,7 +117,6 @@ module.exports = function () {
         __.signPrivateKey = this.decrypt(data.sign.secretKey, true, true)
         return data.hash
       } catch (e) {
-        console.log(e)
         throw new Error('Wrong data/secret')
       }
     }
@@ -182,18 +181,19 @@ module.exports = function () {
 
     generateSharedSecrets(secret) {
       let parts = Crypto.splitSecret(__.masterKey, 2, 2)
-      parts[1] = this.preEncrypt(parts['1'])
-      parts[2] = Crypto.encrypt(parts['2'], Crypto.SHA3(secret))
+      parts[1] = this.preEncrypt(bs64.encode(Buffer.from(parts['1'])))
+      parts[2] = Crypto.encrypt(bs64.encode(Buffer.from(parts['2'])), Crypto.SHA3(secret))
       return parts
     }
 
     recoverSharedSecrets(parts, secret) {
       parts = {
-        1: this.preDecrypt(parts[1]),
-        2: Crypto.decrypt(parts[2], Crypto.SHA3(secret))
+        1: bs64.decode(this.preDecrypt(parts[1])),
+        2: bs64.decode(Crypto.decrypt(parts[2], Crypto.SHA3(secret)))
       }
-      return Crypto.joinSecret(parts)
+      return Crypto.joinSecret(parts)//, true)
     }
+
 
     signData(data) {
       const signature = this.signMessage(JSON.stringify(this.sortObj(data)))

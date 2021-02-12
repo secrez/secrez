@@ -12,11 +12,9 @@ Crypto.getBoxPublicKeyFromSecretPublicKey = publicKey => {
 
 Crypto.isValidSecrezPublicKey = pk => {
   if (typeof pk === 'string') {
-    console.log(pk)
     try {
       const [boxPublicKey, signPublicKey] = pk.split('$').map(e => {
         e = Crypto.bs64.decode(e)
-        console.log(e)
         if (Crypto.isValidPublicKey(e)) {
           return e
         }

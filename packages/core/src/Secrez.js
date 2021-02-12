@@ -49,14 +49,14 @@ module.exports = function () {
         // x25519-xsalsa20-poly1305
         const boxPair = Crypto.generateBoxKeyPair()
         const box = {
-          secretKey: _secrez.encrypt(Crypto.bs64.encode(boxPair.secretKey)),
+          secretKey: _secrez.encrypt(boxPair.secretKey),
           publicKey: Crypto.bs64.encode(boxPair.publicKey)
         }
 
         // ed25519
         const ed25519Pair = Crypto.generateSignatureKeyPair()
         const sign = {
-          secretKey: _secrez.encrypt(Crypto.bs64.encode(ed25519Pair.secretKey)),
+          secretKey: _secrez.encrypt(ed25519Pair.secretKey),
           publicKey: Crypto.bs64.encode(ed25519Pair.publicKey)
         }
 
