@@ -1,7 +1,7 @@
 const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
-const Secrez = require('../src/Secrez')(Math.random())
+const Secrez = require('../src/Secrez')()
 const fs = require('fs-extra')
 
 

@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 
 const ConfigUtils = require('../../src/config/ConfigUtils')
-const Secrez = require('../../src/Secrez')(Math.random())
+const Secrez = require('../../src/Secrez')()
 const fs = require('fs-extra')
 const path = require('path')
 const {execAsync} = require('@secrez/utils')

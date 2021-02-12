@@ -138,7 +138,7 @@ module.exports = function () {
       return encrypted
     }
 
-    decrypt(encryptedData, urlSafe, unsafeMode) {
+    decrypt(encryptedData, urlSafe) {
       if (urlSafe) {
         encryptedData = Crypto.fromUrlSafeBase64ToBase64(encryptedData)
       }
