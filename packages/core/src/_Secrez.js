@@ -1,19 +1,33 @@
 const fs = require('fs-extra')
 const utils = require('@secrez/utils')
 
+const {
+  RETURN_UINT8_ARRAY
+} = require('./config/booleans')
+
 const Crypto = require('./Crypto')
 const bs64 = Crypto.bs64
 
 module.exports = function () {
 
   const __ = {
+
     sharedKeys: {},
+
     getSharedKey(publicKey) {
       if (!__.sharedKeys[publicKey]) {
         let publicKeyArr = Crypto.bs64.decode(publicKey.split('$')[0])
         __.sharedKeys[publicKey] = Crypto.getSharedSecret(publicKeyArr, __.boxPrivateKey)
       }
       return __.sharedKeys[publicKey]
+    },
+
+    decrypt(encryptedData, returnUint8Array) {
+      return Crypto.decrypt(encryptedData, __.masterKeyArray, returnUint8Array)
+    },
+
+    preDecrypt(encryptedData, returnUint8Array) {
+      return Crypto.decrypt(encryptedData, __.derivedPassword, returnUint8Array)
     }
   }
 
@@ -29,24 +43,51 @@ module.exports = function () {
       __.derivedPassword = await _Secrez.derivePassword(password, iterations)
     }
 
+    preEncrypt(data) {
+      return Crypto.encrypt(data, __.derivedPassword)
+    }
+
+    preDecrypt(encryptedData) {
+      let conf = this.conf
+      if (!conf) {
+        conf = this.readConf()
+      }
+      if (encryptedData === __.encryptedMasterKey) {
+        throw new Error('Forbidden')
+      }
+      return __.preDecrypt(encryptedData)
+    }
+
+    encrypt(data, urlSafe) {
+      let encrypted = Crypto.encrypt(data, __.masterKeyArray)
+      if (urlSafe) {
+        encrypted = Crypto.fromBase64ToUrlSafeBase64(encrypted)
+      }
+      return encrypted
+    }
+
+    decrypt(encryptedData, urlSafe, returnUint8Array) {
+      if (urlSafe) {
+        encryptedData = Crypto.fromUrlSafeBase64ToBase64(encryptedData)
+      }
+      if (encryptedData === __.encryptedBoxPrivateKey
+          || encryptedData === __.encryptedSignPrivateKey
+      ) {
+        throw new Error('Forbidden')
+      }
+      return __.decrypt(encryptedData, returnUint8Array)
+    }
+
+    encryptShared(data, publicKey) {
+      return Crypto.boxEncrypt(__.getSharedKey(publicKey), data)
+    }
+
+    decryptShared(encryptedData, publicKey) {
+      return Crypto.boxDecrypt(__.getSharedKey(publicKey), encryptedData)
+    }
+
     async isInitiated() {
       return !!__.derivedPassword
-    }
-
-    async signup() {
-      __.masterKey = Crypto.generateKey()
-      __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
-      let key = this.preEncrypt(__.masterKey)
-      let hash = Crypto.b64Hash(__.masterKey)
-      return {
-        key,
-        hash
-      }
-    }
-
-    initPrivateKeys(box, sign) {
-      __.boxPrivateKey = box
-      __.signPrivateKey = sign
     }
 
     signMessage(message) {
@@ -87,12 +128,63 @@ module.exports = function () {
       return Crypto.verifySignature(JSON.stringify(this.sortObj(conf.data)), conf.signature, publicKey)
     }
 
+    readConf() {
+      /* istanbul ignore if  */
+      if (!this.secrez) {
+        throw new Error('Secrez not initiated')
+      }
+      /* istanbul ignore if  */
+      if (!fs.existsSync(this.secrez.config.keysPath)) {
+        throw new Error('Account not set yet')
+      }
+      return JSON.parse(fs.readFileSync(this.secrez.config.keysPath, 'utf8'))
+    }
+
+    async signup() {
+      __.masterKey = Crypto.generateKey()
+      __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
+      let key = this.preEncrypt(__.masterKey)
+      __.encryptedMasterKey = key
+      let hash = Crypto.b64Hash(__.masterKey)
+      __.masterKeyHash = hash
+      const boxPair = Crypto.generateBoxKeyPair()
+      const box = {
+        secretKey: this.encrypt(boxPair.secretKey),
+        publicKey: Crypto.bs64.encode(boxPair.publicKey)
+      }
+      __.boxPublicKey = boxPair.secretKey
+      __.boxPrivateKey = boxPair.secretKey
+      __.encryptedBoxPrivateKey = box.secretKey
+
+      const ed25519Pair = Crypto.generateSignatureKeyPair()
+      const sign = {
+        secretKey: this.encrypt(ed25519Pair.secretKey),
+        publicKey: Crypto.bs64.encode(ed25519Pair.publicKey)
+      }
+      __.signPublicKey = ed25519Pair.secretKey
+      __.signPrivateKey = ed25519Pair.secretKey
+      __.encryptedSignPrivateKey = sign.secretKey
+      return {
+        sign,
+        box,
+        key,
+        hash
+      }
+    }
+
     async signin(data) {
       try {
-        __.masterKey = await this.preDecrypt(data.key, true)
+        __.masterKey = await __.preDecrypt(data.key)
+        __.encryptedMasterKey = data.key
         __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
-        __.boxPrivateKey = this.decrypt(data.box.secretKey, true, true)
-        __.signPrivateKey = this.decrypt(data.sign.secretKey, true, true)
+        __.masterKeyHash = data.hash
+        __.boxPublicKey = Crypto.bs64.decode(data.box.secretKey)
+        __.boxPrivateKey = __.decrypt(data.box.secretKey, RETURN_UINT8_ARRAY)
+        __.signPublicKey = Crypto.bs64.decode(data.sign.secretKey)
+        __.signPrivateKey = __.decrypt(data.sign.secretKey, RETURN_UINT8_ARRAY)
+        __.encryptedBoxPrivateKey = data.box.secretKey
+        __.encryptedSignPrivateKey = data.sign.secretKey
+
       } catch (e) {
         throw new Error('Wrong password or wrong number of iterations')
       }
@@ -113,8 +205,13 @@ module.exports = function () {
         }
         __.masterKey = masterKey
         __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
-        __.boxPrivateKey = this.decrypt(data.box.secretKey, true, true)
-        __.signPrivateKey = this.decrypt(data.sign.secretKey, true, true)
+        __.masterKeyHash = data.hash
+        __.boxPublicKey = Crypto.bs64.decode(data.box.secretKey)
+        __.boxPrivateKey = __.decrypt(data.box.secretKey, RETURN_UINT8_ARRAY)
+        __.signPublicKey = Crypto.bs64.decode(data.sign.secretKey)
+        __.signPrivateKey = __.decrypt(data.sign.secretKey, RETURN_UINT8_ARRAY)
+        __.encryptedBoxPrivateKey = data.box.secretKey
+        __.encryptedSignPrivateKey = data.sign.secretKey
         return data.hash
       } catch (e) {
         throw new Error('Wrong data/secret')
@@ -130,77 +227,20 @@ module.exports = function () {
       return bs64.encode(Crypto.deriveKey(password, salt, iterations, 32))
     }
 
-    encrypt(data, urlSafe) {
-      let encrypted = Crypto.encrypt(data, __.masterKeyArray)
-      if (urlSafe) {
-        encrypted = Crypto.fromBase64ToUrlSafeBase64(encrypted)
-      }
-      return encrypted
-    }
-
-    decrypt(encryptedData, urlSafe) {
-      if (urlSafe) {
-        encryptedData = Crypto.fromUrlSafeBase64ToBase64(encryptedData)
-      }
-      if (!unsafeMode && (
-          encryptedData === this.conf.data.box.secretKey
-          || encryptedData === this.conf.data.sign.secretKey
-      )) {
-        throw new Error('Attempt to hack the keys')
-      }
-      return Crypto.decrypt(encryptedData, __.masterKeyArray)
-    }
-
-    preEncrypt(data) {
-      return Crypto.encrypt(data, __.derivedPassword)
-    }
-
-    readConf() {
-      /* istanbul ignore if  */
-      if (!this.secrez) {
-        throw new Error('Secrez not initiated')
-      }
-      /* istanbul ignore if  */
-      if (!fs.existsSync(this.secrez.config.keysPath)) {
-        throw new Error('Account not set yet')
-      }
-      return JSON.parse(fs.readFileSync(this.secrez.config.keysPath, 'utf8'))
-    }
-
-    preDecrypt(encryptedData, unsafeMode) {
-      let conf = this.conf
-      if (!conf) {
-        conf = this.readConf()
-      }
-      if (!unsafeMode && encryptedData === conf.data.key) {
-        throw new Error('Attempt to hack the master key')
-      }
-      return Crypto.decrypt(encryptedData, __.derivedPassword)
-    }
-
-    encryptShared(data, publicKey) {
-      return Crypto.boxEncrypt(__.getSharedKey(publicKey), data)
-    }
-
-    decryptShared(encryptedData, publicKey) {
-      return Crypto.boxDecrypt(__.getSharedKey(publicKey), encryptedData)
-    }
-
     generateSharedSecrets(secret) {
       let parts = Crypto.splitSecret(__.masterKey, 2, 2)
-      parts[1] = this.preEncrypt(bs64.encode(Buffer.from(parts['1'])))
-      parts[2] = Crypto.encrypt(bs64.encode(Buffer.from(parts['2'])), Crypto.SHA3(secret))
+      parts[1] = this.preEncrypt(parts['1'])
+      parts[2] = Crypto.encrypt(parts['2'], Crypto.SHA3(secret))
       return parts
     }
 
     recoverSharedSecrets(parts, secret) {
       parts = {
-        1: bs64.decode(this.preDecrypt(parts[1])),
-        2: bs64.decode(Crypto.decrypt(parts[2], Crypto.SHA3(secret)))
+        1: __.preDecrypt(parts[1], RETURN_UINT8_ARRAY),
+        2: Crypto.decrypt(parts[2], Crypto.SHA3(secret), RETURN_UINT8_ARRAY)
       }
-      return Crypto.joinSecret(parts)//, true)
+      return Crypto.joinSecret(parts)
     }
-
 
     signData(data) {
       const signature = this.signMessage(JSON.stringify(this.sortObj(data)))
