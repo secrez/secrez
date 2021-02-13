@@ -79,6 +79,9 @@ module.exports = function () {
       if (!data.key && !data.keys) {
         throw new Error('No valid data found')
       }
+      if (!data.version || data.version !== this.config.VERSION) {
+        throw new Error('DB_ERROR')
+      }
       if (data.key) {
         let masterKeyHash = await _secrez.signin(data)
         this.setMasterKeyHash(conf, masterKeyHash)
@@ -302,7 +305,7 @@ module.exports = function () {
           let extraName
           if (encryptedName.length > 255) {
             extraName = encryptedName.substring(254)
-            encryptedName = encryptedName.substring(0, 254) + 'O'
+            encryptedName = encryptedName.substring(0, 254) + '$'
           }
 
           encryptedEntry.set({
@@ -358,7 +361,7 @@ module.exports = function () {
             if (extraName) {
               data = encryptedName.substring(0, 254) + extraName
             }
-            let type = parseInt(data.substring(0, 1))
+            let type = parseInt(data[0])
             let e = JSON.parse(_secrez.decrypt(data.substring(1), URL_SAFE))
             let id = e.i
             let ts = e.t

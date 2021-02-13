@@ -18,7 +18,7 @@ const {
   secondFactor
 } = require('./fixtures')
 
-describe.only('#Secrez', function () {
+describe('#Secrez', function () {
 
   let rootDir = path.resolve(__dirname, '../tmp/test/secrez')
   let rootDir2 = path.resolve(__dirname, '../tmp/test/secrez2')
@@ -42,7 +42,6 @@ describe.only('#Secrez', function () {
         assert.equal(e.message, 'You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data.')
       }
     })
-
   })
 
 

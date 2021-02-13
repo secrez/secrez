@@ -61,14 +61,14 @@ module.exports = function () {
     encrypt(data, urlSafe) {
       let encrypted = Crypto.encrypt(data, __.masterKeyArray)
       if (urlSafe) {
-        encrypted = Crypto.fromBase64ToUrlSafeBase64(encrypted)
+        encrypted = Crypto.fromBase64ToFsSafeBase64(encrypted)
       }
       return encrypted
     }
 
     decrypt(encryptedData, urlSafe, returnUint8Array) {
       if (urlSafe) {
-        encryptedData = Crypto.fromUrlSafeBase64ToBase64(encryptedData)
+        encryptedData = Crypto.fromFsSafeBase64ToBase64(encryptedData)
       }
       if (encryptedData === __.encryptedBoxPrivateKey
           || encryptedData === __.encryptedSignPrivateKey

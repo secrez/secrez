@@ -35,7 +35,7 @@ class Tree {
       encryptedName: file,
       preserveContent: true
     })
-    if (file[file.length - 1] === 'O') {
+    if (file[file.length - 1] === '$') {
       // there is an extraName
       let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
       content = content.split('$')

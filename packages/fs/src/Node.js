@@ -202,7 +202,7 @@ class Node {
 
     try {
       let V0 = json.V[0]
-      let type = V0 ? V0.type || parseInt(V0.encryptedName.substring(0, 1))
+      let type = V0 ? V0.type || parseInt(V0.encryptedName[0])
           : config.types.ROOT
       let node = new Node(new Entry({
         type,

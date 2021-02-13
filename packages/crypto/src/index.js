@@ -1,11 +1,11 @@
 const crypto = require('crypto')
-const util = require('util')
 const {Keccak} = require('sha3')
 const basex = require('base-x')
 const shamir = require('shamir')
-const bip39 = require('bip39')
 const {bytesToBase64, base64ToBytes} = require('byte-base64')
-const { encode: urlSafeEncode, decode: urlSafeDecode} = require('url-safe-base64')
+const {TextEncoder, TextDecoder} = require('util')
+const utf8Encoder = new TextEncoder()
+const utf8Decoder = new TextDecoder()
 
 const {
   box,
@@ -14,10 +14,7 @@ const {
   randomBytes
 } = require('tweetnacl')
 
-const {
-  decodeUTF8,
-  encodeUTF8
-} = require('tweetnacl-util')
+
 
 class Crypto {
 
@@ -27,14 +24,6 @@ class Crypto {
 
   static fromBase64(data) {
     return Buffer.from(data, 'base64').toString('utf-8')
-  }
-
-  static fromBase64ToUrlSafeBase64(data) {
-    return urlSafeEncode(data)
-  }
-
-  static fromUrlSafeBase64ToBase64(data) {
-    return urlSafeDecode(data)
   }
 
   static toBase58(data) {
@@ -87,14 +76,6 @@ class Crypto {
       }
       return id
     }
-  }
-
-  static getMnemonic() {
-    return bip39.entropyToMnemonic(crypto.randomBytes(16).toString('hex'))
-  }
-
-  static async getSeed(recoveryCode) {
-    return await bip39.mnemonicToSeed(recoveryCode)
   }
 
   static SHA3(data) {
@@ -187,7 +168,7 @@ class Crypto {
   }
 
   static encrypt(message, key, nonce = Crypto.randomBytes(secretbox.nonceLength), getNonce, returnUint8Array, codec = 'bs64') {
-    let messageUint8 = Buffer.isBuffer(message) ? new Uint8Array(message) : typeof message === 'string' ? decodeUTF8(message) : message
+    let messageUint8 = Buffer.isBuffer(message) ? new Uint8Array(message) : typeof message === 'string' ? Crypto.utf8ToArray(message) : message
     const keyUint8Array = typeof key === 'string' ? Crypto[codec].decode(key) : key
     const box = secretbox(messageUint8, nonce, keyUint8Array)
     let fullMessage = new Uint8Array(nonce.length + box.length)
@@ -219,7 +200,7 @@ class Crypto {
     if (!decrypted) {
       throw new Error('Could not decrypt message')
     }
-    return returnUint8Array ? decrypted : encodeUTF8(decrypted)
+    return returnUint8Array ? decrypted : Crypto.arrayToUtf8(decrypted)
   }
 
 
@@ -271,7 +252,7 @@ class Crypto {
   }
 
   static boxEncrypt(secretOrSharedKey, message, key, nonce = randomBytes(box.nonceLength), getNonce, codec = 'bs64') {
-    const messageUint8 = decodeUTF8(message)
+    const messageUint8 = Crypto.utf8ToArray(message)
     const encrypted = key
         ? box(messageUint8, nonce, key, secretOrSharedKey)
         : box.after(messageUint8, nonce, secretOrSharedKey)
@@ -304,11 +285,11 @@ class Crypto {
     if (!decrypted) {
       throw new Error('Could not decrypt message')
     }
-    return encodeUTF8(decrypted)
+    return Crypto.arrayToUtf8(decrypted)
   }
 
   static getSignature(message, secretKey, codec = 'bs64') {
-    let signature = sign.detached(decodeUTF8(message), secretKey)
+    let signature = sign.detached(Crypto.utf8ToArray(message), secretKey)
     if (codec === 'bs58') {
       signature = Buffer.from(signature)
     }
@@ -316,22 +297,26 @@ class Crypto {
   }
 
   static verifySignature(message, signature, publicKey, codec = 'bs64') {
-    let verified = sign.detached.verify(decodeUTF8(message), Crypto[codec].decode(signature), publicKey)
+    let verified = sign.detached.verify(Crypto.utf8ToArray(message), Crypto[codec].decode(signature), publicKey)
     return verified
   }
 
-  // const utf8Encoder = new util.TextEncoder()
-  // secretBytes = utf8Encoder.encode(secretBytes)
+  static utf8ToArray(bytes) {
+    return utf8Encoder.encode(bytes)
+  }
+
+  static arrayToUtf8(bytes) {
+    return utf8Decoder.decode(bytes)
+  }
 
   static splitSecret(secretBytes, parts, quorum) {
     if (!Crypto.isUint8Array(secretBytes)) {
-      secretBytes = decodeUTF8(secretBytes)
+      secretBytes = Crypto.utf8ToArray(secretBytes)
     }
     return shamir.split(Crypto.randomBytes, parts, quorum, secretBytes)
   }
 
   static joinSecret(parts, asUint8Array) {
-    const utf8Decoder = new util.TextDecoder()
     const recovered = shamir.join(parts)
     return asUint8Array ? recovered : Buffer.from(recovered).toString('utf8')
   }

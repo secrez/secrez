@@ -305,21 +305,6 @@ describe('#Crypto', function () {
 
   })
 
-  describe('#getMnemonic && #getSeed', function () {
-
-    it('should return a random recoveryCode', async function () {
-      const recoveryCode = Crypto.getMnemonic()
-      assert.equal(recoveryCode.split(' ').length, 12)
-    })
-
-    it('should return a random seed', async function () {
-      const recoveryCode = Crypto.getMnemonic()
-      const seed = await Crypto.getSeed(recoveryCode)
-      assert.equal(new Uint8Array(seed).length, 64)
-    })
-
-  })
-
   describe('#splitSecret & #joinSecret', function () {
 
     it('should generate a shared secret', async function () {
@@ -388,8 +373,8 @@ describe('#Crypto', function () {
       console.log('Milliseconds w/ V1:', Date.now() - now)
       now = Date.now()
       for (let i =0; i< 10000; i++) {
-        let encoded = Crypto.fromBase64ToUrlSafeBase64(Crypto.bs64.encode(key))
-        Crypto.bs64.decode(Crypto.fromUrlSafeBase64ToBase64(encoded))
+        let encoded = Crypto.fromBase64ToFsSafeBase64(Crypto.bs64.encode(key))
+        Crypto.bs64.decode(Crypto.fromFsSafeBase64ToBase64(encoded))
       }
       console.log('Milliseconds w/ V2:', Date.now() - now)
 

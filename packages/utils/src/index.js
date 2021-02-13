@@ -112,7 +112,7 @@ const utils = {
 
   capitalize(str) {
     if (typeof str === 'string' && str.length > 0) {
-      return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase()
+      return str[0].toUpperCase() + str.substring(1).toLowerCase()
     } else {
       throw new Error('Not a string')
     }

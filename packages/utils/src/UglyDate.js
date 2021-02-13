@@ -72,7 +72,7 @@ class UglyDate {
           if (prev === 'month') {
             str = 'M'
           } else {
-            str = prev.substring(0, 1)
+            str = prev[0]
           }
           return quantity + str
         }

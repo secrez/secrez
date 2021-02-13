@@ -18,8 +18,8 @@ const {
 
 describe('#Tree', function () {
 
-  let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+  let secrez
   let tree
   let internalFs
 
@@ -115,16 +115,18 @@ describe('#Tree', function () {
 
   })
 
-  describe('#Fix', function () {
+  describe.only('#Fix', function () {
 
     let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-    let internalFs
 
     beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
     })
 
     let signedUp = false
+    let secrez
+    let tree
+    let internalFs
 
     async function startTree() {
       secrez = new Secrez()
@@ -140,7 +142,7 @@ describe('#Tree', function () {
       tree = internalFs.tree
     }
 
-    it.only('should load a tree with tags', async function () {
+    it('should load a tree with tags', async function () {
 
       signedUp = false
 
