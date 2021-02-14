@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {FsUtils} = require('@secrez/fs')
+const {FsUtils} = require('secrez-fs-0-8-8')
 
 class _Completion {
 

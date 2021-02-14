@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "dev": "cross-env NODE_ENV=dev bin/secrez-migrate.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
+    "dev": "cross-env NODE_ENV=dev bin/secrez-migrate.js -c `pwd`/tmp/secrez-10 -i 1e3 -l `pwd`/tmp",
     "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/*.test.js' 'test/**/*.js' 'test/**/**/*.js'",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js test/**/**/*.js --exit",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js test/**/**/*.js --exit",
@@ -15,9 +15,10 @@
     "exclude": []
   },
   "dependencies": {
-    "@secrez/core": "workspace:~0.10.0",
+    "@secrez/core": "workspace:~0.9.0",
     "secrez-core-0-8-2": "npm:@secrez/core@0.8.12",
     "@secrez/fs": "workspace:~0.9.0",
+    "secrez-fs-0-8-8": "npm:@secrez/fs@0.8.8",
     "@secrez/hub": "workspace:~0.2.0",
     "@secrez/utils": "workspace:~0.1.6",
     "case": "^1.6.3",

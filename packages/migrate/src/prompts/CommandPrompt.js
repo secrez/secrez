@@ -10,7 +10,7 @@ inquirer.registerPrompt('command', inquirerCommandPrompt)
 
 const {sleep, getKeyValue} = require('@secrez/utils')
 const Completion = require('./Completion')
-const {FsUtils} = require('@secrez/fs')
+const {FsUtils} = require('secrez-fs-0-8-8')
 const Logger = require('../utils/Logger')
 const cliConfig = require('../cliConfig')
 

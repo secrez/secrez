@@ -1,7 +1,7 @@
 const chalk = require('chalk')
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
-const {Crypto} = require('@secrez/core')
+const {Crypto} = require('secrez-core-0-8-2')
 const Logger = require('./utils/Logger')
 
 class Welcome {

@@ -12,7 +12,7 @@ describe('#Migrations', function () {
 
   beforeEach(async function () {
     await fs.emptyDir(tmpDir)
-    await fs.copy(path.resolve(__dirname, '../fixtures/secrez-ver1'), path.resolve(tmpDir, 'secrez-ver1'))
+    await fs.copy(path.resolve(__dirname, '../fixtures/secrez-10'), path.resolve(tmpDir, 'secrez-ver1'))
   })
 
   describe('#configuration', async function () {
@@ -22,7 +22,6 @@ describe('#Migrations', function () {
       assert.isTrue(await fs.pathExists(path.join(fido2Client.scriptsPath, 'hmac_secret.py')))
       assert.isTrue(await fs.pathExists(path.join(fido2Client.scriptsPath, 'is_fido2_ready.py')))
     })
-
   })
 
 })

@@ -14,7 +14,7 @@ const completionTypes = {
   OBJECT
 }
 
-const cliConfig = Object.assign(require('@secrez/core').config, {
+const cliConfig = Object.assign(require('secrez-core-0-8-2').config, {
   completion: {
     help: {}
   },

@@ -1,5 +1,5 @@
 const {chalk} = require('./utils/Logger')
-const {Crypto} = require('@secrez/core')
+const {Crypto} = require('secrez-core-0-8-2')
 const {utils: hubUtils} = require('@secrez/hub')
 const superagent = require('superagent')
 

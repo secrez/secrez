@@ -1,7 +1,7 @@
 const chalk = require('chalk')
 const _ = require('lodash')
 const path = require('path')
-const {InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
+const {InternalFs, ExternalFs, DataCache} = require('secrez-fs-0-8-8')
 const Logger = require('../utils/Logger')
 const cliConfig = require('../cliConfig')
 const Commands = require('../commands')
@@ -12,7 +12,7 @@ const ContactManager = require('../utils/ContactManager')
 class MainPrompt extends require('./CommandPrompt') {
 
   async init(options) {
-    this.secrez = new (require('@secrez/core').Secrez())
+    this.secrez = new (require('secrez-core-0-8-2').Secrez())
     await this.secrez.init(options.container, options.localDir)
     this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'), this.secrez)
     this.secrez.cache.initEncryption('alias', 'user')
