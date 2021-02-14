@@ -29,8 +29,7 @@ class CommandPrompt {
     inquirerCommandPrompt.setConfig({
       history: {
         save: false,
-        limit: 100,
-        blacklist: ['exit']
+        limit: 100
       },
       onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd
     })

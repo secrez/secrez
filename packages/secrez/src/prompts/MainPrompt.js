@@ -15,7 +15,7 @@ class MainPrompt extends require('./CommandPrompt') {
     this.secrez = new (require('@secrez/core').Secrez())
     await this.secrez.init(options.container, options.localDir)
     this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'), this.secrez)
-    this.secrez.cache.initEncryption('alias', 'user')
+    this.secrez.cache.initEncryption('alias', 'contact')
     await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs(this.secrez)

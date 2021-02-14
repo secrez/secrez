@@ -1,22 +1,19 @@
-const migrationConfig = require('./migrationConfig')
+
 const MigrateFromV1ToV2 = require('./MigrateFromV1ToV2')
 
 class Migration {
 
-  constructor(secrez) {
-    this.secrez = secrez
+  constructor(prompt) {
+    this.prompt = prompt
+    this.migrateFromV1ToV2 = new MigrateFromV1ToV2(prompt)
   }
 
   isMigrationNeeded() {
-    const conf = this.secrez.getConf()
-    this.currentVersion = conf.data.version || migrationConfig.firstVersion
-    if (this.currentVersion !== migrationConfig.latestVersion) {
-      return true
-    }
+    return this.migrateFromV1ToV2.isMigrationNeeded()
   }
 
-  migrate() {
-
+  async migrate(password, iterations) {
+    this.migrateFromV1ToV2.migrate(password, iterations)
   }
 
 }

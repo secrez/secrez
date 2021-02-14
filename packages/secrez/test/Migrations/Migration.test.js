@@ -17,7 +17,7 @@ describe('#Migrations', function () {
 
   describe('#configuration', async function () {
 
-    it('should verify that all the scripts exist', async function () {
+    it.only('should verify that all the scripts exist', async function () {
       assert.isTrue(await fs.pathExists(path.join(fido2Client.scriptsPath, 'fido2_credential.py')))
       assert.isTrue(await fs.pathExists(path.join(fido2Client.scriptsPath, 'hmac_secret.py')))
       assert.isTrue(await fs.pathExists(path.join(fido2Client.scriptsPath, 'is_fido2_ready.py')))

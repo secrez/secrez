@@ -115,7 +115,7 @@ describe('#Tree', function () {
 
   })
 
-  describe.only('#Fix', function () {
+  describe('#Fix', function () {
 
     let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
 

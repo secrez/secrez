@@ -483,8 +483,6 @@ class Tree {
     }
     let rootEntry = this.root.getEntry()
     if (this.previousRootEntry) {
-      // this creates a single index file per session.
-      // TODO (sullof) When git is used to distribute the data, after committing, this.previousRootEntry must be canceled to avoid conflicts
       await this.unsaveEntry(this.previousRootEntry)
     }
     rootEntry.set({

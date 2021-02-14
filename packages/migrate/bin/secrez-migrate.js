@@ -7,7 +7,7 @@ const commandLineArgs = require('command-line-args')
 
 const pkg = require('../package')
 
-const MainPrompt = require('../src/prompts/MainPrompt')
+const Prompt = require('../src/prompts/Prompt')
 const Logger = require('../src/utils/Logger')
 
 const optionDefinitions = [
@@ -27,8 +27,8 @@ const optionDefinitions = [
     type: String
   },
   {
-    name: 'save-iterations',
-    alias: 's',
+    name: 'reverse',
+    alias: 'r',
     type: Boolean
   },
   {
@@ -77,7 +77,7 @@ if (!options.localDir) {
   options.localDir = homedir()
 }
 
-Logger.log('bold', chalk.grey(`Secrez v${pkg.version}`))
+Logger.log('bold', chalk.grey(`Secrez-migrate v${pkg.version}`))
 
 if (options.help) {
   Logger.log('reset', `${pkg.description}
@@ -93,22 +93,19 @@ Options:
                           derivation (based on PBKDF2). Use a number like
                           294543 or 1125642 (the larger the safer, but also the slower).
                           It increases exponentially the safety of your password.
-  -s, --save-iterations   Saves the number of iterations in env.json (which 
-                          is git-ignored). Do it only if you computer is very safe.               
-  -l, --localDir          The local (out of the enctrypted fs) working dir
+  -r, --reverse           In case of errors, you can restore the original db.                        
                       
 Examples:
-  $ secrez
-  $ secrez -p /var/my-secrets -i 787099 -l ~/Desktop
-  $ secrez -si 1213672
-  $ secrez -c ~/.secrez-archive
+  $ secrez-migrate -i 1000068
+  $ secrez-migrate -c ~/.my-secrez 
+  $ secrez-migrate -c ~/.my-secrez -r   (will restore a previously backed up db)
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)
 }
 
 (async () => {
-  const prompt = new MainPrompt
+  const prompt = new Prompt
   await prompt.init(options)
   prompt.run(options)
 })()

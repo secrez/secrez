@@ -24,7 +24,6 @@ class Node {
     }
 
     let isRoot = Node.isRoot(entry)
-    let isTrash = Node.isTrash(entry)
 
     if (!(Node.isDir(entry) || Node.isFile(entry))) {
       throw new Error('Unsupported type')
@@ -33,8 +32,6 @@ class Node {
     this.type = entry.type
     if (isRoot) {
       this.id = config.specialId.ROOT
-    } else if (isTrash) {
-      this.id = config.specialId.TRASH
     } else {
       if (entry.id) {
         this.id = entry.id
@@ -50,14 +47,6 @@ class Node {
 
     if (isRoot) {
       this.rnd = Crypto.getRandomId()
-    } else if (isTrash) {
-      this.lastTs = Crypto.getTimestampWithMicroseconds().join('.')
-      this.versions = {}
-      this.versions[this.lastTs] = {
-        name: config.specialName.TRASH,
-        file: null
-      }
-      this.parent = entry.parent
     } else {
       if (!entry.ts || typeof entry.ts !== 'string'
           || !entry.name || typeof entry.name !== 'string'
@@ -88,12 +77,8 @@ class Node {
     return obj.type === config.types.ROOT
   }
 
-  static isTrash(obj) {
-    return obj.type === config.types.TRASH
-  }
-
   static isDir(node) {
-    return this.isRoot(node) || this.isTrash(node) || node.type === config.types.DIR
+    return this.isRoot(node) || node.type === config.types.DIR
   }
 
   static isFile(node) {
@@ -107,17 +92,6 @@ class Node {
   static isText(node) {
     return node.type === config.types.TEXT
   }
-
-  // static isTrashed(node) {
-  //   if (node.parent) {
-  //     if (Node.isTrash(node.parent)) {
-  //       return true
-  //     } else if (node.parent.parent) {
-  //       return Node.isTrashed(node.parent)
-  //     }
-  //   }
-  //   return false
-  // }
 
   static fromJSON(json, secrez, allFiles) {
     // It takes an already parsed object to make it an instance of the class.
@@ -246,10 +220,6 @@ class Node {
 
     if (Node.isRoot(this)) {
       minSize = this.calculateMinSize(allFiles)
-    }
-
-    if (Node.isTrash(this)) {
-      return
     }
 
     if (this.versions) {

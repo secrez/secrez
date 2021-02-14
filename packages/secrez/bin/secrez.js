@@ -87,7 +87,7 @@ Options:
   -c, --container         The data are saved in ~/.secrez by default. 
                           In you chose a different directory you must pass it 
                           anytime you run Secrez. The path must be absolute 
-                          or relative to the home directory (~). If the folder 
+                          or relative to the home directory (~/.secrez). If the folder 
                           does not exist, it will be created, included the parents.
   -i, --iterations        The number of iterations during password 
                           derivation (based on PBKDF2). Use a number like
@@ -95,13 +95,14 @@ Options:
                           It increases exponentially the safety of your password.
   -s, --save-iterations   Saves the number of iterations in env.json (which 
                           is git-ignored). Do it only if you computer is very safe.               
-  -l, --localDir          The local (out of the enctrypted fs) working dir
+  -l, --localDir          The local (out of the enctrypted fs) working dir. "~" by default.
                       
 Examples:
   $ secrez
-  $ secrez -p /var/my-secrets -i 787099 -l ~/Desktop
+  $ secrez -c /var/my-secrets -i 787099 -l ~/Desktop
   $ secrez -si 1213672
   $ secrez -c ~/.secrez-archive
+     
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)

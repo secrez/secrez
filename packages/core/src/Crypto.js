@@ -64,7 +64,4 @@ class Crypto extends require('@secrez/crypto') {
   }
 }
 
-
-
-
 module.exports = Crypto

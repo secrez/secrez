@@ -4,7 +4,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const {config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
-const MainPrompt = require('../mocks/MainPromptMock')
+const MainPrompt = require('../../src/prompts/MainPromptMock')
 const {assertConsole, decolorize} = require('@secrez/test-helpers')
 
 const {

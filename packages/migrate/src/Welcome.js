@@ -13,11 +13,21 @@ class Welcome {
     if (await fs.pathExists(this.secrez.config.keysPath)) {
       let errorCode = await this.login()
       if (errorCode === 1) {
-        await this.sharedLogin()
+        Logger.red('secrez-migrate does not work on accounts requiring a second factor to login.')
+        Logger.grey('Please, use a compatible version of Secrez — for example secrez@0.10.7 — to open the account and remove any second factor before run secrez-migrate again')
+        process.exit(0)
       }
+      return [this.password, this.iterations]
     } else {
-      Logger.grey('Please signup to create your local account')
-      await this.signup()
+      Logger.red('exixting account not found.')
+      Logger.grey(`Please, specify where the db is located using the option -c.
+Run 
+
+  secrez-migrate -h
+
+for more help.   
+`)
+      process.exit(0)
     }
   }
 
@@ -43,12 +53,6 @@ class Welcome {
     return parseInt(iterations)
   }
 
-  async saveIterations() {
-    if (this.options.saveIterations) {
-      await this.secrez.saveIterations(this.iterations)
-    }
-  }
-
   async login() {
     for (; ;) {
       try {
@@ -66,9 +70,7 @@ class Welcome {
         }])
         try {
           await this.secrez.signin(password, this.iterations)
-          if (this.secrez.masterKeyHash) {
-            await this.saveIterations()
-          }
+          this.password = password
           return 0
         } catch (e) {
           if (e.message === 'A second factor is required') {

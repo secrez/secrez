@@ -75,8 +75,6 @@ describe('#Secrez', function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
 
-        return
-
         assert.isTrue(await fs.pathExists(secrez.config.keysPath))
         masterKeyHash = secrez.masterKeyHash
         secrez.signout()

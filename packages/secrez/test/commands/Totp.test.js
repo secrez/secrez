@@ -7,7 +7,7 @@ const chalk = require('chalk')
 const path = require('path')
 const {yamlParse} = require('@secrez/utils')
 
-const MainPrompt = require('../mocks/MainPromptMock')
+const MainPrompt = require('../../src/prompts/MainPromptMock')
 const {sleep, noPrint, decolorize, assertConsole, copyImageToClipboard} = require('@secrez/test-helpers')
 
 const {
