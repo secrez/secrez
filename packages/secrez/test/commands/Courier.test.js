@@ -8,7 +8,7 @@ const {sleep} = require('@secrez/utils')
 const {createServer} = require('@secrez/hub')
 const {Config, Server} = require('@secrez/courier')
 
-const MainPrompt = require('../mocks/MainPromptMock')
+const MainPrompt = require('../../src/prompts/MainPromptMock')
 const {noPrint, decolorize} = require('@secrez/test-helpers')
 
 const {

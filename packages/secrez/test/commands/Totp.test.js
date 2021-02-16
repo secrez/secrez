@@ -7,7 +7,7 @@ const chalk = require('chalk')
 const path = require('path')
 const {yamlParse} = require('@secrez/utils')
 
-const MainPrompt = require('../mocks/MainPromptMock')
+const MainPrompt = require('../../src/prompts/MainPromptMock')
 const {sleep, noPrint, decolorize, assertConsole, copyImageToClipboard} = require('@secrez/test-helpers')
 
 const {
@@ -151,12 +151,8 @@ describe('#Totp', function () {
       'The file is not a card with a totp field'
     ])
 
-  })
-
-  it('should throw if missing parameters', async function () {
-
-    let content = 'john'
-    let p = 'text'
+    content = 'john'
+    p = 'text'
     await noPrint(C.touch.exec({
       path: p,
       content

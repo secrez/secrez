@@ -4,7 +4,7 @@ const stdout = require('test-console').stdout
 const clipboardy = require('clipboardy')
 const fs = require('fs-extra')
 const path = require('path')
-const MainPrompt = require('../mocks/MainPromptMock')
+const MainPrompt = require('../../src/prompts/MainPromptMock')
 const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
 const {sleep} = require('@secrez/utils')
 
