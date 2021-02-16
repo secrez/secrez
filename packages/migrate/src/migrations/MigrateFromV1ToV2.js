@@ -1,6 +1,5 @@
 const fs = require('fs-extra')
 const path = require('path')
-const homedir = require('homedir')
 const chalk = require('chalk')
 
 const migrationConfig = require('./migrationConfig')
@@ -12,8 +11,9 @@ const {Prompt} = require('secrez')
 
 class MigrateFromV1ToV2 {
 
-  constructor(prompt) {
+  constructor(prompt, workdir) {
     this.prompt0 = prompt
+    this.workdir = workdir
   }
 
   isMigrationNeeded() {
@@ -111,14 +111,11 @@ and contact secrez@sullo.co for help.
 
   async setUpSecrez(password, iterations) {
 
-    const root = path.join(homedir(), '.secrez-migrate')
     const options = {
-      container: path.join(root, 'db'),
-      localDir: path.join(root, 'tmp')
+      container: path.join(this.workdir, 'db')
     }
     this.container = options.container
     await fs.emptyDir(options.container)
-    await fs.emptyDir(options.localDir)
 
     const prompt = new Prompt
     await prompt.init(options)

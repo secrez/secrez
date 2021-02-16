@@ -1,5 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
+const homedir = require('homedir')
+
 const Logger = require('../utils/Logger')
 
 const MigrateFromV1ToV2 = require('./MigrateFromV1ToV2')
@@ -8,7 +10,10 @@ class Migration {
 
   constructor(prompt) {
     this.prompt = prompt
-    this.migrateFromV1ToV2 = new MigrateFromV1ToV2(prompt)
+    let workdir = process.env.NODE_ENV === 'test'
+        ? path.resolve(__dirname, '../../tmp/test/secrez-migrate')
+        : path.join(homedir(), '.secrez-migrate')
+    this.migrateFromV1ToV2 = new MigrateFromV1ToV2(prompt, workdir)
   }
 
   isMigrationNeeded() {
