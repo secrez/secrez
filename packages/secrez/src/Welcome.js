@@ -91,6 +91,7 @@ If you need to access your secrets now, revert to a compatible version with
   
 and migrate your db later.
 Thanks.`)
+            // eslint-disable-next-line no-process-exit
             process.exit(0)
           }
           Logger.red(`${e.message}.Try
