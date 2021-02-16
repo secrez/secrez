@@ -151,12 +151,8 @@ describe('#Totp', function () {
       'The file is not a card with a totp field'
     ])
 
-  })
-
-  it('should throw if missing parameters', async function () {
-
-    let content = 'john'
-    let p = 'text'
+    content = 'john'
+    p = 'text'
     await noPrint(C.touch.exec({
       path: p,
       content
