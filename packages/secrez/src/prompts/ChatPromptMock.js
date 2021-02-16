@@ -1,5 +1,5 @@
-const cliConfig = require('../../src/cliConfig')
-const Commands = require('../../src/commands')
+const cliConfig = require('../cliConfig')
+const Commands = require('../commands')
 
 class ChatPromptMock {
 

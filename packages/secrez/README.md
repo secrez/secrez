@@ -482,6 +482,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__0.10.8__
+* exposes a prompt mock to allow other software to run commands programmatically
+
 __0.10.7__
 * fix bug in `git -i` showing less changed that expected
 

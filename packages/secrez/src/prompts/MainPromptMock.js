@@ -3,8 +3,8 @@ const path = require('path')
 const {InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
 const inquirerCommandPrompt = require('inquirer-command-prompt')
 
-const cliConfig = require('../../src/cliConfig')
-const Commands = require('../../src/commands')
+const cliConfig = require('../cliConfig')
+const Commands = require('../commands')
 
 
 class MainPromptMock {

@@ -200,8 +200,9 @@ class Totp extends require('../Command') {
               `Try it, running "totp ${node.getPath()}"`
             ].join('\n')
           } else {
-            let totp = parsed.totp.replace(/\s/g, '')
+            let totp = parsed.totp
             if (totp) {
+              totp = totp.replace(/\s/g, '')
               const token = authenticator.generate(totp)
               this.prompt.commands.copy.copy({
                 thisString: token,

@@ -5,16 +5,10 @@ importers:
     dependencies:
       '@secrez/crypto': link:../crypto
       '@secrez/utils': link:../utils
-      base-x: 3.0.8
-      bip39: 3.0.2
       fs-extra: 8.1.0
       homedir: 0.6.0
       lodash: 4.17.19
       microseconds: 0.2.0
-      sha3: 2.1.2
-      shamir: 0.7.1
-      tweetnacl: 1.0.3
-      tweetnacl-util: 0.15.1
     devDependencies:
       '@secrez/test-helpers': link:../test-helpers
       chai: 4.2.0
@@ -24,11 +18,9 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/crypto': workspace:~0.1.3
+      '@secrez/crypto': workspace:~0.1.4
       '@secrez/test-helpers': workspace:~0.1.5
       '@secrez/utils': workspace:~0.1.6
-      base-x: ^3.0.8
-      bip39: ^3.0.2
       chai: ^4.2.0
       cross-env: ^7.0.2
       eslint: ^6.8.0
@@ -39,10 +31,6 @@ importers:
       microseconds: ^0.2.0
       mocha: ^7.1.2
       nyc: ^15.1.0
-      sha3: ^2.1.2
-      shamir: ^0.7.1
-      tweetnacl: ^1.0.3
-      tweetnacl-util: ^0.15.1
   packages/courier:
     dependencies:
       '@secrez/core': link:../core
@@ -69,8 +57,8 @@ importers:
       eslint: 6.8.0
       mocha: 7.2.0
     specifiers:
-      '@secrez/core': workspace:~0.8.11
-      '@secrez/fs': workspace:~0.8.7
+      '@secrez/core': workspace:~0.8.12
+      '@secrez/fs': workspace:~0.8.8
       '@secrez/hub': workspace:~0.2.0
       '@secrez/test-helpers': workspace:~0.1.5
       '@secrez/tls': workspace:~0.1.4
@@ -137,7 +125,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': workspace:~0.8.11
+      '@secrez/core': workspace:~0.8.12
       '@secrez/test-helpers': workspace:~0.1.5
       '@secrez/utils': workspace:~0.1.6
       chai: ^4.2.0
@@ -175,7 +163,7 @@ importers:
       supertest: 4.0.2
       ws: 7.3.0
     specifiers:
-      '@secrez/core': workspace:~0.8.11
+      '@secrez/core': workspace:~0.8.12
       '@secrez/test-helpers': workspace:~0.1.5
       '@secrez/tls': workspace:~0.1.4
       '@secrez/utils': workspace:~0.1.6
@@ -205,7 +193,6 @@ importers:
       '@secrez/utils': link:../utils
       case: 1.6.3
       chalk: 3.0.0
-      clear: 0.1.0
       clipboardy: 2.3.0
       command-line-args: 5.1.1
       external-editor: 3.1.0
@@ -239,7 +226,6 @@ importers:
       case: ^1.6.3
       chai: ^4.2.0
       chalk: ^3.0.0
-      clear: ^0.1.0
       clipboardy: ^2.3.0
       command-line-args: ^5.1.1
       cross-env: ^7.0.2
@@ -278,8 +264,8 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': workspace:~0.8.11
-      '@secrez/fs': workspace:~0.8.7
+      '@secrez/core': workspace:~0.8.12
+      '@secrez/fs': workspace:~0.8.8
       '@secrez/hub': workspace:~0.2.0
       '@secrez/utils': workspace:~0.1.6
       chai: ^4.2.0
@@ -339,7 +325,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': workspace:~0.8.11
+      '@secrez/core': workspace:~0.8.12
       '@secrez/hub': workspace:~0.2.0
       '@secrez/test-helpers': workspace:~0.1.5
       '@secrez/tls': workspace:~0.1.4
@@ -1566,10 +1552,6 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-4diC9HaTE+KRAMWhDhrGOECgWZxoevMc5TlkObMqNSsVU62PYzXZ/SMTjzyGAFF1YusgxGcSWTEXBhp0CPwQ1A==
-  /clear/0.1.0:
-    dev: false
-    resolution:
-      integrity: sha512-qMjRnoL+JDPJHeLePZJuao6+8orzHMGP04A8CdwCNsKhRbOnKRjefxONR7bwILT3MHecxKBjHkKL/tkZ8r4Uzw==
   /cli-cursor/3.1.0:
     dependencies:
       restore-cursor: 3.1.0

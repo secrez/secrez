@@ -3,7 +3,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const chai = require('chai')
 const assert = chai.assert
-const MainPrompt = require('../mocks/MainPromptMock')
+const MainPrompt = require('../../src/prompts/MainPromptMock')
 const {decolorize, noPrint, assertConsole} = require('@secrez/test-helpers')
 
 const {
