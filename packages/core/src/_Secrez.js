@@ -49,8 +49,16 @@ module.exports = function () {
 
     preDecrypt(encryptedData) {
       let conf = this.conf
+      /* istanbul ignore if */
       if (!conf) {
         conf = this.readConf()
+        if (!this.secrez) {
+          throw new Error('Secrez not initiated')
+        }
+        if (!fs.existsSync(this.secrez.config.keysPath)) {
+          throw new Error('Account not set yet')
+        }
+        conf = JSON.parse(fs.readFileSync(this.secrez.config.keysPath, 'utf8'))
       }
       if (encryptedData === __.encryptedMasterKey) {
         throw new Error('Forbidden')
@@ -128,18 +136,6 @@ module.exports = function () {
       return Crypto.verifySignature(JSON.stringify(this.sortObj(conf.data)), conf.signature, publicKey)
     }
 
-    readConf() {
-      /* istanbul ignore if  */
-      if (!this.secrez) {
-        throw new Error('Secrez not initiated')
-      }
-      /* istanbul ignore if  */
-      if (!fs.existsSync(this.secrez.config.keysPath)) {
-        throw new Error('Account not set yet')
-      }
-      return JSON.parse(fs.readFileSync(this.secrez.config.keysPath, 'utf8'))
-    }
-
     async signup() {
       __.masterKey = Crypto.generateKey()
       __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
@@ -156,13 +152,13 @@ module.exports = function () {
       __.boxPrivateKey = boxPair.secretKey
       __.encryptedBoxPrivateKey = box.secretKey
 
-      const ed25519Pair = Crypto.generateSignatureKeyPair()
+      const signPair = Crypto.generateSignatureKeyPair()
       const sign = {
-        secretKey: this.encrypt(ed25519Pair.secretKey),
-        publicKey: Crypto.bs64.encode(ed25519Pair.publicKey)
+        secretKey: this.encrypt(signPair.secretKey),
+        publicKey: Crypto.bs64.encode(signPair.publicKey)
       }
-      __.signPublicKey = ed25519Pair.secretKey
-      __.signPrivateKey = ed25519Pair.secretKey
+      __.signPublicKey = signPair.secretKey
+      __.signPrivateKey = signPair.secretKey
       __.encryptedSignPrivateKey = sign.secretKey
       return {
         sign,

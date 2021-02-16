@@ -431,7 +431,7 @@ class Conf extends require('../Command') {
       await this.setRecoveryCode(options)
     } else if (options.fido2) {
       let yes = await this.useConfirm({
-        message: `Fido2 requires external libraries written in Python. It is an experimental feature, and it is not guaranteed to work. Are you sure you want to set it up?`,
+        message: 'Fido2 requires external libraries written in Python. It is an experimental feature, and it is not guaranteed to work. Are you sure you want to set it up?',
         default: false
       })
       if (!yes) {

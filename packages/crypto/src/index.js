@@ -159,6 +159,7 @@ class Crypto {
 
   static generateKey(noEncode, codec = 'bs64') {
     let key = randomBytes(secretbox.keyLength)
+    /* istanbul ignore if  */
     if (codec === 'bs58') {
       key = Buffer.from(key)
     }
@@ -186,6 +187,7 @@ class Crypto {
     let fullMessage = new Uint8Array(nonce.length + box.length)
     fullMessage.set(nonce)
     fullMessage.set(box, nonce.length)
+    /* istanbul ignore if  */
     if (codec === 'bs58') {
       fullMessage = Buffer.from(fullMessage)
     }
@@ -209,6 +211,7 @@ class Crypto {
         messageWithNonceAsUint8Array.length
     )
     const decrypted = secretbox.open(message, nonce, keyUint8Array)
+    /* istanbul ignore if */
     if (!decrypted) {
       throw new Error('Could not decrypt message')
     }
@@ -272,6 +275,7 @@ class Crypto {
     let fullMessage = new Uint8Array(nonce.length + encrypted.length)
     fullMessage.set(nonce)
     fullMessage.set(encrypted, nonce.length)
+    /* istanbul ignore if  */
     if (codec === 'bs58') {
       fullMessage = Buffer.from(fullMessage)
     }
@@ -293,7 +297,7 @@ class Crypto {
     const decrypted = key
         ? box.open(message, nonce, key, secretOrSharedKey)
         : box.open.after(message, nonce, secretOrSharedKey)
-
+    /* istanbul ignore if */
     if (!decrypted) {
       throw new Error('Could not decrypt message')
     }
@@ -302,6 +306,7 @@ class Crypto {
 
   static getSignature(message, secretKey, codec = 'bs64') {
     let signature = sign.detached(Crypto.utf8ToArray(message), secretKey)
+    /* istanbul ignore if  */
     if (codec === 'bs58') {
       signature = Buffer.from(signature)
     }

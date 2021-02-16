@@ -5,13 +5,9 @@ inquirer.registerPrompt('command', inquirerCommandPrompt)
 const path = require('path')
 const {InternalFs, ExternalFs, DataCache} = require('secrez-fs-0-8-8')
 const {Secrez} = require('secrez-core-0-8-2')
-const Crypto = require('@secrez/crypto')
 
 const Logger = require('../utils/Logger')
 const welcome = require('../Welcome')
-
-const AliasManager = require('../utils/AliasManager')
-const ContactManager = require('../utils/ContactManager')
 
 const Migration = require('../migrations/Migration')
 
@@ -39,6 +35,7 @@ class Prompt {
       if (!(await this.migration.reverse())) {
         Logger.red('No safe backup found')
       }
+      // eslint-disable-next-line no-process-exit
       process.exit(0)
     }
   }
@@ -55,34 +52,11 @@ class Prompt {
     }
     await this.secrez.cache.load('alias')
     await this.secrez.cache.load('contact')
-    this.aliasManager = new AliasManager(this.secrez.cache)
-    this.contactManager = new ContactManager(this.secrez.cache)
     if (!this.migration.isMigrationNeeded()) {
       Logger.reset('db already migrated to version 3')
     } else {
       await this.migration.migrate(password, iterations)
     }
-  }
-
-  async useSelect(options) {
-    let cancel = '(cancel)'
-    if (!options.dontCancel) {
-      options.choices = options.choices.concat([cancel])
-    }
-    let {result} = await this.inquirer.prompt([
-      {
-        type: 'list',
-        name: 'result',
-        message: options.message,
-        choices: options.choices
-      }
-    ])
-    if (result === cancel) {
-      return
-    } else {
-      return result
-    }
-
   }
 
   async useConfirm(options) {
@@ -96,34 +70,6 @@ class Prompt {
     ])
     return result
 
-  }
-
-  async useInput(options) {
-
-    let exitCode = Crypto.getRandomBase58String(2)
-    let {result} = await this.inquirer.prompt([
-      {
-        type: options.type || 'input',
-        name: 'result',
-        message: options.message,
-        default: options.content,
-        validate: val => {
-          if (val) {
-            if (val === exitCode) {
-              return true
-            } else if (options.validate) {
-              return options.validate(val, exitCode)
-            } else if (val.length) {
-              return true
-            }
-          }
-          return chalk.grey(`Please, type the ${options.name}, or cancel typing ${chalk.bold(exitCode)}`)
-        }
-      }
-    ])
-    if (result !== exitCode) {
-      return result
-    }
   }
 
 }

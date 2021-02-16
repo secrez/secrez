@@ -401,8 +401,6 @@ describe('#Mv', function () {
 
     assert.equal(Node.getRoot(folder).datasetIndex, 3)
     assert.equal(folder.getPath(), '/backupFolder/folder')
-
-
   })
 
   it('should move the results of a find', async function () {

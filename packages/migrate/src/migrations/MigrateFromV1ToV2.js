@@ -3,15 +3,11 @@ const path = require('path')
 const homedir = require('homedir')
 const chalk = require('chalk')
 
-const AliasManager = require('../utils/AliasManager')
-const ContactManager = require('../utils/ContactManager')
-
 const migrationConfig = require('./migrationConfig')
 const Logger = require('../utils/Logger')
 
-const {Node, DataCache} = require('@secrez/fs')
+const {Node} = require('@secrez/fs')
 const {Entry} = require('@secrez/core')
-const Crypto = require('@secrez/crypto')
 const {Prompt} = require('secrez')
 
 class MigrateFromV1ToV2 {
@@ -42,6 +38,7 @@ To avoid issues the current db will be backed up.
     })
     if (!yes) {
       Logger.reset('Exiting')
+      // eslint-disable-next-line no-process-exit
       process.exit(0)
     }
 
@@ -108,6 +105,7 @@ to restore the previous database, reinstall a compatible version of secrez with
 and contact secrez@sullo.co for help.
 `)
 
+    // eslint-disable-next-line no-process-exit
     process.exit(0)
   }
 
@@ -137,9 +135,6 @@ and contact secrez@sullo.co for help.
     await this.secrez.cache.load('alias')
     await this.secrez.cache.load('contact')
 
-    this.aliasManager = new AliasManager(this.secrez.cache)
-    this.contactManager = new ContactManager(this.secrez.cache)
-
     await this.internalFs.init()
 
     this.prompt = prompt
@@ -151,8 +146,12 @@ and contact secrez@sullo.co for help.
 
     async function replace(what) {
       Logger.reset(`Replacing ${what}`)
-      await fs.remove(path.join(container, what))
-      await fs.copy(path.join(tempContainer, what),path.join(container, what))
+      if (await fs.pathExists(path.join(container, what))) {
+        await fs.remove(path.join(container, what))
+      }
+      let dest = path.join(container, what)
+      await fs.ensureDir(path.dirname(dest))
+      await fs.copy(path.join(tempContainer, what), dest)
     }
 
     let files = await fs.readdir(container)
@@ -163,11 +162,12 @@ and contact secrez@sullo.co for help.
     }
     await replace('cache')
     await replace('local')
+    await replace('keys.json')
     await replace('keys/default.json')
   }
 
   async migrateEnv() {
-    Logger.reset(`Migrating local environment...`)
+    Logger.reset('Migrating local environment...')
     let env
     if (await fs.pathExists(this.prompt0.secrez.config.envPath)) {
       env = await fs.readFile(this.prompt0.secrez.config.envPath, 'utf8')
@@ -190,7 +190,7 @@ and contact secrez@sullo.co for help.
   }
 
   async migrateHistories() {
-    Logger.reset(`Migrating histories...`)
+    Logger.reset('Migrating histories...')
     for (let what of ['main', 'chat']) {
       const history = path.join(this.prompt0.secrez.config.localDataPath, what + 'History')
       if (await fs.pathExists(history)) {
@@ -201,7 +201,7 @@ and contact secrez@sullo.co for help.
   }
 
   async migrateAliases() {
-    Logger.reset(`Migrating aliases and contacts...`)
+    Logger.reset('Migrating aliases and contacts...')
     for (let what of ['alias', 'contact']) {
       const src = path.join(this.prompt0.secrez.config.container, 'cache', what)
       const dest = path.join(this.prompt.secrez.config.container, 'cache', what)
@@ -237,7 +237,7 @@ and contact secrez@sullo.co for help.
           type: node.type,
           preserveContent: true
         })
-        let encryptedEntry = this.secrez.encryptEntry(entry)
+        let encryptedEntry = this.secrez.encryptEntry(entry, 'useTs')
         newNode.addVersion(encryptedEntry)
 
         // console.log(JSON.stringify(version, null, 2))

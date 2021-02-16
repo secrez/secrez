@@ -377,6 +377,15 @@ describe('#InternalFs', function () {
         assert.equal(e.message, 'Path does not exist')
       }
       assert.equal(internalFs.trees[2].root.getChildFromPath('/folder2').id, folder2.id)
+
+      assert.isFalse(await internalFs.getDatasetInfo('some'))
+
+
+      await internalFs.deleteDataset(2)
+      assert.isUndefined(internalFs.trees[2])
+
+      assert.isFalse(await internalFs.deleteDataset(2))
+
     })
   })
 

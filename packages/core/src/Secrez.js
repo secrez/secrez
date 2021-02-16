@@ -4,8 +4,6 @@ const _ = require('lodash')
 const Crypto = require('@secrez/crypto')
 const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
-const utils = require('@secrez/utils')
-const pkg = require('../package.json')
 
 const {
   DO_NOT_VERIFY,
@@ -79,6 +77,7 @@ module.exports = function () {
       if (!data.key && !data.keys) {
         throw new Error('No valid data found')
       }
+      /* istanbul ignore if  */
       if (!data.version || data.version !== this.config.VERSION) {
         throw new Error('DB_ERROR')
       }
@@ -270,7 +269,7 @@ module.exports = function () {
     }
 
 
-    encryptEntry(entry) {
+    encryptEntry(entry, useTs) {
 
       if (!entry || entry.constructor.name !== 'Entry') {
         throw new Error('An Entry instance is expected as parameter')
@@ -290,7 +289,9 @@ module.exports = function () {
           throw new Error('Unsupported type')
         }
 
-        let ts = entry.ts || Crypto.getTimestampWithMicroseconds().join('.')
+        let ts = useTs && entry.ts
+            ? entry.ts
+            : Crypto.getTimestampWithMicroseconds().join('.')
         let encryptedEntry = new Entry({
           id,
           type,

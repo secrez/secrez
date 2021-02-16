@@ -8,7 +8,6 @@ const Secrez2 = require('../src/Secrez')()
 const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')
-const {jlog} = require('@secrez/test-helpers')
 
 const {
   password,
@@ -483,6 +482,8 @@ describe('#Secrez', function () {
       it('should throw trying to get box and sign secret keys', async function () {
         await secrez.signup(password, iterations)
         let conf = await secrez.getConf()
+        let conf2 = await secrez.readConf()
+        assert.equal(conf.data.keys, conf2.data.keys)
         try {
           secrez.decryptData(conf.data.sign.secretKey)
           assert.isTrue(false)

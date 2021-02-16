@@ -34,6 +34,13 @@ class ConfigUtils {
     await fs.ensureDir(config.keysDataPath)
     await fs.ensureDir(config.localDataPath)
 
+    await fs.writeFile(path.join(container, 'keys.json'), JSON.stringify({
+      data: {
+        why: 'This file is here to cause an error in old versions of Secrez during login, and avoid that Secrez thinks the db is empty and reset it.'
+      }
+    }))
+
+
     let oldEnvPath = path.join(container, 'env.json')
     let oldHistoryPath = path.join(container, 'history')
 

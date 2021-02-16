@@ -37,7 +37,6 @@ and the backup has been deleted
       Logger.red('Backup not found for the container')
       return false
     }
-    process.exit(0)
   }
 
 }

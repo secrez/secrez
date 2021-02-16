@@ -426,7 +426,7 @@ class Tree {
     }
   }
 
-  async saveEntry(entry, due) {
+  async saveEntry(entry) {
     let fullPath = this.getFullPath(entry)
     /* istanbul ignore if  */
     if (await fs.pathExists(fullPath)) {

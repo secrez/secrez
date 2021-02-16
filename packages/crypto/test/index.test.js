@@ -5,7 +5,7 @@ const path = require('path')
 
 const Crypto = require('../src')
 const utils = require('@secrez/utils')
-const bs58 = Crypto.bs58
+// const bs58 = Crypto.bs58
 
 const {
   box,
@@ -31,7 +31,7 @@ describe('#Crypto', function () {
 
   const u = undefined
 
-    describe('utils', async function () {
+  describe('utils', async function () {
 
     it('should encode a string as base64', async function () {
       let coded = Crypto.toBase64(password)
@@ -355,7 +355,7 @@ describe('#Crypto', function () {
         let ts = Crypto.getTimestampWithMicroseconds().join('.')
         let d = (new Date).toISOString().substring(0, 18)
         assert.isTrue(RegExp('^' + d).test(Crypto.fromTsToDate(ts)[0]))
-        sleep(1)
+        utils.sleep(1)
       }
     })
 
@@ -363,38 +363,79 @@ describe('#Crypto', function () {
 
   describe.skip('performance comparision between V1 and V2', async function () {
 
-    it('should compare encryption V1 and V2', async function() {
+    it('should compare encryption V1 and V2', async function () {
       this.timeout(10000)
       let key = Crypto.generateKey(u, 'bs58')
       let str = samesecret.repeat(500)
       let now = Date.now()
       Crypto.encrypt(str, key, u, u, u, 'bs58')
-      console.log('Milliseconds w/ V1:', Date.now() - now)
+      console.debug('Milliseconds w/ V1:', Date.now() - now)
       now = Date.now()
       key = Crypto.generateKey()
       Crypto.encrypt(str, key)
-      console.log('Milliseconds w/ V2:', Date.now() - now)
+      console.debug('Milliseconds w/ V2:', Date.now() - now)
     })
 
-    it('should compare urlSafeBase64 encoding with base68 encoding', async function() {
+    it('should compare urlSafeBase64 encoding with base68 encoding', async function () {
       this.timeout(10000)
       let key = Crypto.generateKey(true)
       let now = Date.now()
-      for (let i =0; i< 10000; i++) {
-          let encoded = Crypto.bs58.encode(key)
+      for (let i = 0; i < 10000; i++) {
+        let encoded = Crypto.bs58.encode(key)
         Crypto.bs58.decode(encoded)
       }
-      console.log('Milliseconds w/ V1:', Date.now() - now)
+      console.debug('Milliseconds w/ V1:', Date.now() - now)
       now = Date.now()
-      for (let i =0; i< 10000; i++) {
+      for (let i = 0; i < 10000; i++) {
         let encoded = Crypto.fromBase64ToFsSafeBase64(Crypto.bs64.encode(key))
         Crypto.bs64.decode(Crypto.fromFsSafeBase64ToBase64(encoded))
       }
-      console.log('Milliseconds w/ V2:', Date.now() - now)
+      console.debug('Milliseconds w/ V2:', Date.now() - now)
 
     })
 
+  })
 
+  describe('#sign and verify', async function () {
+
+    it('should sign a message and verify it', async function () {
+
+      const boxPair = Crypto.generateBoxKeyPair()
+      const signPair = Crypto.generateSignatureKeyPair()
+
+      let publicKey = Crypto.bs64.encode(boxPair.publicKey) + '$' + Crypto.bs64.encode(signPair.publicKey)
+
+      assert.isTrue(Crypto.isValidSecrezPublicKey(publicKey))
+      assert.isFalse(Crypto.isValidSecrezPublicKey([1, 2, 3, 4]))
+
+      let signPublicKey = Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)
+      let boxPublicKey = Crypto.getBoxPublicKeyFromSecretPublicKey(publicKey)
+
+      publicKey = publicKey.split('$').map(e => Crypto.bs64.decode(e))
+      assert.equal(publicKey[0].toString(), boxPublicKey.toString())
+      assert.equal(publicKey[1].toString(), signPublicKey.toString())
+
+    })
+  })
+
+  describe('#url safe base64', async function () {
+
+    it('should sign a message and verify it', async function () {
+
+      const base64a = '3Dvn7iEz2lEEeSgZox9PLbd697bovifl3ZltPjStsujjm+spVbJVYhcXHhBLMno1EjaNDn0qgFAIE0cp67GKBg=='
+      const base64b = 'QjjnUGOYDp2GymZkaSalRNjtXmdc0MuICWtzYHfISls='
+      const base64c = 'zrh9UtViJj/w9llqfQEN94tvK/9w6mMC8NDyQqN260bCwmecp7WOUwoBdGOwYdFMTqB9mbTzZUvpWGlln/pIPmh5wDkvifDi'
+
+      const usbase64a = Crypto.fromBase64ToFsSafeBase64(base64a)
+      const usbase64b = Crypto.fromBase64ToFsSafeBase64(base64b)
+      const usbase64c = Crypto.fromBase64ToFsSafeBase64(base64c)
+
+      assert.equal(Crypto.fromFsSafeBase64ToBase64(usbase64a).toString(), base64a.toString())
+      assert.equal(Crypto.fromFsSafeBase64ToBase64(usbase64b).toString(), base64b.toString())
+      assert.equal(Crypto.fromFsSafeBase64ToBase64(usbase64c).toString(), base64c.toString())
+
+
+    })
   })
 
 })

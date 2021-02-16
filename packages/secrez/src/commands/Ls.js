@@ -166,7 +166,6 @@ class Ls extends require('../Command') {
         )
       }
     } catch (e) {
-      console.log(e)
       this.Logger.red(e.message)
     }
     await this.prompt.run()
