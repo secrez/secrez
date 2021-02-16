@@ -5,7 +5,7 @@ const {
   RETURN_UINT8_ARRAY
 } = require('./config/booleans')
 
-const Crypto = require('./Crypto')
+const Crypto = require('@secrez/crypto')
 const bs64 = Crypto.bs64
 
 module.exports = function () {

@@ -17,8 +17,7 @@
     "@secrez/utils": "workspace:~0.1.6",
     "fs-extra": "^8.1.0",
     "homedir": "^0.6.0",
-    "lodash": "^4.17.15",
-    "microseconds": "^0.2.0"
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
     "@secrez/test-helpers": "workspace:~0.1.5",

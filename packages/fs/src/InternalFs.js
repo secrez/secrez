@@ -51,6 +51,7 @@ class InternalFs {
     for (let i = 0; i < len; i++) {
       let notLast = i < len - 1
       let entry = new Entry({
+        id: options.id,
         name: p[i],
         type: notLast ? config.types.DIR : options.type
       })

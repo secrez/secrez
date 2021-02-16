@@ -1,7 +1,7 @@
 const homedir = require('homedir')
 const fs = require('fs-extra')
 const _ = require('lodash')
-const Crypto = require('./Crypto')
+const Crypto = require('@secrez/crypto')
 const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
 const utils = require('@secrez/utils')
@@ -290,7 +290,7 @@ module.exports = function () {
           throw new Error('Unsupported type')
         }
 
-        let ts = Crypto.getTimestampWithMicroseconds().join('.')
+        let ts = entry.ts || Crypto.getTimestampWithMicroseconds().join('.')
         let encryptedEntry = new Entry({
           id,
           type,

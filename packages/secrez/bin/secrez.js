@@ -35,7 +35,7 @@ const optionDefinitions = [
     name: 'localDir',
     alias: 'l',
     type: String
-  },
+  }
 ]
 
 function error(message) {

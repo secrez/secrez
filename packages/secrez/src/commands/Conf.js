@@ -1,7 +1,8 @@
 const Fido2Client = require('../utils/Fido2Client')
 const _ = require('lodash')
 const Case = require('case')
-const {Crypto, config, ConfigUtils} = require('@secrez/core')
+const {config, ConfigUtils} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const chalk = require('chalk')
 
 class Conf extends require('../Command') {
@@ -65,6 +66,8 @@ class Conf extends require('../Command') {
       description: ['Configure security data (2FA, password, number of iterations).'],
       examples: [
         ['conf -s', 'shows the general settings'],
+        ['conf --new-password', 'changes your password'],
+        ['conf --new-iterations-number', 'changes the number of iterations'],
         ['conf --fido2 -r solo',
           'registers a new key saving it as "solo"; if there are registered keys, it will checks if the new one is one of them before adding it.'],
         ['conf -l', 'lists second factors'],
@@ -427,6 +430,13 @@ class Conf extends require('../Command') {
     } else if (options.recoveryCode) {
       await this.setRecoveryCode(options)
     } else if (options.fido2) {
+      let yes = await this.useConfirm({
+        message: `Fido2 requires external libraries written in Python. It is an experimental feature, and it is not guaranteed to work. Are you sure you want to set it up?`,
+        default: false
+      })
+      if (!yes) {
+        throw new Error('Operation canceled')
+      }
       await this.fido2Client.checkIfReady()
       await this.setFido2(options)
     } else if (options.unregister) {

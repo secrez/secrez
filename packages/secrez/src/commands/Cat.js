@@ -1,7 +1,8 @@
 const _ = require('lodash')
 const {chalk} = require('../utils/Logger')
 const path = require('path')
-const {Crypto, config} = require('@secrez/core')
+const {config} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const {Node} = require('@secrez/fs')
 const {isYaml, yamlParse} = require('@secrez/utils')
 

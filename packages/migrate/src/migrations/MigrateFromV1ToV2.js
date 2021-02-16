@@ -1,6 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 const homedir = require('homedir')
+const chalk = require('chalk')
 
 const AliasManager = require('../utils/AliasManager')
 const ContactManager = require('../utils/ContactManager')
@@ -8,17 +9,19 @@ const ContactManager = require('../utils/ContactManager')
 const migrationConfig = require('./migrationConfig')
 const Logger = require('../utils/Logger')
 
-const {Node, Tree, InternalFs, ExternalFs, DataCache} = require('@secrez/fs')
-const {Crypto, Secrez} = require('@secrez/core')
+const {Node, DataCache} = require('@secrez/fs')
+const {Entry} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
+const {Prompt} = require('secrez')
 
 class MigrateFromV1ToV2 {
 
   constructor(prompt) {
-    this.prompt = prompt
+    this.prompt0 = prompt
   }
 
   isMigrationNeeded() {
-    const conf = this.prompt.secrez.getConf()
+    const conf = this.prompt0.secrez.getConf()
     this.currentVersion = conf.data.version || migrationConfig.firstVersion
     if (this.currentVersion !== migrationConfig.latestVersion) {
       return true
@@ -30,11 +33,10 @@ class MigrateFromV1ToV2 {
     Logger.reset(`
 Ready to migrate Secrez's db from version 2 to the version 3. 
 
-To avoid issue the current db will be backed up. 
-In case of errors with the new version, run secrez-migrate with the option --reverse to restore the db.
+To avoid issues the current db will be backed up.
 `)
     let message = 'Would you like to continue?'
-    let yes = await this.prompt.useConfirm({
+    let yes = await this.prompt0.useConfirm({
       message,
       default: true
     })
@@ -48,28 +50,87 @@ In case of errors with the new version, run secrez-migrate with the option --rev
     Logger.bold(`
 Starting migration
 `)
-    await this.backup()
 
-    await this.reEncryptTrees()
+    let backupContainer = await this.backup()
+
+    const ifs0 = this.prompt0.internalFs
+    let datasetInfo = await ifs0.getDatasetsInfo()
+    for (let dataset of datasetInfo) {
+      await ifs0.mountTree(dataset.index)
+    }
+    for (let ds of datasetInfo) {
+      Logger.reset(`Migrating ${ds.name} dataset...`)
+      let {index} = ds
+      if (index > 1) {
+        // create a new dataset in V3
+        await this.internalFs.mountTree(index, true)
+        await this.internalFs.tree.nameDataset(ds.name)
+      }
+      let tree0 = ifs0.trees[index]
+      let tree = this.internalFs.trees[index]
+      this.current = {
+        tree0,
+        tree,
+        index
+      }
+      tree.tags = tree0.tags
+      tree.tagsChanged = true
+      await tree.saveTags()
+      // console.log(tree.tags)
+      // process.exit()
+      tree.disableSave()
+      tree.root.children = tree0.root.children
+      await this.migrateTree(tree0.root, tree.root)
+      tree.enableSave()
+      await tree.save()
+    }
+    await this.migrateHistories()
+    await this.migrateAliases()
+    await this.migrateEnv()
+    await this.replaceDb()
+
+    Logger.reset(`
+${chalk.bold('Migration completed.')}
+
+Now you can run Secrez as usual to use the new db.
+
+A backup of the db has been created at 
+${backupContainer}
+
+If you see any errors running Secrez, execute 
+
+  secrez-migrate -c ${this.prompt0.secrez.config.container} --reverse
+  
+to restore the previous database, reinstall a compatible version of secrez with
+
+  pnpm i -g secrez@0.10.7
+  
+and contact secrez@sullo.co for help.
+`)
+
+    process.exit(0)
   }
 
   async setUpSecrez(password, iterations) {
 
-    this.secrez = new (Secrez())()
+    const root = path.join(homedir(), '.secrez-migrate')
+    const options = {
+      container: path.join(root, 'db'),
+      localDir: path.join(root, 'tmp')
+    }
+    this.container = options.container
+    await fs.emptyDir(options.container)
+    await fs.emptyDir(options.localDir)
 
-    const root = path.join(homedir(), '.secrez-backup')
-    const container = path.join(root, 'secrez')
-    const localDir = path.join(root, 'tmp')
-    await fs.emptyDir(localDir)
+    const prompt = new Prompt
+    await prompt.init(options)
 
-    await this.secrez.init(container, localDir)
-
-    this.secrez.cache = new DataCache(path.join(this.secrez.config.container, 'cache'), this.secrez)
+    this.secrez = prompt.secrez
     this.secrez.cache.initEncryption('alias', 'contact')
     await this.secrez.cache.load('id')
 
-    this.internalFs = new InternalFs(this.secrez)
-    this.externalFs = new ExternalFs(this.secrez)
+    this.internalFs = prompt.internalFs
+    this.externalFs = prompt.externalFs
 
     await this.secrez.signup(password, iterations)
 
@@ -78,81 +139,134 @@ Starting migration
 
     this.aliasManager = new AliasManager(this.secrez.cache)
     this.contactManager = new ContactManager(this.secrez.cache)
+
+    await this.internalFs.init()
+
+    this.prompt = prompt
   }
 
-  async reEncryptTrees() {
-    const ifs = this.prompt.internalFs
-    let datasetInfo = await ifs.getDatasetsInfo()
-    for (let dataset of datasetInfo) {
-      await ifs.mountTree(dataset.index)
+  async replaceDb() {
+    let container = this.prompt0.secrez.config.container
+    let tempContainer = this.secrez.config.container
+
+    async function replace(what) {
+      Logger.reset(`Replacing ${what}`)
+      await fs.remove(path.join(container, what))
+      await fs.copy(path.join(tempContainer, what),path.join(container, what))
     }
-    for (let ds of datasetInfo) {
-      this.workingTree = ifs.trees[ds.index]
-      console.log(JSON.stringify(this.workingTree.root.toJSON(), null, 2))
-      // await this.migrateNode()
+
+    let files = await fs.readdir(container)
+    for (let file of files) {
+      if (/data(\.\w|)/.test(file)) {
+        await replace(file)
+      }
+    }
+    await replace('cache')
+    await replace('local')
+    await replace('keys/default.json')
+  }
+
+  async migrateEnv() {
+    Logger.reset(`Migrating local environment...`)
+    let env
+    if (await fs.pathExists(this.prompt0.secrez.config.envPath)) {
+      env = await fs.readFile(this.prompt0.secrez.config.envPath, 'utf8')
+      env = JSON.parse(env)
+      delete env.gitHub
+    }
+    if (!env) {
+      env = {}
+    }
+    if (!env.migrations) {
+      env.migrations = []
+    }
+    let migration = {
+      from: 2,
+      to: 3,
+      when: Date.now()
+    }
+    env.migrations.push(migration)
+    await fs.writeFile(this.secrez.config.envPath, JSON.stringify(env))
+  }
+
+  async migrateHistories() {
+    Logger.reset(`Migrating histories...`)
+    for (let what of ['main', 'chat']) {
+      const history = path.join(this.prompt0.secrez.config.localDataPath, what + 'History')
+      if (await fs.pathExists(history)) {
+        let content = this.prompt0.secrez.decryptData(await fs.readFile(history, 'utf8'))
+        await fs.writeFile(path.join(this.prompt.secrez.config.localDataPath, what + 'History'), this.secrez.encryptData(content))
+      }
     }
   }
 
-  async migrateNode() {
-    let node = {}
-    for (let key in this) {
-      if (key === 'parent') {
+  async migrateAliases() {
+    Logger.reset(`Migrating aliases and contacts...`)
+    for (let what of ['alias', 'contact']) {
+      const src = path.join(this.prompt0.secrez.config.container, 'cache', what)
+      const dest = path.join(this.prompt.secrez.config.container, 'cache', what)
+      if (!await fs.pathExists(src)) {
         continue
       }
-      if (key === 'children') {
-        node.children = {}
-      } else {
-        node[key] = this[key]
+      await fs.ensureDir(dest)
+      const files = await fs.readdir(src)
+      for (let file of files) {
+        let content = await fs.readFile(path.join(src, file), 'utf8')
+        if (what === 'alias') {
+          file = this.prompt0.secrez.decryptData(file)
+          content = this.prompt0.secrez.decryptData(content)
+        }
+        file = this.secrez.encryptData(file, true)
+        content = this.secrez.encryptData(content)
+        await fs.writeFile(path.join(dest, file), content)
       }
     }
-    if (node.parent) {
-      node.parentId = node.parent
-      delete node.parent
-    }
-    if (this.children) {
-      for (let id in this.children) {
-        let child = this.children[id]
-        node.children[id] = child.toJSON()
-      }
-    }
-    return node
+  }
 
+  async migrateTree(node, newNode) {
+    await this.current.tree0.getEntryDetails(node)
+    if (node.versions) {
+      for (let ts in node.versions) {
+        let version = node.versions[ts]
+        let {name, content} = version
+        let entry = new Entry({
+          name,
+          content,
+          id: node.id,
+          ts,
+          type: node.type,
+          preserveContent: true
+        })
+        let encryptedEntry = this.secrez.encryptEntry(entry)
+        newNode.addVersion(encryptedEntry)
+
+        // console.log(JSON.stringify(version, null, 2))
+        // console.log(JSON.stringify(newNode.versions[ts], null, 2))
+
+        await fs.writeFile(path.join(this.container, 'data' + (this.current.index ? '.' + this.current.index : ''), encryptedEntry.encryptedName), entry.content ? encryptedEntry.encryptedContent : '')
+      }
+    }
+    if (node.children) {
+      for (let id in node.children) {
+        let child = node.children[id]
+        let childEntry = child.getEntry()
+        delete childEntry.parent
+        let newChild = newNode.add(new Node(child.getEntry()), true)
+        await this.migrateTree(child, newChild)
+      }
+    }
   }
 
   async backup() {
-    let container = this.prompt.secrez.config.container
-    let startedMarker = path.join(container, 'migration-started')
-    await fs.writeFile(path.join(container, 'migration-started'), Date.now().toString())
+    let container = this.prompt0.secrez.config.container
     let dirname = path.dirname(container)
     let backupname = path.basename(container) + '-pre-migration-backup'
     let backupContainer = path.join(dirname, backupname)
     if (await fs.pathExists(backupContainer)) {
       await fs.remove(backupContainer)
     }
-    await fs.copy(container, path.join(dirname, backupname))
-    Logger.reset(`A backup of the db has been created at 
-${backupContainer}`)
-
-  }
-
-  async reverse() {
-    let container = this.prompt.secrez.config.container
-    let dirname = path.dirname(container)
-    let backupContainer = path.join(dirname, path.basename(container) + '-pre-migration-backup')
-    if (await fs.pathExists(backupContainer)) {
-      await fs.remove(container)
-      await fs.copy(backupContainer, container)
-      await fs.remove(backupContainer)
-      Logger.reset(`The previoysly backed up db at 
-${backupContainer}
-has been restored at
-${container}
-and the backup has been deleted
-`)
-      return true
-    } else {
-      return false
-    }
+    await fs.copy(container, backupContainer)
+    return backupContainer
   }
 
 }

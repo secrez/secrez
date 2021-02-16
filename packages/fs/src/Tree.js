@@ -1,7 +1,8 @@
 const fs = require('fs-extra')
 const path = require('path')
 const Node = require('./Node')
-const {config, Entry, Crypto, ConfigUtils} = require('@secrez/core')
+const {config, Entry, ConfigUtils} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 
 class Tree {
 
@@ -190,26 +191,6 @@ class Tree {
 
       }
       await this.loadTags(allTags)
-      try {
-        let trash = this.root.getChildFromPath('/.trash')
-        if (trash && trash.id === 'tra$') {
-          // we are converting an 0.5.x dataset
-          let children = []
-          for (let id in trash.children) {
-            children.push(trash.children[id])
-          }
-          if (children.length) {
-            let newTrash = await this.add(this.root, new Entry({
-              name: this.datedName('TRASH'),
-              type: this.config.types.DIR
-            }))
-            newTrash.add(children)
-            trash.parent.removeChild(trash)
-          }
-          await this.save()
-        }
-      } catch (e) {
-      }
     } else {
       this.root = Node.initGenericRoot()
       this.root.datasetIndex = this.datasetIndex
@@ -445,7 +426,7 @@ class Tree {
     }
   }
 
-  async saveEntry(entry) {
+  async saveEntry(entry, due) {
     let fullPath = this.getFullPath(entry)
     /* istanbul ignore if  */
     if (await fs.pathExists(fullPath)) {
@@ -614,7 +595,7 @@ class Tree {
       preserveContent: true
     })
     tags = this.secrez.encryptEntry(tags)
-    await this.saveEntry(tags)
+    await this.saveEntry(tags, true)
     this.previousTags = tags
   }
 

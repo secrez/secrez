@@ -28,7 +28,6 @@ const optionDefinitions = [
   },
   {
     name: 'reverse',
-    alias: 'r',
     type: Boolean
   },
   {

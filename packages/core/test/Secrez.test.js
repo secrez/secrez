@@ -1,10 +1,10 @@
 const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
+const Crypto = require('@secrez/crypto')
 const Secrez = require('../src/Secrez')()
 const Secrez2 = require('../src/Secrez')()
 
-const Crypto = require('../src/Crypto')
 const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')

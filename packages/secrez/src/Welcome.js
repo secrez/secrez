@@ -1,7 +1,7 @@
 const chalk = require('chalk')
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
-const {Crypto} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const Logger = require('./utils/Logger')
 const Fido2Client = require('./utils/Fido2Client')
 

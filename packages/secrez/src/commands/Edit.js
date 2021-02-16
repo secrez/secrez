@@ -5,6 +5,7 @@ require('tiny-cli-editor')
 const _ = require('lodash')
 const path = require('path')
 const fs = require('fs-extra')
+const {Entry} = require('@secrez/core')
 const {isYaml, yamlParse, yamlStringify, execAsync} = require('@secrez/utils')
 
 class Edit extends require('../Command') {
@@ -78,6 +79,10 @@ class Edit extends require('../Command') {
     if (/:/.test(file)) {
       // TODO Fix this
       throw new Error('Edit works only on the current dataset. Remove the dataset from the path, please')
+    }
+    let sanitizedPath = Entry.sanitizePath(options.path)
+    if (sanitizedPath !== options.path) {
+      throw new Error('A filename cannot contain \\/><|:&?*^$ chars.')
     }
     let exists = false
     let fileData

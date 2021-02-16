@@ -1,5 +1,6 @@
 const util = require('util')
-const {config, Crypto, Entry} = require('@secrez/core')
+const {config, Entry} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const {ANCESTOR_NOT_FOUND, ENTRY_EXISTS} = require('./Messages')
 const DataCache = require('./DataCache')
 
@@ -17,7 +18,7 @@ class Node {
     return cache
   }
 
-  constructor(entry, force) {
+  constructor(entry) {
 
     if (!entry || entry.constructor.name !== 'Entry') {
       throw new Error('Node constructor expects an Entry instance')
@@ -122,27 +123,20 @@ class Node {
     json.V = []
     for (let j = 0; j < json.v.length; j++) {
       let v = json.v[j]
-      if (/_/.test(v)) {
-        trash = true
-        json.V.push(new Entry({
-          type: config.types.TRASH
+      if (files[v]) {
+        let entry = secrez.decryptEntry(new Entry({
+          encryptedName: files[v]
         }))
-      } else {
-        if (files[v]) {
-          let entry = secrez.decryptEntry(new Entry({
-            encryptedName: files[v]
-          }))
-          let obj = entry.get(['id', 'ts', 'name'])
-          if (trash) {
-            obj.id = '_' + obj.id
-          }
-          obj.encryptedName = files[v]
-          json.V.push(obj)
-          delete files[v]
-        } else {
-          json.v.splice(j, 1)
-          j--
+        let obj = entry.get(['id', 'ts', 'name'])
+        if (trash) {
+          obj.id = '_' + obj.id
         }
+        obj.encryptedName = files[v]
+        json.V.push(obj)
+        delete files[v]
+      } else {
+        json.v.splice(j, 1)
+        j--
       }
     }
     json.V.sort(Node.sortEntry)
@@ -185,7 +179,7 @@ class Node {
         name: V0 ? V0.name : undefined,
         encryptedName: V0 ? V0.encryptedName : undefined,
         parent
-      }), type === config.types.TRASH)
+      }))
       for (let i = 1; i < json.V.length; i++) {
         let V = json.V[i]
         node.versions[V.ts] = {
@@ -319,7 +313,7 @@ class Node {
             }
           } else
               /* istanbul ignore if  */
-            if (options.content && this.type === config.types.TEXT && options.tree) {
+          if (options.content && this.type === config.types.TEXT && options.tree) {
             let {content} = await options.tree.getEntryDetails(this, ts)
             if (re.test(content || '')) {
               if (options.getNodes) {
@@ -356,12 +350,6 @@ class Node {
           type: config.types.ROOT
         })
     )
-    // root.add(new Node(
-    //     new Entry({
-    //       type: config.types.TRASH,
-    //       parent: root
-    //     }), true
-    // ))
     return root
   }
 
@@ -504,7 +492,7 @@ class Node {
   }
 
   static isAncestor(ancestor, node) {
-    while(node) {
+    while (node) {
       if (node.id === ancestor.id) {
         return true
       }
@@ -594,7 +582,7 @@ class Node {
     try {
       Node.getRoot(this).getChildFromPath(p)
       return false
-    } catch(e) {
+    } catch (e) {
       return true
     }
   }
@@ -644,7 +632,7 @@ class Node {
     return new Entry(this.getOptions(ts))
   }
 
-  add(children) {
+  add(children, getChild) {
     if (Node.isDir(this)) {
       // a child is a Node instance
       if (!Array.isArray(children)) {
@@ -653,6 +641,9 @@ class Node {
       for (let c of children) {
         c.parent = this
         this.children[c.id] = c
+        if (getChild) {
+          return c
+        }
       }
     } else {
       throw new Error('The entry does not represent a folder')

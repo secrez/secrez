@@ -15,6 +15,7 @@
   "dependencies": {
     "base-x": "^3.0.8",
     "byte-base64": "^1.1.0",
+    "microseconds": "^0.2.0",
     "sha3": "^2.1.2",
     "shamir": "^0.7.1",
     "tweetnacl": "^1.0.3"

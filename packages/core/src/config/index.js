@@ -9,20 +9,17 @@ const config = {
     DIR: 1,
     TEXT: 2,
     BINARY: 3,
-    TRASH: 4,
     TAGS: 5,
     NAME: 6
   },
 
   specialId: {
     ROOT: 'rOOt',
-    TRASH: 'tra$',
     RECOVERED: '$rec',
     NAME: '$nam'
   },
 
   specialName: {
-    TRASH: '.trash',
     RECOVERED: 'REC'
   },
 

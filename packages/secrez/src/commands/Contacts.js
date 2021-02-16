@@ -1,4 +1,4 @@
-const {Crypto} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const {utils: hubUtils} = require('@secrez/hub')
 const chalk = require('chalk')
 const ContactManager = require('../utils/ContactManager')

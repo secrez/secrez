@@ -4,7 +4,8 @@ inquirer.registerPrompt('command', inquirerCommandPrompt)
 
 const path = require('path')
 const {InternalFs, ExternalFs, DataCache} = require('secrez-fs-0-8-8')
-const {Crypto, Secrez} = require('secrez-core-0-8-2')
+const {Secrez} = require('secrez-core-0-8-2')
+const Crypto = require('@secrez/crypto')
 
 const Logger = require('../utils/Logger')
 const welcome = require('../Welcome')
