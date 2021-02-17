@@ -31,9 +31,8 @@ const optionDefinitions = [
     type: Boolean
   },
   {
-    name: 'localDir',
-    alias: 'l',
-    type: String
+    name: 'done',
+    type: Boolean
   },
 ]
 
@@ -92,12 +91,16 @@ Options:
                           derivation (based on PBKDF2). Use a number like
                           294543 or 1125642 (the larger the safer, but also the slower).
                           It increases exponentially the safety of your password.
-  -r, --reverse           In case of errors, you can restore the original db.                        
+  -r, --reverse           In case of errors, you can restore the original db.                    
+  -d, --done              If everything goes well, it deletes the backup of the db. 
+                          Use it only it you are totally sure that after the migration 
+                          all your data is where it should be.                        
                       
 Examples:
   $ secrez-migrate -i 1000068
   $ secrez-migrate -c ~/.my-secrez 
-  $ secrez-migrate -c ~/.my-secrez -r   (will restore a previously backed up db)
+  $ secrez-migrate -c ~/.my-secrez --reverse   (will restore a previously backed up db)
+  $ secrez-migrate -c ~/.my-secrez --done      (will delete the previously backed up db)
 `)
   // eslint-disable-next-line no-process-exit
   process.exit(0)

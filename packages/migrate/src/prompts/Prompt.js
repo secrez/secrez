@@ -38,6 +38,13 @@ class Prompt {
       // eslint-disable-next-line no-process-exit
       process.exit(0)
     }
+    if (options.done) {
+      if (!(await this.migration.done())) {
+        Logger.red('No safe backup found')
+      }
+      // eslint-disable-next-line no-process-exit
+      process.exit(0)
+    }
   }
 
   async run(options = {}) {
