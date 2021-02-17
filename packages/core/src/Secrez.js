@@ -36,7 +36,7 @@ module.exports = function () {
       if (!this.config || !this.config.keysPath) {
         throw new Error('Secrez not initiated')
       }
-      if (!await fs.pathExists(this.config.keysPath)) {
+      if (!(await fs.pathExists(this.config.keysPath))) {
 
         let id = Crypto.b64Hash(Crypto.generateKey())
         _secrez = new _Secrez(this)
@@ -76,10 +76,6 @@ module.exports = function () {
       /* istanbul ignore if  */
       if (!data.key && !data.keys) {
         throw new Error('No valid data found')
-      }
-      /* istanbul ignore if  */
-      if (!data.version || data.version !== this.config.VERSION) {
-        throw new Error('DB_ERROR')
       }
       if (data.key) {
         let masterKeyHash = await _secrez.signin(data)

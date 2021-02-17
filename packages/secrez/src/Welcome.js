@@ -11,6 +11,28 @@ class Welcome {
     this.secrez = secrez
     this.options = options
     this.iterations = options.iterations || await this.getIterations()
+    if (await fs.pathExists(this.secrez.config.oldKeysPath)) {
+      const oldConf = require(this.secrez.config.oldKeysPath)
+      if (!oldConf.data.why) {
+        Logger.red(chalk.bold(`
+Your encrypted db is not compatible with this version of Secrez.
+`))
+        Logger.reset(`Install secrez-migrate with
+
+  ${chalk.bold('pnpm i -g @secrez/migrate')}
+
+and run it to migrate the db. If you specify the container launching secrez, specify it also launching secrez-migrate. 
+If you need to access your secrets now, revert to a compatible version with 
+
+  ${chalk.bold('pnpm i -g secrez@0.10.8')}
+  
+and migrate your db later.
+Thanks.`)
+        // eslint-disable-next-line no-process-exit
+        process.exit(0)
+      }
+    }
+
     if (await fs.pathExists(this.secrez.config.keysPath)) {
       let errorCode = await this.login()
       if (errorCode === 1) {
@@ -76,30 +98,7 @@ class Welcome {
           if (e.message === 'A second factor is required') {
             return 1
           }
-          if (e.message === 'DB_ERROR') {
-            Logger.red(chalk.bold(`
-Your encrypted db is not compatible with this version of Secrez.
-`))
-            Logger.reset(`Install secrez-migrate with
-
-  ${chalk.bold('pnpm i -g @secrez/migrate')}
-
-and run it to migrate the db. 
-If you need to access your secrets now, revert to a compatible version with 
-
-  ${chalk.bold('pnpm i -g secrez@0.10.8')}
-  
-and migrate your db later.
-Thanks.`)
-            // eslint-disable-next-line no-process-exit
-            process.exit(0)
-          }
-          Logger.red(`${e.message}.Try
-            again
-            or
-            Ctrl - C
-            to
-            exit.`)
+          Logger.red(`${e.message}.Try again or Ctrl - C to exit.`)
         }
       } catch (e) {
         Logger.red('Unrecognized error. Try again or Ctrl-c to exit.')

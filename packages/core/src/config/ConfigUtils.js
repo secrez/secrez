@@ -25,7 +25,7 @@ class ConfigUtils {
     config.localWorkingDir = localWorkingDir
     config.keysDataPath = path.join(container, 'keys')
     config.keysPath = path.join(config.keysDataPath, 'default.json')
-
+    config.oldKeysPath = path.join(container, 'keys.json')
     config.localDataPath = path.join(container, 'local')
     config.tmpPath = path.join(container, 'tmp')
 
@@ -35,7 +35,7 @@ class ConfigUtils {
 
     await fs.emptyDir(config.tmpPath)
 
-    if (!(await fs.pathExists(path.join(container, 'keys.json')))) {
+    if (!(await fs.pathExists(config.oldKeysPath))) {
       await fs.writeFile(path.join(container, 'keys.json'), JSON.stringify({
         data: {
           why: 'This file is here to cause an error in old versions of Secrez during login, and avoid that Secrez thinks the db is empty and reset it.'
