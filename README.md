@@ -415,51 +415,10 @@ For security reason, if would be better if you do the export from you password m
 
 Still, it is convenient to edit the exported file to fix paths and names. Doing it after than the data is imported can require a lot more time. Think about it.
 
-## Second factor authentication
+## Second factor authentication?
 
-Since version 0.6.1, Secrez supports 2FA. It uses external scripts in Python, based on  Python-Fido2 by Yubiko, and it's compatible with any Fido2 authenticator device implementing the hmac-secret extension.
+**It has been removed in version 0.11.0 due to potentially critical issues with Python and the required libraries on MacOS (2FA will be restored as soon as a pure Javascript library is available)**
 
-To register a new fido2 key with the name `solo`, you can call
-
-```
-conf -r solo --fido2
-```
-
-When you activate the first fido2 key, Secrez asks if you also want to generate an emergency recovery code. It allows you to recover the account if all the registered keys are lost.
-
-You can set more keys and more recovery codes. For the latter, with a command like:
-
-```
-conf -r memo --recovery-code
-```
-If you already have a mnemonic you use to recover something else, you can use it, like:
-```
-conf -r memo --recovery-code --use-this "laugh elevator chimney account 
-  tone kiwi aware fall flee couple hurry domain"
-```
-
-To list all the factors, run:
-
-```
-conf -l
-```
-or, to see only the usb keys:
-
-```
-conf -l --fido2
-```
-To unregister a key or a mnemonic, run:
-
-```
-conf -u solo
-```
-If solo is the only USB device you set, Secrez removes all the recovery codes and reverses the account for a normal login.
-
-**Risks**
-
-Adding or removing a second factor changes the keys.json file. So, if you are using a git repository, be sure you don't create conflicts, i.e., don't change the second factor configuration in more computer parallelly because you risk to damage your data.
-
-As a rule of thumb, if you use a git repo, always pull before running Secrez, and always commit and push after exiting.
 
 ## (experimental) End-to-end encrypted communication with other accounts
 
@@ -481,6 +440,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ## History
+
+__0.11.0__
+* uses @secrez/core@0.9.0, which changes the encoding from base58 to base64, making the app super faster
+* remove second factor authentication due to potentially critical issues with Python and the required libraries on MacOS (2FA will be restored as soon as a pure Javascript library is available)
+* `Bash` has been renamed `Shell`
 
 __0.10.8__
 * exposes a prompt mock to allow other software to run commands programmatically
