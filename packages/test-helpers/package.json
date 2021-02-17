@@ -13,7 +13,7 @@
     "posttest": "nyc check-coverage --statements 100 --branches 90 --functions 100 --lines 100"
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.0",
+    "@secrez/core": "workspace:~1.0.1",
     "@secrez/crypto": "workspace:~1.0.0",
     "@secrez/fs": "workspace:~1.0.0",
     "@secrez/hub": "workspace:~0.2.0",

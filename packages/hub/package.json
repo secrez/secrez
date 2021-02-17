@@ -25,7 +25,7 @@
   },
   "preferGlobal": true,
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.0",
+    "@secrez/core": "workspace:~1.0.1",
     "@secrez/crypto": "workspace:~1.0.0",
     "@secrez/tls": "workspace:~0.1.4",
     "@secrez/utils": "workspace:~1.0.0",
