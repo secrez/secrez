@@ -247,6 +247,7 @@ importers:
       '@secrez/crypto': link:../crypto
       '@secrez/fs': link:../fs
       '@secrez/hub': link:../hub
+      '@secrez/migrate': link:../migrate
       '@secrez/utils': link:../utils
       case: 1.6.3
       chalk: 3.0.0
@@ -279,6 +280,7 @@ importers:
       '@secrez/crypto': workspace:~1.0.0
       '@secrez/fs': workspace:~1.0.0
       '@secrez/hub': workspace:~0.2.0
+      '@secrez/migrate': workspace:^0.0.2
       '@secrez/test-helpers': workspace:~1.0.0
       '@secrez/utils': workspace:~1.0.0
       case: ^1.6.3

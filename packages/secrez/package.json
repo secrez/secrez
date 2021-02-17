@@ -19,6 +19,7 @@
     "@secrez/crypto": "workspace:~1.0.0",
     "@secrez/fs": "workspace:~1.0.0",
     "@secrez/hub": "workspace:~0.2.0",
+    "@secrez/migrate": "workspace:^0.0.2",
     "@secrez/utils": "workspace:~1.0.0",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
