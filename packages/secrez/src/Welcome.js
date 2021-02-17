@@ -87,7 +87,7 @@ Your encrypted db is not compatible with this version of Secrez.
 and run it to migrate the db. 
 If you need to access your secrets now, revert to a compatible version with 
 
-  ${chalk.bold('pnpm i -g secrez@0.10.7')}
+  ${chalk.bold('pnpm i -g secrez@0.10.8')}
   
 and migrate your db later.
 Thanks.`)

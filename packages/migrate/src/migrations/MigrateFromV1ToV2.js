@@ -24,22 +24,27 @@ class MigrateFromV1ToV2 {
     }
   }
 
-  async migrate(password, iterations) {
+  async migrate(password,
+                iterations,
+                skipConfirmation /* for testing */) {
 
-    Logger.reset(`
+    /* instanbul ignore if */
+    if (!skipConfirmation) {
+      Logger.reset(`
 Ready to migrate Secrez's db from version 2 to the version 3. 
 
 To avoid issues the current db will be backed up.
 `)
-    let message = 'Would you like to continue?'
-    let yes = await this.prompt0.useConfirm({
-      message,
-      default: true
-    })
-    if (!yes) {
-      Logger.reset('Exiting')
-      // eslint-disable-next-line no-process-exit
-      process.exit(0)
+      let message = 'Would you like to continue?'
+      let yes = await this.prompt0.useConfirm({
+        message,
+        default: true
+      })
+      if (!yes) {
+        Logger.reset('Exiting')
+        // eslint-disable-next-line no-process-exit
+        process.exit(0)
+      }
     }
 
     await this.setUpSecrez(password, iterations)
@@ -49,7 +54,6 @@ Starting migration
 `)
 
     let backupContainer = await this.backup()
-
     const ifs0 = this.prompt0.internalFs
     let datasetInfo = await ifs0.getDatasetsInfo()
     for (let dataset of datasetInfo) {
@@ -100,30 +104,28 @@ If you see any errors running Secrez, execute
   
 to restore the previous database, reinstall a compatible version of secrez with
 
-  pnpm i -g secrez@0.10.7
+  pnpm i -g secrez@0.10.8
   
 and contact secrez@sullo.co for help.
 `)
-
     // eslint-disable-next-line no-process-exit
     process.exit(0)
   }
 
   async setUpSecrez(password, iterations) {
 
+    this.container = path.join(this.workdir, 'db')
     const options = {
-      container: path.join(this.workdir, 'db')
+      container: this.container
     }
-    this.container = options.container
-    await fs.emptyDir(options.container)
-
+    if (await fs.pathExists(this.container)) {
+      await fs.remove(this.container)
+    }
     const prompt = new Prompt
     await prompt.init(options)
-
     this.secrez = prompt.secrez
     this.secrez.cache.initEncryption('alias', 'contact')
     await this.secrez.cache.load('id')
-
     this.internalFs = prompt.internalFs
     this.externalFs = prompt.externalFs
 
@@ -160,6 +162,7 @@ and contact secrez@sullo.co for help.
     await replace('cache')
     await replace('local')
     await replace('keys.json')
+    await replace('README')
     await replace('keys/default.json')
   }
 

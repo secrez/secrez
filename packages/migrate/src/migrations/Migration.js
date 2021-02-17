@@ -8,11 +8,8 @@ const MigrateFromV1ToV2 = require('./MigrateFromV1ToV2')
 
 class Migration {
 
-  constructor(prompt) {
+  constructor(prompt, workdir = path.join(homedir(), '.secrez-migrate')) {
     this.prompt = prompt
-    let workdir = process.env.NODE_ENV === 'test'
-        ? path.resolve(__dirname, '../../tmp/test/secrez-migrate')
-        : path.join(homedir(), '.secrez-migrate')
     this.migrateFromV1ToV2 = new MigrateFromV1ToV2(prompt, workdir)
   }
 
@@ -20,8 +17,8 @@ class Migration {
     return this.migrateFromV1ToV2.isMigrationNeeded()
   }
 
-  async migrate(password, iterations) {
-    this.migrateFromV1ToV2.migrate(password, iterations)
+  async migrate(password, iterations, skipConfirmation) {
+    this.migrateFromV1ToV2.migrate(password, iterations, skipConfirmation)
   }
 
   async reverse() {

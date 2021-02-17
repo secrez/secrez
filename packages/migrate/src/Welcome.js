@@ -12,7 +12,7 @@ class Welcome {
       let errorCode = await this.login()
       if (errorCode === 1) {
         Logger.red('secrez-migrate does not work on accounts requiring a second factor to login.')
-        Logger.grey('Please, use a compatible version of Secrez — for example secrez@0.10.7 — to open the account and remove any second factor before run secrez-migrate again')
+        Logger.grey('Please, use a compatible version of Secrez — for example secrez@0.10.8 — to open the account and remove any second factor before run secrez-migrate again')
         // eslint-disable-next-line no-process-exit
         process.exit(0)
       }

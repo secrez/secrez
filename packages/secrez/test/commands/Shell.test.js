@@ -12,7 +12,7 @@ const {
   iterations
 } = require('../fixtures')
 
-describe('#Bash', function () {
+describe('#Shell', function () {
 
   let prompt
   let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
@@ -35,22 +35,22 @@ describe('#Bash', function () {
   it('should return the help', async function () {
 
     inspect = stdout.inspect()
-    await C.bash.exec({help: true})
+    await C.shell.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
     assert.isTrue(/-h, --help/.test(output[4]))
 
   })
 
-  it('should show the content of an external file via bash', async function () {
+  it('should show the content of an external file via shell', async function () {
 
     await noPrint(C.lcd.exec({path: 'folder1'}))
 
-    let result = await C.bash.bash({command: 'cat file1'})
+    let result = await C.shell.shell({command: 'cat file1'})
     assert.equal(result, 'Some secret\n')
 
     inspect = stdout.inspect()
-    await C.bash.exec({command: 'cat file1'})
+    await C.shell.exec({command: 'cat file1'})
     inspect.restore()
     assertConsole(inspect, 'Some secret')
 

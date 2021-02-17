@@ -35,14 +35,6 @@ class MainPromptMock {
   async loading() {
   }
 
-  static async setSecrezSignUp(password, iterations, method, options) {
-    let prompt = new MainPromptMock
-    await prompt.init(options)
-    await prompt.secrez[method](password, iterations)
-    await prompt.internalFs.init()
-    return prompt
-  }
-
 }
 
 

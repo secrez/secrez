@@ -1,6 +1,6 @@
 {
   "name": "@secrez/core",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -13,14 +13,14 @@
     "posttest": "nyc check-coverage --statements 99 --branches 95 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/crypto": "workspace:~0.2.0",
-    "@secrez/utils": "workspace:~0.1.6",
-    "fs-extra": "^8.1.0",
+    "@secrez/crypto": "workspace:~1.0.0",
+    "@secrez/utils": "workspace:~1.0.0",
+    "fs-extra": "^9.1.0",
     "homedir": "^0.6.0",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~0.1.5",
+    "@secrez/test-helpers": "workspace:~1.0.0",
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
