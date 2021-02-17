@@ -8,7 +8,8 @@
   "scripts": {
     "test": "pnpm run test -r",
     "test-only": "pnpm run test-only -r",
-    "lint": "pnpm run lint -r",
+    "bin-lint": "eslint -c .eslintrc 'bin/*.js'",
+    "lint": "pnpm run bin-lint && pnpm run lint -r",
     "reset": "bin/clean-all-modules.sh && pnpm install",
     "patch-versions": "node bin/patch-versions.js",
     "pre-push": "pnpm run lint && node bin/pre-push.js",

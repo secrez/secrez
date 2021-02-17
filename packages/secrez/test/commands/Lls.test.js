@@ -39,7 +39,7 @@ describe('#Lls', function () {
     await C.lls.exec({help: true})
     inspect.restore()
     let output = inspect.output.map(e => decolorize(e))
-    assert.isTrue(/-h, --help/.test(output[5]))
+    assert.isTrue(/-h, --help/.test(output[6]))
 
   })
 

@@ -3,7 +3,7 @@ const fs = require('fs')
 const {execSync} = require('child_process')
 
 let packages = {}
-execSync(`git diff master --name-only`).toString().split('\n').map(e => {
+execSync('git diff master --name-only').toString().split('\n').map(e => {
   let m = e.split('/')
   if (m[0] === 'packages' && (m[2] === 'src' || m[2] === 'package.json')) {
     packages[m[1]] = true
@@ -15,10 +15,10 @@ let packagesFolder = fs.readdirSync(path.resolve(__dirname, '../packages'))
 
 let packagesJson = {}
 
-for (let package of packagesFolder) {
-  let pjsonPath = path.resolve(__dirname, '../packages', package, 'package.json')
+for (let package0 of packagesFolder) {
+  let pjsonPath = path.resolve(__dirname, '../packages', package0, 'package.json')
   if (fs.existsSync(pjsonPath)) {
-    packagesJson[package] = require(path.resolve(__dirname, '../packages', package, 'package.json'))
+    packagesJson[package0] = require(path.resolve(__dirname, '../packages', package0, 'package.json'))
   }
 }
 
@@ -26,10 +26,10 @@ function getExistingVersion(pkg) {
   return execSync(`npm view ${pkg} | grep latest`).toString().split('\n')[0].split(' ')[1]
 }
 
-function updateOtherPackages(package, name, newVersion) {
-  console.debug('Patching '+package+' to version '+ newVersion)
+function updateOtherPackages(package0, name, newVersion) {
+  console.debug('Patching '+package0+' to version '+ newVersion)
   for (let p in packagesJson) {
-    if (p === package) {
+    if (p === package0) {
       continue
     }
     let json = packagesJson[p]

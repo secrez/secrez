@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const {execSync} = require('child_process')
 
 let changes
@@ -8,6 +6,7 @@ let gitDiff = execSync('git diff --name-only').toString().split('\n')
 
 if (gitDiff.length > 0 && gitDiff[0]) {
   console.error('The repo is not committed.')
+  // eslint-disable-next-line no-process-exit
   process.exit(1)
 }
 

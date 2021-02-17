@@ -51,6 +51,7 @@ class InternalFs {
     for (let i = 0; i < len; i++) {
       let notLast = i < len - 1
       let entry = new Entry({
+        id: options.id,
         name: p[i],
         type: notLast ? config.types.DIR : options.type
       })
@@ -138,9 +139,6 @@ class InternalFs {
     if (!node) {
       throw new Error('Path does not exist')
     }
-
-    // console.log(JSON.stringify(node, null, 1))
-
     let originalParentId = node.parent.id
     let entry = new Entry(Object.assign(options, node.getEntry()))
     let ancestor, remainingPath
@@ -183,7 +181,6 @@ class InternalFs {
     if (entry.parent && (!node.parent || entry.parent.id !== node.parent.id || cross)) {
       entry.name = await treeTo.getVersionedBasename(path.join(entry.parent.getPath(), entry.name), entry.parent)
     }
-
     if (entry.name !== node.getName() || entry.content !== node.getContent()) {
       entry = this.secrez.encryptEntry(entry)
       await treeFrom.saveEntry(entry)
@@ -205,9 +202,6 @@ class InternalFs {
       node.move(entry)
       await treeFrom.save()
     }
-    // console.log(JSON.stringify(treeFrom.root, null, 2))
-    // console.log(JSON.stringify(treeTo.root, null, 2))
-
     return node
   }
 

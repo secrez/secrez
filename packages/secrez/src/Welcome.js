@@ -1,7 +1,7 @@
 const chalk = require('chalk')
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
-const {Crypto} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const Logger = require('./utils/Logger')
 const Fido2Client = require('./utils/Fido2Client')
 
@@ -76,7 +76,30 @@ class Welcome {
           if (e.message === 'A second factor is required') {
             return 1
           }
-          Logger.red(`${e.message}. Try again or Ctrl-C to exit.`)
+          if (e.message === 'DB_ERROR') {
+            Logger.red(chalk.bold(`
+Your encrypted db is not compatible with this version of Secrez.
+`))
+            Logger.reset(`Install secrez-migrate with
+
+  ${chalk.bold('pnpm i -g @secrez/migrate')}
+
+and run it to migrate the db. 
+If you need to access your secrets now, revert to a compatible version with 
+
+  ${chalk.bold('pnpm i -g secrez@0.10.8')}
+  
+and migrate your db later.
+Thanks.`)
+            // eslint-disable-next-line no-process-exit
+            process.exit(0)
+          }
+          Logger.red(`${e.message}.Try
+            again
+            or
+            Ctrl - C
+            to
+            exit.`)
         }
       } catch (e) {
         Logger.red('Unrecognized error. Try again or Ctrl-c to exit.')
@@ -123,7 +146,19 @@ class Welcome {
                 if (value.length) {
                   return true
                 } else {
-                  return `Please paste a valid recovery code or type ${exitCode} to choose another factor.`
+                  return `
+            Please
+            paste
+            a
+            valid
+            recovery
+            code
+            or
+            type ${exitCode}
+            to
+            choose
+            another
+            factor.`
                 }
               }
             }])
@@ -143,7 +178,12 @@ class Welcome {
           }
           return
         } catch (e) {
-          Logger.red(`${e.message}. Try again or Ctrl-C to exit.`)
+          Logger.red(`${e.message}.Try
+            again
+            or
+            Ctrl - C
+            to
+            exit.`)
         }
       } catch (e) {
         Logger.red('Unrecognized error. Try again or Ctrl-C to exit.')

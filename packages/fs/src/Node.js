@@ -1,5 +1,6 @@
 const util = require('util')
-const {config, Crypto, Entry} = require('@secrez/core')
+const {config, Entry} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const {ANCESTOR_NOT_FOUND, ENTRY_EXISTS} = require('./Messages')
 const DataCache = require('./DataCache')
 
@@ -17,14 +18,13 @@ class Node {
     return cache
   }
 
-  constructor(entry, force) {
+  constructor(entry) {
 
     if (!entry || entry.constructor.name !== 'Entry') {
       throw new Error('Node constructor expects an Entry instance')
     }
 
     let isRoot = Node.isRoot(entry)
-    let isTrash = Node.isTrash(entry)
 
     if (!(Node.isDir(entry) || Node.isFile(entry))) {
       throw new Error('Unsupported type')
@@ -33,8 +33,6 @@ class Node {
     this.type = entry.type
     if (isRoot) {
       this.id = config.specialId.ROOT
-    } else if (isTrash) {
-      this.id = config.specialId.TRASH
     } else {
       if (entry.id) {
         this.id = entry.id
@@ -50,14 +48,6 @@ class Node {
 
     if (isRoot) {
       this.rnd = Crypto.getRandomId()
-    } else if (isTrash) {
-      this.lastTs = Crypto.getTimestampWithMicroseconds().join('.')
-      this.versions = {}
-      this.versions[this.lastTs] = {
-        name: config.specialName.TRASH,
-        file: null
-      }
-      this.parent = entry.parent
     } else {
       if (!entry.ts || typeof entry.ts !== 'string'
           || !entry.name || typeof entry.name !== 'string'
@@ -88,12 +78,8 @@ class Node {
     return obj.type === config.types.ROOT
   }
 
-  static isTrash(obj) {
-    return obj.type === config.types.TRASH
-  }
-
   static isDir(node) {
-    return this.isRoot(node) || this.isTrash(node) || node.type === config.types.DIR
+    return this.isRoot(node) || node.type === config.types.DIR
   }
 
   static isFile(node) {
@@ -107,17 +93,6 @@ class Node {
   static isText(node) {
     return node.type === config.types.TEXT
   }
-
-  // static isTrashed(node) {
-  //   if (node.parent) {
-  //     if (Node.isTrash(node.parent)) {
-  //       return true
-  //     } else if (node.parent.parent) {
-  //       return Node.isTrashed(node.parent)
-  //     }
-  //   }
-  //   return false
-  // }
 
   static fromJSON(json, secrez, allFiles) {
     // It takes an already parsed object to make it an instance of the class.
@@ -148,27 +123,20 @@ class Node {
     json.V = []
     for (let j = 0; j < json.v.length; j++) {
       let v = json.v[j]
-      if (/_/.test(v)) {
-        trash = true
-        json.V.push(new Entry({
-          type: config.types.TRASH
+      if (files[v]) {
+        let entry = secrez.decryptEntry(new Entry({
+          encryptedName: files[v]
         }))
-      } else {
-        if (files[v]) {
-          let entry = secrez.decryptEntry(new Entry({
-            encryptedName: files[v]
-          }))
-          let obj = entry.get(['id', 'ts', 'name'])
-          if (trash) {
-            obj.id = '_' + obj.id
-          }
-          obj.encryptedName = files[v]
-          json.V.push(obj)
-          delete files[v]
-        } else {
-          json.v.splice(j, 1)
-          j--
+        let obj = entry.get(['id', 'ts', 'name'])
+        if (trash) {
+          obj.id = '_' + obj.id
         }
+        obj.encryptedName = files[v]
+        json.V.push(obj)
+        delete files[v]
+      } else {
+        json.v.splice(j, 1)
+        j--
       }
     }
     json.V.sort(Node.sortEntry)
@@ -202,7 +170,7 @@ class Node {
 
     try {
       let V0 = json.V[0]
-      let type = V0 ? V0.type || parseInt(V0.encryptedName.substring(0, 1))
+      let type = V0 ? V0.type || parseInt(V0.encryptedName[0])
           : config.types.ROOT
       let node = new Node(new Entry({
         type,
@@ -211,7 +179,7 @@ class Node {
         name: V0 ? V0.name : undefined,
         encryptedName: V0 ? V0.encryptedName : undefined,
         parent
-      }), type === config.types.TRASH)
+      }))
       for (let i = 1; i < json.V.length; i++) {
         let V = json.V[i]
         node.versions[V.ts] = {
@@ -246,10 +214,6 @@ class Node {
 
     if (Node.isRoot(this)) {
       minSize = this.calculateMinSize(allFiles)
-    }
-
-    if (Node.isTrash(this)) {
-      return
     }
 
     if (this.versions) {
@@ -349,7 +313,7 @@ class Node {
             }
           } else
               /* istanbul ignore if  */
-            if (options.content && this.type === config.types.TEXT && options.tree) {
+          if (options.content && this.type === config.types.TEXT && options.tree) {
             let {content} = await options.tree.getEntryDetails(this, ts)
             if (re.test(content || '')) {
               if (options.getNodes) {
@@ -386,12 +350,6 @@ class Node {
           type: config.types.ROOT
         })
     )
-    // root.add(new Node(
-    //     new Entry({
-    //       type: config.types.TRASH,
-    //       parent: root
-    //     }), true
-    // ))
     return root
   }
 
@@ -534,7 +492,7 @@ class Node {
   }
 
   static isAncestor(ancestor, node) {
-    while(node) {
+    while (node) {
       if (node.id === ancestor.id) {
         return true
       }
@@ -624,7 +582,7 @@ class Node {
     try {
       Node.getRoot(this).getChildFromPath(p)
       return false
-    } catch(e) {
+    } catch (e) {
       return true
     }
   }
@@ -674,7 +632,7 @@ class Node {
     return new Entry(this.getOptions(ts))
   }
 
-  add(children) {
+  add(children, getChild) {
     if (Node.isDir(this)) {
       // a child is a Node instance
       if (!Array.isArray(children)) {
@@ -683,6 +641,9 @@ class Node {
       for (let c of children) {
         c.parent = this
         this.children[c.id] = c
+        if (getChild) {
+          return c
+        }
       }
     } else {
       throw new Error('The entry does not represent a folder')

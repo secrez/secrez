@@ -1,6 +1,6 @@
 {
   "name": "@secrez/crypto",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -10,18 +10,18 @@
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text ./node_modules/.bin/_mocha test/*.test.js test/**/*.test.js --exit",
-    "posttest": "nyc check-coverage --statements 99 --branches 90 --functions 99 --lines 99"
+    "posttest": "nyc check-coverage --statements 99 --branches 85 --functions 99 --lines 99"
   },
   "dependencies": {
     "base-x": "^3.0.8",
-    "bip39": "^3.0.2",
+    "byte-base64": "^1.1.0",
+    "microseconds": "^0.2.0",
     "sha3": "^2.1.2",
     "shamir": "^0.7.1",
-    "tweetnacl": "^1.0.3",
-    "tweetnacl-util": "^0.15.1"
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "@secrez/utils": "workspace:~0.1.6",
+    "@secrez/utils": "workspace:~1.0.0",
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",

@@ -3,7 +3,7 @@ const {Debug} = require('@secrez/utils')
 const http = require('http')
 const Router = require('koa-router')
 const {version} = require('../package.json')
-const {Crypto} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 
 const ClientManager = require('./lib/ClientManager')
 const debug = Debug('hub:server')

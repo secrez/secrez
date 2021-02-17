@@ -5,7 +5,7 @@ require('sqlite3')
 const path = require('path')
 const fs = require('fs-extra')
 
-const {Crypto} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 
 class Db {
 

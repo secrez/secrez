@@ -1,4 +1,3 @@
-const {execSync} = require('child_process')
 const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
@@ -12,14 +11,13 @@ const {sleep} = require('@secrez/test-helpers')
 
 const {
   password,
-  iterations,
-  secrez0_5x
+  iterations
 } = require('./fixtures')
 
 describe('#Tree', function () {
 
-  let secrez
   let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
+  let secrez
   let tree
   let internalFs
 
@@ -118,7 +116,6 @@ describe('#Tree', function () {
   describe('#Fix', function () {
 
     let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-    let internalFs
 
     beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
@@ -138,13 +135,22 @@ describe('#Tree', function () {
       internalFs = new InternalFs(secrez)
       await internalFs.init()
       tree = internalFs.tree
+      return {
+        secrez,
+        tree,
+        internalFs
+      }
     }
 
     it('should load a tree with tags', async function () {
 
       signedUp = false
 
-      await startTree()
+      let {
+        secrez,
+        tree,
+        internalFs
+      } = await startTree()
 
       let a = await internalFs.make({
         path: '/a',
@@ -207,7 +213,10 @@ describe('#Tree', function () {
 
       signedUp = false
 
-      await startTree()
+      let {
+        secrez,
+        internalFs
+      } = await startTree()
 
       let files0 = await fs.readdir(`${rootDir}/data`)
       assert.equal(files0.length, 0)
@@ -236,14 +245,15 @@ describe('#Tree', function () {
         content: 'some b'
       })
 
-      // jlog(Object.keys(tree.root.flat()))
-
       let files1 = await fs.readdir(`${rootDir}/data`)
       assert.equal(files1.length, 7)
 
       await sleep(200)
 
-      await startTree()
+      let tmp = await startTree()
+      secrez = tmp.secrez
+      tree = tmp.tree
+      internalFs = tmp.internalFs
 
       await internalFs.change({
         path: '/B/b',
@@ -281,11 +291,11 @@ describe('#Tree', function () {
         }
       }
 
-      // jlog(Object.keys(tree.root.flat()))
-
       await sleep(200)
 
-      await startTree()
+      tmp = await startTree()
+      secrez = tmp.secrez
+      internalFs = tmp.internalFs
 
       await internalFs.make({
         path: '/B/D/g',
@@ -313,7 +323,9 @@ describe('#Tree', function () {
 
       await sleep(300)
 
-      await startTree()
+      tmp = await startTree()
+      tree = tmp.tree
+      internalFs = tmp.internalFs
 
       assert.equal(tree.alerts.length, 5)
       assert.equal(tree.alerts[1], '/B/D/g')
@@ -334,7 +346,11 @@ describe('#Tree', function () {
 
       signedUp = false
 
-      await startTree()
+      let {
+        secrez,
+        tree,
+        internalFs
+      } = await startTree()
 
       await internalFs.make({
         path: '/A/M',
@@ -364,7 +380,8 @@ describe('#Tree', function () {
         }
       }
 
-      await startTree()
+      let tmp = await startTree()
+      tree = tmp.tree
 
       assert.equal(tree.alerts.length, 7)
       assert.isTrue(tree.alerts[1].indexOf('/b') !== -1)
@@ -389,7 +406,7 @@ describe('#Tree', function () {
       let recovered = findRecovered(tree.root)
       assert.equal(Object.keys(recovered.children).length, 6)
 
-      await startTree()
+      tree = (await startTree()).tree
 
       recovered = findRecovered(tree.root)
       assert.equal(Object.keys(recovered.children).length, 6)
@@ -469,37 +486,4 @@ describe('#Tree', function () {
 
   })
 
-  describe('Convert from single to multi data sets', async function () {
-
-    let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-    let secrez
-    let internalFs
-
-    it('should load a 0.5.x format and, if finds deleted files, move them to the trash dataset', async function () {
-
-      let p = path.resolve(__dirname, 'fixtures', secrez0_5x.path)
-      let d = path.resolve(__dirname, '../tmp/test/.secrez')
-
-      await fs.emptyDir(d)
-      execSync(`cp -r ${p}/* ${d}`)
-
-      secrez = new Secrez()
-      await secrez.init(rootDir)
-      await secrez.signin(secrez0_5x.password, secrez0_5x.iterations)
-      internalFs = new InternalFs(secrez)
-      await internalFs.init()
-      tree = internalFs.tree
-
-      let found = []
-      for (let c in tree.root.children) {
-        let child = tree.root.children[c]
-        if (/^TRASH_\d{14}$/.test(child.getName())) {
-          found.push(child.getName())
-        }
-      }
-      assert.equal(found.length, 1)
-
-    })
-
-  })
 })

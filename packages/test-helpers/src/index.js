@@ -8,7 +8,8 @@ const stdout = require('test-console').stdout
 const superagent = require('superagent')
 const {utils: hubUtils} = require('@secrez/hub')
 const {execAsync, decolorize} = require('@secrez/utils')
-const {Crypto, config, Entry} = require('@secrez/core')
+const {config, Entry} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const {Node} = require('@secrez/fs')
 const https = require('https')
 

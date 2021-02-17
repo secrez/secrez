@@ -119,6 +119,9 @@ class Tag extends require('../Command') {
       }
       return result
     } else if (nodes || options.path || options.find) {
+      if (/:[/]*$/.test(options.path || '')) {
+        throw new Error('Datasets are not taggable')
+      }
       if (!nodes) {
         if (options.find) {
           options.getNodes = true

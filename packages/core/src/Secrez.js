@@ -1,10 +1,14 @@
 const homedir = require('homedir')
 const fs = require('fs-extra')
 const _ = require('lodash')
-const Crypto = require('./Crypto')
+const Crypto = require('@secrez/crypto')
 const ConfigUtils = require('./config/ConfigUtils')
 const Entry = require('./Entry')
-const utils = require('@secrez/utils')
+
+const {
+  DO_NOT_VERIFY,
+  URL_SAFE
+} = require('./config/booleans')
 
 module.exports = function () {
 
@@ -28,63 +32,84 @@ module.exports = function () {
       this.config = await ConfigUtils.setSecrez(this.config, container, localWorkingDir)
     }
 
-    async signup(password, iterations,
-                 // to test the upgrade from 1 to 2
-                 testDerivationVersion
-    ) {
+    async signup(password, iterations) {
       if (!this.config || !this.config.keysPath) {
         throw new Error('Secrez not initiated')
       }
       if (!await fs.pathExists(this.config.keysPath)) {
 
-        let id = Crypto.b58Hash(Crypto.generateKey())
+        let id = Crypto.b64Hash(Crypto.generateKey())
         _secrez = new _Secrez(this)
 
-        let derivationVersion = _Secrez.derivationVersion.TWO
-        if (process.env.NODE_ENV === 'test' && testDerivationVersion) {
-          derivationVersion = testDerivationVersion
-        }
+        await _secrez.init(password, iterations)
 
-        await _secrez.init(password, iterations, derivationVersion)
-
-        let {key, hash} = await _secrez.signup()
+        let {sign, box, key, hash} = await _secrez.signup()
         this.masterKeyHash = hash
 
-        // x25519-xsalsa20-poly1305
-        const boxPair = Crypto.generateBoxKeyPair()
-        const box = {
-          secretKey: _secrez.encrypt(Crypto.toBase58(boxPair.secretKey)),
-          publicKey: Crypto.toBase58(boxPair.publicKey)
-        }
-
-        // ed25519
-        const ed25519Pair = Crypto.generateSignatureKeyPair()
-        const sign = {
-          secretKey: _secrez.encrypt(Crypto.toBase58(ed25519Pair.secretKey)),
-          publicKey: Crypto.toBase58(ed25519Pair.publicKey)
-        }
-
-        _secrez.initPrivateKeys(boxPair.secretKey, ed25519Pair.secretKey)
-
         const data = {
-          id,
-          sign,
-          box,
-          key,
-          hash,
-          when: utils.intToBase58(Date.now())
+          id, sign, box, key, hash,
+          when: _secrez.encrypt(Date.now().toString()),
+          version: this.config.VERSION
         }
-        if (derivationVersion === _Secrez.derivationVersion.TWO) {
-          data.derivationVersion = derivationVersion
-        }
-        _secrez.setConf(await this.signAndSave(data), true)
+        _secrez.setConf(await this.signAndSave(data), DO_NOT_VERIFY)
       } else {
         throw new Error('An account already exists. Please, sign in or chose a different container directory')
       }
     }
 
-    async derivePassword(password, iterations, derivationVersion) {
-      return await _Secrez.derivePassword(password, iterations, derivationVersion)
+    async signin(password, iterations) {
+      if (!this.config || !this.config.keysPath) {
+        throw new Error('Secrez not initiated')
+      }
+      if (!iterations) {
+        const env = await ConfigUtils.getEnv(this.config)
+        iterations = env.iterations
+      }
+      if (!iterations || iterations !== parseInt(iterations.toString())) {
+        throw new Error('Iterations is missed')
+      }
+      iterations = parseInt(iterations)
+      const conf = await this.readConf()
+      const data = conf.data
+      _secrez = new _Secrez(this)
+      await _secrez.init(password, iterations)
+      /* istanbul ignore if  */
+      if (!data.key && !data.keys) {
+        throw new Error('No valid data found')
+      }
+      /* istanbul ignore if  */
+      if (!data.version || data.version !== this.config.VERSION) {
+        throw new Error('DB_ERROR')
+      }
+      if (data.key) {
+        let masterKeyHash = await _secrez.signin(data)
+        this.setMasterKeyHash(conf, masterKeyHash)
+      } else {
+        throw new Error('A second factor is required')
+      }
+      return 0
+    }
+
+    async sharedSignin(authenticator, secret) {
+      if (!this.config || !this.config.keysPath || !_secrez || !_secrez.isInitiated()) {
+        throw new Error('A standard sign in must be run before to initiate Secrez')
+      }
+      const conf = await this.readConf()
+      const data = conf.data
+      /* istanbul ignore if  */
+      if (!data.keys) {
+        throw new Error('No second factor registered')
+      }
+      if (!data.keys[authenticator]) {
+        throw new Error(`No second factor registered with the authenticator ${authenticator}`)
+      }
+      let masterKeyHash = await _secrez.sharedSignin(data, authenticator, secret)
+      this.setMasterKeyHash(conf, masterKeyHash)
+      return 0
+    }
+
+    async derivePassword(password, iterations) {
+      return await _Secrez.derivePassword(password, iterations)
     }
 
     async signAndSave(data) {
@@ -123,7 +148,7 @@ module.exports = function () {
         _secrez.restoreKey()
       }
       let conf = await this.signAndSave(data)
-      _secrez.setConf(conf, true)
+      _secrez.setConf(conf, DO_NOT_VERIFY)
       return code
     }
 
@@ -148,7 +173,7 @@ module.exports = function () {
         delete conf.data.key
       }
       conf = await this.signAndSave(conf.data)
-      _secrez.setConf(conf, true)
+      _secrez.setConf(conf, DO_NOT_VERIFY)
       return conf
     }
 
@@ -157,7 +182,7 @@ module.exports = function () {
     }
 
     getPublicKey() {
-      return _secrez.conf.data.box.publicKey + '0' + _secrez.conf.data.sign.publicKey
+      return _secrez.conf.data.box.publicKey + '$' + _secrez.conf.data.sign.publicKey
     }
 
     async readConf() {
@@ -173,7 +198,7 @@ module.exports = function () {
 
     async upgradeAccount(password, iterations) {
       let data = await _secrez.changePassword(password, iterations)
-      _secrez.setConf(await this.signAndSave(data), true)
+      _secrez.setConf(await this.signAndSave(data), DO_NOT_VERIFY)
     }
 
     async verifyPassword(password) {
@@ -185,40 +210,7 @@ module.exports = function () {
     }
 
     verifySignedMessage(message, signature, publicKey) {
-      return Crypto.verifySignature(message, signature, Crypto.fromBase58(publicKey || this.getConf().data.sign.publicKey))
-    }
-
-    async signin(password, iterations) {
-      if (!this.config || !this.config.keysPath) {
-        throw new Error('Secrez not initiated')
-      }
-      if (!iterations) {
-        const env = await ConfigUtils.getEnv(this.config)
-        iterations = env.iterations
-      }
-      if (!iterations || iterations !== parseInt(iterations.toString())) {
-        throw new Error('Iterations is missed')
-      }
-      iterations = parseInt(iterations)
-      const conf = await this.readConf()
-      const data = conf.data
-      _secrez = new _Secrez(this)
-      await _secrez.init(password, iterations, data.derivationVersion)
-      /* istanbul ignore if  */
-      if (!data.key && !data.keys) {
-        throw new Error('No valid data found')
-      }
-      if (data.key) {
-        let masterKeyHash = await _secrez.signin(data)
-        this.setMasterKeyHash(conf, masterKeyHash)
-        if (!data.derivationVersion) {
-          await this.upgradeAccount()
-          return 1
-        }
-      } else {
-        throw new Error('A second factor is required')
-      }
-      return 0
+      return Crypto.verifySignature(message, signature, Crypto.bs64.decode(publicKey || this.getConf().data.sign.publicKey))
     }
 
     async getSecondFactorData(authenticator) {
@@ -232,28 +224,6 @@ module.exports = function () {
       } else {
         throw new Error(`No registered data with the authenticator ${authenticator}`)
       }
-    }
-
-    async sharedSignin(authenticator, secret) {
-      if (!this.config || !this.config.keysPath || !_secrez || !_secrez.isInitiated()) {
-        throw new Error('A standard sign in must be run before to initiate Secrez')
-      }
-      const conf = await this.readConf()
-      const data = conf.data
-      /* istanbul ignore if  */
-      if (!data.keys) {
-        throw new Error('No second factor registered')
-      }
-      if (!data.keys[authenticator]) {
-        throw new Error(`No second factor registered with the authenticator ${authenticator}`)
-      }
-      let masterKeyHash = await _secrez.sharedSignin(data, authenticator, secret)
-      this.setMasterKeyHash(conf, masterKeyHash)
-      if (!data.derivationVersion) {
-        await this.upgradeAccount()
-        return 1
-      }
-      return 0
     }
 
     setMasterKeyHash(conf, masterKeyHash) {
@@ -274,12 +244,12 @@ module.exports = function () {
       return next
     }
 
-    encryptData(data) {
-      return _secrez.encrypt(data)
+    encryptData(data, urlSafe) {
+      return _secrez.encrypt(data, urlSafe)
     }
 
-    decryptData(encryptedData) {
-      return _secrez.decrypt(encryptedData)
+    decryptData(encryptedData, urlSafe) {
+      return _secrez.decrypt(encryptedData, urlSafe)
     }
 
     preEncryptData(data) {
@@ -299,7 +269,7 @@ module.exports = function () {
     }
 
 
-    encryptEntry(entry) {
+    encryptEntry(entry, useTs) {
 
       if (!entry || entry.constructor.name !== 'Entry') {
         throw new Error('An Entry instance is expected as parameter')
@@ -319,7 +289,9 @@ module.exports = function () {
           throw new Error('Unsupported type')
         }
 
-        let ts = Crypto.getTimestampWithMicroseconds().join('.')
+        let ts = useTs && entry.ts
+            ? entry.ts
+            : Crypto.getTimestampWithMicroseconds().join('.')
         let encryptedEntry = new Entry({
           id,
           type,
@@ -330,11 +302,11 @@ module.exports = function () {
             i: id,
             t: ts,
             n: name
-          }))
+          }), URL_SAFE)
           let extraName
           if (encryptedName.length > 255) {
             extraName = encryptedName.substring(254)
-            encryptedName = encryptedName.substring(0, 254) + 'O'
+            encryptedName = encryptedName.substring(0, 254) + '$'
           }
 
           encryptedEntry.set({
@@ -366,7 +338,7 @@ module.exports = function () {
       }
     }
 
-    decryptEntry(encryptedEntry) {
+    decryptEntry(encryptedEntry, urlSafe) {
 
       if (!encryptedEntry || encryptedEntry.constructor.name !== 'Entry') {
         throw new Error('An Entry instance is expected as parameter')
@@ -390,8 +362,8 @@ module.exports = function () {
             if (extraName) {
               data = encryptedName.substring(0, 254) + extraName
             }
-            let type = parseInt(data.substring(0, 1))
-            let e = JSON.parse(_secrez.decrypt(data.substring(1)))
+            let type = parseInt(data[0])
+            let e = JSON.parse(_secrez.decrypt(data.substring(1), URL_SAFE))
             let id = e.i
             let ts = e.t
             let name = e.n

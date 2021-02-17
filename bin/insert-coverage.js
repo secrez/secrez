@@ -1,6 +1,6 @@
 const path = require('path')
 const fs = require('fs')
-const _ = require('../packages/secrez/node_modules/lodash')
+// eslint-disable-next-line node/no-unpublished-require
 
 function decolorize(str) {
   // eslint-disable-next-line no-control-regex
@@ -21,6 +21,7 @@ if (![
   'utils'
 ].includes(target)) {
   console.error(`Wrong target: ${target}`)
+  // eslint-disable-next-line no-process-exit
   process.exit(1)
 }
 
@@ -30,7 +31,8 @@ let result = []
 for (let row of coverage) {
   row = decolorize(row)
 
-  if (/  \d+ failing/.test(row)) {
+  if (/ {2}\d+ failing/.test(row)) {
+    // eslint-disable-next-line no-process-exit
     process.exit(1)
   }
 
@@ -40,7 +42,7 @@ for (let row of coverage) {
     }
     result.push(row)
   }
-  if (/  \d+ passing/.test(row)) {
+  if (/ {2}\d+ passing/.test(row)) {
     result.push(row)
   }
 

@@ -55,6 +55,7 @@ class Use extends require('../Command') {
       } else if (newSet) {
         await this.internalFs.mountTree(newSet.index, true)
       } else {
+        // create
         this.internalFs.tree.validateDatasetName(options.dataset)
         let index = datasetsInfo[datasetsInfo.length - 1].index + 1
         await this.internalFs.mountTree(index, true)

@@ -1,10 +1,10 @@
 const chai = require('chai')
 const assert = chai.assert
 const path = require('path')
-const Secrez = require('../src/Secrez')(Math.random())
-const Secrez2 = require('../src/Secrez')(Math.random())
+const Crypto = require('@secrez/crypto')
+const Secrez = require('../src/Secrez')()
+const Secrez2 = require('../src/Secrez')()
 
-const Crypto = require('../src/Crypto')
 const Entry = require('../src/Entry')
 const fs = require('fs-extra')
 const config = require('../src/config')
@@ -14,7 +14,6 @@ const {
   newPassword,
   iterations,
   hash23456iterationsNoSalt,
-  hash23456iterationsNoSaltVersionTwo,
   secondFactor
 } = require('./fixtures')
 
@@ -42,7 +41,6 @@ describe('#Secrez', function () {
         assert.equal(e.message, 'You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data.')
       }
     })
-
   })
 
 
@@ -60,12 +58,7 @@ describe('#Secrez', function () {
 
       it('should derive a password and obtain a predeterminded hash', async function () {
         let derivedPassword = await secrez.derivePassword(password, iterations)
-        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterationsNoSalt)
-      })
-
-      it('should derive a password and obtain a predeterminded hash with version two', async function () {
-        let derivedPassword = await secrez.derivePassword(password, iterations, '2')
-        assert.equal(Crypto.b58Hash(derivedPassword), hash23456iterationsNoSaltVersionTwo)
+        assert.equal(Crypto.b64Hash(derivedPassword), hash23456iterationsNoSalt)
       })
 
     })
@@ -80,6 +73,7 @@ describe('#Secrez', function () {
       it('should signup the user and signin without saving the iterations', async function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
+
         assert.isTrue(await fs.pathExists(secrez.config.keysPath))
         masterKeyHash = secrez.masterKeyHash
         secrez.signout()
@@ -488,18 +482,20 @@ describe('#Secrez', function () {
       it('should throw trying to get box and sign secret keys', async function () {
         await secrez.signup(password, iterations)
         let conf = await secrez.getConf()
+        let conf2 = await secrez.readConf()
+        assert.equal(conf.data.keys, conf2.data.keys)
         try {
           secrez.decryptData(conf.data.sign.secretKey)
           assert.isTrue(false)
         } catch (e) {
-          assert.equal(e.message, 'Attempt to hack the keys')
+          assert.equal(e.message, 'Forbidden')
         }
 
         try {
           secrez.decryptData(conf.data.box.secretKey)
           assert.isTrue(false)
         } catch (e) {
-          assert.equal(e.message, 'Attempt to hack the keys')
+          assert.equal(e.message, 'Forbidden')
         }
       })
 
@@ -528,7 +524,7 @@ describe('#Secrez', function () {
           secrez.preDecryptData(conf.data.key)
           assert.isTrue(false)
         } catch (e) {
-          assert.equal(e.message, 'Attempt to hack the master key')
+          assert.equal(e.message, 'Forbidden')
         }
       })
 
@@ -889,7 +885,7 @@ describe('#Secrez', function () {
         let signPublicKey = Crypto.getSignPublicKeyFromSecretPublicKey(publicKey)
         let boxPublicKey = Crypto.getBoxPublicKeyFromSecretPublicKey(publicKey)
 
-        publicKey = publicKey.split('0').map(e => Crypto.fromBase58(e))
+        publicKey = publicKey.split('$').map(e => Crypto.bs64.decode(e))
         assert.equal(publicKey[0].toString(), boxPublicKey.toString())
         assert.equal(publicKey[1].toString(), signPublicKey.toString())
 

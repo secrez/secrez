@@ -1,7 +1,8 @@
 const fs = require('fs-extra')
 const path = require('path')
 const Node = require('./Node')
-const {config, Entry, Crypto, ConfigUtils} = require('@secrez/core')
+const {config, Entry, ConfigUtils} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 
 class Tree {
 
@@ -35,10 +36,10 @@ class Tree {
       encryptedName: file,
       preserveContent: true
     })
-    if (file[file.length - 1] === 'O') {
+    if (file[file.length - 1] === '$') {
       // there is an extraName
       let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
-      content = content.split('I')
+      content = content.split('$')
       entry.set({
         encryptedName: file.substring(0, 254) + content[1]
       })
@@ -63,7 +64,7 @@ class Tree {
       if (decryptedEntry.type === config.types.ROOT) {
         let content = await fs.readFile(path.join(this.dataPath, file), 'utf8')
         entry.set({
-          encryptedContent: content.split('I')[0]
+          encryptedContent: content.split('$')[0]
         })
         decryptedEntry = this.secrez.decryptEntry(entry)
         allIndexes.push(decryptedEntry)
@@ -190,26 +191,6 @@ class Tree {
 
       }
       await this.loadTags(allTags)
-      try {
-        let trash = this.root.getChildFromPath('/.trash')
-        if (trash && trash.id === 'tra$') {
-          // we are converting an 0.5.x dataset
-          let children = []
-          for (let id in trash.children) {
-            children.push(trash.children[id])
-          }
-          if (children.length) {
-            let newTrash = await this.add(this.root, new Entry({
-              name: this.datedName('TRASH'),
-              type: this.config.types.DIR
-            }))
-            newTrash.add(children)
-            trash.parent.removeChild(trash)
-          }
-          await this.save()
-        }
-      } catch (e) {
-      }
     } else {
       this.root = Node.initGenericRoot()
       this.root.datasetIndex = this.datasetIndex
@@ -309,7 +290,7 @@ class Tree {
         // must be read from disk
         let entry = node.getEntry(ts)
         let fullPath = this.getFullPath(entry)
-        let [encryptedContent, extraName] = (await fs.readFile(fullPath, 'utf8')).split('I')
+        let [encryptedContent, extraName] = (await fs.readFile(fullPath, 'utf8')).split('$')
         entry.encryptedContent = encryptedContent
         entry.extraName = extraName
         let decryptedEntry = this.secrez.decryptEntry(entry)
@@ -456,7 +437,7 @@ class Tree {
             ? (entry.encryptedContent || '') +
             (
                 entry.extraName
-                    ? 'I' + entry.extraName
+                    ? '$' + entry.extraName
                     : ''
             )
             : ''
@@ -483,8 +464,6 @@ class Tree {
     }
     let rootEntry = this.root.getEntry()
     if (this.previousRootEntry) {
-      // this creates a single index file per session.
-      // TODO (sullof) When git is used to distribute the data, after committing, this.previousRootEntry must be canceled to avoid conflicts
       await this.unsaveEntry(this.previousRootEntry)
     }
     rootEntry.set({
@@ -502,7 +481,7 @@ class Tree {
       allTags = allTags.sort(Node.sortEntry)[0]
       let content = await fs.readFile(path.join(this.dataPath, allTags.encryptedName), 'utf8')
       allTags.set({
-        encryptedContent: content.split('I')[0]
+        encryptedContent: content.split('$')[0]
       })
       allTags = this.secrez.decryptEntry(allTags)
       allTags.content = JSON.parse(allTags.content)
@@ -616,7 +595,7 @@ class Tree {
       preserveContent: true
     })
     tags = this.secrez.encryptEntry(tags)
-    await this.saveEntry(tags)
+    await this.saveEntry(tags, true)
     this.previousTags = tags
   }
 

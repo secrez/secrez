@@ -49,7 +49,8 @@ class Lls extends require('../Command') {
   help() {
     return {
       description: ['Browses the external directories.',
-        'Secrez refers to external when refers to unencrypted standard files in the OS.'
+        'This is a quick command. Alternatively, you can run commands like',
+        '  shell "ls -la"'
       ],
       examples: [
         'lls coin',

@@ -13,7 +13,6 @@ class MainPromptMock {
     this.secrez = new (require('@secrez/core').Secrez())
     await this.secrez.init(options.container, options.localDir)
     this.secrez.cache = new DataCache(path.join(options.container, 'cache'))
-    // await this.secrez.cache.load('id')
     this.internalFs = new InternalFs(this.secrez)
     this.externalFs = new ExternalFs(this.secrez)
     this.commands = (new Commands(this, cliConfig)).getCommands()
@@ -35,7 +34,10 @@ class MainPromptMock {
 
   async loading() {
   }
+
 }
+
+
 
 module.exports = MainPromptMock
 

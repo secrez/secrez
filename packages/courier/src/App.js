@@ -1,6 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const {Crypto} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const {Debug} = require('@secrez/utils')
 const superagent = require('superagent')
 const debug = Debug('courier:app')

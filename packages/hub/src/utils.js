@@ -1,4 +1,4 @@
-const {Crypto} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 const validator = require('./Validator')
 const Db = require('./lib/Db')
 let db

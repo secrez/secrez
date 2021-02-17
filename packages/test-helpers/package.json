@@ -1,6 +1,6 @@
 {
   "name": "@secrez/test-helpers",
-  "version": "0.1.5",
+  "version": "1.0.0",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -13,13 +13,14 @@
     "posttest": "nyc check-coverage --statements 100 --branches 90 --functions 100 --lines 100"
   },
   "dependencies": {
-    "@secrez/core": "workspace:~0.8.12",
-    "@secrez/fs": "workspace:~0.8.8",
+    "@secrez/core": "workspace:~1.0.0",
+    "@secrez/crypto": "workspace:~1.0.0",
+    "@secrez/fs": "workspace:~1.0.0",
     "@secrez/hub": "workspace:~0.2.0",
-    "@secrez/utils": "workspace:~0.1.6",
+    "@secrez/utils": "workspace:~1.0.0",
     "chai": "^4.2.0",
     "chalk": "^3.0.0",
-    "fs-extra": "^8.1.0",
+    "fs-extra": "^9.1.0",
     "lodash": "^4.17.19",
     "superagent": "^5.3.1",
     "test-console": "^1.1.0"

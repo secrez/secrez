@@ -41,7 +41,7 @@ class DataCache {
         if (this.encrypted[key]) {
           files[i] = {
             encryptedValue: files[i],
-            value: this.secrez.decryptData(files[i]),
+            value: this.secrez.decryptData(files[i], true),
           }
           if (content) {
             files[i].content = this.secrez.decryptData(content)
@@ -114,7 +114,7 @@ class DataCache {
       let value = data.value
       let content = data.content || ''
       if (this.encrypted[key]) {
-        value = this.secrez.encryptData(value)
+        value = this.secrez.encryptData(value, true)
         content = content ? this.secrez.encryptData(content) : ''
       }
       let p = path.join(this.dataPath, key, value)

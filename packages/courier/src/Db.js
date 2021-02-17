@@ -1,7 +1,7 @@
 // Next line is to avoid that npm-check-unused reports it
 require('sqlite3')
 //
-const {Crypto} = require('@secrez/core')
+const Crypto = require('@secrez/crypto')
 
 class Db {
 
