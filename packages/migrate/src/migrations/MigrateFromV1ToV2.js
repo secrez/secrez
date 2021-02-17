@@ -205,7 +205,7 @@ and contact secrez@sullo.co for help.
     for (let what of ['alias', 'contact']) {
       const src = path.join(this.prompt0.secrez.config.container, 'cache', what)
       const dest = path.join(this.prompt.secrez.config.container, 'cache', what)
-      if (!await fs.pathExists(src)) {
+      if (!(await fs.pathExists(src))) {
         continue
       }
       await fs.ensureDir(dest)

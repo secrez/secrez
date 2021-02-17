@@ -31,6 +31,7 @@ checkAndPublish('fs', '@secrez')
 checkAndPublish('hub', '@secrez')
 checkAndPublish('tls', '@secrez')
 checkAndPublish('tunnel', '@secrez')
+checkAndPublish('migrate', '@secrez')
 checkAndPublish('secrez')
 
 if (!changes) {

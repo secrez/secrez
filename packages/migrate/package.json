@@ -1,6 +1,6 @@
 {
   "name": "@secrez/migrate",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -18,10 +18,10 @@
     "exclude": []
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.0",
+    "@secrez/core": "workspace:~1.0.1",
     "@secrez/crypto": "workspace:~1.0.0",
-    "@secrez/fs": "workspace:~1.0.0",
-    "@secrez/hub": "workspace:~0.2.0",
+    "@secrez/fs": "workspace:~1.0.1",
+    "@secrez/hub": "workspace:~0.2.1",
     "@secrez/utils": "workspace:~1.0.0",
     "chalk": "^3.0.0",
     "command-line-args": "^5.1.1",
@@ -29,14 +29,13 @@
     "homedir": "^0.6.0",
     "inquirer": "^7.1.0",
     "inquirer-command-prompt": "^0.1.0",
-    "secrez": "workspace:~1.0.0",
+    "secrez": "workspace:~1.0.0-beta.1",
     "secrez-core-0-8-2": "npm:@secrez/core@0.8.12",
     "secrez-fs-0-8-8": "npm:@secrez/fs@0.8.8"
   },
   "devDependencies": {
-    "@secrez/courier": "workspace:~0.2.0",
-    "secrez-0-10-8": "npm:secrez@0.10.8",
-    "@secrez/test-helpers": "workspace:~1.0.0",
+    "@secrez/courier": "workspace:~0.2.1",
+    "@secrez/test-helpers": "workspace:~1.0.1",
     "chai": "^4.2.0",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.2",
@@ -47,7 +46,7 @@
     "test-console": "^1.1.0"
   },
   "bin": {
-    "secrez": "bin/secrez-migrate.js"
+    "secrez-migrate": "bin/secrez-migrate.js"
   },
   "preferGlobal": true,
   "description": "A secrets manager in times of crypto coins.",

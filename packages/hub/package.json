@@ -1,7 +1,7 @@
 {
   "name": "@secrez/hub",
   "description": "A hub end-to-end encrypted communication",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -25,7 +25,7 @@
   },
   "preferGlobal": true,
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.0",
+    "@secrez/core": "workspace:~1.0.1",
     "@secrez/crypto": "workspace:~1.0.0",
     "@secrez/tls": "workspace:~0.1.4",
     "@secrez/utils": "workspace:~1.0.0",
@@ -40,7 +40,7 @@
     "sqlite3": "^5.0.0"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~1.0.0",
+    "@secrez/test-helpers": "workspace:~1.0.1",
     "chai": "4.2.0",
     "cross-env": "7.0.2",
     "eslint": "^6.8.0",
