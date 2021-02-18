@@ -79,7 +79,7 @@ class Cat extends require('../Command') {
     let date = ts[0].split('Z')[0].split('T')
     let ret = `${tsHash}  ${date[0]}  ${date[1].substring(0, 12)}${ts[1]}`
     if (name) {
-      ret += chalk.yellow(' (' + name + ')')
+      ret += chalk.grey(' (' + name + ')')
     }
 
     return ret
@@ -186,7 +186,7 @@ class Cat extends require('../Command') {
         for (let d of data) {
           let {content, ts, type, name} = d
           if (extra) {
-            this.Logger.grey(`${this.formatTs(ts, fn === name ? undefined : name)}`)
+            this.Logger.green(`${this.formatTs(ts, fn === name ? undefined : name)}`)
           }
           if (type === config.types.TEXT) {
             if (_.trim(content)) {

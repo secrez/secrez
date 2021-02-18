@@ -188,17 +188,11 @@ The best way to go is to set up a repo on your own server. If you can't do that,
 First, you go to GitHub and create a new private repo. Don't add anything like README, Licence, etc. In the next page, GitHub will show you the command you must run to set up it locally. Here is an example, imagining that your data are in the default folder
 
 ```
-cd ~/.secrez
-git init
-git commit -m "first commit"
-git branch -M main
-git remote add origin git@github.com:sullof/jarrabish.git
-git push -u origin main
-
+git --init --main-branch main
+git --remote-url git@github.com:sullof/jarrabish.git
 ```
 
-Since version 0.10.2 you can use the internal `git` command.
-It is very easy. To push any change run
+To push any change run
 ```
 git -p
 ```
@@ -208,16 +202,31 @@ git -P
 ```
 Notice that the lowercase `p` is an alias for `push` and the uppercase `P` for `pull`.
 
-**What about Mercurial or Subversion?**
+### What if I have a private remote repo?
 
-Of course, you can use a different version control system.  
+You should use Git anyway, to have a safe backup of your data. In this case, just run
+```
+git --init
+```
+to set the repo up. After, use `git -p` to commit your changes. It will allow you to reverse the data in case some critical error occurs. When you have a private repo, you can just add the remote url (see example above).
+
+If you need more, you can run commands using Shell, like
+```
+shell "cd ~/.secrez && git log"
+```
+However, if you like to do some reset, you should quit and run the commands directly in the shell.
+
+**Be careful when you do anything inside your container, you can irreversibly damage your data.**
+
+### What about Mercurial or Subversion?
+
+You can use a different version control system.  
 If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.
 
 ## The commands
 
 ```
   alias     Create aliases of other commands.
-  bash      Execute a bash command in the current disk folder.
   cat       Shows the content of a file.
   cd        Changes the working directory.
   chat      Enters the Secrez chat
@@ -252,6 +261,7 @@ If you do so, though, be careful to correctly set up in the directory the equiva
   pwd       Shows the path of the working directory.
   quit      Quits Secrez.
   rm        Removes one or more files and folders.
+  shell     Execute a bash command in the current disk folder.
   ssh       Opens a new tab and run ssh to connect to a remote server via SSH
   tag       Tags a file and shows existent tags.
   totp      Generate a TOTP code if a totp field exists in the card.
@@ -395,7 +405,7 @@ You can also simulate the process to see which files will be created with the op
 
 If in the CSV file there is also the field `tags`, you can tag automatically any entries with the options `-t, --tags`. If you don't use the option, instead, they will be saved in the yaml file like any other field.
 
-**What if there is no path field?**
+### What if there is no path field?
 
 Let's say that you want to import a CSV file exported by LastPass. There is not `path` field but you probably want to use the fields `grouping` and `name` to build the path. From version `0.8.8`, you can do it, launching, for example:
 ```
@@ -409,7 +419,7 @@ using only the `name` field. Still, if in the name there is any slash, a subfold
 
 In these two examples, be sure that any of your entries in LastPass has a name. If not, the import will fail because it does't know how to call the file.
 
-**Best practices**
+### Best practices
 
 For security reason, if would be better if you do the export from you password manager and the import into Secrez as fast as possible, removing the exported file from your OS using `-m`.
 
@@ -441,13 +451,14 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
-__0.11.0__
-* uses @secrez/core@0.9.0, which changes the encoding from base58 to base64, making the app super faster
-* remove second factor authentication due to potentially critical issues with Python and the required libraries on MacOS (2FA will be restored as soon as a pure Javascript library is available)
+__1.0.0__
+* use @secrez/core@1.0.0, which changes the encoding from base58 to base64, making the encoding much faster
+* remove second factor authentication due to potentially critical issues with Python and the required libraries on macOS (2FA will be restored as soon as either a pure Javascript library is available or using external Python libraries is reliable again)
 * `Bash` has been renamed `Shell`
+* Git has new options `--init`, `--remote-url` and `--main-branch` to initiate a repo from inside Secrez
 
 __0.10.8__
-* exposes a prompt mock to allow other software to run commands programmatically
+* expose a prompt mock to allow other software to run commands programmatically
 * fix bug in totp when the command is called but no totp is set
 
 __0.10.7__
@@ -762,18 +773,18 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  157 passing (24s)
+  157 passing (25s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   70.16 |    56.34 |   71.61 |    70.1 |                                   
+All files              |   69.59 |     55.5 |   71.87 |   69.52 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   80.14 |    64.71 |   89.14 |   79.94 |                                   
+ src/commands          |   79.13 |    63.34 |   89.14 |   78.92 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |      75 |        0 |   66.67 |      75 | 20-21                             
   Cat.js               |    98.9 |    88.89 |     100 |    98.9 | 144                               
@@ -787,7 +798,7 @@ All files              |   70.16 |    56.34 |   71.61 |    70.1 |
   Edit.js              |   13.58 |        0 |      40 |   13.58 | 78-193                            
   Export.js            |     100 |    68.75 |     100 |     100 | 56,76,88-93,100                   
   Find.js              |   93.59 |    86.67 |     100 |   93.42 | 90,153,192-196,202                
-  Git.js               |   22.45 |        0 |      50 |   22.45 | 51-113                            
+  Git.js               |   15.07 |        0 |      50 |   15.07 | 74-178                            
   Help.js              |     100 |       80 |     100 |     100 | 30                                
   Import.js            |   93.68 |    83.96 |     100 |   93.57 | ...59,261,274,280,322,337-343,359 
   Lcat.js              |     100 |    85.71 |     100 |     100 | 55                                
@@ -828,12 +839,12 @@ All files              |   70.16 |    56.34 |   71.61 |    70.1 |
   MainPromptMock.js    |     100 |      100 |   66.67 |     100 |                                   
   MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 8-35                              
   SigintManager.js     |      25 |        0 |      20 |      25 | 11-37                             
- src/utils             |   69.92 |     62.1 |   56.25 |   69.55 |                                   
+ src/utils             |   70.33 |     62.1 |   58.33 |   69.96 |                                   
   AliasManager.js      |     100 |    91.67 |     100 |     100 | 48                                
   ContactManager.js    |   71.43 |       60 |   85.71 |   71.43 | 13,36-38                          
   Fido2Client.js       |   15.38 |        0 |   11.11 |   15.38 | 15-101                            
   HelpProto.js         |    91.6 |    83.08 |     100 |   91.45 | 44,137-138,155-160,179            
-  Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
+  Logger.js            |   65.91 |    56.25 |   42.11 |   65.12 | ...42-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
 > secrez@1.0.0-beta.1 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez

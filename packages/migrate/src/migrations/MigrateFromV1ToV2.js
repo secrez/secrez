@@ -224,9 +224,9 @@ and contact secrez@sullo.co for help.
   }
 
   async migrateTree(node, newNode) {
-    await this.current.tree0.getEntryDetails(node)
     if (node.versions) {
       for (let ts in node.versions) {
+        await this.current.tree0.getEntryDetails(node, ts)
         let version = node.versions[ts]
         let {name, content} = version
         let entry = new Entry({
@@ -239,10 +239,6 @@ and contact secrez@sullo.co for help.
         })
         let encryptedEntry = this.secrez.encryptEntry(entry, 'useTs')
         newNode.addVersion(encryptedEntry)
-
-        // console.log(JSON.stringify(version, null, 2))
-        // console.log(JSON.stringify(newNode.versions[ts], null, 2))
-
         await fs.writeFile(path.join(this.container, 'data' + (this.current.index ? '.' + this.current.index : ''), encryptedEntry.encryptedName), entry.content ? encryptedEntry.encryptedContent : '')
       }
     }
