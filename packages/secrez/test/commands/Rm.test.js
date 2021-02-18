@@ -121,93 +121,43 @@ describe('#Rm', function () {
 
   })
 
+  it('should delete some versions of a file', async function () {
 
-  // it.only('should delete all the versions of a file', async function () {
-  //
-  //   let file1 = await C.touch.touch({
-  //     path: '/folder2/file1',
-  //     type: config.types.TEXT
-  //   })
-  //   let ver1 = Node.hashVersion(file1.lastTs)
-  //
-  //   // let expected = [C.rm.formatResult({
-  //   //   id: file1.id,
-  //   //   version: ver1,
-  //   //   name: 'file1'
-  //   // })]
-  //
-  //   await C.mv.mv({
-  //     path: '/folder2/file1',
-  //     newPath: '/folder2/file2'
-  //   })
-  //
-  //   let ver2 = Node.hashVersion(file1.lastTs)
-  //
-  //   // expected.push(C.rm.formatResult({
-  //   //   id: file1.id,
-  //   //   version: ver2,
-  //   //   name: 'file2'
-  //   // }))
-  //
-  //
-  //   await C.mv.mv({
-  //     path: '/folder2/file2',
-  //     newPath: '/folder2/file3'
-  //   })
-  //
-  //   let ver3 = Node.hashVersion(file1.lastTs)
-  //
-  //   // expected.push(C.rm.formatResult({
-  //   //   id: file1.id,
-  //   //   version: ver3,
-  //   //   name: 'file3'
-  //   // }))
-  //
-  //   inspect = stdout.inspect()
-  //   await C.rm.exec({path: '/folder2/file3'})
-  //   inspect.restore()
-  //   assertConsole(inspect, ['Deleted entries:',
-  //     '/folder2/file3'
-  //   ])
-  //
-  //   // jlog(root.toCompressedJSON())
-  //
-  // })
+    let file1 = await C.touch.touch({
+      path: 'file1',
+      type: config.types.TEXT
+    })
+    let ver1 = Node.hashVersion(file1.lastTs)
 
-  // it('should delete only some version of a file', async function () {
-  //
-  //   let file1 = await C.touch.touch({
-  //     path: 'file1',
-  //     type: config.types.TEXT
-  //   })
-  //   let ver1 = Node.hashVersion(file1.lastTs)
-  //
-  //   let expected = [C.rm.formatResult({
-  //     id: file1.id,
-  //     version: ver1,
-  //     name: 'file1'
-  //   })]
-  //
-  //   await C.mv.mv({
-  //     path: 'file1',
-  //     newPath: 'file2'
-  //   })
-  //
-  //   await C.mv.mv({
-  //     path: 'file2',
-  //     newPath: 'file3'
-  //   })
-  //
-  //   inspect = stdout.inspect()
-  //   await C.rm.exec({path: 'file3', versions: [ver1]})
-  //   inspect.restore()
-  //   assertConsole(inspect, [
-  //     'Deleted entries:'
-  //   ].concat(expected))
-  //
-  //   // jlog(root.toCompressedJSON(null, 1))
-  //
-  // })
+    await C.mv.mv({
+      path: 'file1',
+      newPath: 'file2'
+    })
+
+    await C.mv.mv({
+      path: 'file2',
+      newPath: 'file3'
+    })
+
+    inspect = stdout.inspect()
+    await C.rm.exec({path: 'file3', versions: [ver1]})
+    inspect.restore()
+    assertConsole(inspect, [
+      'Deleted entries:'
+    ].concat(C.rm.formatResult({
+      id: file1.id,
+      version: ver1,
+      name: 'file3'
+    })))
+
+    inspect = stdout.inspect()
+    await C.ls.exec({})
+    inspect.restore()
+    assertConsole(inspect, [
+      'file3'
+    ])
+
+  })
 
 
 })

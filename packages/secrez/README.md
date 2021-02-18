@@ -451,6 +451,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__1.0.0-beta.3__
+* Rm allows to delete specific versions of a file
+
 __1.0.0-beta.2__
 * Git has new options `--init`, `--remote-url` and `--main-branch` to initiate a repo from inside Secrez
 
@@ -775,18 +778,18 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  157 passing (25s)
+  158 passing (25s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   69.59 |     55.5 |   71.87 |   69.52 |                                   
+All files              |   69.77 |     55.7 |   71.87 |    69.7 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   79.13 |    63.34 |   89.14 |   78.92 |                                   
+ src/commands          |   79.29 |    63.53 |   89.14 |   79.09 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |      75 |        0 |   66.67 |      75 | 20-21                             
   Cat.js               |    98.9 |    88.89 |     100 |    98.9 | 144                               
@@ -807,13 +810,13 @@ All files              |   69.59 |     55.5 |   71.87 |   69.52 |
   Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 49                                
   Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 91                                
   Lpwd.js              |   92.31 |      100 |     100 |   92.31 | 38                                
-  Ls.js                |   89.86 |    72.22 |     100 |   89.23 | 91,99,110-112,126,169             
+  Ls.js                |    91.3 |       75 |     100 |   90.77 | 99,110-112,126,169                
   Mkdir.js             |     100 |    66.67 |     100 |     100 | 39-45                             
   Mv.js                |   91.01 |    77.36 |     100 |    90.8 | 114,137,148-154                   
   Paste.js             |   87.23 |       75 |     100 |   87.23 | 66,72,75,83,107,124               
   Pwd.js               |   92.31 |      100 |     100 |   92.31 | 36                                
   Quit.js              |      90 |       50 |     100 |      90 | 29                                
-  Rm.js                |   96.67 |       90 |     100 |   96.55 | 76                                
+  Rm.js                |      94 |    80.95 |     100 |   93.88 | 61,116,124                        
   Shell.js             |   88.24 |       60 |     100 |   88.24 | 39,54                             
   Ssh.js               |      25 |        0 |      40 |      25 | 64-104                            
   Tag.js               |   98.04 |    92.31 |     100 |   97.94 | 123,164                           
@@ -849,7 +852,7 @@ All files              |   69.59 |     55.5 |   71.87 |   69.52 |
   Logger.js            |   65.91 |    56.25 |   42.11 |   65.12 | ...42-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@1.0.0-beta.1 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@1.0.0-beta.3 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 
