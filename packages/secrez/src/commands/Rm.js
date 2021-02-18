@@ -1,4 +1,7 @@
 const chalk = require('chalk')
+const fs = require('fs-extra')
+const path = require('path')
+const {Node} = require('@secrez/fs')
 
 class Rm extends require('../Command') {
 
@@ -20,6 +23,12 @@ class Rm extends require('../Command') {
         alias: 'p',
         defaultOption: true,
         type: String
+      },
+      {
+        name: 'versions',
+        alias: 'v',
+        multiple: true,
+        type: String
       }
     ]
   }
@@ -32,7 +41,8 @@ class Rm extends require('../Command') {
         'this action is not undoable.'
       ],
       examples: [
-        'rm secret1'
+        'rm secret1',
+        ['rm secret2 -v au7t RF6z', 'deleted the versions "au7t" and "RF6z" of the file']
       ]
     }
   }
@@ -45,6 +55,40 @@ class Rm extends require('../Command') {
     let nodes = await this.internalFs.fileList(options, null, true)
     let deleted = nodes.map(n => n.getPath())
     if (deleted.length) {
+
+      if (options.versions) {
+        if (deleted.length > 1) {
+          throw new Error('You can delete versions of a single file at time')
+        }
+        /* istanbul ignore if */
+        if (!process.env.NODE_ENV === 'test') {
+          this.Logger.reset('The deletion of a version is not reversible.')
+          let message = 'Are you sure you want to proceed?'
+          let yes = await this.useConfirm({
+            message,
+            default: false
+          })
+          if (!yes) {
+            return 'Operation canceled'
+          }
+        }
+        let {datasetIndex} = Node.getRoot(nodes[0])
+        let res = []
+        for (let ts in nodes[0].versions) {
+          let v = Node.hashVersion(ts)
+          if (options.versions.indexOf(v) !== -1) {
+            let file = nodes[0].versions[ts].file
+            await fs.remove(path.join(this.secrez.config.dataPath + (datasetIndex ? `.${datasetIndex}` : ''), file))
+            res.push(this.formatResult({
+              name: path.basename(deleted[0]),
+              version: v
+            }))
+            delete nodes[0].versions[ts]
+            this.internalFs.trees[datasetIndex].save()
+          }
+        }
+        return res
+      }
       await this.prompt.commands.mv.mv(options, nodes)
     }
     return deleted
@@ -68,8 +112,12 @@ class Rm extends require('../Command') {
           this.Logger.grey('No files have been deleted.')
         } else {
           this.Logger.grey('Deleted entries:')
-          for (let d of deleted) {
-            this.Logger.reset(d)
+          if (typeof deleted === 'string') {
+            this.Logger.reset(deleted)
+          } else {
+            for (let d of deleted) {
+              this.Logger.reset(d)
+            }
           }
         }
       } catch (e) {
