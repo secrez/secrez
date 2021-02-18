@@ -451,11 +451,13 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
-__1.0.0__
+__1.0.0-beta.2__
+* Git has new options `--init`, `--remote-url` and `--main-branch` to initiate a repo from inside Secrez
+
+__1.0.0-beta.1__
 * use @secrez/core@1.0.0, which changes the encoding from base58 to base64, making the encoding much faster
 * remove second factor authentication due to potentially critical issues with Python and the required libraries on macOS (2FA will be restored as soon as either a pure Javascript library is available or using external Python libraries is reliable again)
 * `Bash` has been renamed `Shell`
-* Git has new options `--init`, `--remote-url` and `--main-branch` to initiate a repo from inside Secrez
 
 __0.10.8__
 * expose a prompt mock to allow other software to run commands programmatically
