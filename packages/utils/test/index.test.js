@@ -415,6 +415,15 @@ describe('#utils from core', function () {
       }
     })
 
+    it('should not treat an ETH address as a number', async function () {
+      let src = `user: joe
+address: 0x0C192bE3C518edE035ec2F1449b77feeC1C6D92f
+`
+      let parsed = utils.yamlParse(src)
+      assert.equal(parsed.address.toString(), '0x0C192bE3C518edE035ec2F1449b77feeC1C6D92f')
+
+    })
+
   })
 
   describe('yamlStringify', async function () {

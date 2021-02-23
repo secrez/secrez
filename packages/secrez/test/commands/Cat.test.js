@@ -102,7 +102,7 @@ describe('#Cat', function () {
       C.cat.formatTs(versions[1]) + ' (file1)',
       'Password 2',
       C.cat.formatTs(versions[2]) + ' (file1)',
-      '-- this version is empty --'
+      '-- this version is empty'
     ])
   })
 
@@ -142,7 +142,7 @@ describe('#Cat', function () {
     inspect = stdout.inspect()
     await C.cat.exec({path: '/file1.tar.gz'})
     inspect.restore()
-    assertConsole(inspect, ['-- this is a binary file --'])
+    assertConsole(inspect, ['-- this is a binary file'])
 
   })
 
@@ -185,7 +185,7 @@ describe('#Cat', function () {
     output = inspect.output.map(e => decolorize(e))
 
     assert.equal(output[1],  'expose: 6379')
-    assert.equal(output[3],  '-- empty field --')
+    assert.equal(output[3],  '-- empty field')
     assert.equal(output[5],  'expose: 6378')
 
     inspect = stdout.inspect()

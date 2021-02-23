@@ -77,9 +77,9 @@ class Cat extends require('../Command') {
     let tsHash = Node.hashVersion(ts)
     ts = Crypto.fromTsToDate(ts)
     let date = ts[0].split('Z')[0].split('T')
-    let ret = `${tsHash}  ${date[0]}  ${date[1].substring(0, 12)}${ts[1]}`
+    let ret = `-- ${chalk.bold(tsHash)} -- ${date[0]} ${date[1].substring(0, 12)}${ts[1]}`
     if (name) {
-      ret += chalk.grey(' (' + name + ')')
+      ret += ' (' + name + ')'
     }
 
     return ret
@@ -124,7 +124,7 @@ class Cat extends require('../Command') {
               if (fields[field]) {
                 details.content = format(field)
               } else {
-                details.content = chalk.yellow('-- empty field --')
+                details.content = chalk.yellow('-- empty field')
               }
             } else {
               let content = []
@@ -186,16 +186,16 @@ class Cat extends require('../Command') {
         for (let d of data) {
           let {content, ts, type, name} = d
           if (extra) {
-            this.Logger.green(`${this.formatTs(ts, fn === name ? undefined : name)}`)
+            this.Logger.yellow(`${this.formatTs(ts, fn === name ? undefined : name)}`)
           }
           if (type === config.types.TEXT) {
             if (_.trim(content)) {
               this.Logger.reset(_.trim(content))
             } else {
-              this.Logger.yellow('-- this version is empty --')
+              this.Logger.yellow('-- this version is empty')
             }
           } else {
-            this.Logger.yellow('-- this is a binary file --')
+            this.Logger.yellow('-- this is a binary file')
           }
         }
         if (options.notFound && options.notFound.length) {
