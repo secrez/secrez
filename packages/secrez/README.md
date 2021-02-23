@@ -451,6 +451,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__1.0.0__
+* Requires `@secrez/utils@1.0.1` which fixes a yaml parsing error with ETH-like addresses
+
 __1.0.0-beta.3__
 * Rm allows to delete specific versions of a file
 

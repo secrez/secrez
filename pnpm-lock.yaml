@@ -278,7 +278,7 @@ importers:
       '@secrez/fs': workspace:~1.0.1
       '@secrez/hub': workspace:~0.2.1
       '@secrez/test-helpers': workspace:~1.0.1
-      '@secrez/utils': workspace:~1.0.0
+      '@secrez/utils': workspace:~1.0.1
       case: ^1.6.3
       chai: ^4.2.0
       chalk: ^3.0.0
