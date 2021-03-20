@@ -3,6 +3,7 @@ const path = require('path')
 const utils = require('@secrez/utils')
 const Case = require('case')
 const _ = require('lodash')
+const chalk = require('chalk')
 const {config, Entry} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 const {fromCsvToJson, yamlStringify, isYaml} = require('@secrez/utils')
@@ -71,6 +72,10 @@ class Import extends require('../Command') {
         alias: 'P',
         type: String,
         multiple: true
+      },
+      {
+        name: 'password',
+        type: String
       }
     ]
   }
@@ -89,6 +94,8 @@ class Import extends require('../Command') {
       ],
       examples: [
         ['import seed.json', 'copies seed.json from the disk into the current directory'],
+        ['import seed.json.secrez --password s8eeuhwy36534', 'imports seed.json and decrypts it using the specified password'],
+        ['import seed.json.secrez -d ', 'imports seed.json trying to decrypt it using the password shared with contacts'],
         ['import -m ethKeys', 'copies ethKeys and remove it from the disk'],
         ['import -p ~/passwords', 'imports all the text files in the folder passwords'],
         ['import -b -p ~/passwords', 'imports all the files, included binaries'],
@@ -116,12 +123,13 @@ class Import extends require('../Command') {
 
   async import(options = {}) {
     this.internalFs.tree.disableSave()
+    this.skipped = []
     let result = await this._import(options)
     this.internalFs.tree.enableSave()
     if (result.length && !options.simulate) {
       await this.internalFs.tree.save()
     }
-    return result.sort()
+    return [result.sort(), this.skipped]
   }
 
   async _import(options = {}, container = '') {
@@ -148,14 +156,26 @@ class Import extends require('../Command') {
         if (/\/$/.test(fn)) {
           continue
         }
+        let isEncryptedBinary = /\.secrezb(|\.\w+)$/.test(fn)
         let isBinary = await utils.isBinary(fn)
-        if (isBinary && !options.binaryToo) {
+        if ((isEncryptedBinary || isBinary) && !options.binaryToo) {
+          this.skipped.push([path.basename(fn), 'binary file; use "-b" to include binaries'])
           continue
         }
-        content.push([fn, isBinary, await fs.readFile(fn, isBinary ? undefined : 'utf8')])
+        content.push([fn, isBinary || isEncryptedBinary, await fs.readFile(fn, isBinary ? undefined : 'utf8')])
       }
-      for (let fn of content) {
-        let basename = Entry.sanitizeName(path.basename(fn[0]), '-')
+      let contactsPublicKeys
+      for (let c of content) {
+        let basename = Entry.sanitizeName(path.basename(c[0]), '-')
+        let isEncrypted = /\.secrez(|b)(|\.\w+)$/.test(basename)
+        let isEncryptedBinary
+        if (isEncrypted) {
+          isEncryptedBinary = /\.secrezb(|\.\w+)$/.test(basename)
+          basename = basename.replace(/\.secrez(|b)(|\.\w+)$/, '')
+        }
+        if (isEncrypted && !contactsPublicKeys) {
+          contactsPublicKeys = await this.getContactsPublicKeys()
+        }
         let name = await this.internalFs.tree.getVersionedBasename(basename)
         if (container) {
           name = container + '/' + name
@@ -163,12 +183,20 @@ class Import extends require('../Command') {
         result.push(this.internalFs.tree.getNormalizedPath(name))
         if (!options.simulate) {
           if (options.move) {
-            moved.push(fn[0])
+            moved.push(c[0])
+          }
+          if (isEncrypted) {
+            try {
+              c[2] = efs.decryptFile(c[2], options, this.secrez, contactsPublicKeys, isEncryptedBinary)
+            } catch(e) {
+              this.skipped.push([path.basename(c[0]), e.message])
+              continue
+            }
           }
           let node = await ifs.make({
             path: name,
-            type: fn[1] ? config.types.BINARY : config.types.TEXT,
-            content: fn[2]
+            type: c[1] ? config.types.BINARY : config.types.TEXT,
+            content: c[2]
           })
           result.pop()
           result.push(node.getPath())
@@ -185,6 +213,15 @@ class Import extends require('../Command') {
     } else {
       return []
     }
+  }
+
+  async getContactsPublicKeys() {
+    let contacts = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
+    let publicKeys = []
+    for (let contact of contacts) {
+      publicKeys.push(contact[1].publicKey)
+    }
+    return publicKeys
   }
 
   async expand(options) {
@@ -343,7 +380,7 @@ class Import extends require('../Command') {
             return
           }
         }
-        let files = await this.import(options)
+        let [files, skipped] = await this.import(options)
         if (files.length) {
           let extra = ''
           if (options.simulate) {
@@ -354,6 +391,17 @@ class Import extends require('../Command') {
           this.Logger.grey(`Imported files${extra}:`)
           for (let f of files) {
             this.Logger.reset(f)
+          }
+          if (skipped.length) {
+            this.Logger.grey('Skipped files:')
+            for (let f of skipped) {
+              this.Logger.reset(f[0] + chalk.yellow(' (' + f[1] + ')'))
+            }
+          }
+        } else if (skipped.length) {
+          this.Logger.grey('Skipped files:')
+          for (let f of skipped) {
+            this.Logger.reset(f[0] + chalk.yellow(' (' + f[1] + ')'))
           }
         } else {
           this.Logger.red('No file has been imported.')

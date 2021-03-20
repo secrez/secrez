@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=dev bin/secrez.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -15,9 +15,9 @@
     "exclude": []
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.1",
-    "@secrez/crypto": "workspace:~1.0.0",
-    "@secrez/fs": "workspace:~1.0.1",
+    "@secrez/core": "workspace:~1.0.2",
+    "@secrez/crypto": "workspace:~1.0.1",
+    "@secrez/fs": "workspace:~1.0.2",
     "@secrez/hub": "workspace:~0.2.1",
     "@secrez/utils": "workspace:~1.0.1",
     "case": "^1.6.3",

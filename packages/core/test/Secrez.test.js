@@ -901,20 +901,15 @@ describe('#Secrez', function () {
         await secrez.init(rootDir)
         await secrez.signup(password, iterations)
 
-        let publicKey = secrez.getPublicKey()
-
-        await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
-        secrez = new Secrez()
-        await secrez.init(rootDir)
-        await secrez.signup(password, iterations)
-
+        secrez2 = new Secrez2()
+        await secrez2.init(rootDir + '1')
+        await secrez2.signup(password, iterations)
 
         let message = 'Some message'
-        let encryptedMessage = secrez.encryptSharedData(message, publicKey)
-        let decryptedMessage = secrez.decryptSharedData(encryptedMessage, publicKey)
+        let encryptedMessage = secrez.encryptSharedData(message, secrez2.getPublicKey())
+        let decryptedMessage = secrez2.decryptSharedData(encryptedMessage, secrez.getPublicKey())
 
         assert.equal(decryptedMessage, message)
-
 
       })
     })

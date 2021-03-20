@@ -1,10 +1,11 @@
 const fs = require('fs-extra')
 const path = require('path')
+const Crypto = require('@secrez/crypto')
 
 class ExternalFs {
 
   constructor(secrez) {
-    if (secrez.constructor.name  === 'Secrez') {
+    if (secrez.constructor.name === 'Secrez') {
       this.secrez = secrez
     } else {
       throw new Error('ExternalFs requires a Secrez instance during construction')
@@ -24,7 +25,7 @@ class ExternalFs {
   async getFileList(options = {}) {
     try {
       return await this.fileList(options)
-    } catch(e) {
+    } catch (e) {
       return []
     }
   }
@@ -34,7 +35,7 @@ class ExternalFs {
       options = {path: options}
     }
     let [isDir, list] = (await this.getDir(this.getNormalizedPath(options.path), options.forAutoComplete))
-    list =  list.filter(f => {
+    list = list.filter(f => {
       let pre = true
       if (options.dironly) {
         pre = /\/$/.test(f)
@@ -115,6 +116,84 @@ class ExternalFs {
       } else {
         name = fn + '.' + (++v)
       }
+    }
+  }
+
+  shortPublicKey(pk) {
+    return pk.split('$')[0].substring(0, 16)
+  }
+
+  encryptFile(content, options, secrez, stringify) {
+    let key = Crypto.generateKey()
+    let result = [
+      '1', //version
+      Crypto.encrypt(content, key)
+    ]
+    if (options.password) {
+      result[2] = Crypto.encrypt(key, this.getUint8ArrayPassword(options.password))
+    } else if (options.publicKeys) {
+      if (!secrez || !secrez.encryptSharedData) {
+        throw new Error('A secrez instance is required to encrypt using shared keys')
+      }
+      result[2] = this.shortPublicKey(secrez.getPublicKey())
+      for (let publicKey of options.publicKeys) {
+        let shortPublicKey = this.shortPublicKey(publicKey)
+        let encKey = secrez.encryptSharedData(key, publicKey)
+        result.push(shortPublicKey + encKey)
+      }
+    }
+    return stringify ? result.join(',') : result
+  }
+
+  getUint8ArrayPassword(password) {
+    return Crypto.bufferToUint8Array(Crypto.SHA3(password))
+  }
+
+  decryptFile(encryptedContent, options, secrez, contactsPKs, returnUint8Array) {
+    if (typeof encryptedContent === 'string') {
+      encryptedContent = encryptedContent.split(',')
+    }
+    const [version, content, passwordOrPK, ...keys] = encryptedContent
+    if (version === '1') {
+      if (keys && keys.length) {
+        if (!secrez || !secrez.encryptSharedData) {
+          throw new Error('A secrez instance is required to encrypt using shared keys')
+        }
+        if (!contactsPKs) {
+          throw new Error('A list of contacts is required to encrypt using shared keys')
+        }
+        let contactPublicKey
+        for (let pk of contactsPKs) {
+          if (this.shortPublicKey(pk) === passwordOrPK) {
+            contactPublicKey = pk
+            break
+          }
+        }
+        if (!contactPublicKey) {
+          throw new Error('Sender\'s public key not in your contacts')
+        }
+        let shortPublicKey = this.shortPublicKey(secrez.getPublicKey())
+        let key
+        for (let item of keys) {
+          let short = item.substring(0, 16)
+          item = item.substring(16)
+          if (shortPublicKey === short) {
+            key = secrez.decryptSharedData(item, contactPublicKey, true)
+          }
+        }
+        if (!key) {
+          throw new Error('The sender didn\'t encrypt the data for you')
+        }
+        return Crypto.decrypt(content, key)
+      } else {
+        if (!options.password) {
+          throw new Error('A password is required')
+        }
+        let key = Crypto.decrypt(passwordOrPK, this.getUint8ArrayPassword(options.password))
+        return Crypto.decrypt(content, key, returnUint8Array)
+      }
+    } else {
+      throw new Error('Unsupported version')
     }
   }
 

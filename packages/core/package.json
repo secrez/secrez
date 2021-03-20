@@ -1,6 +1,6 @@
 {
   "name": "@secrez/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -13,7 +13,7 @@
     "posttest": "nyc check-coverage --statements 99 --branches 94 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/crypto": "workspace:~1.0.0",
+    "@secrez/crypto": "workspace:~1.0.1",
     "@secrez/utils": "workspace:~1.0.0",
     "fs-extra": "^9.1.0",
     "homedir": "^0.6.0",

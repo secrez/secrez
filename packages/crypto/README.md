@@ -12,6 +12,9 @@ API documentation
 
 ## History
 
+__0.1.5__
+* adds `bufferToUnti8Array`
+
 __0.1.4__
 * adds more methods to encrypt and decrypt buffers too
 
@@ -25,19 +28,20 @@ __0.1.0__
 ## Test coverage
 
 ```
-  33 passing (734ms)
+  33 passing (682ms)
   2 pending
 
-----------|---------|----------|---------|---------|--------------------------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                    
-----------|---------|----------|---------|---------|--------------------------------------
-All files |     100 |     86.9 |     100 |     100 |                                      
- index.js |     100 |     86.9 |     100 |     100 | 42-53,82,108-134,184-185,204,354-358 
-----------|---------|----------|---------|---------|--------------------------------------
+----------|---------|----------|---------|---------|-------------------
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+----------|---------|----------|---------|---------|-------------------
+All files |   99.42 |     86.9 |   98.21 |   99.39 |                   
+ index.js |   99.42 |     86.9 |   98.21 |   99.39 | 141               
+----------|---------|----------|---------|---------|-------------------
 
-> @secrez/crypto@1.0.0 posttest /Users/sullof/Projects/Personal/secrez/packages/crypto
+> @secrez/crypto@1.0.1 posttest /Users/sullof/Projects/Personal/secrez/packages/crypto
 > nyc check-coverage --statements 99 --branches 85 --functions 99 --lines 99
 
+ ERROR  Command failed with exit code 1.
 
 ```
 

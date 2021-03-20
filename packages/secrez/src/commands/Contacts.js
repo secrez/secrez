@@ -56,7 +56,7 @@ class Contacts extends require('../Command') {
     return {
       description: ['Manages your contacts'],
       examples: [
-        ['contacts -a pan', 'adds a new trusted contact pan, asking for his public key  and hub url'],
+        ['contacts -a pan', 'adds a new trusted contact pan, asking for his public key or hub url'],
         ['contacts -u pan', 'updates the hub url'],
         ['contacts -s pan', 'returns pan\'s public key and url'],
         ['contacts -d ema', 'deletes ema\'s data'],
@@ -70,7 +70,7 @@ class Contacts extends require('../Command') {
     try {
       url = new URL(url)
       let id = hubUtils.getClientIdFromHostname(url.hostname)
-      let apiurl = url.protocol + '//'+ url.host.split(id + '.')[1]
+      let apiurl = url.protocol + '//' + url.host.split(id + '.')[1]
       let res = await superagent
           .get(`${apiurl}/api/v1/publickey/${id}`)
           .set('Accept', 'application/json')
@@ -103,24 +103,36 @@ class Contacts extends require('../Command') {
     if (process.env.NODE_ENV === 'test') {
       publicKey = options.publicKey
       url = options.url
-    }
-    if (!publicKey) {
-      url = await this.useInput(Object.assign(options, {
-        message: `Paste ${name}'s url on hub`
-      }))
-      if (!url) {
+    } else {
+      let choice = await this.useSelect({
+        message: 'Chose method',
+        choices: ['Public key', 'Url on hub']
+      })
+      if (!choice) {
         throw new Error('Operation canceled')
       }
-      try {
-        publicKey = await this.getPublicKeyFromUrl(url)
-      } catch (e) {
+      if (choice === 'Url on hub') {
+        url = await this.useInput(Object.assign(options, {
+          message: `Paste ${name}'s url on hub`
+        }))
+        if (!url) {
+          throw new Error('Operation canceled')
+        }
+        try {
+          publicKey = await this.getPublicKeyFromUrl(url)
+        } catch (e) {
+        }
+      } else {
+        publicKey = await this.useInput(Object.assign(options, {
+          message: `Paste ${name}'s public key`
+        }))
       }
       if (!publicKey) {
-        throw new Error('Client not found on hub')
+        throw new Error(choice === 'Url on hub' ? 'Client not found on hub' : 'Operation canceled')
       }
     }
     if (!Crypto.isValidSecrezPublicKey(publicKey)) {
-      throw new Error('The public hey is not a valid one')
+      throw new Error('The public key is not a valid one')
     }
     if (url && !hubUtils.isValidUrl(url)) {
       throw new Error('The url does not look valid')
@@ -159,22 +171,33 @@ class Contacts extends require('../Command') {
     if (process.env.NODE_ENV === 'test') {
       publicKey = options.publicKey
       url = options.url
-    }
-    if (!url) {
-      url = await this.useInput(Object.assign(options, {
-        message: `Paste ${name}'s url on hub`
-      }))
-      if (!url) {
-        throw new Error('Operation canceled')
-      }
-      try {
-        publicKey = await this.getPublicKeyFromUrl(url)
-      } catch (e) {
+    } else {
+      let choice = await this.useSelect({
+        message: 'Chose method',
+        choices: ['Public key', 'Url on hub']
+      })
+      if (choice === 'Url on hub') {
+
+        url = await this.useInput(Object.assign(options, {
+          message: `Paste ${name}'s url on hub`
+        }))
+        if (!url) {
+          throw new Error('Operation canceled')
+        }
+        try {
+          publicKey = await this.getPublicKeyFromUrl(url)
+        } catch (e) {
+        }
+      } else {
+        publicKey = await this.useInput(Object.assign(options, {
+          message: `Paste ${name}'s public key`
+        }))
       }
       if (!publicKey) {
-        throw new Error('Url not active')
+        throw new Error(choice === 'Url on hub' ? 'Url not active' : 'Operation canceled')
       }
-    } else {
+    }
+    if (!publicKey) {
       publicKey = JSON.parse(existingDataIfSo.content).publicKey
     }
     this.checkIfAlreadyExists(name, publicKey, url)

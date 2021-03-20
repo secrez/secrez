@@ -1,6 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 
+const Crypto = require('@secrez/crypto')
 const {sleep} = require('@secrez/utils')
 
 const {Node} = require('@secrez/fs')
@@ -35,6 +36,21 @@ class Export extends require('../Command') {
         name: 'duration',
         alias: 'd',
         type: Number
+      },
+      {
+        name: 'encrypt',
+        alias: 'e',
+        type: Boolean
+      },
+      {
+        name: 'contacts',
+        alias: 'c',
+        multiple: true,
+        type: String
+      },
+      {
+        name: 'password',
+        type: String
       }
     ]
   }
@@ -48,7 +64,10 @@ class Export extends require('../Command') {
       examples: [
         ['export seed.json', 'decrypts and copies seed.json to the disk'],
         ['export seed.json -d 30', 'export seed.json and remove it from disk after 30 seconds'],
-        ['export ethKeys -v 8uW3', 'exports version 8uW3 of the file']
+        ['export ethKeys -v 8uW3', 'exports version 8uW3 of the file'],
+        ['export seed.json -e', 'asks for a password and encrypts seed.json before exporting it. The final file will have the extension ".secrez"'],
+        ['export seed.json -e --password "some strong password"', 'uses the typed password to encrypt seed.json before exporting it'],
+        ['export seed.json -ec john', 'encrypts seed.json using a key shared with the contact john, before exporting it'],
       ]
     }
   }
@@ -70,12 +89,41 @@ class Export extends require('../Command') {
         unformatted: true
       }))[0]
       let dir = await lpwd.lpwd()
-      let newPath = path.join(dir, path.basename(p))
+      let newPath = path.join(dir, path.basename(p) + (options.encrypt ? '.secrez' + (Node.isBinary(entry) ? 'b' : '') : ''))
       let name = await efs.getVersionedBasename(newPath)
-      options.filePath = path.join(dir, name)
-      await fs.writeFile(options.filePath, entry.content, Node.isBinary(entry) && typeof entry.content === 'string' ? 'base64' : undefined)
+      let content = entry.content
+      if (Node.isBinary(entry) && typeof content === 'string') {
+        content = Crypto.bs64.decode(content)
+      }
+      if (options.encrypt) {
+        if (options.contacts) {
+          options.publicKeys = await this.getContactsPublicKeys(options)
+        } else {
+          let pwd = options.password || await this.useInput({
+            type: 'password',
+            message: 'Type the password'
+          })
+          if (!pwd) {
+            throw new Error('Operation canceled')
+          }
+          let pwd2 = options.password || await this.useInput({
+            type: 'password',
+            message: 'Retype it'
+          })
+          if (!pwd2) {
+            throw new Error('Operation canceled')
+          }
+          if (pwd !== pwd2) {
+            throw new Error('The two password do not match')
+          }
+          options.password = pwd
+        }
+        content = efs.encryptFile(content, options, this.secrez, true)
+      }
+      let fn = path.join(dir, name)
+      await fs.writeFile(fn, content)
       if (options.duration) {
-        this.deleteFromDisk(options)
+        this.deleteFromDisk(fn, options.duration)
       }
       return name
     } else {
@@ -83,10 +131,21 @@ class Export extends require('../Command') {
     }
   }
 
-  async deleteFromDisk(options) {
-    await sleep(1000 * options.duration)
-    if (await fs.pathExists(options.filePath)) {
-      fs.unlink(options.filePath)
+  async getContactsPublicKeys(options) {
+    let contacts = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
+    let publicKeys = []
+    for (let contact of contacts) {
+      if (options.contacts.indexOf(contact[0]) !== -1) {
+        publicKeys.push(contact[1].publicKey)
+      }
+    }
+    return publicKeys
+  }
+
+  async deleteFromDisk(fn, duration) {
+    await sleep(1000 * duration)
+    if (await fs.pathExists(fn)) {
+      fs.unlink(fn)
     }
   }
 

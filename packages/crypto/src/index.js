@@ -137,6 +137,10 @@ class Crypto {
     return new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
   }
 
+  static bufferToUint8Array(buf) {
+    return new Uint8Array(buf)
+  }
+
   static uint8ArrayToHex(uint8) {
     return Buffer.from(uint8).toString('hex')
   }

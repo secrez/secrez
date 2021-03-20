@@ -256,7 +256,7 @@ describe('#Contacts', function () {
       publicKey: 'fhdh1ZvbspPoxJvYA144qseeDvz8rzmhmYgZxtg0FvgFqEzWN4cbUBgCkn29cE3GwJPvj6vsqno8MGom'
     })
     inspect.restore()
-    assertConsole(inspect, 'The public hey is not a valid one')
+    assertConsole(inspect, 'The public key is not a valid one')
 
     inspect = stdout.inspect()
     await C.contacts.exec({

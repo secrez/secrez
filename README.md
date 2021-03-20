@@ -451,6 +451,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__1.0.1__
+* Export and Import can handle encryption. Files can be exported encrypted using a specified password or a key shared with contacts
+* Contacts can add a contact also using contact's public key (previously you need a hub url)
+* Import specifies the file that have been skipped (because binary, encrypted or both)
+
 __1.0.0__
 * Requires `@secrez/utils@1.0.1` which fixes a yaml parsing error with ETH-like addresses
 
@@ -781,34 +786,34 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  158 passing (25s)
+  161 passing (25s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   69.77 |     55.7 |   71.87 |    69.7 |                                   
+All files              |   69.83 |    55.96 |   71.76 |   69.76 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   79.29 |    63.53 |   89.14 |   79.09 |                                   
+ src/commands          |   79.14 |    63.59 |   89.24 |   78.94 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |      75 |        0 |   66.67 |      75 | 20-21                             
   Cat.js               |    98.9 |    88.89 |     100 |    98.9 | 144                               
   Cd.js                |   96.43 |    86.67 |     100 |   96.43 | 45                                
   Chat.js              |   19.51 |        0 |   16.67 |   19.51 | 24-130                            
   Conf.js              |   10.45 |        0 |      25 |   10.45 | 132-473                           
-  Contacts.js          |   79.02 |    73.03 |   92.86 |   78.87 | ...64-175,198,203,215,271,284,294 
+  Contacts.js          |   74.67 |    65.98 |   92.86 |    74.5 | ...75-197,221,226,238,294,307,317 
   Copy.js              |   94.87 |    74.51 |     100 |   94.81 | 96,141,158,183                    
   Courier.js           |   63.54 |    41.86 |   85.71 |   63.83 | ...24,139-156,168,180-183,195-201 
   Ds.js                |   92.54 |    82.05 |     100 |   92.42 | 94,103-108,120                    
   Edit.js              |   13.58 |        0 |      40 |   13.58 | 78-193                            
-  Export.js            |     100 |    68.75 |     100 |     100 | 56,76,88-93,100                   
+  Export.js            |   93.75 |    69.44 |     100 |   93.75 | 96,107,114,117                    
   Find.js              |   93.59 |    86.67 |     100 |   93.42 | 90,153,192-196,202                
   Git.js               |   15.07 |        0 |      50 |   15.07 | 74-178                            
   Help.js              |     100 |       80 |     100 |     100 | 30                                
-  Import.js            |   93.68 |    83.96 |     100 |   93.57 | ...59,261,274,280,322,337-343,359 
+  Import.js            |   93.07 |    85.95 |     100 |   92.96 | ...96,298,311,317,359,374-380,407 
   Lcat.js              |     100 |    85.71 |     100 |     100 | 55                                
   Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 49                                
   Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 91                                
@@ -847,15 +852,15 @@ All files              |   69.77 |     55.7 |   71.87 |    69.7 |
   MainPromptMock.js    |     100 |      100 |   66.67 |     100 |                                   
   MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 8-35                              
   SigintManager.js     |      25 |        0 |      20 |      25 | 11-37                             
- src/utils             |   70.33 |     62.1 |   58.33 |   69.96 |                                   
+ src/utils             |   69.92 |     62.1 |   56.25 |   69.55 |                                   
   AliasManager.js      |     100 |    91.67 |     100 |     100 | 48                                
   ContactManager.js    |   71.43 |       60 |   85.71 |   71.43 | 13,36-38                          
   Fido2Client.js       |   15.38 |        0 |   11.11 |   15.38 | 15-101                            
   HelpProto.js         |    91.6 |    83.08 |     100 |   91.45 | 44,137-138,155-160,179            
-  Logger.js            |   65.91 |    56.25 |   42.11 |   65.12 | ...42-50,58,66-70,75,85,89,94,107 
+  Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
-> secrez@1.0.0-beta.3 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
+> secrez@1.0.1 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 

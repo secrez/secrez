@@ -264,7 +264,6 @@ module.exports = function () {
       return _secrez.decryptShared(encryptedData, publicKey)
     }
 
-
     encryptEntry(entry, useTs) {
 
       if (!entry || entry.constructor.name !== 'Entry') {
