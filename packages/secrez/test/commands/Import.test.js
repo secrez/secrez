@@ -7,6 +7,7 @@ const path = require('path')
 const MainPrompt = require('../../src/prompts/MainPromptMock')
 const {fromSimpleYamlToJson} = require('@secrez/utils')
 const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
+const {execAsync} = require('@secrez/utils')
 
 const {
   password,
@@ -16,7 +17,8 @@ const {
 describe('#Import', function () {
 
   let prompt
-  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
+  let testDir = path.resolve(__dirname, '../../tmp/test')
+  let rootDir = path.resolve(testDir, '.secrez')
   let fixtures = path.resolve(__dirname, '../fixtures')
   let inspect, C
 
@@ -88,6 +90,91 @@ describe('#Import', function () {
 
   })
 
+  it('should import an encrypted file', async function () {
+
+    let content = 'some content'
+    let password = 'password'
+
+    await noPrint(C.lcd.exec({
+      path: testDir
+    }))
+
+    await C.touch.touch({
+      path: 'content.txt',
+      content
+    })
+
+    await noPrint(C.export.exec({
+      path: 'content.txt',
+      encrypt: true,
+      password
+    }))
+
+    await noPrint(C.rm.exec({
+      path: 'content.txt'
+    }))
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: 'content.txt.secrez',
+      password
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Imported files:', '/content.txt'])
+
+    inspect = stdout.inspect()
+    await C.cat.exec({
+      path: '/content.txt'
+    })
+    inspect.restore()
+    assertConsole(inspect, [content])
+
+  })
+
+  it('should import an encrypted binary file and export it again verifying it is fine', async function () {
+
+    let password = 'password'
+    let file = 'file1.tar.gz'
+
+    await noPrint(C.lcd.exec({
+      path: 'folder1'
+    }))
+
+    let result = await execAsync('cksum', await C.lpwd.lpwd(), [file])
+    let cksum = result.message
+
+    await noPrint(C.import.exec({
+      path: file,
+      binaryToo: true
+    }))
+
+    await noPrint(C.lcd.exec({
+      path: testDir
+    }))
+
+    await noPrint(C.export.exec({
+      path: file,
+      password
+    }))
+
+    await noPrint(C.rm.exec({
+      path: file
+    }))
+
+    await noPrint(C.import.exec({
+      path: file,
+      password
+    }))
+
+    await noPrint(C.export.exec({
+      path: file
+    }))
+
+    result = await execAsync('cksum', await C.lpwd.lpwd(), [file])
+    assert.equal(cksum, result.message)
+
+  })
+
   it('should import files recursively', async function () {
 
     await C.lcd.lcd({
@@ -108,7 +195,8 @@ describe('#Import', function () {
       '/file3',
       '/folder1/file-2',
       '/folder1/file1',
-      '/folder1/folder3/file4'
+      '/folder1/folder3/file4',
+      'Skipped files:'
     ])
 
     inspect = stdout.inspect()
@@ -152,8 +240,7 @@ describe('#Import', function () {
       path: 'folder1'
     })
     inspect.restore()
-    // console.log(inspect.output.map(e => decolorize(e)))
-    assertConsole(inspect, ['Imported files:', '/folder/file-2', '/folder/file1'])
+    assertConsole(inspect, ['Imported files:', '/folder/file-2', '/folder/file1', 'Skipped files:'])
 
     let newSecret = await C.cat.cat({path: '/folder/file1'})
     assert.equal(content1, newSecret[0].content)

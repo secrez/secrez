@@ -18,6 +18,11 @@ This is the filesystem component.
 
 API documentation
 
+## History
+
+__1.0.2__
+* Adds `encryptFile` and `decryptFile` to ExternalFs
+
 ## Test coverage
 
 ```

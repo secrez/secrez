@@ -2,7 +2,7 @@ const chai = require('chai')
 const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
-const Secrez = require('@secrez/core').Secrez(Math.random())
+const {Secrez} = require('@secrez/core')
 
 const ExternalFs = require('../src/ExternalFs')
 
@@ -10,14 +10,26 @@ describe('#ExternalFs', function () {
 
   let secrez
   let externalFs
-  let rootDir = path.resolve(__dirname, '../tmp/test/.secrez')
-  let localWorkingDir = path.resolve(__dirname, '.')
+  let container = path.resolve(__dirname, '../tmp/test/.secrez')
+  let localDir = path.resolve(__dirname, '.')
+  let somePassword = 'I have seen the double green light'
+
+  const otherSecrez = []
 
   before(async function () {
-    await fs.emptyDir(path.resolve(__dirname, '../tmp/test'))
-    secrez = new Secrez()
-    await secrez.init(rootDir, localWorkingDir)
+    await fs.emptyDir(container)
+    secrez = new (Secrez())
+    await secrez.init(container, localDir)
+    await secrez.signup(somePassword, 1000)
     externalFs = new ExternalFs(secrez)
+
+    for (let i = 0; i < 3; i++) {
+      let currDir = container + i
+      await fs.emptyDir(currDir)
+      otherSecrez[i] = new (Secrez())
+      await otherSecrez[i].init(currDir)
+      await otherSecrez[i].signup(somePassword, 1000)
+    }
   })
 
 
@@ -27,13 +39,13 @@ describe('#ExternalFs', function () {
 
     it('should normalize "~/fileSystems"', async function () {
       dir = '~/fileSystems'
-      assert.equal(externalFs.getNormalizedPath(dir), path.join(localWorkingDir, 'fileSystems'))
+      assert.equal(externalFs.getNormalizedPath(dir), path.join(localDir, 'fileSystems'))
 
     })
 
     it('should normalize "~"', async function () {
       dir = '~'
-      assert.equal(externalFs.getNormalizedPath(dir), localWorkingDir)
+      assert.equal(externalFs.getNormalizedPath(dir), localDir)
 
     })
 
@@ -161,6 +173,34 @@ describe('#ExternalFs', function () {
       file = externalFs.getNormalizedPath('jobs.text')
       assert.isFalse(await externalFs.isFile(file))
     })
+  })
+
+  describe('encrypt/decrypt external file', async function () {
+
+    let content = 'Some secret content'
+
+    it('should encrypt a file using a specific password', async function () {
+      let password = 'some unique weirdness'
+
+      let encryptedContent = externalFs.encryptFile(content, {password})
+      assert.equal(externalFs.decryptFile(encryptedContent, {password}), content)
+    })
+
+
+    it('should encrypt a file using a shared key', async function () {
+
+      let publicKey0 = otherSecrez[0].getPublicKey()
+      let publicKey1 = otherSecrez[1].getPublicKey()
+
+      let encryptedContent = externalFs.encryptFile(content, {
+            publicKeys: [publicKey0, publicKey1]
+          },
+          secrez)
+
+      assert.equal(externalFs.decryptFile(encryptedContent, {}, otherSecrez[0], [secrez.getPublicKey()]), content)
+
+    })
+
   })
 
 })
