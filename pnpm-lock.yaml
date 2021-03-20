@@ -17,7 +17,7 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/crypto': workspace:~1.0.0
+      '@secrez/crypto': workspace:~1.0.1
       '@secrez/test-helpers': workspace:~1.0.1
       '@secrez/utils': workspace:~1.0.0
       chai: ^4.2.0
@@ -56,9 +56,9 @@ importers:
       eslint: 6.8.0
       mocha: 7.2.0
     specifiers:
-      '@secrez/core': workspace:~1.0.1
-      '@secrez/crypto': workspace:~1.0.0
-      '@secrez/fs': workspace:~1.0.1
+      '@secrez/core': workspace:~1.0.2
+      '@secrez/crypto': workspace:~1.0.1
+      '@secrez/fs': workspace:~1.0.2
       '@secrez/hub': workspace:~0.2.1
       '@secrez/test-helpers': workspace:~1.0.1
       '@secrez/tls': workspace:~0.1.4
@@ -126,8 +126,8 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': workspace:~1.0.1
-      '@secrez/crypto': workspace:~1.0.0
+      '@secrez/core': workspace:~1.0.2
+      '@secrez/crypto': workspace:~1.0.1
       '@secrez/test-helpers': workspace:~1.0.1
       '@secrez/utils': workspace:~1.0.0
       chai: ^4.2.0
@@ -166,8 +166,8 @@ importers:
       supertest: 4.0.2
       ws: 7.3.0
     specifiers:
-      '@secrez/core': workspace:~1.0.1
-      '@secrez/crypto': workspace:~1.0.0
+      '@secrez/core': workspace:~1.0.2
+      '@secrez/crypto': workspace:~1.0.1
       '@secrez/test-helpers': workspace:~1.0.1
       '@secrez/tls': workspace:~0.1.4
       '@secrez/utils': workspace:~1.0.0
@@ -216,10 +216,10 @@ importers:
       nyc: 15.1.0
       test-console: 1.1.0
     specifiers:
-      '@secrez/core': workspace:~1.0.1
+      '@secrez/core': workspace:~1.0.2
       '@secrez/courier': workspace:~0.2.1
-      '@secrez/crypto': workspace:~1.0.0
-      '@secrez/fs': workspace:~1.0.1
+      '@secrez/crypto': workspace:~1.0.1
+      '@secrez/fs': workspace:~1.0.2
       '@secrez/hub': workspace:~0.2.1
       '@secrez/test-helpers': workspace:~1.0.1
       '@secrez/utils': workspace:~1.0.0
@@ -235,7 +235,7 @@ importers:
       inquirer-command-prompt: ^0.1.0
       mocha: ^7.1.1
       nyc: ^15.1.0
-      secrez: workspace:~1.0.0-beta.1
+      secrez: workspace:~1.0.1
       secrez-core-0-8-2: npm:@secrez/core@0.8.12
       secrez-fs-0-8-8: npm:@secrez/fs@0.8.8
       test-console: ^1.1.0
@@ -272,10 +272,10 @@ importers:
       nyc: 15.1.0
       test-console: 1.1.0
     specifiers:
-      '@secrez/core': workspace:~1.0.1
+      '@secrez/core': workspace:~1.0.2
       '@secrez/courier': workspace:~0.2.1
-      '@secrez/crypto': workspace:~1.0.0
-      '@secrez/fs': workspace:~1.0.1
+      '@secrez/crypto': workspace:~1.0.1
+      '@secrez/fs': workspace:~1.0.2
       '@secrez/hub': workspace:~0.2.1
       '@secrez/test-helpers': workspace:~1.0.1
       '@secrez/utils': workspace:~1.0.1
@@ -321,9 +321,9 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': workspace:~1.0.1
-      '@secrez/crypto': workspace:~1.0.0
-      '@secrez/fs': workspace:~1.0.1
+      '@secrez/core': workspace:~1.0.2
+      '@secrez/crypto': workspace:~1.0.1
+      '@secrez/fs': workspace:~1.0.2
       '@secrez/hub': workspace:~0.2.1
       '@secrez/utils': workspace:~1.0.0
       chai: ^4.2.0
@@ -384,8 +384,8 @@ importers:
       mocha: 7.2.0
       nyc: 15.1.0
     specifiers:
-      '@secrez/core': workspace:~1.0.1
-      '@secrez/crypto': workspace:~1.0.0
+      '@secrez/core': workspace:~1.0.2
+      '@secrez/crypto': workspace:~1.0.1
       '@secrez/hub': workspace:~0.2.1
       '@secrez/test-helpers': workspace:~1.0.1
       '@secrez/tls': workspace:~0.1.4
