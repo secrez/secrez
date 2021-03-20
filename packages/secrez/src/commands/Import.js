@@ -76,6 +76,10 @@ class Import extends require('../Command') {
       {
         name: 'password',
         type: String
+      },
+      {
+        name: 'public-key',
+        type: String
       }
     ]
   }
@@ -95,7 +99,8 @@ class Import extends require('../Command') {
       examples: [
         ['import seed.json', 'copies seed.json from the disk into the current directory'],
         ['import seed.json.secrez --password s8eeuhwy36534', 'imports seed.json and decrypts it using the specified password'],
-        ['import seed.json.secrez -d ', 'imports seed.json trying to decrypt it using the password shared with contacts'],
+        ['import seed.json.secrez -d', 'imports seed.json trying to decrypt it using the key shared with the contact who encrypted the data'],
+        ['import seed.json.secrez -d --public-key Tush76/u+..... ', 'imports seed.json trying to decrypt it using a shared key generated using the specified public key'],
         ['import -m ethKeys', 'copies ethKeys and remove it from the disk'],
         ['import -p ~/passwords', 'imports all the text files in the folder passwords'],
         ['import -b -p ~/passwords', 'imports all the files, included binaries'],
@@ -173,7 +178,7 @@ class Import extends require('../Command') {
           isEncryptedBinary = /\.secrezb(|\.\w+)$/.test(basename)
           basename = basename.replace(/\.secrez(|b)(|\.\w+)$/, '')
         }
-        if (isEncrypted && !contactsPublicKeys) {
+        if (isEncrypted && !contactsPublicKeys && !options.publicKey) {
           contactsPublicKeys = await this.getContactsPublicKeys()
         }
         let name = await this.internalFs.tree.getVersionedBasename(basename)
@@ -187,8 +192,8 @@ class Import extends require('../Command') {
           }
           if (isEncrypted) {
             try {
-              c[2] = efs.decryptFile(c[2], options, this.secrez, contactsPublicKeys, isEncryptedBinary)
-            } catch(e) {
+              c[2] = efs.decryptFile(c[2], options, this.secrez, options.publicKey || contactsPublicKeys, isEncryptedBinary)
+            } catch (e) {
               this.skipped.push([path.basename(c[0]), e.message])
               continue
             }

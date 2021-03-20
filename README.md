@@ -451,6 +451,9 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__1.0.2__
+* Export and Import can encrypt/decrypt files using shared keys generated from a specified public key
+  
 __1.0.1__
 * Export and Import can handle encryption. Files can be exported encrypted using a specified password or a key shared with contacts
 * Contacts can add a contact also using contact's public key (previously you need a hub url)

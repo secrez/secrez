@@ -1,5 +1,6 @@
 const fs = require('fs-extra')
 const path = require('path')
+const chalk = require('chalk')
 
 const Crypto = require('@secrez/crypto')
 const {sleep} = require('@secrez/utils')
@@ -49,6 +50,11 @@ class Export extends require('../Command') {
         type: String
       },
       {
+        name: 'public-keys',
+        multiple: true,
+        type: String
+      },
+      {
         name: 'password',
         type: String
       }
@@ -67,7 +73,8 @@ class Export extends require('../Command') {
         ['export ethKeys -v 8uW3', 'exports version 8uW3 of the file'],
         ['export seed.json -e', 'asks for a password and encrypts seed.json before exporting it. The final file will have the extension ".secrez"'],
         ['export seed.json -e --password "some strong password"', 'uses the typed password to encrypt seed.json before exporting it'],
-        ['export seed.json -ec john', 'encrypts seed.json using a key shared with the contact john, before exporting it'],
+        ['export seed.json -ec bob alice', 'encrypts seed.json using a key shared with the contacts Bob and Alice, before exporting it'],
+        ['export seed.json -e --public-keys TCpDvTiVpHwNiS....', 'encrypts seed.json using shared keys generated from the specified public keys']
       ]
     }
   }
@@ -96,27 +103,29 @@ class Export extends require('../Command') {
         content = Crypto.bs64.decode(content)
       }
       if (options.encrypt) {
-        if (options.contacts) {
-          options.publicKeys = await this.getContactsPublicKeys(options)
-        } else {
-          let pwd = options.password || await this.useInput({
-            type: 'password',
-            message: 'Type the password'
-          })
-          if (!pwd) {
-            throw new Error('Operation canceled')
+        if (!options.publicKeys) {
+          if (options.contacts) {
+            options.publicKeys = await this.getContactsPublicKeys(options)
+          } else {
+            let pwd = options.password || await this.useInput({
+              type: 'password',
+              message: 'Type the password'
+            })
+            if (!pwd) {
+              throw new Error('Operation canceled')
+            }
+            let pwd2 = options.password || await this.useInput({
+              type: 'password',
+              message: 'Retype it'
+            })
+            if (!pwd2) {
+              throw new Error('Operation canceled')
+            }
+            if (pwd !== pwd2) {
+              throw new Error('The two password do not match')
+            }
+            options.password = pwd
           }
-          let pwd2 = options.password || await this.useInput({
-            type: 'password',
-            message: 'Retype it'
-          })
-          if (!pwd2) {
-            throw new Error('Operation canceled')
-          }
-          if (pwd !== pwd2) {
-            throw new Error('The two password do not match')
-          }
-          options.password = pwd
         }
         content = efs.encryptFile(content, options, this.secrez, true)
       }
@@ -156,8 +165,12 @@ class Export extends require('../Command') {
     try {
       this.validate(options)
       let name = await this.export(options)
-      this.Logger.grey(options.clipboard ? 'Copied to clipboard:' : 'Exported file:')
+      this.Logger.grey('Exported file:')
       this.Logger.reset(name)
+      if (options.encrypt && !options.password && !this.alerted) {
+        this.Logger.yellow(chalk.red('One time alert: ') + 'Only the users for which you encrypted the data can decrypt it; not even you can decrypt the exported data. Be careful!')
+        this.alerted = true
+      }
     } catch (e) {
       this.Logger.red(e.message)
     }

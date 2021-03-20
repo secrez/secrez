@@ -160,13 +160,15 @@ class ExternalFs {
           throw new Error('A secrez instance is required to encrypt using shared keys')
         }
         if (!contactsPKs) {
-          throw new Error('A list of contacts is required to encrypt using shared keys')
+          throw new Error('A list of contacts, or the encrypter\'s public keys is required to decrypt using shared keys')
         }
-        let contactPublicKey
-        for (let pk of contactsPKs) {
-          if (this.shortPublicKey(pk) === passwordOrPK) {
-            contactPublicKey = pk
-            break
+        let contactPublicKey = typeof contactsPKs === 'string' ? contactsPKs : undefined
+        if (!contactPublicKey) {
+          for (let pk of contactsPKs) {
+            if (this.shortPublicKey(pk) === passwordOrPK) {
+              contactPublicKey = pk
+              break
+            }
           }
         }
         if (!contactPublicKey) {
