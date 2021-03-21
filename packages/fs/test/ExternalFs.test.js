@@ -175,32 +175,4 @@ describe('#ExternalFs', function () {
     })
   })
 
-  describe('encrypt/decrypt external file', async function () {
-
-    let content = 'Some secret content'
-
-    it('should encrypt a file using a specific password', async function () {
-      let password = 'some unique weirdness'
-
-      let encryptedContent = externalFs.encryptFile(content, {password})
-      assert.equal(externalFs.decryptFile(encryptedContent, {password}), content)
-    })
-
-
-    it('should encrypt a file using a shared key', async function () {
-
-      let publicKey0 = otherSecrez[0].getPublicKey()
-      let publicKey1 = otherSecrez[1].getPublicKey()
-
-      let encryptedContent = externalFs.encryptFile(content, {
-            publicKeys: [publicKey0, publicKey1]
-          },
-          secrez)
-
-      assert.equal(externalFs.decryptFile(encryptedContent, {}, otherSecrez[0], [secrez.getPublicKey()]), content)
-
-    })
-
-  })
-
 })

@@ -1,6 +1,6 @@
 {
   "name": "@secrez/test-helpers",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -13,9 +13,9 @@
     "posttest": "nyc check-coverage --statements 100 --branches 90 --functions 100 --lines 100"
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.2",
+    "@secrez/core": "workspace:~1.0.3",
     "@secrez/crypto": "workspace:~1.0.1",
-    "@secrez/fs": "workspace:~1.0.2",
+    "@secrez/fs": "workspace:~1.0.3",
     "@secrez/hub": "workspace:~0.2.1",
     "@secrez/utils": "workspace:~1.0.0",
     "chai": "^4.2.0",

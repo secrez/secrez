@@ -5,7 +5,7 @@ const Case = require('case')
 const _ = require('lodash')
 const chalk = require('chalk')
 const {config, Entry} = require('@secrez/core')
-const {Node} = require('@secrez/fs')
+const {Node, FileCipher} = require('@secrez/fs')
 const {fromCsvToJson, yamlStringify, isYaml} = require('@secrez/utils')
 
 class Import extends require('../Command') {
@@ -76,6 +76,10 @@ class Import extends require('../Command') {
       {
         name: 'password',
         type: String
+      },
+      {
+        name: 'public-key',
+        type: String
       }
     ]
   }
@@ -95,7 +99,8 @@ class Import extends require('../Command') {
       examples: [
         ['import seed.json', 'copies seed.json from the disk into the current directory'],
         ['import seed.json.secrez --password s8eeuhwy36534', 'imports seed.json and decrypts it using the specified password'],
-        ['import seed.json.secrez -d ', 'imports seed.json trying to decrypt it using the password shared with contacts'],
+        ['import seed.json.secrez -d', 'imports seed.json trying to decrypt it using the key shared with the contact who encrypted the data'],
+        ['import seed.json.secrez -d --public-key Tush76/u+..... ', 'imports seed.json trying to decrypt it using a shared key generated using the specified public key'],
         ['import -m ethKeys', 'copies ethKeys and remove it from the disk'],
         ['import -p ~/passwords', 'imports all the text files in the folder passwords'],
         ['import -b -p ~/passwords', 'imports all the files, included binaries'],
@@ -135,6 +140,7 @@ class Import extends require('../Command') {
   async _import(options = {}, container = '') {
     let ifs = this.internalFs
     let efs = this.externalFs
+    let fileCipher = new FileCipher(this.secrez)
     let p = efs.getNormalizedPath(options.path)
     if (await fs.pathExists(p)) {
       let isDir = await efs.isDir(p)
@@ -173,7 +179,7 @@ class Import extends require('../Command') {
           isEncryptedBinary = /\.secrezb(|\.\w+)$/.test(basename)
           basename = basename.replace(/\.secrez(|b)(|\.\w+)$/, '')
         }
-        if (isEncrypted && !contactsPublicKeys) {
+        if (isEncrypted && !contactsPublicKeys && !options.publicKey) {
           contactsPublicKeys = await this.getContactsPublicKeys()
         }
         let name = await this.internalFs.tree.getVersionedBasename(basename)
@@ -187,8 +193,12 @@ class Import extends require('../Command') {
           }
           if (isEncrypted) {
             try {
-              c[2] = efs.decryptFile(c[2], options, this.secrez, contactsPublicKeys, isEncryptedBinary)
-            } catch(e) {
+              options.returnUint8Array = isEncryptedBinary
+              if (!options.contactPublicKey) {
+                options.contactsPublicKeys = contactsPublicKeys
+              }
+              c[2] = fileCipher.decryptFile(c[2], options)
+            } catch (e) {
               this.skipped.push([path.basename(c[0]), e.message])
               continue
             }

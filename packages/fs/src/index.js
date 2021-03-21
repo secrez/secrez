@@ -5,5 +5,6 @@ module.exports = {
   Tree: require('./Tree'),
   Node: require('./Node'),
   DataCache: require('./DataCache'),
+  FileCipher: require('./FileCipher'),
   version: require('../package').version
 }
