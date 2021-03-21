@@ -131,6 +131,45 @@ describe('#Import', function () {
 
   })
 
+  it('should import an encrypted file encrypted for myself', async function () {
+
+    let content = 'some content'
+
+    await noPrint(C.lcd.exec({
+      path: testDir
+    }))
+
+    await C.touch.touch({
+      path: 'content.txt',
+      content
+    })
+
+    await noPrint(C.export.exec({
+      path: 'content.txt',
+      encrypt: true,
+      includeMe: true
+    }))
+
+    await noPrint(C.rm.exec({
+      path: 'content.txt'
+    }))
+
+    inspect = stdout.inspect()
+    await C.import.exec({
+      path: 'content.txt.secrez'
+    })
+    inspect.restore()
+    assertConsole(inspect, ['Imported files:', '/content.txt'])
+
+    inspect = stdout.inspect()
+    await C.cat.exec({
+      path: '/content.txt'
+    })
+    inspect.restore()
+    assertConsole(inspect, [content])
+
+  })
+
   it('should import an encrypted binary file and export it again verifying it is fine', async function () {
 
     let password = 'password'

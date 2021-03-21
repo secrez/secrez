@@ -13,7 +13,7 @@
     "posttest": "nyc check-coverage --statements 85 --branches 80 --functions 85 --lines 85"
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.2",
+    "@secrez/core": "workspace:~1.0.3",
     "@secrez/crypto": "workspace:~1.0.1",
     "@secrez/utils": "workspace:~1.0.0",
     "command-line-args": "^5.1.1",
@@ -21,7 +21,7 @@
     "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~1.0.1",
+    "@secrez/test-helpers": "workspace:~1.0.2",
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",

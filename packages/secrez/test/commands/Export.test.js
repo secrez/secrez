@@ -91,6 +91,44 @@ describe('#Export', function () {
 
   })
 
+  // it('should export a file encrypted only for the user itself', async function () {
+  //
+  //   let content = 'Some secret'
+  //   let p = '/file'
+  //
+  //   await noPrint(C.touch.exec({
+  //     path: p,
+  //     content
+  //   }))
+  //
+  //   await noPrint(C.lcd.exec({
+  //     path: testDir
+  //   }))
+  //
+  //   inspect = stdout.inspect()
+  //   await C.export.exec({
+  //     path: 'file',
+  //     encrypt: true,
+  //     includeMe: true
+  //   })
+  //   inspect.restore()
+  //   assertConsole(inspect, ['Exported file:', 'file.secrez'])
+  //
+  //   let content2 = await C.lcat.lcat({path: path.join(await C.lpwd.lpwd(), 'file')})
+  //   assert.equal(content2, content)
+  //
+  //   inspect = stdout.inspect()
+  //   await C.export.exec({
+  //     path: 'file'
+  //   })
+  //   inspect.restore()
+  //   assertConsole(inspect, ['Exported file:', 'file.2'])
+  //
+  //   content2 = await C.lcat.lcat({path: path.join(await C.lpwd.lpwd(), 'file.2')})
+  //   assert.equal(content2, content)
+  //
+  // })
+
   it('should export a binary file to the current local folder', async function () {
 
     await noPrint(C.mkdir.exec({

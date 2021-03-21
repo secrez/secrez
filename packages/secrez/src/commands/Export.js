@@ -5,7 +5,7 @@ const chalk = require('chalk')
 const Crypto = require('@secrez/crypto')
 const {sleep} = require('@secrez/utils')
 
-const {Node} = require('@secrez/fs')
+const {Node, FileCipher} = require('@secrez/fs')
 
 class Export extends require('../Command') {
 
@@ -57,6 +57,10 @@ class Export extends require('../Command') {
       {
         name: 'password',
         type: String
+      },
+      {
+        name: 'include-me',
+        type: Boolean
       }
     ]
   }
@@ -74,13 +78,15 @@ class Export extends require('../Command') {
         ['export seed.json -e', 'asks for a password and encrypts seed.json before exporting it. The final file will have the extension ".secrez"'],
         ['export seed.json -e --password "some strong password"', 'uses the typed password to encrypt seed.json before exporting it'],
         ['export seed.json -ec bob alice', 'encrypts seed.json using a key shared with the contacts Bob and Alice, before exporting it'],
-        ['export seed.json -e --public-keys TCpDvTiVpHwNiS....', 'encrypts seed.json using shared keys generated from the specified public keys']
+        ['export seed.json -e --public-keys TCpDvTiVpHwNiS....', 'encrypts seed.json using shared keys generated from the specified public keys'],
+        ['export seed.json -e --include-me', 'encrypts seed.json also using your key'],
       ]
     }
   }
 
   async export(options = {}) {
     let efs = this.externalFs
+    let fileCipher = new FileCipher(this.secrez)
     let cat = this.prompt.commands.cat
     let lpwd = this.prompt.commands.lpwd
     let originalPath = options.path
@@ -103,31 +109,39 @@ class Export extends require('../Command') {
         content = Crypto.bs64.decode(content)
       }
       if (options.encrypt) {
-        if (!options.publicKeys) {
-          if (options.contacts) {
-            options.publicKeys = await this.getContactsPublicKeys(options)
-          } else {
-            let pwd = options.password || await this.useInput({
-              type: 'password',
-              message: 'Type the password'
-            })
-            if (!pwd) {
-              throw new Error('Operation canceled')
-            }
-            let pwd2 = options.password || await this.useInput({
-              type: 'password',
-              message: 'Retype it'
-            })
-            if (!pwd2) {
-              throw new Error('Operation canceled')
-            }
-            if (pwd !== pwd2) {
-              throw new Error('The two password do not match')
-            }
-            options.password = pwd
+        const myPublicKey = this.secrez.getPublicKey()
+        if (options.publicKeys) {
+          if (options.includeMe && options.publicKeys.indexOf(myPublicKey) === -1) {
+            options.publicKeys.push(myPublicKey)
           }
+        } else if (options.contacts) {
+          options.publicKeys = await this.getContactsPublicKeys(options)
+          if (options.includeMe) {
+            options.publicKeys.push(myPublicKey)
+          }
+        } else if (options.includeMe) {
+          options.publicKeys = [myPublicKey]
+        } else {
+          let pwd = options.password || await this.useInput({
+            type: 'password',
+            message: 'Type the password'
+          })
+          if (!pwd) {
+            throw new Error('Operation canceled')
+          }
+          let pwd2 = options.password || await this.useInput({
+            type: 'password',
+            message: 'Retype it'
+          })
+          if (!pwd2) {
+            throw new Error('Operation canceled')
+          }
+          if (pwd !== pwd2) {
+            throw new Error('The two password do not match')
+          }
+          options.password = pwd
         }
-        content = efs.encryptFile(content, options, this.secrez, true)
+        content = fileCipher.encryptFile(content, options).join(',')
       }
       let fn = path.join(dir, name)
       await fs.writeFile(fn, content)
@@ -167,7 +181,7 @@ class Export extends require('../Command') {
       let name = await this.export(options)
       this.Logger.grey('Exported file:')
       this.Logger.reset(name)
-      if (options.encrypt && !options.password && !this.alerted) {
+      if (options.encrypt && !options.password && !options.includeMe && !this.alerted) {
         this.Logger.yellow(chalk.red('One time alert: ') + 'Only the users for which you encrypted the data can decrypt it; not even you can decrypt the exported data. Be careful!')
         this.alerted = true
       }

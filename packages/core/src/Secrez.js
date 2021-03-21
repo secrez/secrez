@@ -244,8 +244,8 @@ module.exports = function () {
       return _secrez.encrypt(data, urlSafe)
     }
 
-    decryptData(encryptedData, urlSafe) {
-      return _secrez.decrypt(encryptedData, urlSafe)
+    decryptData(encryptedData, urlSafe, returnUint8Array) {
+      return _secrez.decrypt(encryptedData, urlSafe, returnUint8Array)
     }
 
     preEncryptData(data) {

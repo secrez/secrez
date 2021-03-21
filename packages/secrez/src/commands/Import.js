@@ -5,7 +5,7 @@ const Case = require('case')
 const _ = require('lodash')
 const chalk = require('chalk')
 const {config, Entry} = require('@secrez/core')
-const {Node} = require('@secrez/fs')
+const {Node, FileCipher} = require('@secrez/fs')
 const {fromCsvToJson, yamlStringify, isYaml} = require('@secrez/utils')
 
 class Import extends require('../Command') {
@@ -140,6 +140,7 @@ class Import extends require('../Command') {
   async _import(options = {}, container = '') {
     let ifs = this.internalFs
     let efs = this.externalFs
+    let fileCipher = new FileCipher(this.secrez)
     let p = efs.getNormalizedPath(options.path)
     if (await fs.pathExists(p)) {
       let isDir = await efs.isDir(p)
@@ -192,7 +193,11 @@ class Import extends require('../Command') {
           }
           if (isEncrypted) {
             try {
-              c[2] = efs.decryptFile(c[2], options, this.secrez, options.publicKey || contactsPublicKeys, isEncryptedBinary)
+              options.returnUint8Array = isEncryptedBinary
+              if (!options.contactPublicKey) {
+                options.contactsPublicKeys = contactsPublicKeys
+              }
+              c[2] = fileCipher.decryptFile(c[2], options)
             } catch (e) {
               this.skipped.push([path.basename(c[0]), e.message])
               continue

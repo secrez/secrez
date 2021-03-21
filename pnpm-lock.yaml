@@ -8,7 +8,7 @@ importers:
   packages/core:
     specifiers:
       '@secrez/crypto': workspace:~1.0.1
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       '@secrez/utils': workspace:~1.0.0
       chai: ^4.2.0
       cross-env: ^7.0.2
@@ -36,11 +36,11 @@ importers:
 
   packages/courier:
     specifiers:
-      '@secrez/core': workspace:~1.0.2
+      '@secrez/core': workspace:~1.0.3
       '@secrez/crypto': workspace:~1.0.1
       '@secrez/fs': workspace:~1.0.3
       '@secrez/hub': workspace:~0.2.1
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       '@secrez/tls': workspace:~0.1.4
       '@secrez/tunnel': workspace:~0.1.6
       '@secrez/utils': workspace:~1.0.0
@@ -118,9 +118,9 @@ importers:
 
   packages/fs:
     specifiers:
-      '@secrez/core': workspace:~1.0.2
+      '@secrez/core': workspace:~1.0.3
       '@secrez/crypto': workspace:~1.0.1
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       '@secrez/utils': workspace:~1.0.0
       chai: ^4.2.0
       command-line-args: ^5.1.1
@@ -149,9 +149,9 @@ importers:
 
   packages/hub:
     specifiers:
-      '@secrez/core': workspace:~1.0.2
+      '@secrez/core': workspace:~1.0.3
       '@secrez/crypto': workspace:~1.0.1
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       '@secrez/tls': workspace:~0.1.4
       '@secrez/utils': workspace:~1.0.0
       book: 1.3.3
@@ -200,12 +200,12 @@ importers:
 
   packages/migrate:
     specifiers:
-      '@secrez/core': workspace:~1.0.2
-      '@secrez/courier': workspace:~0.2.1
+      '@secrez/core': workspace:~1.0.3
+      '@secrez/courier': workspace:~0.2.2
       '@secrez/crypto': workspace:~1.0.1
       '@secrez/fs': workspace:~1.0.3
       '@secrez/hub': workspace:~0.2.1
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       '@secrez/utils': workspace:~1.0.0
       chai: ^4.2.0
       chalk: ^3.0.0
@@ -251,12 +251,12 @@ importers:
 
   packages/secrez:
     specifiers:
-      '@secrez/core': workspace:~1.0.2
-      '@secrez/courier': workspace:~0.2.1
+      '@secrez/core': workspace:~1.0.3
+      '@secrez/courier': workspace:~0.2.2
       '@secrez/crypto': workspace:~1.0.1
       '@secrez/fs': workspace:~1.0.3
       '@secrez/hub': workspace:~0.2.1
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       '@secrez/utils': workspace:~1.0.1
       case: ^1.6.3
       chai: ^4.2.0
@@ -314,7 +314,7 @@ importers:
 
   packages/test-helpers:
     specifiers:
-      '@secrez/core': workspace:~1.0.2
+      '@secrez/core': workspace:~1.0.3
       '@secrez/crypto': workspace:~1.0.1
       '@secrez/fs': workspace:~1.0.3
       '@secrez/hub': workspace:~0.2.1
@@ -351,7 +351,7 @@ importers:
 
   packages/tls:
     specifiers:
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       '@secrez/utils': workspace:~1.0.0
       chai: ^4.2.0
       chalk: ^4.1.0
@@ -378,10 +378,10 @@ importers:
 
   packages/tunnel:
     specifiers:
-      '@secrez/core': workspace:~1.0.2
+      '@secrez/core': workspace:~1.0.3
       '@secrez/crypto': workspace:~1.0.1
       '@secrez/hub': workspace:~0.2.1
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       '@secrez/tls': workspace:~0.1.4
       '@secrez/utils': workspace:~1.0.0
       chai: ^4.2.0
@@ -417,7 +417,7 @@ importers:
 
   packages/utils:
     specifiers:
-      '@secrez/test-helpers': workspace:~1.0.1
+      '@secrez/test-helpers': workspace:~1.0.2
       base58: ^2.0.1
       case: ^1.6.3
       chai: ^4.2.0

@@ -15,7 +15,7 @@
     "exclude": []
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.2",
+    "@secrez/core": "workspace:~1.0.3",
     "@secrez/crypto": "workspace:~1.0.1",
     "@secrez/fs": "workspace:~1.0.3",
     "@secrez/hub": "workspace:~0.2.1",
@@ -37,8 +37,8 @@
     "tiny-cli-editor": "^0.1.1"
   },
   "devDependencies": {
-    "@secrez/courier": "workspace:~0.2.1",
-    "@secrez/test-helpers": "workspace:~1.0.1",
+    "@secrez/courier": "workspace:~0.2.2",
+    "@secrez/test-helpers": "workspace:~1.0.2",
     "chai": "^4.2.0",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.2",
