@@ -15,9 +15,9 @@ const UglyDate = require('./UglyDate')
 const utils = {
 
   yamlParse(str) {
-    // workaround to avoid parsing ETH addresses
-    if (/: 0x[a-fA-F0-9]{40}/.test(str)) {
-      str = str.replace(/: (0x[a-fA-F0-9]{40})/g, ": '$1'")
+    // workaround to avoid parsing ETH addresses and private keys
+    if (/: 0x[a-fA-F0-9]+(\n|$)/.test(str)) {
+      str = str.replace(/: (0x[a-fA-F0-9]+)(\n|$)/g, ": '$1'$2")
     }
     try {
       return YAML.parse(str)

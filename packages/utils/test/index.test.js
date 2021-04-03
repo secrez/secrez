@@ -416,11 +416,15 @@ describe('#utils from core', function () {
     })
 
     it('should not treat an ETH address as a number', async function () {
-      let src = `user: joe
-address: 0x0C192bE3C518edE035ec2F1449b77feeC1C6D92f
-`
+      let src = `addr0: 0xff8B2194572B2D5b2f12537b394e11d798EC75fF
+addr1: 0xb4e19C4c88257460ec31D3CD4d02E7371e502D62
+pk0: 0xfcad89bacfbbfe7c5de66cef3ee205e64c4d9ff17fcafbcd450d72a7dbe3c0f2
+pk1: 0x50e4f3dbcdc7a27ac17ad6bedf3f322f841d7a2296d6ff11dbfc38fff39b157e`
       let parsed = utils.yamlParse(src)
-      assert.equal(parsed.address.toString(), '0x0C192bE3C518edE035ec2F1449b77feeC1C6D92f')
+      assert.equal(parsed.addr0.toString(), '0xff8B2194572B2D5b2f12537b394e11d798EC75fF')
+      assert.equal(parsed.addr1.toString(), '0xb4e19C4c88257460ec31D3CD4d02E7371e502D62')
+      assert.equal(parsed.pk0.toString(), '0xfcad89bacfbbfe7c5de66cef3ee205e64c4d9ff17fcafbcd450d72a7dbe3c0f2')
+      assert.equal(parsed.pk1.toString(), '0x50e4f3dbcdc7a27ac17ad6bedf3f322f841d7a2296d6ff11dbfc38fff39b157e')
 
     })
 
