@@ -451,6 +451,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__1.0.3__
+* `git` asks to quit Secrez and merge manually if there are remote changes
+* `totp` allows to add a totp code to an existing yaml file using the option `--set` (see the examples)
+* Default duration before clipboard reverse for `totp` is now 8 seconds
+
 __1.0.2__
 * Export and Import can encrypt/decrypt files using shared keys generated from a specified public key
 * Can export ecrypted file for the user itself, files that can be decrypted only from inside the secrez account that exported them 
@@ -790,18 +795,18 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  162 passing (24s)
+  162 passing (28s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |    69.9 |    56.05 |   71.76 |   69.84 |                                   
+All files              |   69.69 |    55.82 |   71.76 |   69.62 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   79.17 |    63.61 |   89.24 |   78.97 |                                   
+ src/commands          |   78.81 |    63.22 |   89.24 |    78.6 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |      75 |        0 |   66.67 |      75 | 20-21                             
   Cat.js               |    98.9 |    88.89 |     100 |    98.9 | 144                               
@@ -815,7 +820,7 @@ All files              |    69.9 |    56.05 |   71.76 |   69.84 |
   Edit.js              |   13.58 |        0 |      40 |   13.58 | 78-193                            
   Export.js            |   90.91 |       68 |     100 |   90.91 | 109,114-115,120,130,137,140       
   Find.js              |   93.59 |    86.67 |     100 |   93.42 | 90,153,192-196,202                
-  Git.js               |   15.07 |        0 |      50 |   15.07 | 74-178                            
+  Git.js               |   13.41 |        0 |      50 |   13.41 | 74-197                            
   Help.js              |     100 |       80 |     100 |     100 | 30                                
   Import.js            |    93.2 |    85.48 |     100 |    93.1 | ...06,308,321,327,369,384-390,417 
   Lcat.js              |     100 |    85.71 |     100 |     100 | 55                                
@@ -832,7 +837,7 @@ All files              |    69.9 |    56.05 |   71.76 |   69.84 |
   Shell.js             |   88.24 |       60 |     100 |   88.24 | 39,54                             
   Ssh.js               |      25 |        0 |      40 |      25 | 64-104                            
   Tag.js               |   98.04 |    92.31 |     100 |   97.94 | 123,164                           
-  Totp.js              |   97.53 |    76.74 |     100 |   97.53 | 150-151                           
+  Totp.js              |   96.47 |    74.47 |     100 |   96.47 | 164-165,209                       
   Touch.js             |     100 |    71.43 |     100 |     100 | 57,68                             
   Use.js               |   96.77 |    89.47 |     100 |   96.77 | 65                                
   Ver.js               |      90 |    66.67 |     100 |      90 | 27                                
@@ -863,10 +868,6 @@ All files              |    69.9 |    56.05 |   71.76 |   69.84 |
   HelpProto.js         |    91.6 |    83.08 |     100 |   91.45 | 44,137-138,155-160,179            
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-
-> secrez@1.0.3 posttest /Users/sullof/Projects/Personal/secrez/packages/secrez
-> nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
-
 
 ```
 
