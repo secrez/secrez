@@ -110,7 +110,7 @@ class Git extends require('../Command') {
     }
     if (options.remoteUrl) {
       if (remoteUrl) {
-        await execAsync('git', containerPath, ['remote','remove','origin'])
+        await execAsync('git', containerPath, ['remote', 'remove', 'origin'])
       }
       await execAsync('git', containerPath, ['remote', 'add', 'origin', options.remoteUrl])
       return `Remote url: ${options.remoteUrl}`
@@ -122,47 +122,66 @@ class Git extends require('../Command') {
     }
     let branch = _.trim(result.message)
 
-    result = await execAsync('git', containerPath, ['diff', '--name-only'])
+    result = await execAsync('git', containerPath, ['status'])
     let count = 0
-    if (_.trim(result.message)) {
-      count = _.trim(result.message).split('\n').length
+
+    if (_.trim(result.message) && /untracked files/i.test(result.message)) {
+      let message = _.trim(result.message).split('\n')
+      for (let row of message) {
+        if (/\s+(data(\w+|)|keys|cache)\//.test(row)) {
+          count++
+        }
+      }
     }
 
     this.internalFs.cleanPreviousRootEntry()
 
-    if (!remoteUrl) {
-      if (options.info) {
-        return `       
+    if (options.info) {
+      return `       
 Current branch: ${chalk.bold(branch)}
 Number of changed files: ${chalk.bold(count)}
 `
-      } else if (options.push) {
-        await execAsync('git', containerPath, ['add', '-A'])
-        return (await execAsync('git', containerPath, ['commit', '-m', options.message || 'another-commit'])).message
-      } else {
-        throw new Error('Wrong parameters')
+    }
+
+    let strResult = 'Nothing done'
+    if (options.push) {
+      await execAsync('git', containerPath, ['add', '-A'])
+      strResult = (await execAsync('git', containerPath, ['commit', '-m', options.message || 'another-commit'])).message
+    }
+
+    if (!remoteUrl) {
+      return strResult
+    }
+
+    result = await execAsync('git', containerPath, ['remote', '-v', 'update'])
+    if (!result.message || result.code === 1) {
+      throw new Error('Error checking for remote updates')
+    }
+    let message = (result.message + result.error).split('\n')
+    let isRemotelyChanged = true
+    for (let row of message) {
+      if (/\[up to date\]/.test(row)) {
+        row = row.split(']')[1].replace(/ +/g, ' ').split(' ')
+        if (row[1] === branch) {
+          isRemotelyChanged = false
+        }
       }
     }
+    if (isRemotelyChanged) {
+      throw new Error(`${chalk.black(strResult)}
 
-    result = await execAsync('git', containerPath, ['diff', `origin/${branch}`, '--name-only'])
-    count = 0
-    if (_.trim(result.message)) {
-      count = _.trim(result.message).split('\n').length
+The repo has been remotely changed. 
+Please, quit Secrez and merge your repo manually to avoid conflicts.
+`)
     }
 
-    if (options.info) {
-      return `Current branch: ${chalk.bold(branch)}
-Remote url: ${chalk.bold(remoteUrl)}
-Number of changed files: ${chalk.bold(count)}`
-    }
-
-    if (options.pull || options.push) {
-      await execAsync('git', containerPath, ['add', '-A'])
-      return `${(await execAsync('git', containerPath, ['commit', '-m', options.message || 'another-commit'])).message}
+    if (options.push) {
+      return `${strResult}
 ${execSync(`cd ${containerPath} && git ${options.pull ? 'pull' : 'push'} origin ${branch}`).toString()}
-`   }
-
-    throw new Error('Wrong parameters')
+`
+    } else {
+      throw new Error('Wrong parameters')
+    }
   }
 
   async exec(options = {}) {

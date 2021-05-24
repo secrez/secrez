@@ -174,6 +174,13 @@ describe('#Crypto', function () {
       assert.isTrue(Crypto.isValidB32Hash(b32Hash))
     })
 
+    it('should convert a buffer to a Uint8Array', async function () {
+      let buf = Buffer.from('Hi')
+      let arr = Crypto.bufferToUint8Array(buf)
+      assert.equal(arr[0], 72)
+      assert.equal(arr[1], 105)
+    })
+
   })
 
   describe('#encrypt/decrypt version 1', async function () {
