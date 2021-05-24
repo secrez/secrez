@@ -74,7 +74,7 @@ class Totp extends require('../Command') {
       examples: [
         ['totp coinbase.yml', 'prints a totp code and copies it to the clipboard for 5 seconds'],
         ['totp coinbase.yml -s "9syh 34rd ge6s hey3 u874"', 'set up a totp code, if not set yet'],
-        ['totp github.com.yml -s USyehAA35TSE --force', 'update an existing totp code, leaving the previous value as totp_Date, for example totp_2021-05-25T20:12:43'],
+        ['totp github.com.yml -s USyehAA35TSE --force', 'update an existing totp code'],
         ['totp coinbase.yml -d 2', 'keeps it in the clipboard for 2 seconds'],
         ['totp github.yml --from-clipboard', 'get a secret from a qr code copied in the clipboard and add a field "totp" with the secret in "github.yml"'],
         ['totp github.yml --from-image qrcode.png', 'get a secret from the image'],
@@ -205,12 +205,8 @@ class Totp extends require('../Command') {
             throw new Error('The yml is malformed')
           }
           if (secret) {
-            if (parsed.totp) {
-              if (!options.force) {
-                throw new Error('A totp already set. Use the "--force" option to override it')
-              } else {
-                parsed['totp_' + (new Date).toISOString().substring(0, 19)] = parsed.totp
-              }
+            if (parsed.totp && !options.force) {
+              throw new Error('A totp already set. Use the "--force" option to override it')
             }
             parsed.totp = secret
             let entry = node.getEntry()
