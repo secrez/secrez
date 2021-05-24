@@ -451,6 +451,11 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__1.0.3__
+* `git` asks to quit Secrez and merge manually if there are remote changes
+* `totp` allows to add a totp code to an existing yaml file using the option `--set` (see the examples)
+* Default duration before clipboard reverse for `totp` is now 8 seconds
+
 __1.0.2__
 * Export and Import can encrypt/decrypt files using shared keys generated from a specified public key
 * Can export ecrypted file for the user itself, files that can be decrypted only from inside the secrez account that exported them 

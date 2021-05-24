@@ -48,10 +48,22 @@ class Totp extends require('../Command') {
         type: String
       },
       {
+        name: 'set',
+        alias: 's',
+        type: String
+      },
+      {
+        name: 'force',
+        type: Boolean
+      },
+      {
         name: 'test',
         type: String
       }
     ]
+    this.defaults = {
+      duration: 8
+    }
   }
 
   help() {
@@ -61,6 +73,8 @@ class Totp extends require('../Command') {
       ],
       examples: [
         ['totp coinbase.yml', 'prints a totp code and copies it to the clipboard for 5 seconds'],
+        ['totp coinbase.yml -s "9syh 34rd ge6s hey3 u874"', 'set up a totp code, if not set yet'],
+        ['totp github.com.yml -s USyehAA35TSE --force', 'update an existing totp code'],
         ['totp coinbase.yml -d 2', 'keeps it in the clipboard for 2 seconds'],
         ['totp github.yml --from-clipboard', 'get a secret from a qr code copied in the clipboard and add a field "totp" with the secret in "github.yml"'],
         ['totp github.yml --from-image qrcode.png', 'get a secret from the image'],
@@ -144,7 +158,7 @@ class Totp extends require('../Command') {
   }
 
   async totp(options = {}) {
-    let secret
+    let secret = options.set
     let originalPath = options.path
     if (options.test) {
       const token = authenticator.generate(options.test.replace(/\s/g, ''))
@@ -191,6 +205,9 @@ class Totp extends require('../Command') {
             throw new Error('The yml is malformed')
           }
           if (secret) {
+            if (parsed.totp && !options.force) {
+              throw new Error('A totp already set. Use the "--force" option to override it')
+            }
             parsed.totp = secret
             let entry = node.getEntry()
             entry.set('content', yamlStringify(parsed))
@@ -206,7 +223,7 @@ class Totp extends require('../Command') {
               const token = authenticator.generate(totp)
               this.prompt.commands.copy.copy({
                 thisString: token,
-                duration: [options.duration || 5],
+                duration: [options.duration || this.defaults.duration],
                 noBeep: options.noBeep
               })
               return token
@@ -230,7 +247,7 @@ class Totp extends require('../Command') {
       } else {
         this.Logger.grey('TOTP token: ' + this.chalk.bold.black(token))
         if (!options.test) {
-          this.Logger.grey(`It will stay in the clipboard for ${options.duration || 5} seconds`)
+          this.Logger.grey(`It will stay in the clipboard for ${options.duration || this.defaults.duration} seconds`)
         }
       }
     } catch (e) {
