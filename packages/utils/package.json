@@ -1,6 +1,6 @@
 {
   "name": "@secrez/utils",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -23,7 +23,7 @@
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~1.0.2",
+    "@secrez/test-helpers": "workspace:~1.0.3",
     "chai": "^4.3.4",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.3",

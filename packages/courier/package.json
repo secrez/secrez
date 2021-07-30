@@ -1,6 +1,6 @@
 {
   "name": "@secrez/courier",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -16,13 +16,13 @@
     "secrez-courier": "bin/secrez-courier.js"
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.3",
-    "@secrez/crypto": "workspace:~1.0.1",
-    "@secrez/fs": "workspace:~1.0.3",
-    "@secrez/hub": "workspace:~0.2.1",
-    "@secrez/tls": "workspace:~0.1.4",
-    "@secrez/tunnel": "workspace:~0.1.6",
-    "@secrez/utils": "workspace:~1.0.2",
+    "@secrez/core": "workspace:~1.0.4",
+    "@secrez/crypto": "workspace:~1.0.2",
+    "@secrez/fs": "workspace:~1.0.4",
+    "@secrez/hub": "workspace:~0.2.2",
+    "@secrez/tls": "workspace:~0.1.5",
+    "@secrez/tunnel": "workspace:~0.1.7",
+    "@secrez/utils": "workspace:~1.0.3",
     "body-parser": "^1.19.0",
     "chalk": "^3.0.0",
     "command-line-args": "^5.2.0",
@@ -37,7 +37,7 @@
     "superagent": "^5.3.1"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~1.0.2",
+    "@secrez/test-helpers": "workspace:~1.0.3",
     "chai": "^4.3.4",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",

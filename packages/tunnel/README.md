@@ -9,7 +9,7 @@ It is used internally by the @secrez/courier and it is not supposed to be used d
 
 ## Test coverage
 ```
-  5 passing (996ms)
+  5 passing (1s)
 
 ---------------------------|---------|----------|---------|---------|-------------------------------
 File                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s             

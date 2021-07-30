@@ -55,7 +55,7 @@ __0.2.0__
 ## Test coverage
 
 ```
-  12 passing (6s)
+  12 passing (7s)
 
 ------------|---------|----------|---------|---------|----------------------------------------------
 File        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                            

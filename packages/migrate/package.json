@@ -1,6 +1,6 @@
 {
   "name": "@secrez/migrate",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -18,24 +18,24 @@
     "exclude": []
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.3",
-    "@secrez/crypto": "workspace:~1.0.1",
-    "@secrez/fs": "workspace:~1.0.3",
-    "@secrez/hub": "workspace:~0.2.1",
-    "@secrez/utils": "workspace:~1.0.2",
+    "@secrez/core": "workspace:~1.0.4",
+    "@secrez/crypto": "workspace:~1.0.2",
+    "@secrez/fs": "workspace:~1.0.4",
+    "@secrez/hub": "workspace:~0.2.2",
+    "@secrez/utils": "workspace:~1.0.3",
     "chalk": "^3.0.0",
     "command-line-args": "^5.2.0",
     "fs-extra": "^9.1.0",
     "homedir": "^0.6.0",
     "inquirer": "^7.3.3",
     "inquirer-command-prompt": "^0.1.0",
-    "secrez": "workspace:~1.0.4",
+    "secrez": "workspace:~1.0.5",
     "secrez-core-0-8-2": "npm:@secrez/core@0.8.12",
     "secrez-fs-0-8-8": "npm:@secrez/fs@0.8.8"
   },
   "devDependencies": {
-    "@secrez/courier": "workspace:~0.2.2",
-    "@secrez/test-helpers": "workspace:~1.0.2",
+    "@secrez/courier": "workspace:~0.2.3",
+    "@secrez/test-helpers": "workspace:~1.0.3",
     "chai": "^4.3.4",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.3",
