@@ -16,17 +16,17 @@
     "base-x": "^3.0.8",
     "byte-base64": "^1.1.0",
     "microseconds": "^0.2.0",
-    "sha3": "^2.1.2",
+    "sha3": "^2.1.4",
     "shamir": "^0.7.1",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@secrez/utils": "workspace:~1.0.2",
-    "chai": "^4.2.0",
-    "cross-env": "^7.0.2",
+    "chai": "^4.3.4",
+    "cross-env": "^7.0.3",
     "eslint": "^6.8.0",
     "eslint-plugin-node": "^11.1.0",
-    "mocha": "^7.1.2",
+    "mocha": "^7.2.0",
     "nyc": "^15.1.0"
   },
   "description": "The Secrez core library.",

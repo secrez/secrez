@@ -61,6 +61,7 @@ class Totp extends require('../Command') {
         type: String
       }
     ]
+    this.dataChanger = true
     this.defaults = {
       duration: 8
     }

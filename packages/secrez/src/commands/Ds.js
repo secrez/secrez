@@ -34,6 +34,7 @@ class Ds extends require('../Command') {
         type: String
       }
     ]
+    this.dataChanger = true
   }
 
   help() {

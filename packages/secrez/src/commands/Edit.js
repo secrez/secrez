@@ -51,6 +51,7 @@ class Edit extends require('../Command') {
         hint: 'If a Yaml file, it edits it without parsing the file'
       }
     ]
+    this.dataChanger = true
   }
 
   help() {

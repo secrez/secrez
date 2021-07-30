@@ -1,9 +1,10 @@
 const {execSync} = require('child_process')
 const {execAsync} = require('@secrez/utils')
 const chalk = require('chalk')
-const path = require('path')
-const fs = require('fs-extra')
 const _ = require('lodash')
+const {ConfigUtils} = require('@secrez/core')
+
+const GitHelper = require('../utils/GitHelper')
 
 class Git extends require('../Command') {
 
@@ -48,6 +49,10 @@ class Git extends require('../Command') {
       {
         name: 'main-branch',
         type: String
+      },
+      {
+        name: 'ignore-remote-repo-changes',
+        type: String
       }
     ]
   }
@@ -65,62 +70,73 @@ class Git extends require('../Command') {
         ['git --init --main-branch main', 'initiates a git repo using "main" as main branch'],
         ['git --main-branch main', 'sets the main branch'],
         ['git --remote-url git@github.com:sullof/priv-repo.git', 'sets the origin of the local repo'],
-        ['git -P', '(notice the uppercase P) pulls from origin and merges']
+        ['git -P', '(notice the uppercase P) pulls from origin and merges'],
+          ['git --ignore-remote-repo-changes true', 'tells Secrez to ignore the safety check for remote changes before updating the data'],
+        ['git --ignore-remote-repo-changes false', 'tells Secrez to not ignore the safety check for remote changes']
       ]
     }
   }
 
   async git(options) {
-    let result = await execAsync('which', __dirname, ['git'])
-    if (!result.message || result.code === 1) {
+    let containerPath = this.secrez.config.container
+    if (!this.gitHelper) {
+      this.gitHelper = new GitHelper(containerPath)
+    }
+
+    if (typeof options.ignoreRemoteRepoChanges !== 'undefined') {
+      const env = await ConfigUtils.getEnv(this.secrez.config)
+      if (options.ignoreRemoteRepoChanges) {
+        switch (options.ignoreRemoteRepoChanges.toLowerCase()) {
+          case 'true':
+            env.ignoreRemoteRepoChanges = true
+            break
+          case 'false':
+            env.ignoreRemoteRepoChanges = false
+            break
+          default:
+            throw new Error('Unsupported value')
+        }
+        ConfigUtils.putEnv(this.secrez.config, env)
+        return 'Configuration updated'
+      } else {
+        throw new Error('--ignore-remote-repo-changes requires a value (true or false)')
+      }
+    }
+
+    let result
+    if (!(await this.gitHelper.isInstalled())) {
       throw new Error('Git not installed')
     }
-    let containerPath = this.secrez.config.container
-    let repoExists = await fs.pathExists(path.join(containerPath, '.git'))
+
+    let repoExists = await this.gitHelper.isInstalled()
 
     if (options.init) {
       if (repoExists) {
         throw new Error('Repo already initiated.')
       }
-      let res = (await execAsync('git', containerPath, ['init'])).message
-      await execAsync('git', containerPath, ['add', '-A'])
-      res += '\n' + (await execAsync('git', containerPath, ['commit', '-m', 'first-commit'])).message
-      await execAsync('git', containerPath, ['branch', '-M', options.mainBranch || 'master'])
-      return res
-    }
-
-    if (options.mainBranch) {
-      await execAsync('git', containerPath, ['branch', '-M', options.mainBranch])
-      return `New main branch: ${options.mainBranch}`
-    }
-
-    if (!repoExists) {
+      return await this.gitHelper.initRepo(options.mainBranch)
+    } else if (!repoExists) {
       throw new Error('Repo not found. Run "git --init" to initiate the repo')
     }
 
-    result = await execAsync('git', containerPath, ['remote', '-v'])
-    let remoteUrl
-    if (result.message && result.code !== 1) {
-      for (let line of result.message.split('\n')) {
-        if (/^origin/.test(line) && /\(push\)/.test(line)) {
-          remoteUrl = line.replace(/origin\s+(.+)\s+\(push.+/, '$1')
-          break
-        }
-      }
+
+
+    if (options.mainBranch) {
+      await this.gitHelper.setMainBranch(options.mainBranch)
+      return `New main branch: ${options.mainBranch}`
     }
+
+    result = await execAsync('git', containerPath, ['remote', '-v'])
+    let remoteUrl = await this.gitHelper.getRemoteUrl()
     if (options.remoteUrl) {
-      if (remoteUrl) {
-        await execAsync('git', containerPath, ['remote', 'remove', 'origin'])
-      }
-      await execAsync('git', containerPath, ['remote', 'add', 'origin', options.remoteUrl])
+      await await this.gitHelper.setRemoteUrl(options.remoteUrl)
       return `Remote url: ${options.remoteUrl}`
     }
 
-    result = await execAsync('git', containerPath, ['rev-parse', '--abbrev-ref', 'HEAD'])
-    if (!result.message || result.code === 1) {
+    let branch = await this.gitHelper.getActiveBranch()
+    if (!branch) {
       throw new Error('No active branch found')
     }
-    let branch = _.trim(result.message)
 
     result = await execAsync('git', containerPath, ['status'])
     let count = 0
@@ -144,43 +160,28 @@ Number of changed files: ${chalk.bold(count)}
     }
 
     let strResult = 'Nothing done'
-    if (options.push) {
-      await execAsync('git', containerPath, ['add', '-A'])
-      strResult = (await execAsync('git', containerPath, ['commit', '-m', options.message || 'another-commit'])).message
-    }
-
     if (!remoteUrl) {
-      return strResult
-    }
 
-    result = await execAsync('git', containerPath, ['remote', '-v', 'update'])
-    if (!result.message || result.code === 1) {
-      throw new Error('Error checking for remote updates')
-    }
-    let message = (result.message + result.error).split('\n')
-    let isRemotelyChanged = true
-    for (let row of message) {
-      if (/\[up to date\]/.test(row)) {
-        row = row.split(']')[1].replace(/ +/g, ' ').split(' ')
-        if (row[1] === branch) {
-          isRemotelyChanged = false
-        }
+      if (options.push) {
+        return await this.gitHelper.commitChanges(options.message)
       }
-    }
-    if (isRemotelyChanged) {
-      throw new Error(`${chalk.black(strResult)}
+    } else {
+
+      if (await this.gitHelper.isRemoteRepoChanged(branch)) {
+        throw new Error(`${chalk.black(strResult)}
 
 The repo has been remotely changed. 
 Please, quit Secrez and merge your repo manually to avoid conflicts.
 `)
-    }
+      }
 
-    if (options.push) {
-      return `${strResult}
+      if (options.push) {
+        return `${await this.gitHelper.commitChanges(options.message)}
 ${execSync(`cd ${containerPath} && git ${options.pull ? 'pull' : 'push'} origin ${branch}`).toString()}
 `
-    } else {
-      throw new Error('Wrong parameters')
+      } else {
+        throw new Error('Wrong parameters')
+      }
     }
   }
 

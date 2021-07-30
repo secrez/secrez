@@ -50,6 +50,7 @@ class Contacts extends require('../Command') {
         type: String
       }
     ]
+    this.dataChanger = true
   }
 
   help() {

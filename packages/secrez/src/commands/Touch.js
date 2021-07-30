@@ -37,6 +37,7 @@ class Touch extends require('../Command') {
         type: Boolean
       }
     ]
+    this.dataChanger = true
   }
 
   help() {

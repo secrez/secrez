@@ -31,6 +31,7 @@ class Rm extends require('../Command') {
         type: String
       }
     ]
+    this.dataChanger = true
   }
 
   help() {

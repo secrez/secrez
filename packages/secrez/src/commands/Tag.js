@@ -61,6 +61,7 @@ class Tag extends require('../Command') {
         type: Boolean
       }
     ]
+    this.dataChanger = true
   }
 
   help() {

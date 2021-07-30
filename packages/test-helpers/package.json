@@ -18,18 +18,18 @@
     "@secrez/fs": "workspace:~1.0.3",
     "@secrez/hub": "workspace:~0.2.1",
     "@secrez/utils": "workspace:~1.0.2",
-    "chai": "^4.2.0",
+    "chai": "^4.3.4",
     "chalk": "^3.0.0",
     "fs-extra": "^9.1.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "superagent": "^5.3.1",
     "test-console": "^1.1.0"
   },
   "devDependencies": {
-    "cross-env": "^7.0.2",
+    "cross-env": "^7.0.3",
     "eslint": "^6.8.0",
-    "eslint-plugin-node": "^11.0.0",
-    "mocha": "^7.1.2",
+    "eslint-plugin-node": "^11.1.0",
+    "mocha": "^7.2.0",
     "nyc": "^15.1.0"
   },
   "description": "The common helpers used for testing",

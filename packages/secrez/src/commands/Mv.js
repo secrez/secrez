@@ -41,6 +41,7 @@ class Mv extends require('../Command') {
         type: Boolean
       }
     ]
+    this.dataChanger = true
   }
 
   help() {

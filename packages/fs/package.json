@@ -16,17 +16,17 @@
     "@secrez/core": "workspace:~1.0.3",
     "@secrez/crypto": "workspace:~1.0.1",
     "@secrez/utils": "workspace:~1.0.2",
-    "command-line-args": "^5.1.1",
+    "command-line-args": "^5.2.0",
     "fs-extra": "^9.1.0",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@secrez/test-helpers": "workspace:~1.0.2",
-    "chai": "^4.2.0",
-    "cross-env": "^7.0.2",
+    "chai": "^4.3.4",
+    "cross-env": "^7.0.3",
     "eslint": "^6.8.0",
-    "eslint-plugin-node": "^11.0.0",
-    "mocha": "^7.1.1",
+    "eslint-plugin-node": "^11.1.0",
+    "mocha": "^7.2.0",
     "nyc": "^15.1.0"
   },
   "description": "The Secrez fs library.",

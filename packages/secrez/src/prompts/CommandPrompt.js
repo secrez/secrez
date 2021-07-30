@@ -11,11 +11,13 @@ inquirer.registerPrompt('command', inquirerCommandPrompt)
 inquirer.registerPrompt('multiEditor', multiEditorPrompt)
 
 const {sleep, getKeyValue} = require('@secrez/utils')
+const {ConfigUtils} = require('@secrez/core')
 const Completion = require('./Completion')
 const {FsUtils} = require('@secrez/fs')
 const Logger = require('../utils/Logger')
 const cliConfig = require('../cliConfig')
 const sigintManager = require('./SigintManager')
+const GitHelper = require('../utils/GitHelper')
 
 let thiz
 
@@ -274,7 +276,17 @@ class CommandPrompt {
           }
           try {
             const options = FsUtils.parseCommandLine(this.commands[command].optionDefinitions, commandLine, true)
-            await this.commands[command].exec(options)
+            const commandInstance = await this.commands[command]
+            const env = await ConfigUtils.getEnv(this.secrez.config)
+            if (!env.ignoreRemoteRepoChanges && commandInstance.dataChanger) {
+              if (!this.gitHelper) {
+                this.gitHelper = new GitHelper(this.secrez.config.container)
+              }
+              if (this.gitHelper.mustPull()) {
+                throw new Error(`The remote repo has been changed. Please quit, move to your container and "git pull origin ${await this.gitHelper.getActiveBranch()}" before changing anything to avoid risking unfixable conflicts.`)
+              }
+            }
+            await commandInstance.exec(options)
           } catch (e) {
             // console.error(e)
             Logger.red(e.message)
