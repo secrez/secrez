@@ -36,20 +36,20 @@ describe('Server', () => {
     await secrez.signup('password', 1000)
   })
 
-  it('server starts and stops', async () => {
+  it('server starts and stops', async function () {
     const server = await createServer()
     await new Promise(resolve => server.listen(resolve))
     await new Promise(resolve => server.close(resolve))
   })
 
-  it('should show the welcome json', async () => {
+  it('should show the welcome json', async function () {
     const server = await createServer()
     const res = await request(server).get('/')
     assert.equal(res.statusCode, 200)
     assert.equal(res.body.welcome_to, 'This is a Secrez hub')
   })
 
-  it('should upgrade websocket requests', async () => {
+  it.skip('should upgrade websocket requests', async function () {
 
     const hostname = 'uz-3ms-cm'
     const server = await createServer({
@@ -62,31 +62,31 @@ describe('Server', () => {
 
     const localTunnelPort = res.body.port
 
-    const wss = await new Promise((resolve) => {
-      const wsServer = new WebSocketServer({port: 0}, () => {
+    const wsS = await new Promise((resolve) => {
+      const wsServer = new WebSocketServer({port: 0}, function () {
         resolve(wsServer)
       })
     })
 
-    const websocketServerPort = wss.address().port
+    const websocketServerPort = wsS.address().port
 
     const ltSocket = net.createConnection({port: localTunnelPort})
     const wsSocket = net.createConnection({port: websocketServerPort})
     ltSocket.pipe(wsSocket).pipe(ltSocket)
 
-    wss.once('connection', (ws) => {
+    wsS.once('connection', (ws) => {
       ws.once('message', (message) => {
         ws.send(message)
       })
     })
 
-    const ws = new WebSocket('http://localhost:' + server.address().port, {
+    const ws = new WebSocket('ws://localhost:' + server.address().port, {
       headers: {
         host: hostname + '.example.com',
       }
     })
 
-    ws.on('open', () => {
+    ws.on('open', function () {
       ws.send('something')
     })
 
@@ -97,11 +97,11 @@ describe('Server', () => {
       })
     })
 
-    wss.close()
+    wsS.close()
     await new Promise(resolve => server.close(resolve))
   })
 
-  it('should create a tunnel and support the /api/v1/tunnels/:id/status endpoint', async () => {
+  it('should create a tunnel and support the /api/v1/tunnels/:id/status endpoint', async function () {
     const code = 'asdcfde'
     const server = await createServer({
       code
@@ -137,7 +137,7 @@ describe('Server', () => {
     await new Promise(resolve => server.close(resolve))
   })
 
-  it('should support the /api/v1/tunnels/:id/status endpoint with same id', async () => {
+  it('should support the /api/v1/tunnels/:id/status endpoint with same id', async function () {
 
     // process.env.AS_DEV = true
 
@@ -197,7 +197,7 @@ describe('Server', () => {
     await new Promise(resolve => server.close(resolve))
   })
 
-  it('should reset the id when asked', async () => {
+  it('should reset the id when asked', async function () {
 
     // process.env.AS_DEV = true
 
