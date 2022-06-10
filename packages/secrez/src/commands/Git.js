@@ -61,7 +61,9 @@ class Git extends require('../Command') {
     return {
       description: ['Minimalistic git repo managements.',
         'For missing commands use "shell" instead, like:',
-        'shell "cd ~/.secrez && git history"'],
+        'shell "cd ~/.secrez && git history"',
+        'Be very careful, if you make changes',
+        'in the directory, your data won\'t align :-('],
       examples: [
         ['git -i', 'get info about the repo, like the remote url'],
         ['git -p', 'adds all changes and commits. If there is a remote origin, it also pushes to the remote repo'],
@@ -69,9 +71,9 @@ class Git extends require('../Command') {
         ['git --init', 'initiates a git repo using "master" as main branch'],
         ['git --init --main-branch main', 'initiates a git repo using "main" as main branch'],
         ['git --main-branch main', 'sets the main branch'],
-        ['git --remote-url git@github.com:sullof/priv-repo.git', 'sets the origin of the local repo'],
-        ['git -P', '(notice the uppercase P) pulls from origin and merges'],
-          ['git --ignore-remote-repo-changes true', 'tells Secrez to ignore the safety check for remote changes before updating the data'],
+        ['git --remote-url git@github.com:sullof/priv-repo.git', 'sets the origin of the local repo. Better to have a repo on your own git server'],
+        ['git -P', 'pulls from origin and merges if possible'],
+        ['git --ignore-remote-repo-changes true', 'tells Secrez to ignore the safety check for remote changes before updating the data'],
         ['git --ignore-remote-repo-changes false', 'tells Secrez to not ignore the safety check for remote changes']
       ]
     }
@@ -118,8 +120,6 @@ class Git extends require('../Command') {
     } else if (!repoExists) {
       throw new Error('Repo not found. Run "git --init" to initiate the repo')
     }
-
-
 
     if (options.mainBranch) {
       await this.gitHelper.setMainBranch(options.mainBranch)
