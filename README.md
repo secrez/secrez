@@ -451,6 +451,12 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+__1.0.5__
+* `git` checks if there are remote changes before performing any change that can generate conflicts with the remote repo. Most commands have been modified to trigger the new control. 
+
+__1.0.4__
+* Fix error in `import` example
+
 __1.0.3__
 * `git` asks to quit Secrez and merge manually if there are remote changes
 * `totp` allows to add a totp code to an existing yaml file using the option `--set` (see the examples)
