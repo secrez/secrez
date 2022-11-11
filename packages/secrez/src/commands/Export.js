@@ -34,11 +34,6 @@ class Export extends require('../Command') {
         type: Boolean
       },
       {
-        name: 'field',
-        alias: 'f',
-        type: String
-      },
-      {
         name: 'duration',
         alias: 'd',
         type: Number
@@ -84,7 +79,7 @@ class Export extends require('../Command') {
         ['export seed.json -e --password "some strong password"', 'uses the typed password to encrypt seed.json before exporting it'],
         ['export seed.json -ec bob alice', 'encrypts seed.json using a key shared with the contacts Bob and Alice, before exporting it'],
         ['export seed.json -e --public-keys TCpDvTiVpHwNiS....', 'encrypts seed.json using shared keys generated from the specified public keys'],
-        ['export seed.json -e --include-me', 'encrypts seed.json also using your key']
+        ['export seed.json -e --include-me', 'encrypts seed.json also using your key'],
       ]
     }
   }
