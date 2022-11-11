@@ -19,7 +19,7 @@ function checkIfMustBePublished(dir) {
     console.debug(`
 MUST PUBLISH ${pkg}${dir} v${version} with
 
-(cd packages/$dir && npm publish)
+(cd packages/${dir} && npm publish)
 `)
 
 
