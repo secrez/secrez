@@ -17,7 +17,7 @@ function checkAndPublish(dir) {
   const currVersion = execSync(`npm view ${pkg}${dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
   if (version !== currVersion) {
     console.debug(`Publishing  ${pkg}${dir} v${version}`)
-    console.debug(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
+    // console.debug(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
     changes = true
   }
 }
