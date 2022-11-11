@@ -191,8 +191,8 @@ describe('#Crypto', function () {
       let decrypted = Crypto.decrypt(encrypted, key)
       assert.equal(samesecret, decrypted)
 
-        encrypted = Crypto.encrypt(samesecret, key, u, u, true)
-        decrypted = Crypto.decrypt(encrypted, key)
+      encrypted = Crypto.encrypt(samesecret, key, u, u, true)
+      decrypted = Crypto.decrypt(encrypted, key)
       assert.equal(samesecret, decrypted)
     })
 

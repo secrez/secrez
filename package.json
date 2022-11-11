@@ -6,10 +6,10 @@
     ]
   },
   "scripts": {
-    "test": "pnpm -r test",
-    "test-only": "pnpm -r run test-only",
+    "test": "pnpm recursive test",
+    "test-only": "pnpm recursive test-only",
     "bin-lint": "eslint -c .eslintrc 'bin/*.js'",
-    "lint": "pnpm run bin-lint && pnpm -r run lint",
+    "lint": "pnpm run bin-lint && pnpm recursive lint",
     "reset": "bin/clean-all-modules.sh && pnpm install",
     "patch-versions": "node bin/patch-versions.js",
     "pre-push": "pnpm run lint && node bin/pre-push.js",
