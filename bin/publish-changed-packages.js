@@ -21,10 +21,6 @@ MUST PUBLISH ${pkg}${dir} v${version} with
 
 (cd packages/${dir} && pnpm publish)
 `)
-
-
-
-
     // console.debug(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
     changes = true
   }
