@@ -16,7 +16,15 @@ function checkIfMustBePublished(dir) {
   const version = require(`../packages/${dir}/package.json`).version
   const currVersion = execSync(`npm view ${pkg}${dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
   if (version !== currVersion) {
-    console.debug(`MUST PUBLISH ${pkg}${dir} v${version}`)
+    console.debug(`
+MUST PUBLISH ${pkg}${dir} v${version} with
+
+(cd packages/$dir && npm publish)
+`)
+
+
+
+
     // console.debug(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
     changes = true
   }
