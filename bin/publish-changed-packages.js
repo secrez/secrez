@@ -10,29 +10,33 @@ if (gitDiff.length > 0 && gitDiff[0]) {
   process.exit(1)
 }
 
-function checkAndPublish(dir) {
+function checkIfMustBePublished(dir) {
   const pkg = dir === 'secrez' ? '' : '@secrez/'
   console.debug(`Checking  ${pkg}${dir}`)
   const version = require(`../packages/${dir}/package.json`).version
   const currVersion = execSync(`npm view ${pkg}${dir} | grep latest`).toString().split('\n')[0].split(' ')[1]
   if (version !== currVersion) {
-    console.debug(`Publishing  ${pkg}${dir} v${version}`)
-    console.debug(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
+    console.debug(`
+MUST PUBLISH ${pkg}${dir} v${version} with
+
+(cd packages/${dir} && pnpm publish)
+`)
+    // console.debug(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
     changes = true
   }
 }
 
-checkAndPublish('utils', '@secrez')
-checkAndPublish('test-helpers', '@secrez')
-checkAndPublish('crypto', '@secrez')
-checkAndPublish('core', '@secrez')
-checkAndPublish('courier', '@secrez')
-checkAndPublish('fs', '@secrez')
-checkAndPublish('hub', '@secrez')
-checkAndPublish('tls', '@secrez')
-checkAndPublish('tunnel', '@secrez')
-checkAndPublish('migrate', '@secrez')
-checkAndPublish('secrez')
+checkIfMustBePublished('utils', '@secrez')
+checkIfMustBePublished('test-helpers', '@secrez')
+checkIfMustBePublished('crypto', '@secrez')
+checkIfMustBePublished('core', '@secrez')
+checkIfMustBePublished('courier', '@secrez')
+checkIfMustBePublished('fs', '@secrez')
+checkIfMustBePublished('hub', '@secrez')
+checkIfMustBePublished('tls', '@secrez')
+checkIfMustBePublished('tunnel', '@secrez')
+checkIfMustBePublished('migrate', '@secrez')
+checkIfMustBePublished('secrez')
 
 if (!changes) {
   console.debug('No upgrade needed.')

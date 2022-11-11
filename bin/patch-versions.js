@@ -3,7 +3,7 @@ const fs = require('fs')
 const {execSync} = require('child_process')
 
 let packages = {}
-execSync('git diff master --name-only').toString().split('\n').map(e => {
+execSync('git diff main --name-only').toString().split('\n').map(e => {
   let m = e.split('/')
   if (m[0] === 'packages' && (m[2] === 'src' || m[2] === 'package.json')) {
     packages[m[1]] = true
