@@ -64,7 +64,7 @@ class Tunnel extends EventEmitter {
       //   reset: opt.reset
       // })
 
-      request
+          request
           .get(uri)
           .query({
             payload: opt.payload,

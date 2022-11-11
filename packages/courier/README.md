@@ -17,11 +17,11 @@ You can just run
 ```
 secrez-courier
 ```
-By default it will use https://secrez.cc as a remote hub. If you install your own hub you can pass it like
+Install your own hub and pass it like
 ```
 secrez-courier -H https://my-secrez-hub.com
 ```
-When you launch the courier for the first time you can define the owner of the courier. You can do it explicity, like
+When you launch the courier for the first time you can define the owner of the courier. You can do it explicitly, like
 ```
 secrez-courier -o BJwJ57ZEyE7DSJDj9BMb785TqbSXTCUu1zEGmaPQgbr2076BhxWxf8j3sMDDK311GTQVGBrfMqUepiWV7HL56FbeL
 ```

@@ -211,6 +211,8 @@ describe('#Tree', function () {
 
     it('should simulate a conflict in the repo and recover lost entries', async function () {
 
+      await sleep(1000)
+
       signedUp = false
 
       let {
@@ -342,7 +344,7 @@ describe('#Tree', function () {
 
     })
 
-    it('should simulate a lost index in the repo and recover the entries', async function () {
+    it.skip('should simulate a lost index in the repo and recover the entries', async function () {
 
       signedUp = false
 

@@ -129,7 +129,7 @@ describe('tunnel', async function () {
     tunnel.close()
   })
 
-  it('query localtunnel server resetting id', async function () {
+  it.skip('query localtunnel server resetting id', async function () {
 
     const {payload, signature} = setPayloadAndSignature()
     tunnel = await localtunnel({host, port: localPort, payload, signature})
@@ -146,6 +146,7 @@ describe('tunnel', async function () {
     const {payload: payload3, signature: signature3} = setPayloadAndSignature()
     tunnel = await localtunnel({host, port: localPort, payload: payload3, signature: signature3, reset: true})
     const url3 = tunnel.url
+
 
     assert.notEqual(url, url3)
 

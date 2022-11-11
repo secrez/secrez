@@ -7,7 +7,6 @@ node_modules
 coverage
 coverage.report
 
-
 # production
 build
 
@@ -39,4 +38,4 @@ db
 .nyc_output
 report.20*
 
-build
+.pnpm-debug.log
