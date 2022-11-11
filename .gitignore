@@ -40,3 +40,5 @@ db
 report.20*
 
 build
+.pnpm-debug.log
+coverage.report
