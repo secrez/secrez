@@ -410,7 +410,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 ## History
 
 __1.1.0__
-* Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I did not approve my own proposal at: https://github.com/secrez/secrez/pull/163 
+* Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I disapproved my own proposal at: https://github.com/secrez/secrez/pull/163 
 
 __1.0.4__
 * Fix wrong example in `import`
