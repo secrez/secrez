@@ -181,48 +181,6 @@ Running Secrez in different containers (with the `-c` option), you can set up mu
 secrez -c ~/data/secrez
 ```
 
-## How to set up a Git repo for the data
-
-The best way to go is to set up a repo on your own server. If you can't do that, using a private repo on a service like GitHub is not a bad option. Let's see how you can configure it in this second case.
-
-First, you go to GitHub and create a new private repo. Don't add anything like README, Licence, etc. In the next page, GitHub will show you the command you must run to set up it locally. Here is an example, imagining that your data are in the default folder
-
-```
-git --init --main-branch main
-git --remote-url git@github.com:sullof/jarrabish.git
-```
-
-To push any change run
-```
-git -p
-```
-and, if you pushed changes to the repo on some other computer, to pull and merge, run
-```
-git -P
-```
-Notice that the lowercase `p` is an alias for `push` and the uppercase `P` for `pull`.
-
-### What if I have a private remote repo?
-
-You should use Git anyway, to have a safe backup of your data. In this case, just run
-```
-git --init
-```
-to set the repo up. After, use `git -p` to commit your changes. It will allow you to reverse the data in case some critical error occurs. When you have a private repo, you can just add the remote url (see example above).
-
-If you need more, you can run commands using Shell, like
-```
-shell "cd ~/.secrez && git log"
-```
-However, if you like to do some reset, you should quit and run the commands directly in the shell.
-
-**Be careful when you do anything inside your container, you can irreversibly damage your data.**
-
-### What about Mercurial or Subversion?
-
-You can use a different version control system.  
-If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.
-
 ## The commands
 
 ```
@@ -450,6 +408,12 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ## History
+
+__1.1.0__
+* Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I disapproved my own proposal at: https://github.com/secrez/secrez/pull/163 
+
+__1.0.4__
+* Fix wrong example in `import`
 
 __1.0.3__
 * `git` asks to quit Secrez and merge manually if there are remote changes
@@ -801,12 +765,12 @@ Thanks a lot for any contribution 😉
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   69.69 |    55.82 |   71.76 |   69.62 |                                   
+All files              |   71.33 |    58.19 |   71.98 |   71.28 |                                   
  src                   |   59.63 |    54.79 |      55 |   61.32 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95                 
   PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   78.81 |    63.22 |   89.24 |    78.6 |                                   
+ src/commands          |   81.58 |    66.85 |   89.95 |    81.4 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164         
   Bash.js              |      75 |        0 |   66.67 |      75 | 20-21                             
   Cat.js               |    98.9 |    88.89 |     100 |    98.9 | 144                               
@@ -820,7 +784,6 @@ All files              |   69.69 |    55.82 |   71.76 |   69.62 |
   Edit.js              |   13.58 |        0 |      40 |   13.58 | 78-193                            
   Export.js            |   90.91 |       68 |     100 |   90.91 | 109,114-115,120,130,137,140       
   Find.js              |   93.59 |    86.67 |     100 |   93.42 | 90,153,192-196,202                
-  Git.js               |   13.41 |        0 |      50 |   13.41 | 74-197                            
   Help.js              |     100 |       80 |     100 |     100 | 30                                
   Import.js            |    93.2 |    85.48 |     100 |    93.1 | ...06,308,321,327,369,384-390,417 
   Lcat.js              |     100 |    85.71 |     100 |     100 | 55                                
@@ -861,11 +824,11 @@ All files              |   69.69 |    55.82 |   71.76 |   69.62 |
   MainPromptMock.js    |     100 |      100 |   66.67 |     100 |                                   
   MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 8-35                              
   SigintManager.js     |      25 |        0 |      20 |      25 | 11-37                             
- src/utils             |   69.92 |     62.1 |   56.25 |   69.55 |                                   
+ src/utils             |   69.92 |    63.28 |   56.25 |   69.55 |                                   
   AliasManager.js      |     100 |    91.67 |     100 |     100 | 48                                
   ContactManager.js    |   71.43 |       60 |   85.71 |   71.43 | 13,36-38                          
   Fido2Client.js       |   15.38 |        0 |   11.11 |   15.38 | 15-101                            
-  HelpProto.js         |    91.6 |    83.08 |     100 |   91.45 | 44,137-138,155-160,179            
+  HelpProto.js         |    91.6 |    84.06 |     100 |   91.45 | 44,137-138,155-160,179            
   Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 
