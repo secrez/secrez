@@ -108,7 +108,7 @@ class HelpProto {
           let m = max - x
           if (example.length <= m) {
             elem = spacer + ' '.repeat(x) + example
-            str.push(elem + ' '.repeat(tot - elem.length))
+            str.push(elem + ' '.repeat(tot > elem.length ? tot - elem.length : 3))
             break
           } else {
             j = -1
@@ -125,7 +125,7 @@ class HelpProto {
             }
             let good = example.substring(0, li)
             elem = spacer + ' '.repeat(x) + good
-            str.push(elem + ' '.repeat(tot - elem.length))
+            str.push(elem + ' '.repeat(tot > elem.length ? tot - elem.length : 3))
             example = example.substring(li + 1)
             i++
             // console.log(i, example)

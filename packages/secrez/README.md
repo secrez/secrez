@@ -181,48 +181,6 @@ Running Secrez in different containers (with the `-c` option), you can set up mu
 secrez -c ~/data/secrez
 ```
 
-## How to set up a Git repo for the data
-
-The best way to go is to set up a repo on your own server. If you can't do that, using a private repo on a service like GitHub is not a bad option. Let's see how you can configure it in this second case.
-
-First, you go to GitHub and create a new private repo. Don't add anything like README, Licence, etc. In the next page, GitHub will show you the command you must run to set up it locally. Here is an example, imagining that your data are in the default folder
-
-```
-git --init --main-branch main
-git --remote-url git@github.com:sullof/jarrabish.git
-```
-
-To push any change run
-```
-git -p
-```
-and, if you pushed changes to the repo on some other computer, to pull and merge, run
-```
-git -P
-```
-Notice that the lowercase `p` is an alias for `push` and the uppercase `P` for `pull`.
-
-### What if I have a private remote repo?
-
-You should use Git anyway, to have a safe backup of your data. In this case, just run
-```
-git --init
-```
-to set the repo up. After, use `git -p` to commit your changes. It will allow you to reverse the data in case some critical error occurs. When you have a private repo, you can just add the remote url (see example above).
-
-If you need more, you can run commands using Shell, like
-```
-shell "cd ~/.secrez && git log"
-```
-However, if you like to do some reset, you should quit and run the commands directly in the shell.
-
-**Be careful when you do anything inside your container, you can irreversibly damage your data.**
-
-### What about Mercurial or Subversion?
-
-You can use a different version control system.  
-If you do so, though, be careful to correctly set up in the directory the equivalent of `.gitignore` to avoid pushing to the repo also data that must exist only locally.
-
 ## The commands
 
 ```
@@ -450,6 +408,12 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 - Plugin architecture to allow others to add their own commands
 
 ## History
+
+__1.1.0__
+* Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I did not approve my own proposal at: https://github.com/secrez/secrez/pull/163 
+
+__1.0.4__
+* Fix wrong example in `import`
 
 __1.0.3__
 * `git` asks to quit Secrez and merge manually if there are remote changes

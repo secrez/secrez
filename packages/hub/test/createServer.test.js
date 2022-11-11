@@ -7,7 +7,7 @@ const {Server} = require('ws')
 const WebSocketServer = Server
 const WebSocket = require('ws')
 const net = require('net')
-
+const {sleep} = require('@secrez/test-helpers')
 process.env.DBDIR = path.resolve(__dirname, '../tmp/test/db')
 
 let {setPayloadAndSignIt, isValidRandomId, resetDb} = require('../src/utils')
@@ -37,6 +37,7 @@ describe('Server', () => {
   })
 
   it('server starts and stops', async () => {
+    await sleep(1000)
     const server = await createServer()
     await new Promise(resolve => server.listen(resolve))
     await new Promise(resolve => server.close(resolve))

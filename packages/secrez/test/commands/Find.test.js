@@ -4,7 +4,7 @@ const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
 const MainPrompt = require('../../src/prompts/MainPromptMock')
-const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
+const {assertConsole, noPrint, decolorize, sleep} = require('@secrez/test-helpers')
 
 const {
   password,
@@ -42,6 +42,8 @@ describe('#Find', function () {
   })
 
   it('should show find a string in the tree', async function () {
+
+    await sleep(1000)
 
     let {internalFs} = prompt
     let {config} = prompt.secrez

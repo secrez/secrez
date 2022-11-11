@@ -4,7 +4,7 @@ const assert = chai.assert
 const fs = require('fs-extra')
 const path = require('path')
 const MainPrompt = require('../../src/prompts/MainPromptMock')
-const {assertConsole, noPrint, decolorize} = require('@secrez/test-helpers')
+const {assertConsole, noPrint, decolorize, sleep} = require('@secrez/test-helpers')
 
 const {
   password,
@@ -67,6 +67,8 @@ describe('#Cat', function () {
   })
 
   it('should show either one or all the versions of a file', async function () {
+
+    await sleep(1000)
 
     let {internalFs} = prompt
     let {config} = prompt.secrez
@@ -147,6 +149,8 @@ describe('#Cat', function () {
   })
 
   it('should show the content of a Yaml file', async function () {
+
+    await sleep(1000)
 
     let {internalFs} = prompt
     let {config} = prompt.secrez

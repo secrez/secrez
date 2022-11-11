@@ -5,7 +5,7 @@ const path = require('path')
 const {config} = require('@secrez/core')
 const {Node} = require('@secrez/fs')
 const MainPrompt = require('../../src/prompts/MainPromptMock')
-const {assertConsole, decolorize} = require('@secrez/test-helpers')
+const {assertConsole, decolorize, sleep} = require('@secrez/test-helpers')
 
 const {
   password,
@@ -122,6 +122,8 @@ describe('#Rm', function () {
   })
 
   it('should delete some versions of a file', async function () {
+
+    await sleep(1000)
 
     let file1 = await C.touch.touch({
       path: 'file1',

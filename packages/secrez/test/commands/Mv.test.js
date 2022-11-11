@@ -47,6 +47,8 @@ describe('#Mv', function () {
 
   it('should rename a file', async function () {
 
+    await sleep(1000)
+
     let file1 = await C.touch.touch({
       path: '/folder2/file1'
     })
@@ -328,6 +330,8 @@ describe('#Mv', function () {
   })
 
   it('should move files from and to other datasets', async function () {
+
+    await sleep(1000)
 
     let file1 = await C.touch.touch({
       path: '/folder1/file1'
