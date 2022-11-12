@@ -227,9 +227,16 @@ class Crypto {
     return Crypto[codec].decode(messageWithNonce).slice(0, secretbox.nonceLength)
   }
 
-  static generateBoxKeyPair(noEncode) {
+  static generateBoxKeyPair(hexEncode) {
     const pair = box.keyPair()
-    return pair
+    if (hexEncode) {
+      return {
+        publicKey: Crypto.uint8ArrayToHex(pair.publicKey),
+        secretKey: Crypto.uint8ArrayToHex(pair.secretKey)
+      }
+    } else {
+      return pair
+    }
   }
 
   static seedFromPassphrase(passphrase) {
@@ -272,10 +279,11 @@ class Crypto {
 
   static boxEncrypt(secretOrSharedKey, message, key, nonce = randomBytes(box.nonceLength), getNonce, codec = 'bs64') {
     const messageUint8 = Crypto.utf8ToArray(message)
-    const encrypted = key
-        ? box(messageUint8, nonce, key, secretOrSharedKey)
-        : box.after(messageUint8, nonce, secretOrSharedKey)
-
+    const keyUint8Array = typeof key === 'string' ? Crypto.hexToUint8Array(key) : key
+    const secretKeyUint8Array = typeof secretOrSharedKey === 'string' ? Crypto.hexToUint8Array(secretOrSharedKey) : secretOrSharedKey
+    const encrypted = keyUint8Array
+        ? box(messageUint8, nonce, keyUint8Array, secretKeyUint8Array)
+        : box.after(messageUint8, nonce, secretKeyUint8Array)
     let fullMessage = new Uint8Array(nonce.length + encrypted.length)
     fullMessage.set(nonce)
     fullMessage.set(encrypted, nonce.length)
@@ -298,9 +306,11 @@ class Crypto {
         box.nonceLength,
         messageWithNonce.length
     )
-    const decrypted = key
-        ? box.open(message, nonce, key, secretOrSharedKey)
-        : box.open.after(message, nonce, secretOrSharedKey)
+    const keyUint8Array = typeof key === 'string' ? Crypto.hexToUint8Array(key) : key
+    const secretKeyUint8Array = typeof secretOrSharedKey === 'string' ? Crypto.hexToUint8Array(secretOrSharedKey) : secretOrSharedKey
+    const decrypted = keyUint8Array
+        ? box.open(message, nonce, keyUint8Array, secretKeyUint8Array)
+        : box.open.after(message, nonce, secretKeyUint8Array)
     /* istanbul ignore if */
     if (!decrypted) {
       throw new Error('Could not decrypt message')

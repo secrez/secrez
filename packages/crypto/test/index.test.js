@@ -256,6 +256,15 @@ describe('#Crypto', function () {
 
     })
 
+    it('should encrypt and decrypt using hex keys', async function () {
+      const pairA = Crypto.generateBoxKeyPair(true)
+      const pairB = Crypto.generateBoxKeyPair(true)
+      const msg = 'Some message'
+      const encrypted = Crypto.boxEncrypt(pairA.secretKey, msg, pairB.publicKey)
+      const decrypted = Crypto.boxDecrypt(pairB.secretKey, encrypted, pairA.publicKey)
+      assert.equal(msg, decrypted)
+    })
+
     it('should throw if the encrypted data is wrong', async function () {
       const key = Crypto.generateKey(true)
       const msg = 'Some message'
