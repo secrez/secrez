@@ -1,5 +1,7 @@
 # Secrez
 
+[![Join the chat at https://gitter.im/secrez/secrez](https://badges.gitter.im/secrez/secrez.svg)](https://gitter.im/secrez/secrez?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 <h1 align="center">
   <img align="center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez_2.png" width="300"/>
 </h1>
