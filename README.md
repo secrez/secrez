@@ -682,7 +682,7 @@ Versions < 0.5.0 are deprecated because the format was sligtly different and the
 
 Firs off, take a look at Secrez's [Code of conduct](https://github.com/secrez/secrez/blob/master/CODE_OF_CONDUCT.md)
 
-Second, join the brand-new [Secrez's Discord group](https://discord.gg/whsgXj)
+Second, join [Secrez's room on Gitter](https://gitter.im/secrez/secrez)
 
 #### Fork this repo
 
