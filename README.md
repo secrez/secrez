@@ -1,10 +1,10 @@
 # Secrez
 
-<h1 style="text-align:center">
-  <img style="text-align:center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez_2.png" width="300"/>
+<h1 align="center">
+  <img align="center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez_2.png" width="300"/>
 </h1>
 
-<p style="text-align:center">
+<p align="center">
   <a href="https://github.com/secrez/secrez/issues">
     <img src="https://img.shields.io/github/issues/secrez/secrez.svg">
   </a>

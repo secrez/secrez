@@ -1,10 +1,10 @@
 # Secrez
 
-<h1 style="text-align:center">
-  <img style="text-align:center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez_2.png" width="300"/>
+<h1 align="center">
+  <img align="center" src="https://raw.githubusercontent.com/secrez/secrez/master/assets/secrez_2.png" width="300"/>
 </h1>
 
-<p style="text-align:center">
+<p align="center">
   <a href="https://github.com/secrez/secrez/issues">
     <img src="https://img.shields.io/github/issues/secrez/secrez.svg">
   </a>
@@ -415,7 +415,7 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 ## History
 
 __1.1.0__
-* Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I disapproved my own proposal at: https://github.com/secrez/secrez/pull/163 
+* Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I disapproved my own proposal at: https://github.com/secrez/secrez/pull/163
 
 __1.0.4__
 * Fix wrong example in `import`
@@ -427,8 +427,8 @@ __1.0.3__
 
 __1.0.2__
 * Export and Import can encrypt/decrypt files using shared keys generated from a specified public key
-* Can export ecrypted file for the user itself, files that can be decrypted only from inside the secrez account that exported them 
-  
+* Can export ecrypted file for the user itself, files that can be decrypted only from inside the secrez account that exported them
+
 __1.0.1__
 * Export and Import can handle encryption. Files can be exported encrypted using a specified password or a key shared with contacts
 * Contacts can add a contact also using contact's public key (previously you need a hub url)
@@ -467,7 +467,7 @@ __0.10.4__
 * remove spaces in secret when launching `totp`
 * add a `--test` option, to test a secret
 * remove deprecated `exit`
-  
+
 __0.10.3__
 * since it's not possible to clear the entire terminal, the clear screen process creates a false sense of security and has been removed
 * fix bug in `ls -l` when there are empty files
