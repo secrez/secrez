@@ -343,11 +343,7 @@ importers:
 
   packages/test-helpers:
     specifiers:
-      '@secrez/core': workspace:~1.0.3
-      '@secrez/crypto': workspace:~1.0.1
-      '@secrez/fs': workspace:~1.0.3
-      '@secrez/hub': workspace:~0.2.1
-      '@secrez/utils': workspace:~1.0.2
+      base-x: ^3.0.8
       chai: ^4.2.0
       chalk: ^3.0.0
       cross-env: ^7.0.2
@@ -357,20 +353,20 @@ importers:
       lodash: ^4.17.19
       mocha: ^7.1.2
       nyc: ^15.1.0
+      sha3: ^2.1.2
       superagent: ^5.3.1
       test-console: ^1.1.0
+      tweetnacl: ^1.0.3
     dependencies:
-      '@secrez/core': link:../core
-      '@secrez/crypto': link:../crypto
-      '@secrez/fs': link:../fs
-      '@secrez/hub': link:../hub
-      '@secrez/utils': link:../utils
+      base-x: 3.0.8
       chai: 4.2.0
       chalk: 3.0.0
       fs-extra: 9.1.0
       lodash: 4.17.19
+      sha3: 2.1.4
       superagent: 5.3.1
       test-console: 1.1.0
+      tweetnacl: 1.0.3
     devDependencies:
       cross-env: 7.0.2
       eslint: 6.8.0

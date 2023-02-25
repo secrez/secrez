@@ -40,7 +40,7 @@
     "sqlite3": "^5.0.0"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~1.0.2",
+    "@secrez/test-helpers": "workspace:~2.0.0",
     "chai": "4.2.0",
     "cross-env": "7.0.2",
     "eslint": "^6.8.0",

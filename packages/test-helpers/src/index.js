@@ -6,11 +6,11 @@ const path = require('path')
 const fs = require('fs-extra')
 const stdout = require('test-console').stdout
 const superagent = require('superagent')
-const {utils: hubUtils} = require('@secrez/hub')
-const {execAsync, decolorize} = require('@secrez/utils')
-const {config, Entry} = require('@secrez/core')
-const Crypto = require('@secrez/crypto')
-const {Node} = require('@secrez/fs')
+const {execAsync, decolorize, setPayloadAndSignIt} = require('./lib/utils0')
+const config = require('./lib/coreConfig')
+const Entry = require('./lib/Entry0')
+const Crypto = require('./lib/Crypto0')
+const Node = require('./lib/Node0')
 const https = require('https')
 
 const helpers = {
@@ -47,7 +47,7 @@ const helpers = {
 
   async sendMessage (message, publicKey1, secrez, server) {
     let encryptedMessage = secrez.encryptSharedData(message, publicKey1)
-    const {payload, signature} = hubUtils.setPayloadAndSignIt(secrez, {
+    const {payload, signature} = setPayloadAndSignIt(secrez, {
       message: encryptedMessage
     })
 

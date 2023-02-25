@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@secrez/hub": "workspace:~0.2.1",
-    "@secrez/test-helpers": "workspace:~1.0.2",
+    "@secrez/test-helpers": "workspace:~2.0.0",
     "@secrez/tls": "workspace:~0.1.4",
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",
