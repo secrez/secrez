@@ -1,5 +1,5 @@
 const {spawn} = require('child_process')
-const Crypto = require('@secrez/crypto')
+const Crypto = require('./Crypto0')
 const _ = require('lodash')
 
 const utils0 = {

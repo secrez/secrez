@@ -13,7 +13,6 @@
     "posttest": "nyc check-coverage --statements 99 --branches 85 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/crypto": "workspace:~1.0.1",
     "bip39": "^3.0.4",
     "ethereumjs-util": "^7.1.5",
     "ethers": "^6.0.8",

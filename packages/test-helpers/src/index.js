@@ -158,15 +158,15 @@ const helpers = {
     }
   },
 
-  async getSecrezInstance() {
-    const Secrez = require('@secrez/core').Secrez(Math.random())
-    let root = path.resolve(__dirname, '../tmp/test/secrez' + Math.random())
-    await fs.emptyDir(root)
-    let secrez = new Secrez()
-    await secrez.init(root)
-    await secrez.signup('password' + Math.random(), 10)
-    return secrez
-  },
+  // async getSecrezInstance() {
+  //   const Secrez = require('@secrez/core').Secrez(Math.random())
+  //   let root = path.resolve(__dirname, '../tmp/test/secrez' + Math.random())
+  //   await fs.emptyDir(root)
+  //   let secrez = new Secrez()
+  //   await secrez.init(root)
+  //   await secrez.signup('password' + Math.random(), 10)
+  //   return secrez
+  // },
 
   jlog(...x){
     for (let i = 0; i < x.length; i++) {
