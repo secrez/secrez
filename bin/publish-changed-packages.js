@@ -29,6 +29,7 @@ MUST PUBLISH ${pkg}${dir} v${version} with
 checkIfMustBePublished('utils', '@secrez')
 checkIfMustBePublished('test-helpers', '@secrez')
 checkIfMustBePublished('crypto', '@secrez')
+checkIfMustBePublished('eth', '@secrez')
 checkIfMustBePublished('core', '@secrez')
 checkIfMustBePublished('courier', '@secrez')
 checkIfMustBePublished('fs', '@secrez')
