@@ -36,7 +36,8 @@ checkIfMustBePublished('fs', '@secrez')
 checkIfMustBePublished('hub', '@secrez')
 checkIfMustBePublished('tls', '@secrez')
 checkIfMustBePublished('tunnel', '@secrez')
-checkIfMustBePublished('migrate', '@secrez')
+// the deployed version is latest one
+// checkIfMustBePublished('migrate', '@secrez')
 checkIfMustBePublished('secrez')
 
 if (!changes) {

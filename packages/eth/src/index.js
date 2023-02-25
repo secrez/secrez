@@ -1,4 +1,3 @@
-const Crypto = require('@secrez/crypto')
 const {toChecksumAddress} = require('ethereumjs-util')
 const ethers = require('ethers')
 const bip39 = require('bip39')

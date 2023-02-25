@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@secrez/courier": "workspace:~0.2.2",
-    "@secrez/test-helpers": "workspace:~1.0.2",
+    "@secrez/test-helpers": "workspace:~2.0.0",
     "chai": "^4.2.0",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.2",
