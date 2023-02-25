@@ -5,10 +5,6 @@
 </h1>
 
 <p align="center">
-  <a href="https://discord.gg/whsgXj">
-    <img src="https://img.shields.io/badge/chat-on%20discord-brightgreen.svg">
-  </a>
-
   <a href="https://github.com/secrez/secrez/issues">
     <img src="https://img.shields.io/github/issues/secrez/secrez.svg">
   </a>
@@ -24,6 +20,15 @@
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/secrez/secrez.svg">
   </a>
+
+  <a href="https://discord.gg/whsgXj">
+    <img src="https://img.shields.io/badge/chat-on%20discord-brightgreen.svg">
+  </a>
+
+  <a href="https://gitter.im/secrez/secrez?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" alt="Join the chat at https://gitter.im/secrez/secrez">
+    <img src="https://badges.gitter.im/secrez/secrez.svg">
+  </a>
+
 </p>
 
 Secrez is:
