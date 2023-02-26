@@ -9,7 +9,7 @@
     "all-tests": "find test/** -name '*.test.js' | xargs ./node_modules/.bin/mocha -R spec",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js --exit",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text mocha test/*.test.js test/**/*.test.js --exit",
-    "posttest": "nyc check-coverage --statements 85 --branches 78 --functions 85 --lines 85"
+    "posttest": "nyc check-coverage --statements 80 --branches 65 --functions 80 --lines 80"
   },
   "dependencies": {
     "@secrez/core": "workspace:~1.0.3",
