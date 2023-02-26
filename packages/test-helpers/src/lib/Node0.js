@@ -316,7 +316,7 @@ class Node0 {
               ]);
             }
           } else if (
-          /* istanbul ignore if  */
+            /* istanbul ignore if  */
             options.content &&
             this.type === config.types.TEXT &&
             options.tree

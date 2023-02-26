@@ -89,7 +89,7 @@ class Mv extends require("../Command") {
     if (dataFrom.index !== dataTo.index) {
       await this.internalFs.mountTree(dataTo.index);
     } else if (dataFrom.index === 1 && options.removing) {
-    /* istanbul ignore if  */
+      /* istanbul ignore if  */
       let yes = await this.useConfirm({
         message:
           "Are you sure you want to definitely remove those file from Secrez?",
