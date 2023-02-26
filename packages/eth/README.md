@@ -2,7 +2,7 @@
 
 Secrez is the secrets manager for the cryptocurrencies era.
 
-@secrez/eth simplify the use of the Ethereum blockchain in Secrez. 
+@secrez/eth simplify the use of the Ethereum blockchain in Secrez.
 
 ## TODO
 
@@ -10,8 +10,9 @@ API documentation
 
 ## History
 
-__0.0.1__
-* first version
+**0.0.1**
+
+- first version
 
 ## Test coverage
 
@@ -20,14 +21,13 @@ __0.0.1__
   2 pending
 
 ----------|---------|----------|---------|---------|--------------------------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                    
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 ----------|---------|----------|---------|---------|--------------------------------------
-All files |     100 |    89.36 |     100 |     100 |                                      
- index.js |     100 |    89.36 |     100 |     100 | 42-53,82,108-119,188-189,208,368-372 
+All files |     100 |    89.36 |     100 |     100 |
+ index.js |     100 |    89.36 |     100 |     100 | 42-53,82,108-119,188-189,208,368-372
 ----------|---------|----------|---------|---------|--------------------------------------
 
 ```
-
 
 ## Copyright
 

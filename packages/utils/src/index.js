@@ -1,269 +1,268 @@
-const _ = require('lodash')
-const fs = require('fs-extra')
-const isBinaryFile = require('isbinaryfile').isBinaryFile
-const YAML = require('yaml')
-const path = require('path')
-const {spawn} = require('child_process')
-const parse = require('csv-parse/lib/sync')
-const Case = require('case')
-const util = require('util')
-const Base58 = require('base58')
-const player = require('play-sound')()
+const _ = require("lodash");
+const fs = require("fs-extra");
+const isBinaryFile = require("isbinaryfile").isBinaryFile;
+const YAML = require("yaml");
+const path = require("path");
+const { spawn } = require("child_process");
+const parse = require("csv-parse/lib/sync");
+const Case = require("case");
+const util = require("util");
+const Base58 = require("base58");
+const player = require("play-sound")();
 
-const UglyDate = require('./UglyDate')
+const UglyDate = require("./UglyDate");
 
 const utils = {
-
   yamlParse(str) {
     // workaround to avoid parsing ETH addresses and private keys
     if (/: 0x[a-fA-F0-9]+(\n|$)/.test(str)) {
-      str = str.replace(/: (0x[a-fA-F0-9]+)(\n|$)/g, ": '$1'$2")
+      str = str.replace(/: (0x[a-fA-F0-9]+)(\n|$)/g, ": '$1'$2");
     }
     try {
-      return YAML.parse(str)
+      return YAML.parse(str);
     } catch (e) {
-      throw new Error('Cannot parse a malformed yaml')
+      throw new Error("Cannot parse a malformed yaml");
     }
   },
 
   yamlStringify(obj) {
-    return YAML.stringify(obj)
+    return YAML.stringify(obj);
   },
 
   isYaml(filepath) {
     try {
-      let ext = path.extname(filepath)
-      return /^\.y(a|)ml$/i.test(ext)
+      let ext = path.extname(filepath);
+      return /^\.y(a|)ml$/i.test(ext);
     } catch (e) {
-      return false
+      return false;
     }
   },
 
-  fromCsvToJson(csv, delimiter = ',', skipEmpty = true) {
-    csv = csv.split('\n')
-    let firstLine = csv[0]
+  fromCsvToJson(csv, delimiter = ",", skipEmpty = true) {
+    csv = csv.split("\n");
+    let firstLine = csv[0];
     try {
-      firstLine = parse(firstLine)[0].map(e => Case.snake(_.trim(e)))
+      firstLine = parse(firstLine)[0].map((e) => Case.snake(_.trim(e)));
     } catch (e) {
-      throw new Error('The CSV is malformed')
+      throw new Error("The CSV is malformed");
     }
     for (let e of firstLine) {
       if (!/^[a-z]{1}[a-z0-9_]*$/.test(e)) {
-        throw new Error('The header of the CSV looks wrong')
+        throw new Error("The header of the CSV looks wrong");
       }
     }
-    csv[0] = firstLine.join(',')
-    csv = csv.join('\n')
+    csv[0] = firstLine.join(",");
+    csv = csv.join("\n");
     let json = parse(csv, {
       columns: true,
       skip_empty_lines: true,
       delimiter,
       skip_lines_with_error: true,
-      trim: true
-    })
+      trim: true,
+    });
     if (skipEmpty) {
-      json = json.map(e => {
-        let elem = {}
+      json = json.map((e) => {
+        let elem = {};
         for (let key in e) {
           if (e[key]) {
-            elem[key] = e[key]
+            elem[key] = e[key];
           }
         }
-        return elem
-      })
+        return elem;
+      });
     }
-    return json
+    return json;
   },
 
   fromSimpleYamlToJson(yml) {
-    yml = yml.split('\n').map(e => e.split(': '))
-    let json = {}
+    yml = yml.split("\n").map((e) => e.split(": "));
+    let json = {};
     for (let y of yml) {
-      json[y[0]] = y[1]
+      json[y[0]] = y[1];
     }
-    return json
+    return json;
   },
 
   getCols() {
-    return process.env.NODE_ENV === 'test' ? 80 : (process.stdout.columns || 80)
+    return process.env.NODE_ENV === "test" ? 80 : process.stdout.columns || 80;
   },
 
   TRUE: () => true,
 
-  sleep: async millis => {
-    return new Promise(resolve => setTimeout(resolve, millis))
+  sleep: async (millis) => {
+    return new Promise((resolve) => setTimeout(resolve, millis));
   },
 
   async execAsync(cmd, cwd, params) {
-    return new Promise(resolve => {
-      let json = {}
+    return new Promise((resolve) => {
+      let json = {};
       const child = spawn(cmd, params, {
         cwd,
-        shell: true
-      })
-      child.stdout.on('data', data => {
-        json.message = _.trim(Buffer.from(data).toString('utf8'))
-      })
-      child.stderr.on('data', data => {
-        json.error = _.trim(Buffer.from(data).toString('utf8'))
-      })
-      child.on('exit', code => {
-        json.code = code
-        resolve(json)
-      })
-    })
+        shell: true,
+      });
+      child.stdout.on("data", (data) => {
+        json.message = _.trim(Buffer.from(data).toString("utf8"));
+      });
+      child.stderr.on("data", (data) => {
+        json.error = _.trim(Buffer.from(data).toString("utf8"));
+      });
+      child.on("exit", (code) => {
+        json.code = code;
+        resolve(json);
+      });
+    });
   },
 
   capitalize(str) {
-    if (typeof str === 'string' && str.length > 0) {
-      return str[0].toUpperCase() + str.substring(1).toLowerCase()
+    if (typeof str === "string" && str.length > 0) {
+      return str[0].toUpperCase() + str.substring(1).toLowerCase();
     } else {
-      throw new Error('Not a string')
+      throw new Error("Not a string");
     }
   },
 
   sortKeys(obj) {
-    return _(obj).toPairs().sortBy(0).fromPairs().value()
+    return _(obj).toPairs().sortBy(0).fromPairs().value();
   },
 
   isIp(ip) {
-    return /^\b(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b$/.test('' + ip)
+    return /^\b(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b$/.test(
+      "" + ip
+    );
   },
 
   intToBase58(v, size) {
     try {
-      if (typeof v === 'number') {
-        let ret = Base58.int_to_base58(v)
+      if (typeof v === "number") {
+        let ret = Base58.int_to_base58(v);
         if (size) {
           while (ret.length < size) {
-            ret = '0' + ret
+            ret = "0" + ret;
           }
         }
-        return ret
-      } else throw new Error()
+        return ret;
+      } else throw new Error();
     } catch (e) {
-      throw new Error('Invalid format')
+      throw new Error("Invalid format");
     }
   },
 
   base58ToInt(v) {
     try {
-      v = v.replace(/^0+/, '')
-      return Base58.base58_to_int(v)
+      v = v.replace(/^0+/, "");
+      return Base58.base58_to_int(v);
     } catch (e) {
-      throw new Error('Invalid format')
+      throw new Error("Invalid format");
     }
-
   },
 
   toExponentialString(num) {
     try {
-      num = `${num}`
+      num = `${num}`;
       if (parseInt(num).toString() !== num) {
-        throw new Error()
+        throw new Error();
       }
-      let str = num.replace(/0+$/, '')
-      return str + 'e' + (num.length - str.length)
+      let str = num.replace(/0+$/, "");
+      return str + "e" + (num.length - str.length);
     } catch (e) {
-      throw new Error('Invalid format')
+      throw new Error("Invalid format");
     }
-
   },
 
   fromExponentialString(str) {
     try {
-      str = `${str}`.split('e')
+      str = `${str}`.split("e");
       if (str.length === 2) {
-        return parseInt(str[0] + '0'.repeat(parseInt(str[1])))
+        return parseInt(str[0] + "0".repeat(parseInt(str[1])));
       } else {
-        throw new Error()
+        throw new Error();
       }
     } catch (e) {
-      throw new Error('Invalid format')
+      throw new Error("Invalid format");
     }
-
   },
 
   addTo(arr, index, data) {
-    if (Array.isArray(arr) && typeof index === 'number' && index >= 0 && parseInt(index) === index && data) {
-      if (!arr[index]) arr[index] = ''
-      arr[index] += data
+    if (
+      Array.isArray(arr) &&
+      typeof index === "number" &&
+      index >= 0 &&
+      parseInt(index) === index &&
+      data
+    ) {
+      if (!arr[index]) arr[index] = "";
+      arr[index] += data;
     } else {
-      throw new Error('Invalid parameters')
+      throw new Error("Invalid parameters");
     }
   },
 
   getKeyValue(obj, key) {
     return {
       key: key,
-      value: obj[key]
-    }
+      value: obj[key],
+    };
   },
 
   secureCompare(a, b) {
     if (!a || !b || a.length !== b.length) {
-      return false
+      return false;
     }
-    let match = true
+    let match = true;
     for (let i = 0; i < a.length; i++) {
-      match = match && (a[i] === b[i])
+      match = match && a[i] === b[i];
     }
-    return match
+    return match;
   },
 
   async isBinary(fileFullPath) {
     if (/\/$/.test(fileFullPath)) {
-      return false
+      return false;
     }
     if (await fs.pathExists(fileFullPath)) {
-      const stat = await fs.lstat(fileFullPath)
+      const stat = await fs.lstat(fileFullPath);
       if (stat.isDirectory()) {
-        return false
+        return false;
       }
-      const data = await fs.readFile(fileFullPath)
-      return await isBinaryFile(data, stat.size)
+      const data = await fs.readFile(fileFullPath);
+      return await isBinaryFile(data, stat.size);
     } else {
-      return false
+      return false;
     }
   },
 
   removeNotPrintableChars(str) {
     // eslint-disable-next-line no-control-regex
-    return str.replace(/[\x00\x08\x0B\x0C\x0E-\x1F]+/g, '')
+    return str.replace(/[\x00\x08\x0B\x0C\x0E-\x1F]+/g, "");
   },
 
   Debug(prefix) {
     return (...content) => {
       if (process.env.AS_DEV || /dev/i.test(process.env.NODE_ENV)) {
-        console.debug(prefix, '>>', util.format(...content))
+        console.debug(prefix, ">>", util.format(...content));
       }
-    }
+    };
   },
 
   async playMp3(mp3AbsolutePath) {
     return new Promise((resolve, reject) => {
-      player.play(mp3AbsolutePath, function(err){
+      player.play(mp3AbsolutePath, function (err) {
         if (err) {
-          reject(err)
+          reject(err);
         }
-        resolve()
-      })
-    })
+        resolve();
+      });
+    });
   },
 
   decolorize(str, noTrim) {
     if (!noTrim) {
-      str = _.trim(str)
+      str = _.trim(str);
     }
     // eslint-disable-next-line no-control-regex
-    return str.replace(/\x1b\[[0-9;]*m/g, '')
-  }
+    return str.replace(/\x1b\[[0-9;]*m/g, "");
+  },
+};
 
-}
-
-module.exports = utils
-module.exports.UglyDate = UglyDate
-
-
-
-
+module.exports = utils;
+module.exports.UglyDate = UglyDate;

@@ -1,72 +1,69 @@
-const utils = require('@secrez/utils')
-const fs = require('fs-extra')
+const utils = require("@secrez/utils");
+const fs = require("fs-extra");
 
-class Lcat extends require('../Command') {
-
+class Lcat extends require("../Command") {
   setHelpAndCompletion() {
     this.cliConfig.completion.lcat = {
       _func: this.selfCompletion(this, {
-        external: true
+        external: true,
       }),
-      _self: this
-    }
-    this.cliConfig.completion.help.lcat = true
+      _self: this,
+    };
+    this.cliConfig.completion.help.lcat = true;
     this.optionDefinitions = [
       {
-        name: 'help',
-        alias: 'h',
-        type: Boolean
+        name: "help",
+        alias: "h",
+        type: Boolean,
       },
       {
-        name: 'path',
-        completionType: 'file',
-        alias: 'p',
+        name: "path",
+        completionType: "file",
+        alias: "p",
         defaultOption: true,
-        type: String
+        type: String,
       },
       {
-        name: 'force',
-        alias: 'f',
-        type: Boolean
-      }
-    ]
+        name: "force",
+        alias: "f",
+        type: Boolean,
+      },
+    ];
   }
 
   help() {
     return {
-      description: ['Similar to a standard cat in the external fs.'],
+      description: ["Similar to a standard cat in the external fs."],
       examples: [
-        'lcat ../passwords/Facebook',
-        ['lcat -f somefile.ext', 'Force view even if file looks binary']
-      ]
-    }
+        "lcat ../passwords/Facebook",
+        ["lcat -f somefile.ext", "Force view even if file looks binary"],
+      ],
+    };
   }
 
   async lcat(options) {
-    let efs = this.externalFs
-    let p = efs.getNormalizedPath(options.path)
-    if (!options.force && await utils.isBinary(p)) {
-      throw new Error('The file looks as a binary file')
+    let efs = this.externalFs;
+    let p = efs.getNormalizedPath(options.path);
+    if (!options.force && (await utils.isBinary(p))) {
+      throw new Error("The file looks as a binary file");
     } else {
-      return await fs.readFile(p, 'utf8')
+      return await fs.readFile(p, "utf8");
     }
   }
 
   async exec(options = {}) {
     if (options.help) {
-      return this.showHelp()
+      return this.showHelp();
     }
     try {
-      this.validate(options)
-      let data = await this.lcat(options)
-      this.Logger.reset(data)
+      this.validate(options);
+      let data = await this.lcat(options);
+      this.Logger.reset(data);
     } catch (e) {
-      this.Logger.red(e.message)
+      this.Logger.red(e.message);
     }
-    await this.prompt.run()
+    await this.prompt.run();
   }
 }
 
-module.exports = Lcat
-
-
+module.exports = Lcat;

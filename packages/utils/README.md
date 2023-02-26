@@ -4,14 +4,15 @@ Secrez is the secrets manager for the cryptocurrencies era.
 
 This is a utils library used by other packages in the @secrez suite.
 
-
 ## History
 
-__1.0.1__
-* adds a workaound to avoid converting ETH addresses to floats
+**1.0.1**
 
-__1.0.0__
-* uses @secrez/core 1.0.0
+- adds a workaound to avoid converting ETH addresses to floats
+
+**1.0.0**
+
+- uses @secrez/core 1.0.0
 
 ## Test coverage
 
@@ -19,11 +20,11 @@ __1.0.0__
   38 passing (191ms)
 
 -------------|---------|----------|---------|---------|-------------------
-File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 -------------|---------|----------|---------|---------|-------------------
-All files    |   94.44 |    84.88 |   86.84 |   94.29 |                   
- UglyDate.js |     100 |    96.67 |     100 |     100 | 61                
- index.js    |   92.31 |    78.57 |   85.71 |      92 | 237-259           
+All files    |   94.44 |    84.88 |   86.84 |   94.29 |
+ UglyDate.js |     100 |    96.67 |     100 |     100 | 61
+ index.js    |   92.31 |    78.57 |   85.71 |      92 | 237-259
 -------------|---------|----------|---------|---------|-------------------
 ```
 

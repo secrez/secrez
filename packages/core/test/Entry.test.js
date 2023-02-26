@@ -1,122 +1,91 @@
-const chai = require('chai')
-const assert = chai.assert
-const Entry = require('../src/Entry')
+const chai = require("chai");
+const assert = chai.assert;
+const Entry = require("../src/Entry");
 
-describe('#Entry', function () {
-
-  describe('#constructor', async function () {
-
-    it('should instantiate the Entry', async function () {
-
+describe("#Entry", function () {
+  describe("#constructor", async function () {
+    it("should instantiate the Entry", async function () {
       let entry = new Entry({
-        name: 'Name'
-      })
-      assert.equal(entry.get(['name']).name, 'Name')
+        name: "Name",
+      });
+      assert.equal(entry.get(["name"]).name, "Name");
+    });
 
-    })
-
-    it('should ignore wrong parameters', async function () {
-
+    it("should ignore wrong parameters", async function () {
       let entry = new Entry({
-        gender: 'male'
-      })
-      assert.equal(entry.get([]).gender, undefined)
+        gender: "male",
+      });
+      assert.equal(entry.get([]).gender, undefined);
+    });
+  });
 
-    })
-
-  })
-
-
-  describe('#set', async function () {
-
-    it('should set some options for the Entry', async function () {
-
+  describe("#set", async function () {
+    it("should set some options for the Entry", async function () {
       let entry = new Entry({
-        name: 'Name'
-      })
+        name: "Name",
+      });
       entry.set({
-        id: '123'
-      })
-      assert.equal(entry.get().id, '123')
+        id: "123",
+      });
+      assert.equal(entry.get().id, "123");
+    });
 
-    })
-
-    it('should skip invalid options', async function () {
-
+    it("should skip invalid options", async function () {
       let entry = new Entry({
-        name: 'Name'
-      })
+        name: "Name",
+      });
       entry.set({
-        gender: 'male'
-      })
-      assert.equal(entry.get().male, undefined)
+        gender: "male",
+      });
+      assert.equal(entry.get().male, undefined);
+    });
+  });
 
-    })
-
-  })
-
-  describe('#unset', async function () {
-
-    it('should unset some options', async function () {
-
+  describe("#unset", async function () {
+    it("should unset some options", async function () {
       let entry = new Entry({
-        name: 'Name',
-        id: '123',
+        name: "Name",
+        id: "123",
         type: 1,
-        content: 'Content'
-      })
-      entry.unset('id')
-      entry.unset(['type','content'])
-      assert.equal(Object.keys(entry.get()).length, 1)
+        content: "Content",
+      });
+      entry.unset("id");
+      entry.unset(["type", "content"]);
+      assert.equal(Object.keys(entry.get()).length, 1);
+    });
 
-    })
-
-    it('should skip invalid or undefined options', async function () {
-
+    it("should skip invalid or undefined options", async function () {
       let entry = new Entry({
-        name: 'Name'
-      })
-      entry.unset('id')
-      entry.unset('gender')
-      assert.equal(Object.keys(entry.get()).length, 1)
+        name: "Name",
+      });
+      entry.unset("id");
+      entry.unset("gender");
+      assert.equal(Object.keys(entry.get()).length, 1);
+    });
+  });
 
-    })
-
-  })
-
-
-  describe('#sanitizeName', async function () {
-
-    it('should sanitize names', async function () {
-
-      let name = 'a<}>b'
-      assert.equal(Entry.sanitizeName(name), 'a}b')
+  describe("#sanitizeName", async function () {
+    it("should sanitize names", async function () {
+      let name = "a<}>b";
+      assert.equal(Entry.sanitizeName(name), "a}b");
 
       // eslint-disable-next-line no-useless-escape
-      name = 'XX\\\ ;|:C_'
-      assert.equal(Entry.sanitizeName(name), 'XX ;C_')
+      name = "XX\\ ;|:C_";
+      assert.equal(Entry.sanitizeName(name), "XX ;C_");
+    });
+  });
 
-    })
-
-  })
-
-  describe('#sanitizePath', async function () {
-
-    it('should sanitize path', async function () {
-
-      let p = 'sas|sa/a<}>b'
-      assert.equal(Entry.sanitizePath(p), 'sassa/a}b')
+  describe("#sanitizePath", async function () {
+    it("should sanitize path", async function () {
+      let p = "sas|sa/a<}>b";
+      assert.equal(Entry.sanitizePath(p), "sassa/a}b");
 
       try {
-        Entry.sanitizePath(23)
-        assert.isTrue(false)
-      } catch(e) {
-        assert.equal(e.message, 'Path must be a string')
+        Entry.sanitizePath(23);
+        assert.isTrue(false);
+      } catch (e) {
+        assert.equal(e.message, "Path must be a string");
       }
-
-    })
-
-  })
-
-
-})
+    });
+  });
+});

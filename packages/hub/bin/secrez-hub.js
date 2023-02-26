@@ -1,82 +1,84 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk')
-const commandLineArgs = require('command-line-args')
-const pkg = require('../package')
-const {startServer} = require('..')
+const chalk = require("chalk");
+const commandLineArgs = require("command-line-args");
+const pkg = require("../package");
+const { startServer } = require("..");
 
 const optionDefinitions = [
   {
-    name: 'help',
-    alias: 'h',
-    type: Boolean
+    name: "help",
+    alias: "h",
+    type: Boolean,
   },
   {
-    name: 'port',
-    alias: 'p',
-    type: Number
+    name: "port",
+    alias: "p",
+    type: Number,
   },
   {
-    name: 'secure',
-    alias: 's',
-    type: Boolean
+    name: "secure",
+    alias: "s",
+    type: Boolean,
   },
   {
-    name: 'domain',
-    alias: 'd',
-    type: String
+    name: "domain",
+    alias: "d",
+    type: String,
   },
   {
-    name: 'landing',
-    alias: 'l',
-    type: String
+    name: "landing",
+    alias: "l",
+    type: String,
   },
   {
-    name: 'address',
-    alias: 'a',
-    type: String
+    name: "address",
+    alias: "a",
+    type: String,
   },
   {
-    name: 'max-sockets',
-    alias: 'm',
-    type: Number
+    name: "max-sockets",
+    alias: "m",
+    type: Number,
   },
   {
-    name: 'code',
-    alias: 'c',
-    type: String
-  }
-]
+    name: "code",
+    alias: "c",
+    type: String,
+  },
+];
 
 function error(message) {
   if (!Array.isArray(message)) {
-    message = [message]
+    message = [message];
   }
-  console.error(chalk.red(message[0]))
+  console.error(chalk.red(message[0]));
   if (message[1]) {
-    console.info(message[1])
+    console.info(message[1]);
   }
   /*eslint-disable-next-line*/
-  process.exit(1)
+  process.exit(1);
 }
 
-let options = {}
+let options = {};
 try {
   options = commandLineArgs(optionDefinitions, {
-    camelCase: true
-  })
+    camelCase: true,
+  });
 } catch (e) {
-  error(e.message)
+  error(e.message);
 }
 
 if (!options.port) {
-  options.port = 8433
+  options.port = 8433;
 }
 
-console.info(chalk.bold.grey(`Secrez-hub v${pkg.version}`))
+console.info(chalk.bold.grey(`Secrez-hub v${pkg.version}`));
 
 if (options.help) {
-  console.info('reset', `${pkg.description}
+  console.info(
+    "reset",
+    `${pkg.description}
 
 Options:
   -h, --help              This help.
@@ -94,12 +96,13 @@ Options:
                       
 Examples:
   $ secrez-hub -p 9494
-`)
+`
+  );
   // eslint-disable-next-line no-process-exit
-  process.exit(0)
+  process.exit(0);
 }
 
 (async function () {
-  const port = await startServer(options)
-  console.info(`Hub listening on port ${port}`)
-})()
+  const port = await startServer(options);
+  console.info(`Hub listening on port ${port}`);
+})();

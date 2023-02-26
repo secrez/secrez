@@ -1,429 +1,500 @@
-const fs = require('fs-extra')
-const path = require('path')
-const utils = require('@secrez/utils')
-const Case = require('case')
-const _ = require('lodash')
-const chalk = require('chalk')
-const {config, Entry} = require('@secrez/core')
-const {Node, FileCipher} = require('@secrez/fs')
-const {fromCsvToJson, yamlStringify, isYaml} = require('@secrez/utils')
+const fs = require("fs-extra");
+const path = require("path");
+const utils = require("@secrez/utils");
+const Case = require("case");
+const _ = require("lodash");
+const chalk = require("chalk");
+const { config, Entry } = require("@secrez/core");
+const { Node, FileCipher } = require("@secrez/fs");
+const { fromCsvToJson, yamlStringify, isYaml } = require("@secrez/utils");
 
-class Import extends require('../Command') {
-
+class Import extends require("../Command") {
   setHelpAndCompletion() {
     this.cliConfig.completion.import = {
       _func: this.selfCompletion(this, {
-        external: true
+        external: true,
       }),
-      _self: this
-    }
-    this.cliConfig.completion.help.import = true
+      _self: this,
+    };
+    this.cliConfig.completion.help.import = true;
     this.optionDefinitions = [
       {
-        name: 'help',
-        alias: 'h',
-        type: Boolean
+        name: "help",
+        alias: "h",
+        type: Boolean,
       },
       {
-        name: 'path',
-        completionType: 'file',
-        alias: 'p',
+        name: "path",
+        completionType: "file",
+        alias: "p",
         defaultOption: true,
-        type: String
-      },
-      {
-        name: 'move',
-        alias: 'm',
-        type: Boolean
-      },
-      {
-        name: 'binary-too',
-        alias: 'b',
-        type: Boolean
-      },
-      {
-        name: 'simulate',
-        alias: 's',
-        type: Boolean
-      },
-      {
-        name: 'expand',
-        alias: 'e',
         type: String,
-        hint: 'It must be on the current dataset'
       },
       {
-        name: 'recursive',
-        alias: 'r',
-        type: Boolean
+        name: "move",
+        alias: "m",
+        type: Boolean,
       },
       {
-        name: 'tags',
-        alias: 't',
-        type: Boolean
+        name: "binary-too",
+        alias: "b",
+        type: Boolean,
       },
       {
-        name: 'use-tags-for-paths',
-        alias: 'u',
-        type: Boolean
+        name: "simulate",
+        alias: "s",
+        type: Boolean,
       },
       {
-        name: 'path-from',
-        alias: 'P',
+        name: "expand",
+        alias: "e",
         type: String,
-        multiple: true
+        hint: "It must be on the current dataset",
       },
       {
-        name: 'password',
-        type: String
+        name: "recursive",
+        alias: "r",
+        type: Boolean,
       },
       {
-        name: 'public-key',
-        type: String
-      }
-    ]
+        name: "tags",
+        alias: "t",
+        type: Boolean,
+      },
+      {
+        name: "use-tags-for-paths",
+        alias: "u",
+        type: Boolean,
+      },
+      {
+        name: "path-from",
+        alias: "P",
+        type: String,
+        multiple: true,
+      },
+      {
+        name: "password",
+        type: String,
+      },
+      {
+        name: "public-key",
+        type: String,
+      },
+    ];
   }
 
   help() {
     return {
       description: [
-        'Import files from the OS into the current folder',
-        'By default binary files are not imported since they can be very large.',
-        'To include them, use the -b option.',
-        'During a move, only the imported files are moved. To avoid problems',
-        'you can simulate the process using -s and see which ones will be imported.',
+        "Import files from the OS into the current folder",
+        "By default binary files are not imported since they can be very large.",
+        "To include them, use the -b option.",
+        "During a move, only the imported files are moved. To avoid problems",
+        "you can simulate the process using -s and see which ones will be imported.",
         'Import can import data from password managers and other software. If in CSV format, the first line must list the field names and one field must be "path". Similarly, if in JSON format, a "path" key is mandatory in any item. Path should be relative. If not, it will be converted.',
-        'Also notice that to import from a CSV file you must specify where to expand the data, if not',
-        'the file will be imported as a single file.'
+        "Also notice that to import from a CSV file you must specify where to expand the data, if not",
+        "the file will be imported as a single file.",
       ],
       examples: [
-        ['import seed.json', 'copies seed.json from the disk into the current directory'],
-        ['import seed.json.secrez --password s8eeuhwy36534', 'imports seed.json and decrypts it using the specified password'],
-        ['import seed.json.secrez', 'imports seed.json trying to decrypt it using the key shared with the contact who encrypted the data'],
-        ['import seed.json.secrez--public-key Tush76/u+..... ', 'imports seed.json trying to decrypt it using a shared key generated using the specified public key'],
-        ['import -m ethKeys', 'copies ethKeys and remove it from the disk'],
-        ['import -p ~/passwords', 'imports all the text files in the folder passwords'],
-        ['import -b -p ~/passwords', 'imports all the files, included binaries'],
-        ['import -r ~/data -t', 'imports text files in the folder, recursively'],
-        ['import ~/data -s', 'simulates the process listing all involved files'],
-        ['import backup.csv -e /imported', 'imports a backup creating files in the "/imported"'],
-        ['import backup.json -e .', 'imports a backup in the current folder'],
-        ['import backup.csv -e / -m', 'imports a backup in the root, deleting the CSV file from the disk'],
-        ['import backup.csv -te /', 'imports a backup saving the tags field as actual tags'],
-        ['import backup.csv -ute /fromPasspack',
-          'uses the tags to prefix the path and keeps the tags;',
+        [
+          "import seed.json",
+          "copies seed.json from the disk into the current directory",
+        ],
+        [
+          "import seed.json.secrez --password s8eeuhwy36534",
+          "imports seed.json and decrypts it using the specified password",
+        ],
+        [
+          "import seed.json.secrez",
+          "imports seed.json trying to decrypt it using the key shared with the contact who encrypted the data",
+        ],
+        [
+          "import seed.json.secrez--public-key Tush76/u+..... ",
+          "imports seed.json trying to decrypt it using a shared key generated using the specified public key",
+        ],
+        ["import -m ethKeys", "copies ethKeys and remove it from the disk"],
+        [
+          "import -p ~/passwords",
+          "imports all the text files in the folder passwords",
+        ],
+        [
+          "import -b -p ~/passwords",
+          "imports all the files, included binaries",
+        ],
+        [
+          "import -r ~/data -t",
+          "imports text files in the folder, recursively",
+        ],
+        [
+          "import ~/data -s",
+          "simulates the process listing all involved files",
+        ],
+        [
+          "import backup.csv -e /imported",
+          'imports a backup creating files in the "/imported"',
+        ],
+        ["import backup.json -e .", "imports a backup in the current folder"],
+        [
+          "import backup.csv -e / -m",
+          "imports a backup in the root, deleting the CSV file from the disk",
+        ],
+        [
+          "import backup.csv -te /",
+          "imports a backup saving the tags field as actual tags",
+        ],
+        [
+          "import backup.csv -ute /fromPasspack",
+          "uses the tags to prefix the path and keeps the tags;",
           'ex: if "google" is tagged "web,email" the path becomes',
           '"./web/email/google" or "./email/web/google"',
-          'based on the tag weight'
+          "based on the tag weight",
         ],
-        ['import backup.csv -ue /fromPasspack', 'uses the tags to prefix the path without saving the tags'],
-        ['import lastpass.csv -e /imports -P grouping name', 'concatenates the fields "grouping" and "name" to obtain the path'],
-        ['import backup.csv -e /imports -P "entry name"',
+        [
+          "import backup.csv -ue /fromPasspack",
+          "uses the tags to prefix the path without saving the tags",
+        ],
+        [
+          "import lastpass.csv -e /imports -P grouping name",
+          'concatenates the fields "grouping" and "name" to obtain the path',
+        ],
+        [
+          'import backup.csv -e /imports -P "entry name"',
           'uses the field "entry name" for the path,',
-          'i.e., puts everything in the directory /imports,',
-          'without creating any subdirectory']
-      ]
-    }
+          "i.e., puts everything in the directory /imports,",
+          "without creating any subdirectory",
+        ],
+      ],
+    };
   }
 
   async import(options = {}) {
-    this.internalFs.tree.disableSave()
-    this.skipped = []
-    let result = await this._import(options)
-    this.internalFs.tree.enableSave()
+    this.internalFs.tree.disableSave();
+    this.skipped = [];
+    let result = await this._import(options);
+    this.internalFs.tree.enableSave();
     if (result.length && !options.simulate) {
-      await this.internalFs.tree.save()
+      await this.internalFs.tree.save();
     }
-    return [result.sort(), this.skipped]
+    return [result.sort(), this.skipped];
   }
 
-  async _import(options = {}, container = '') {
-    let ifs = this.internalFs
-    let efs = this.externalFs
-    let fileCipher = new FileCipher(this.secrez)
-    let p = efs.getNormalizedPath(options.path)
+  async _import(options = {}, container = "") {
+    let ifs = this.internalFs;
+    let efs = this.externalFs;
+    let fileCipher = new FileCipher(this.secrez);
+    let p = efs.getNormalizedPath(options.path);
     if (await fs.pathExists(p)) {
-      let isDir = await efs.isDir(p)
-      let list = isDir ? (await efs.getDir(p))[1].map(f => path.join(p, f)) : [p]
-      let content = []
-      let result = []
-      let moved = []
+      let isDir = await efs.isDir(p);
+      let list = isDir
+        ? (await efs.getDir(p))[1].map((f) => path.join(p, f))
+        : [p];
+      let content = [];
+      let result = [];
+      let moved = [];
       for (let fn of list) {
         if (await efs.isDir(fn)) {
           if (options.recursive) {
             result = await this._import(
-                Object.assign(options, {path: fn}),
-                (container ? `${container}/` : '') + path.basename(fn)
-            )
+              Object.assign(options, { path: fn }),
+              (container ? `${container}/` : "") + path.basename(fn)
+            );
           } else {
-            continue
+            continue;
           }
         }
         if (/\/$/.test(fn)) {
-          continue
+          continue;
         }
-        let isEncryptedBinary = /\.secrezb(|\.\w+)$/.test(fn)
-        let isBinary = await utils.isBinary(fn)
+        let isEncryptedBinary = /\.secrezb(|\.\w+)$/.test(fn);
+        let isBinary = await utils.isBinary(fn);
         if ((isEncryptedBinary || isBinary) && !options.binaryToo) {
-          this.skipped.push([path.basename(fn), 'binary file; use "-b" to include binaries'])
-          continue
+          this.skipped.push([
+            path.basename(fn),
+            'binary file; use "-b" to include binaries',
+          ]);
+          continue;
         }
-        content.push([fn, isBinary || isEncryptedBinary, await fs.readFile(fn, isBinary ? undefined : 'utf8')])
+        content.push([
+          fn,
+          isBinary || isEncryptedBinary,
+          await fs.readFile(fn, isBinary ? undefined : "utf8"),
+        ]);
       }
-      let contactsPublicKeys
+      let contactsPublicKeys;
       for (let c of content) {
-        let basename = Entry.sanitizeName(path.basename(c[0]), '-')
-        let isEncrypted = /\.secrez(|b)(|\.\w+)$/.test(basename)
-        let isEncryptedBinary
+        let basename = Entry.sanitizeName(path.basename(c[0]), "-");
+        let isEncrypted = /\.secrez(|b)(|\.\w+)$/.test(basename);
+        let isEncryptedBinary;
         if (isEncrypted) {
-          isEncryptedBinary = /\.secrezb(|\.\w+)$/.test(basename)
-          basename = basename.replace(/\.secrez(|b)(|\.\w+)$/, '')
+          isEncryptedBinary = /\.secrezb(|\.\w+)$/.test(basename);
+          basename = basename.replace(/\.secrez(|b)(|\.\w+)$/, "");
         }
         if (isEncrypted && !contactsPublicKeys && !options.publicKey) {
-          contactsPublicKeys = await this.getContactsPublicKeys()
+          contactsPublicKeys = await this.getContactsPublicKeys();
         }
-        let name = await this.internalFs.tree.getVersionedBasename(basename)
+        let name = await this.internalFs.tree.getVersionedBasename(basename);
         if (container) {
-          name = container + '/' + name
+          name = container + "/" + name;
         }
-        result.push(this.internalFs.tree.getNormalizedPath(name))
+        result.push(this.internalFs.tree.getNormalizedPath(name));
         if (!options.simulate) {
           if (options.move) {
-            moved.push(c[0])
+            moved.push(c[0]);
           }
           if (isEncrypted) {
             try {
-              options.returnUint8Array = isEncryptedBinary
+              options.returnUint8Array = isEncryptedBinary;
               if (!options.contactPublicKey) {
-                options.contactsPublicKeys = contactsPublicKeys
+                options.contactsPublicKeys = contactsPublicKeys;
               }
-              c[2] = fileCipher.decryptFile(c[2], options)
+              c[2] = fileCipher.decryptFile(c[2], options);
             } catch (e) {
-              this.skipped.push([path.basename(c[0]), e.message])
-              continue
+              this.skipped.push([path.basename(c[0]), e.message]);
+              continue;
             }
           }
           let node = await ifs.make({
             path: name,
             type: c[1] ? config.types.BINARY : config.types.TEXT,
-            content: c[2]
-          })
-          result.pop()
-          result.push(node.getPath())
+            content: c[2],
+          });
+          result.pop();
+          result.push(node.getPath());
         }
       }
       if (!options.simulate) {
         if (options.move) {
           for (let fn of moved) {
-            await fs.unlink(fn)
+            await fs.unlink(fn);
           }
         }
       }
-      return result
+      return result;
     } else {
-      return []
+      return [];
     }
   }
 
   async getContactsPublicKeys() {
-    let contacts = await this.prompt.commands.contacts.contacts({list: true, asIs: true})
-    let publicKeys = []
+    let contacts = await this.prompt.commands.contacts.contacts({
+      list: true,
+      asIs: true,
+    });
+    let publicKeys = [];
     for (let contact of contacts) {
-      publicKeys.push(contact[1].publicKey)
+      publicKeys.push(contact[1].publicKey);
     }
-    return publicKeys
+    return publicKeys;
   }
 
   async expand(options) {
-    let ifs = this.internalFs
-    let efs = this.externalFs
-    let fn = efs.getNormalizedPath(options.path)
+    let ifs = this.internalFs;
+    let efs = this.externalFs;
+    let fn = efs.getNormalizedPath(options.path);
     if (!(await fs.pathExists(fn))) {
-      return this.Logger.red('The file does not exist')
+      return this.Logger.red("The file does not exist");
     }
-    let str = await fs.readFile(fn, 'utf-8')
-    let ext = path.extname(fn)
-    let data
-    if (ext === '.json') {
-      data = JSON.parse(str)
-    } else if (ext === '.csv') {
+    let str = await fs.readFile(fn, "utf-8");
+    let ext = path.extname(fn);
+    let data;
+    if (ext === ".json") {
+      data = JSON.parse(str);
+    } else if (ext === ".csv") {
       try {
-        data = fromCsvToJson(str)
+        data = fromCsvToJson(str);
       } catch (e) {
-        return this.Logger.red(e.message)
+        return this.Logger.red(e.message);
       }
     }
     if (data.length === 0) {
-      return this.Logger.red('The data is empty')
+      return this.Logger.red("The data is empty");
     }
     if (!data[0].path) {
       if (options.pathFrom) {
-        let pathFrom = options.pathFrom.map(e => Case.snake(_.trim(e)))
+        let pathFrom = options.pathFrom.map((e) => Case.snake(_.trim(e)));
         for (let item of data) {
-          let p = ''
+          let p = "";
           for (let f of pathFrom) {
-            p += (p ? '/' : '') + (typeof item[f] !== 'undefined' ? item[f] : '')
-            delete item[f]
+            p +=
+              (p ? "/" : "") + (typeof item[f] !== "undefined" ? item[f] : "");
+            delete item[f];
           }
           if (!p) {
-            throw new Error('Path cannot be built from the specified fields')
+            throw new Error("Path cannot be built from the specified fields");
           }
-          item.path = p.replace(/\/+/g, '/').replace(/:+/g, '_')
+          item.path = p.replace(/\/+/g, "/").replace(/:+/g, "_");
         }
       } else {
-        return this.Logger.red('The data misses a path field')
+        return this.Logger.red("The data misses a path field");
       }
     }
     if (options.useTagsForPaths) {
-      let weightedTags = {}
+      let weightedTags = {};
       for (let item of data) {
         if (item.tags) {
-          let tags = item.tags.split(' ')
+          let tags = item.tags.split(" ");
           for (let t of tags) {
             if (!weightedTags[t]) {
-              weightedTags[t] = 0
+              weightedTags[t] = 0;
             }
-            weightedTags[t]++
+            weightedTags[t]++;
           }
         }
       }
       for (let item of data) {
         if (item.tags) {
-          let tags = item.tags.split(' ')
-          item.path = tags.sort((a, b,) => {
-            let A = weightedTags[a]
-            let B = weightedTags[b]
-            return A > B ? -1 : A < B ? 1 : 0
-          }).join('/') + '/' + item.path
+          let tags = item.tags.split(" ");
+          item.path =
+            tags
+              .sort((a, b) => {
+                let A = weightedTags[a];
+                let B = weightedTags[b];
+                return A > B ? -1 : A < B ? 1 : 0;
+              })
+              .join("/") +
+            "/" +
+            item.path;
           if (!options.tags) {
-            delete item.tags
+            delete item.tags;
           }
         }
       }
     }
-    let extra = ''
+    let extra = "";
     if (options.simulate) {
-      extra = ' (simulation)'
+      extra = " (simulation)";
     } else if (options.move) {
-      extra = ' (moved)'
+      extra = " (moved)";
     }
-    this.Logger.grey(`Imported files${extra}:`)
+    this.Logger.grey(`Imported files${extra}:`);
 
-    let parentFolderPath = this.internalFs.tree.getNormalizedPath(options.expand)
-    let parentFolder
+    let parentFolderPath = this.internalFs.tree.getNormalizedPath(
+      options.expand
+    );
+    let parentFolder;
     try {
-      parentFolder = this.internalFs.tree.root.getChildFromPath(parentFolderPath)
+      parentFolder =
+        this.internalFs.tree.root.getChildFromPath(parentFolderPath);
     } catch (e) {
-      await this.prompt.commands.mkdir.mkdir({path: parentFolderPath, type: config.types.DIR})
-      parentFolder = this.internalFs.tree.root.getChildFromPath(parentFolderPath)
+      await this.prompt.commands.mkdir.mkdir({
+        path: parentFolderPath,
+        type: config.types.DIR,
+      });
+      parentFolder =
+        this.internalFs.tree.root.getChildFromPath(parentFolderPath);
     }
     if (!Node.isDir(parentFolder)) {
-      return this.Logger.red('The destination folder is not a folder.')
+      return this.Logger.red("The destination folder is not a folder.");
     }
-    this.internalFs.tree.disableSave()
+    this.internalFs.tree.disableSave();
     for (let item of data) {
-      let p = item.path
+      let p = item.path;
       if (!p) {
-        continue
+        continue;
       }
-      p = path.resolve(parentFolderPath, p.replace(/^\//, ''))
-      let dirname = path.dirname(p)
-      let dir
+      p = path.resolve(parentFolderPath, p.replace(/^\//, ""));
+      let dirname = path.dirname(p);
+      let dir;
       try {
-        dir = this.internalFs.tree.root.getChildFromPath(dirname)
+        dir = this.internalFs.tree.root.getChildFromPath(dirname);
       } catch (e) {
-        await this.prompt.commands.mkdir.mkdir({path: dirname, type: config.types.DIR})
-        dir = this.internalFs.tree.root.getChildFromPath(dirname)
+        await this.prompt.commands.mkdir.mkdir({
+          path: dirname,
+          type: config.types.DIR,
+        });
+        dir = this.internalFs.tree.root.getChildFromPath(dirname);
       }
-      let name = path.basename(p)
+      let name = path.basename(p);
       if (!isYaml(name)) {
-        name += '.yaml'
+        name += ".yaml";
       }
-      name = await this.internalFs.tree.getVersionedBasename(path.join(dirname, name), dir)
-      this.Logger.reset(path.join(dirname, name))
+      name = await this.internalFs.tree.getVersionedBasename(
+        path.join(dirname, name),
+        dir
+      );
+      this.Logger.reset(path.join(dirname, name));
       if (!options.simulate) {
-        delete item.path
-        let tags
+        delete item.path;
+        let tags;
         if (options.tags) {
-          tags = item.tags
-          delete item.tags
+          tags = item.tags;
+          delete item.tags;
         }
         let node = await ifs.make({
           path: path.join(dirname, name),
           type: config.types.TEXT,
-          content: yamlStringify(item)
-        })
+          content: yamlStringify(item),
+        });
         if (tags) {
-          tags = tags.split(' ').filter(e => e)
-          await this.prompt.commands.tag.tag({add: tags}, [node])
+          tags = tags.split(" ").filter((e) => e);
+          await this.prompt.commands.tag.tag({ add: tags }, [node]);
         }
       }
     }
     if (!options.simulate) {
-      this.internalFs.tree.enableSave()
-      await this.internalFs.tree.save()
+      this.internalFs.tree.enableSave();
+      await this.internalFs.tree.save();
       if (options.tags) {
-        await this.internalFs.tree.saveTags()
+        await this.internalFs.tree.saveTags();
       }
       if (options.move) {
-        await fs.unlink(fn)
+        await fs.unlink(fn);
       }
     }
   }
 
   async exec(options = {}) {
     if (options.help) {
-      return this.showHelp()
+      return this.showHelp();
     }
     try {
-      this.validate(options)
+      this.validate(options);
       if (options.expand) {
-        await this.expand(options)
+        await this.expand(options);
       } else {
         if (/\.csv$/i.test(options.path)) {
           let yes = await this.useConfirm({
-            message: 'You are importing a CSV file as a single file.\nMaybe, you wanted to import from a backup and forgot to specify the expand (-e) option.\nAre you sure you want to proceed?',
-            default: false
-          })
+            message:
+              "You are importing a CSV file as a single file.\nMaybe, you wanted to import from a backup and forgot to specify the expand (-e) option.\nAre you sure you want to proceed?",
+            default: false,
+          });
           if (!yes) {
-            await this.prompt.run()
-            return
+            await this.prompt.run();
+            return;
           }
         }
-        let [files, skipped] = await this.import(options)
+        let [files, skipped] = await this.import(options);
         if (files.length) {
-          let extra = ''
+          let extra = "";
           if (options.simulate) {
-            extra = ' (simulation)'
+            extra = " (simulation)";
           } else if (options.move) {
-            extra = ' (moved)'
+            extra = " (moved)";
           }
-          this.Logger.grey(`Imported files${extra}:`)
+          this.Logger.grey(`Imported files${extra}:`);
           for (let f of files) {
-            this.Logger.reset(f)
+            this.Logger.reset(f);
           }
           if (skipped.length) {
-            this.Logger.grey('Skipped files:')
+            this.Logger.grey("Skipped files:");
             for (let f of skipped) {
-              this.Logger.reset(f[0] + chalk.yellow(' (' + f[1] + ')'))
+              this.Logger.reset(f[0] + chalk.yellow(" (" + f[1] + ")"));
             }
           }
         } else if (skipped.length) {
-          this.Logger.grey('Skipped files:')
+          this.Logger.grey("Skipped files:");
           for (let f of skipped) {
-            this.Logger.reset(f[0] + chalk.yellow(' (' + f[1] + ')'))
+            this.Logger.reset(f[0] + chalk.yellow(" (" + f[1] + ")"));
           }
         } else {
-          this.Logger.red('No file has been imported.')
+          this.Logger.red("No file has been imported.");
         }
       }
     } catch (e) {
-      this.Logger.red(e.message)
+      this.Logger.red(e.message);
     }
-    await this.prompt.run()
+    await this.prompt.run();
   }
 }
 
-module.exports = Import
-
-
+module.exports = Import;
