@@ -1,24 +1,21 @@
-const { Transform } = require('stream')
+const { Transform } = require("stream");
 
 class HeaderHostTransformer extends Transform {
   constructor(opts = {}) {
-    super(opts)
-    this.host = opts.host || 'localhost'
-    this.replaced = false
+    super(opts);
+    this.host = opts.host || "localhost";
+    this.replaced = false;
   }
 
   _transform(data, encoding, callback) {
     data = this.replaced // after replacing the first instance of the Host header we just become a regular passthrough
-        ? data
-        : data.toString().replace(/(\r\n[Hh]ost: )\S+/, (match, $1) => {
-          this.replaced = true
-          return $1 + this.host
-        })
-    callback(
-      null,
-      data
-    )
+      ? data
+      : data.toString().replace(/(\r\n[Hh]ost: )\S+/, (match, $1) => {
+          this.replaced = true;
+          return $1 + this.host;
+        });
+    callback(null, data);
   }
 }
 
-module.exports = HeaderHostTransformer
+module.exports = HeaderHostTransformer;

@@ -17,13 +17,12 @@
     "check-unused": "bin/check-unused.sh",
     "format": "npx prettier --write ."
   },
-    "devDependencies": {
-        "eslint": "^7.32.0",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-prettier": "^3.4.1",
-        "prettier": "^2.4.1"
-    },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.1",
+    "prettier": "^2.4.1"
+  },
   "license": "MIT",
-  "dependencies": {
-  }
+  "dependencies": {}
 }

@@ -1,166 +1,140 @@
-const stdout = require('test-console').stdout
-const assert = require('chai').assert
-const fs = require('fs-extra')
-const path = require('path')
-const {config} = require('@secrez/core')
-const {Node} = require('@secrez/fs')
-const MainPrompt = require('../../src/prompts/MainPromptMock')
-const {assertConsole, decolorize, sleep} = require('@secrez/test-helpers')
+const stdout = require("test-console").stdout;
+const assert = require("chai").assert;
+const fs = require("fs-extra");
+const path = require("path");
+const { config } = require("@secrez/core");
+const { Node } = require("@secrez/fs");
+const MainPrompt = require("../../src/prompts/MainPromptMock");
+const { assertConsole, decolorize, sleep } = require("@secrez/test-helpers");
 
-const {
-  password,
-  iterations
-} = require('../fixtures')
+const { password, iterations } = require("../fixtures");
 
-describe('#Rm', function () {
-
-  let prompt
-  let rootDir = path.resolve(__dirname, '../../tmp/test/.secrez')
-  let inspect, C
+describe("#Rm", function () {
+  let prompt;
+  let rootDir = path.resolve(__dirname, "../../tmp/test/.secrez");
+  let inspect, C;
 
   let options = {
     container: rootDir,
-    localDir: __dirname
-  }
+    localDir: __dirname,
+  };
 
   beforeEach(async function () {
-    await fs.emptyDir(path.resolve(__dirname, '../../tmp/test'))
-    prompt = new MainPrompt
-    await prompt.init(options)
-    C = prompt.commands
-    await prompt.secrez.signup(password, iterations)
-    await prompt.internalFs.init()
-  })
+    await fs.emptyDir(path.resolve(__dirname, "../../tmp/test"));
+    prompt = new MainPrompt();
+    await prompt.init(options);
+    C = prompt.commands;
+    await prompt.secrez.signup(password, iterations);
+    await prompt.internalFs.init();
+  });
 
-  it('should return the help', async function () {
+  it("should return the help", async function () {
+    inspect = stdout.inspect();
+    await C.rm.exec({ help: true });
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e));
+    assert.isTrue(/-h, --help/.test(output[7]));
+  });
 
-    inspect = stdout.inspect()
-    await C.rm.exec({help: true})
-    inspect.restore()
-    let output = inspect.output.map(e => decolorize(e))
-    assert.isTrue(/-h, --help/.test(output[7]))
-
-  })
-
-  it('should delete a file with one version', async function () {
-
+  it("should delete a file with one version", async function () {
     let file1 = await C.touch.touch({
-      path: '/folder2/file1',
-      type: config.types.TEXT
-    })
+      path: "/folder2/file1",
+      type: config.types.TEXT,
+    });
 
-    inspect = stdout.inspect()
-    await C.rm.exec({path: '/folder2/file1'})
-    inspect.restore()
-    assertConsole(inspect, [
-      'Deleted entries:',
-      '/folder2/file1'
-    ])
+    inspect = stdout.inspect();
+    await C.rm.exec({ path: "/folder2/file1" });
+    inspect.restore();
+    assertConsole(inspect, ["Deleted entries:", "/folder2/file1"]);
 
-    assert.equal(Node.getRoot(file1).datasetIndex, 1)
+    assert.equal(Node.getRoot(file1).datasetIndex, 1);
+  });
 
-  })
-
-  it('should delete many files usign wildcards', async function () {
-
+  it("should delete many files usign wildcards", async function () {
     for (let i = 0; i < 3; i++) {
-
       await C.touch.touch({
-        path: '/file' + i,
-        type: config.types.TEXT
-      })
-
+        path: "/file" + i,
+        type: config.types.TEXT,
+      });
     }
 
-    inspect = stdout.inspect()
-    await C.rm.exec({path: '/file*'})
-    inspect.restore()
-    assertConsole(inspect, [
-      'Deleted entries:',
-      '/file0',
-      '/file1',
-      '/file2'
-    ])
+    inspect = stdout.inspect();
+    await C.rm.exec({ path: "/file*" });
+    inspect.restore();
+    assertConsole(inspect, ["Deleted entries:", "/file0", "/file1", "/file2"]);
 
-    let ls = await C.ls.ls({path: '.'})
+    let ls = await C.ls.ls({ path: "." });
 
-    assert.equal(ls.length, 0)
+    assert.equal(ls.length, 0);
+  });
 
-  })
+  it("should return errors if wrong parameters", async function () {
+    inspect = stdout.inspect();
+    await C.rm.exec();
+    inspect.restore();
+    assertConsole(inspect, ["File path not specified."]);
 
-  it('should return errors if wrong parameters', async function () {
-
-    inspect = stdout.inspect()
-    await C.rm.exec()
-    inspect.restore()
-    assertConsole(inspect, ['File path not specified.'])
-
-
-    inspect = stdout.inspect()
+    inspect = stdout.inspect();
     await C.rm.exec({
-      path: 'file2'
-    })
-    inspect.restore()
-    assertConsole(inspect, ['No files have been deleted.'])
+      path: "file2",
+    });
+    inspect.restore();
+    assertConsole(inspect, ["No files have been deleted."]);
 
-    let expected = []
-    let version
+    let expected = [];
+    let version;
     for (let i = 0; i < 3; i++) {
       let file = await C.touch.touch({
-        path: '/folder2/file' + i,
-        type: config.types.TEXT
-      })
-      version = Node.hashVersion(Object.keys(file.versions)[0])
-      expected.push(C.rm.formatResult({
-        id: file.id,
-        version,
-        name: 'file' + i
-      }))
-
+        path: "/folder2/file" + i,
+        type: config.types.TEXT,
+      });
+      version = Node.hashVersion(Object.keys(file.versions)[0]);
+      expected.push(
+        C.rm.formatResult({
+          id: file.id,
+          version,
+          name: "file" + i,
+        })
+      );
     }
+  });
 
-  })
-
-  it('should delete some versions of a file', async function () {
-
-    await sleep(1000)
+  it("should delete some versions of a file", async function () {
+    await sleep(1000);
 
     let file1 = await C.touch.touch({
-      path: 'file1',
-      type: config.types.TEXT
-    })
-    let ver1 = Node.hashVersion(file1.lastTs)
+      path: "file1",
+      type: config.types.TEXT,
+    });
+    let ver1 = Node.hashVersion(file1.lastTs);
 
     await C.mv.mv({
-      path: 'file1',
-      newPath: 'file2'
-    })
+      path: "file1",
+      newPath: "file2",
+    });
 
     await C.mv.mv({
-      path: 'file2',
-      newPath: 'file3'
-    })
+      path: "file2",
+      newPath: "file3",
+    });
 
-    inspect = stdout.inspect()
-    await C.rm.exec({path: 'file3', versions: [ver1]})
-    inspect.restore()
-    assertConsole(inspect, [
-      'Deleted entries:'
-    ].concat(C.rm.formatResult({
-      id: file1.id,
-      version: ver1,
-      name: 'file3'
-    })))
+    inspect = stdout.inspect();
+    await C.rm.exec({ path: "file3", versions: [ver1] });
+    inspect.restore();
+    assertConsole(
+      inspect,
+      ["Deleted entries:"].concat(
+        C.rm.formatResult({
+          id: file1.id,
+          version: ver1,
+          name: "file3",
+        })
+      )
+    );
 
-    inspect = stdout.inspect()
-    await C.ls.exec({})
-    inspect.restore()
-    assertConsole(inspect, [
-      'file3'
-    ])
-
-  })
-
-
-})
-
+    inspect = stdout.inspect();
+    await C.ls.exec({});
+    inspect.restore();
+    assertConsole(inspect, ["file3"]);
+  });
+});

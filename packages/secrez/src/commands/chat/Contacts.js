@@ -1,90 +1,87 @@
-
-class Contacts extends require('../../Command') {
-
+class Contacts extends require("../../Command") {
   setHelpAndCompletion() {
     this.cliConfig.chatCompletion.contacts = {
       _func: this.selfCompletion(this),
-      _self: this
-    }
-    this.cliConfig.chatCompletion.help.contacts = true
+      _self: this,
+    };
+    this.cliConfig.chatCompletion.help.contacts = true;
     this.optionDefinitions = [
       {
-        name: 'help',
-        alias: 'h',
-        type: Boolean
-      },
-      {
-        name: 'list',
-        alias: 'l',
+        name: "help",
+        alias: "h",
         type: Boolean,
-        default: true
       },
       {
-        name: 'add',
-        alias: 'a',
-        type: String
+        name: "list",
+        alias: "l",
+        type: Boolean,
+        default: true,
       },
       {
-        name: 'update',
-        alias: 'u',
-        type: String
-      },
-      {
-        name: 'delete',
-        alias: 'd',
-        type: String
-      },
-      {
-        name: 'rename',
-        alias: 'r',
+        name: "add",
+        alias: "a",
         type: String,
-        multiple: true
       },
       {
-        name: 'show',
-        alias: 's',
-        type: String
-      }
-    ]
+        name: "update",
+        alias: "u",
+        type: String,
+      },
+      {
+        name: "delete",
+        alias: "d",
+        type: String,
+      },
+      {
+        name: "rename",
+        alias: "r",
+        type: String,
+        multiple: true,
+      },
+      {
+        name: "show",
+        alias: "s",
+        type: String,
+      },
+    ];
   }
 
   help() {
-    return this.prompt.environment.prompt.commands.contacts.help()
+    return this.prompt.environment.prompt.commands.contacts.help();
   }
 
   async customCompletion(options, originalLine, defaultOption) {
-    return []
+    return [];
   }
 
   async contacts(options) {
-    return await this.prompt.environment.prompt.commands.contacts.contacts(options)
+    return await this.prompt.environment.prompt.commands.contacts.contacts(
+      options
+    );
   }
 
   async exec(options = {}) {
     if (options.help) {
-      return this.showHelp()
+      return this.showHelp();
     }
     try {
       if (!Object.keys(options).length) {
-        options.list = true
+        options.list = true;
       }
-      this.validate(options)
-      let result = await this.contacts(options)
+      this.validate(options);
+      let result = await this.contacts(options);
       if (!Array.isArray(result)) {
-        result = [result]
+        result = [result];
       }
       for (let r of result) {
-        this.Logger.reset(r)
+        this.Logger.reset(r);
       }
-
     } catch (e) {
       // console.log(e)
-      this.Logger.red(e.message)
+      this.Logger.red(e.message);
     }
-    await this.prompt.run()
+    await this.prompt.run();
   }
 }
 
-module.exports = Contacts
-
-
+module.exports = Contacts;

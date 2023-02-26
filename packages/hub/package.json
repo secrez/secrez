@@ -43,8 +43,6 @@
     "@secrez/test-helpers": "workspace:~2.0.0",
     "chai": "4.2.0",
     "cross-env": "7.0.2",
-    "eslint": "^6.8.0",
-    "eslint-plugin-node": "^11.0.0",
     "mocha": "8.0.1",
     "node-dev": "4.1.0",
     "nyc": "^15.1.0",
@@ -52,7 +50,6 @@
     "ws": "7.3.0"
   },
   "scripts": {
-    "lint": "eslint -c .eslintrc 'src/**/*.js' 'test/**/*.js' 'bin/*.js' './*.js'",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js  --exit",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text mocha test/*.test.js test/**/*.test.js --exit",
     "posttest": "nyc check-coverage --statements 70 --branches 50 --functions 70 --lines 70",
