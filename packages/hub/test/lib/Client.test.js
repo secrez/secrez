@@ -1,51 +1,51 @@
-const chai = require('chai')
-const assert = chai.assert
+const chai = require("chai");
+const assert = chai.assert;
 
-const http = require('http')
-const {Duplex} = require('stream')
+const http = require("http");
+const { Duplex } = require("stream");
 
 // const WebSocket = require('ws')
-const net = require('net')
+const net = require("net");
 
-const Client = require('../../src/lib/Client')
+const Client = require("../../src/lib/Client");
 
 class DummySocket extends Duplex {
   constructor(options) {
-    super(options)
+    super(options);
   }
 
   _write(chunk, encoding, callback) {
-    callback()
+    callback();
   }
 
   _read(size) {
-    this.push('HTTP/1.1 304 Not Modified\r\nX-Powered-By: dummy\r\n\r\n\r\n')
-    this.push(null)
+    this.push("HTTP/1.1 304 Not Modified\r\nX-Powered-By: dummy\r\n\r\n\r\n");
+    this.push(null);
   }
 }
 
 class DummyWebsocket extends Duplex {
   constructor(options) {
-    super(options)
-    this.sentHeader = false
+    super(options);
+    this.sentHeader = false;
   }
 
   _write(chunk, encoding, callback) {
-    const str = chunk.toString()
+    const str = chunk.toString();
     // if chunk contains `GET / HTTP/1.1` -> queue headers
     // otherwise echo back received data
-    if (str.indexOf('GET / HTTP/1.1') === 0) {
+    if (str.indexOf("GET / HTTP/1.1") === 0) {
       const arr = [
-        'HTTP/1.1 101 Switching Protocols',
-        'Upgrade: websocket',
-        'Connection: Upgrade',
-      ]
-      this.push(arr.join('\r\n'))
-      this.push('\r\n\r\n')
+        "HTTP/1.1 101 Switching Protocols",
+        "Upgrade: websocket",
+        "Connection: Upgrade",
+      ];
+      this.push(arr.join("\r\n"));
+      this.push("\r\n\r\n");
     } else {
-      this.push(str)
+      this.push(str);
     }
-    callback()
+    callback();
   }
 
   _read(size) {
@@ -55,105 +55,101 @@ class DummyWebsocket extends Duplex {
 
 class DummyAgent extends http.Agent {
   constructor() {
-    super()
+    super();
   }
 
   createConnection(options, cb) {
-    cb(null, new DummySocket())
+    cb(null, new DummySocket());
   }
 }
 
-describe('Client', () => {
-  it('should handle request', async () => {
-    const agent = new DummyAgent()
-    const client = new Client({agent})
+describe("Client", () => {
+  it("should handle request", async () => {
+    const agent = new DummyAgent();
+    const client = new Client({ agent });
 
     const server = http.createServer((req, res) => {
-      client.handleRequest(req, res)
-    })
+      client.handleRequest(req, res);
+    });
 
-    await new Promise(resolve => server.listen(resolve))
+    await new Promise((resolve) => server.listen(resolve));
 
-    const address = server.address()
+    const address = server.address();
     const opt = {
-      host: 'localhost',
+      host: "localhost",
       port: address.port,
-      path: '/',
-    }
+      path: "/",
+    };
 
     const res = await new Promise((resolve) => {
       const req = http.get(opt, (res) => {
-        resolve(res)
-      })
-      req.end()
-    })
-    assert.equal(res.headers['x-powered-by'], 'dummy')
-    server.close()
-  })
+        resolve(res);
+      });
+      req.end();
+    });
+    assert.equal(res.headers["x-powered-by"], "dummy");
+    server.close();
+  });
 
-  it('should handle upgrade', async () => {
+  it("should handle upgrade", async () => {
     // need a websocket server and a socket for it
     class DummyWebsocketAgent extends http.Agent {
       constructor() {
-        super()
+        super();
       }
 
       createConnection(options, cb) {
-        cb(null, new DummyWebsocket())
+        cb(null, new DummyWebsocket());
       }
     }
 
-    const agent = new DummyWebsocketAgent()
-    const client = new Client({agent})
+    const agent = new DummyWebsocketAgent();
+    const client = new Client({ agent });
 
-    const server = http.createServer()
-    server.on('upgrade', (req, socket, head) => {
-      client.handleUpgrade(req, socket)
-    })
+    const server = http.createServer();
+    server.on("upgrade", (req, socket, head) => {
+      client.handleUpgrade(req, socket);
+    });
 
-    await new Promise(resolve => server.listen(resolve))
+    await new Promise((resolve) => server.listen(resolve));
 
-    const address = server.address()
+    const address = server.address();
 
     const netClient = await new Promise((resolve) => {
-      const newClient = net.createConnection({port: address.port}, () => {
-        resolve(newClient)
-      })
-    })
+      const newClient = net.createConnection({ port: address.port }, () => {
+        resolve(newClient);
+      });
+    });
 
-    const out = [
-      'GET / HTTP/1.1',
-      'Connection: Upgrade',
-      'Upgrade: websocket'
-    ]
+    const out = ["GET / HTTP/1.1", "Connection: Upgrade", "Upgrade: websocket"];
 
-    netClient.write(out.join('\r\n') + '\r\n\r\n')
+    netClient.write(out.join("\r\n") + "\r\n\r\n");
 
     {
       const data = await new Promise((resolve) => {
-        netClient.once('data', (chunk) => {
-          resolve(chunk.toString())
-        })
-      })
+        netClient.once("data", (chunk) => {
+          resolve(chunk.toString());
+        });
+      });
       const exp = [
-        'HTTP/1.1 101 Switching Protocols',
-        'Upgrade: websocket',
-        'Connection: Upgrade',
-      ]
-      assert.equal(exp.join('\r\n') + '\r\n\r\n', data)
+        "HTTP/1.1 101 Switching Protocols",
+        "Upgrade: websocket",
+        "Connection: Upgrade",
+      ];
+      assert.equal(exp.join("\r\n") + "\r\n\r\n", data);
     }
 
     {
-      netClient.write('foobar')
+      netClient.write("foobar");
       const data = await new Promise((resolve) => {
-        netClient.once('data', (chunk) => {
-          resolve(chunk.toString())
-        })
-      })
-      assert.equal('foobar', data)
+        netClient.once("data", (chunk) => {
+          resolve(chunk.toString());
+        });
+      });
+      assert.equal("foobar", data);
     }
 
-    netClient.destroy()
-    server.close()
-  })
-})
+    netClient.destroy();
+    server.close();
+  });
+});

@@ -1,59 +1,59 @@
-const {EventEmitter} = require('events')
-const {Debug} = require('@secrez/utils')
-const debug = Debug('ltc:client')
-const net = require('net')
-const tls = require('tls')
+const { EventEmitter } = require("events");
+const { Debug } = require("@secrez/utils");
+const debug = Debug("ltc:client");
+const net = require("net");
+const tls = require("tls");
 
-const HeaderHostTransformer = require('./HeaderHostTransformer')
+const HeaderHostTransformer = require("./HeaderHostTransformer");
 
 // manages groups of tunnels
 class TunnelCluster extends EventEmitter {
   constructor(opts = {}, tunnel) {
-    super(opts)
-    this.opts = opts
-    this.tunnel = tunnel
+    super(opts);
+    this.opts = opts;
+    this.tunnel = tunnel;
   }
 
-  destroy() {
-
-  }
+  destroy() {}
 
   open() {
-    const opt = this.opts
+    const opt = this.opts;
 
     // Prefer IP if returned by the server
-    const remoteHostOrIp = opt.remote_ip || opt.remote_host
-    const remotePort = opt.remote_port
-    let localHost = opt.local_host || 'localhost'
-    let localPort = opt.local_port
-    let localProtocol = opt.local_https ? 'https' : 'http'
-    const allowInvalidCert = opt.allow_invalid_cert
+    const remoteHostOrIp = opt.remote_ip || opt.remote_host;
+    const remotePort = opt.remote_port;
+    let localHost = opt.local_host || "localhost";
+    let localPort = opt.local_port;
+    let localProtocol = opt.local_https ? "https" : "http";
+    const allowInvalidCert = opt.allow_invalid_cert;
 
     debug(
-        'establishing tunnel %s://%s:%s <> %s:%s',
-        localProtocol,
-        localHost,
-        localPort,
-        remoteHostOrIp,
-        remotePort
-    )
+      "establishing tunnel %s://%s:%s <> %s:%s",
+      localProtocol,
+      localHost,
+      localPort,
+      remoteHostOrIp,
+      remotePort
+    );
 
     // connection to localtunnel server
     const remote = net.connect({
       host: remoteHostOrIp,
       port: remotePort,
-    })
+    });
 
-    remote.setKeepAlive(true)
+    remote.setKeepAlive(true);
 
-    remote.on('error', err => {
-      debug('got remote connection error', err.message)
+    remote.on("error", (err) => {
+      debug("got remote connection error", err.message);
 
       // emit connection refused errors immediately, because they
       // indicate that the tunnel can't be established.
-      if (err.code === 'ECONNREFUSED') {
-        console.error(`Connection refused/lost: ${remoteHostOrIp}:${remotePort}`)
-        this.tunnel.close()
+      if (err.code === "ECONNREFUSED") {
+        console.error(
+          `Connection refused/lost: ${remoteHostOrIp}:${remotePort}`
+        );
+        this.tunnel.close();
         // this.emit(
         //     'error',
         //     new Error(
@@ -62,102 +62,111 @@ class TunnelCluster extends EventEmitter {
         // )
       }
 
-      remote.end()
-    })
+      remote.end();
+    });
 
     const connLocal = () => {
-
       if (remote.destroyed || this.tunnel.closed) {
-        debug('remote destroyed')
-        this.emit('dead')
-        return
+        debug("remote destroyed");
+        this.emit("dead");
+        return;
       }
 
-      debug('connecting locally to %s://%s:%d', localProtocol, localHost, localPort)
-      remote.pause()
+      debug(
+        "connecting locally to %s://%s:%d",
+        localProtocol,
+        localHost,
+        localPort
+      );
+      remote.pause();
 
       if (allowInvalidCert) {
-        debug('allowing invalid certificates')
+        debug("allowing invalid certificates");
       }
 
       const getLocalCertOpts = () =>
-          allowInvalidCert
-              ? {rejectUnauthorized: false}
-              : {
-                cert: opt.local_cert,
-                key: opt.local_key,
-                ca: opt.local_ca,
-              }
+        allowInvalidCert
+          ? { rejectUnauthorized: false }
+          : {
+              cert: opt.local_cert,
+              key: opt.local_key,
+              ca: opt.local_ca,
+            };
 
       // connection to local http server
       const local = opt.local_https
-          ? tls.connect({host: localHost, port: localPort, ...getLocalCertOpts()})
-          : net.connect({host: localHost, port: localPort})
+        ? tls.connect({
+            host: localHost,
+            port: localPort,
+            ...getLocalCertOpts(),
+          })
+        : net.connect({ host: localHost, port: localPort });
 
       const remoteClose = () => {
-        debug('remote close')
-        this.emit('dead')
-        local.end()
-      }
+        debug("remote close");
+        this.emit("dead");
+        local.end();
+      };
 
-      remote.once('close', remoteClose)
+      remote.once("close", remoteClose);
 
       // TODO some languages have single threaded servers which makes opening up
       // multiple local connections impossible. We need a smarter way to scale
       // and adjust for such instances to avoid beating on the door of the server
-      local.once('error', err => {
-        debug('local error %s', err.message)
-        local.end()
+      local.once("error", (err) => {
+        debug("local error %s", err.message);
+        local.end();
 
-        remote.removeListener('close', remoteClose)
+        remote.removeListener("close", remoteClose);
 
-        if (err.code !== 'ECONNREFUSED') {
-          return remote.end()
+        if (err.code !== "ECONNREFUSED") {
+          return remote.end();
         }
 
         // retrying connection to local server
-        setTimeout(connLocal, 1000)
-      })
+        setTimeout(connLocal, 1000);
+      });
 
-      local.once('connect', () => {
-        debug('connected locally')
-        remote.resume()
+      local.once("connect", () => {
+        debug("connected locally");
+        remote.resume();
 
-        let stream = remote
+        let stream = remote;
 
         // if user requested specific local host
         // then we use host header transform to replace the host header
         if (opt.local_host) {
-          debug('transform Host header to %s', opt.local_host)
-          stream = remote.pipe(new HeaderHostTransformer({host: opt.local_host}))
+          debug("transform Host header to %s", opt.local_host);
+          stream = remote.pipe(
+            new HeaderHostTransformer({ host: opt.local_host })
+          );
         }
 
-        stream.pipe(local).pipe(remote)
+        stream.pipe(local).pipe(remote);
 
         // when local closes, also get a new remote
-        local.once('close', hadError => {
-          debug('local connection closed [%s]', hadError)
-        })
-      })
-    }
+        local.once("close", (hadError) => {
+          debug("local connection closed [%s]", hadError);
+        });
+      });
+    };
 
-    remote.on('data', data => {
-      const match = data.toString().match(/^(\w+) (\S+)/)
+    remote.on("data", (data) => {
+      const match = data.toString().match(/^(\w+) (\S+)/);
       if (match) {
-        this.emit('request', {
+        this.emit("request", {
           method: match[1],
           path: match[2],
-        })
+        });
       }
-    })
+    });
 
     // tunnel is considered open when remote connects
-    remote.once('connect', () => {
-      this.emit('open', remote)
-      connLocal()
-    })
+    remote.once("connect", () => {
+      this.emit("open", remote);
+      connLocal();
+    });
   }
 }
 
-
-module.exports = TunnelCluster
+module.exports = TunnelCluster;

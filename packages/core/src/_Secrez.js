@@ -1,264 +1,269 @@
-const fs = require('fs-extra')
-const utils = require('@secrez/utils')
+const fs = require("fs-extra");
+const utils = require("@secrez/utils");
 
-const {
-  RETURN_UINT8_ARRAY
-} = require('./config/booleans')
+const { RETURN_UINT8_ARRAY } = require("./config/booleans");
 
-const Crypto = require('@secrez/crypto')
-const bs64 = Crypto.bs64
+const Crypto = require("@secrez/crypto");
+const bs64 = Crypto.bs64;
 
 module.exports = function () {
-
   const __ = {
-
     sharedKeys: {},
 
     getSharedKey(publicKey) {
       if (!__.sharedKeys[publicKey]) {
-        let publicKeyArr = Crypto.bs64.decode(publicKey.split('$')[0])
-        __.sharedKeys[publicKey] = Crypto.getSharedSecret(publicKeyArr, __.boxPrivateKey)
+        let publicKeyArr = Crypto.bs64.decode(publicKey.split("$")[0]);
+        __.sharedKeys[publicKey] = Crypto.getSharedSecret(
+          publicKeyArr,
+          __.boxPrivateKey
+        );
       }
-      return __.sharedKeys[publicKey]
+      return __.sharedKeys[publicKey];
     },
 
     decrypt(encryptedData, returnUint8Array) {
-      return Crypto.decrypt(encryptedData, __.masterKeyArray, returnUint8Array)
+      return Crypto.decrypt(encryptedData, __.masterKeyArray, returnUint8Array);
     },
 
     preDecrypt(encryptedData, returnUint8Array) {
-      return Crypto.decrypt(encryptedData, __.derivedPassword, returnUint8Array)
-    }
-  }
+      return Crypto.decrypt(
+        encryptedData,
+        __.derivedPassword,
+        returnUint8Array
+      );
+    },
+  };
 
   class _Secrez {
-
     constructor(secrez) {
-      this.secrez = secrez
+      this.secrez = secrez;
     }
 
     async init(password, iterations) {
-      __.password = password
-      __.iterations = iterations
-      __.derivedPassword = await _Secrez.derivePassword(password, iterations)
+      __.password = password;
+      __.iterations = iterations;
+      __.derivedPassword = await _Secrez.derivePassword(password, iterations);
     }
 
     preEncrypt(data) {
-      return Crypto.encrypt(data, __.derivedPassword)
+      return Crypto.encrypt(data, __.derivedPassword);
     }
 
     preDecrypt(encryptedData) {
-      let conf = this.conf
+      let conf = this.conf;
       /* istanbul ignore if */
       if (!conf) {
-        conf = this.readConf()
+        conf = this.readConf();
         if (!this.secrez) {
-          throw new Error('Secrez not initiated')
+          throw new Error("Secrez not initiated");
         }
         if (!fs.existsSync(this.secrez.config.keysPath)) {
-          throw new Error('Account not set yet')
+          throw new Error("Account not set yet");
         }
-        conf = JSON.parse(fs.readFileSync(this.secrez.config.keysPath, 'utf8'))
+        conf = JSON.parse(fs.readFileSync(this.secrez.config.keysPath, "utf8"));
       }
       if (encryptedData === __.encryptedMasterKey) {
-        throw new Error('Forbidden')
+        throw new Error("Forbidden");
       }
-      return __.preDecrypt(encryptedData)
+      return __.preDecrypt(encryptedData);
     }
 
     encrypt(data, urlSafe) {
-      let encrypted = Crypto.encrypt(data, __.masterKeyArray)
+      let encrypted = Crypto.encrypt(data, __.masterKeyArray);
       if (urlSafe) {
-        encrypted = Crypto.fromBase64ToFsSafeBase64(encrypted)
+        encrypted = Crypto.fromBase64ToFsSafeBase64(encrypted);
       }
-      return encrypted
+      return encrypted;
     }
 
     decrypt(encryptedData, urlSafe, returnUint8Array) {
       if (urlSafe) {
-        encryptedData = Crypto.fromFsSafeBase64ToBase64(encryptedData)
+        encryptedData = Crypto.fromFsSafeBase64ToBase64(encryptedData);
       }
-      if (encryptedData === __.encryptedBoxPrivateKey
-          || encryptedData === __.encryptedSignPrivateKey
+      if (
+        encryptedData === __.encryptedBoxPrivateKey ||
+        encryptedData === __.encryptedSignPrivateKey
       ) {
-        throw new Error('Forbidden')
+        throw new Error("Forbidden");
       }
-      return __.decrypt(encryptedData, returnUint8Array)
+      return __.decrypt(encryptedData, returnUint8Array);
     }
 
     encryptShared(data, publicKey) {
-      return Crypto.boxEncrypt(__.getSharedKey(publicKey), data)
+      return Crypto.boxEncrypt(__.getSharedKey(publicKey), data);
     }
 
     decryptShared(encryptedData, publicKey) {
-      return Crypto.boxDecrypt(__.getSharedKey(publicKey), encryptedData)
+      return Crypto.boxDecrypt(__.getSharedKey(publicKey), encryptedData);
     }
 
     async isInitiated() {
-      return !!__.derivedPassword
+      return !!__.derivedPassword;
     }
 
     signMessage(message) {
-      return Crypto.getSignature(message, __.signPrivateKey)
+      return Crypto.getSignature(message, __.signPrivateKey);
     }
 
     async verifyPassword(password) {
-      return __.derivedPassword === await _Secrez.derivePassword(password, __.iterations)
+      return (
+        __.derivedPassword ===
+        (await _Secrez.derivePassword(password, __.iterations))
+      );
     }
 
     async changePassword(password = __.password, iterations = __.iterations) {
-      let data = this.conf.data
-      __.password = password
-      __.iterations = iterations
-      __.derivedPassword = await _Secrez.derivePassword(password, iterations)
-      delete data.keys
-      data.key = this.preEncrypt(__.masterKey)
-      return data
+      let data = this.conf.data;
+      __.password = password;
+      __.iterations = iterations;
+      __.derivedPassword = await _Secrez.derivePassword(password, iterations);
+      delete data.keys;
+      data.key = this.preEncrypt(__.masterKey);
+      return data;
     }
 
     async restoreKey() {
-      delete this.conf.data.keys
-      this.conf.data.key = this.preEncrypt(__.masterKey)
+      delete this.conf.data.keys;
+      this.conf.data.key = this.preEncrypt(__.masterKey);
     }
 
     setConf(conf, doNotVerify) {
       /* istanbul ignore if  */
       if (!doNotVerify && !this.verifySavedData(conf)) {
-        throw new Error('The configuration file is corrupted')
+        throw new Error("The configuration file is corrupted");
       } else {
-        this.conf = conf
-        return true
+        this.conf = conf;
+        return true;
       }
     }
 
     verifySavedData(conf) {
-      let publicKey = Crypto.bs64.decode(conf.data.sign.publicKey)
-      return Crypto.verifySignature(JSON.stringify(this.sortObj(conf.data)), conf.signature, publicKey)
+      let publicKey = Crypto.bs64.decode(conf.data.sign.publicKey);
+      return Crypto.verifySignature(
+        JSON.stringify(this.sortObj(conf.data)),
+        conf.signature,
+        publicKey
+      );
     }
 
     async signup() {
-      __.masterKey = Crypto.generateKey()
-      __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
-      let key = this.preEncrypt(__.masterKey)
-      __.encryptedMasterKey = key
-      let hash = Crypto.b64Hash(__.masterKey)
-      __.masterKeyHash = hash
-      const boxPair = Crypto.generateBoxKeyPair()
+      __.masterKey = Crypto.generateKey();
+      __.masterKeyArray = Crypto.bs64.decode(__.masterKey);
+      let key = this.preEncrypt(__.masterKey);
+      __.encryptedMasterKey = key;
+      let hash = Crypto.b64Hash(__.masterKey);
+      __.masterKeyHash = hash;
+      const boxPair = Crypto.generateBoxKeyPair();
       const box = {
         secretKey: this.encrypt(boxPair.secretKey),
-        publicKey: Crypto.bs64.encode(boxPair.publicKey)
-      }
-      __.boxPublicKey = boxPair.secretKey
-      __.boxPrivateKey = boxPair.secretKey
-      __.encryptedBoxPrivateKey = box.secretKey
+        publicKey: Crypto.bs64.encode(boxPair.publicKey),
+      };
+      __.boxPublicKey = boxPair.secretKey;
+      __.boxPrivateKey = boxPair.secretKey;
+      __.encryptedBoxPrivateKey = box.secretKey;
 
-      const signPair = Crypto.generateSignatureKeyPair()
+      const signPair = Crypto.generateSignatureKeyPair();
       const sign = {
         secretKey: this.encrypt(signPair.secretKey),
-        publicKey: Crypto.bs64.encode(signPair.publicKey)
-      }
-      __.signPublicKey = signPair.secretKey
-      __.signPrivateKey = signPair.secretKey
-      __.encryptedSignPrivateKey = sign.secretKey
+        publicKey: Crypto.bs64.encode(signPair.publicKey),
+      };
+      __.signPublicKey = signPair.secretKey;
+      __.signPrivateKey = signPair.secretKey;
+      __.encryptedSignPrivateKey = sign.secretKey;
       return {
         sign,
         box,
         key,
-        hash
-      }
+        hash,
+      };
     }
 
     async signin(data) {
       try {
-        __.masterKey = await __.preDecrypt(data.key)
-        __.encryptedMasterKey = data.key
-        __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
-        __.masterKeyHash = data.hash
-        __.boxPublicKey = Crypto.bs64.decode(data.box.secretKey)
-        __.boxPrivateKey = __.decrypt(data.box.secretKey, RETURN_UINT8_ARRAY)
-        __.signPublicKey = Crypto.bs64.decode(data.sign.secretKey)
-        __.signPrivateKey = __.decrypt(data.sign.secretKey, RETURN_UINT8_ARRAY)
-        __.encryptedBoxPrivateKey = data.box.secretKey
-        __.encryptedSignPrivateKey = data.sign.secretKey
-
+        __.masterKey = await __.preDecrypt(data.key);
+        __.encryptedMasterKey = data.key;
+        __.masterKeyArray = Crypto.bs64.decode(__.masterKey);
+        __.masterKeyHash = data.hash;
+        __.boxPublicKey = Crypto.bs64.decode(data.box.secretKey);
+        __.boxPrivateKey = __.decrypt(data.box.secretKey, RETURN_UINT8_ARRAY);
+        __.signPublicKey = Crypto.bs64.decode(data.sign.secretKey);
+        __.signPrivateKey = __.decrypt(data.sign.secretKey, RETURN_UINT8_ARRAY);
+        __.encryptedBoxPrivateKey = data.box.secretKey;
+        __.encryptedSignPrivateKey = data.sign.secretKey;
       } catch (e) {
-        throw new Error('Wrong password or wrong number of iterations')
+        throw new Error("Wrong password or wrong number of iterations");
       }
       if (utils.secureCompare(Crypto.b64Hash(__.masterKey), data.hash)) {
-        return data.hash
+        return data.hash;
       } else {
-        throw new Error('Hash on file does not match the master key')
+        throw new Error("Hash on file does not match the master key");
       }
     }
 
     async sharedSignin(data, authenticator, secret) {
-      let key = data.keys[authenticator]
+      let key = data.keys[authenticator];
       try {
-        let masterKey = this.recoverSharedSecrets(key.parts, secret)
+        let masterKey = this.recoverSharedSecrets(key.parts, secret);
         /* istanbul ignore if  */
         if (!utils.secureCompare(Crypto.b64Hash(masterKey), data.hash)) {
-          throw new Error('Hash on file does not match the master key')
+          throw new Error("Hash on file does not match the master key");
         }
-        __.masterKey = masterKey
-        __.masterKeyArray = Crypto.bs64.decode(__.masterKey)
-        __.masterKeyHash = data.hash
-        __.boxPublicKey = Crypto.bs64.decode(data.box.secretKey)
-        __.boxPrivateKey = __.decrypt(data.box.secretKey, RETURN_UINT8_ARRAY)
-        __.signPublicKey = Crypto.bs64.decode(data.sign.secretKey)
-        __.signPrivateKey = __.decrypt(data.sign.secretKey, RETURN_UINT8_ARRAY)
-        __.encryptedBoxPrivateKey = data.box.secretKey
-        __.encryptedSignPrivateKey = data.sign.secretKey
-        return data.hash
+        __.masterKey = masterKey;
+        __.masterKeyArray = Crypto.bs64.decode(__.masterKey);
+        __.masterKeyHash = data.hash;
+        __.boxPublicKey = Crypto.bs64.decode(data.box.secretKey);
+        __.boxPrivateKey = __.decrypt(data.box.secretKey, RETURN_UINT8_ARRAY);
+        __.signPublicKey = Crypto.bs64.decode(data.sign.secretKey);
+        __.signPrivateKey = __.decrypt(data.sign.secretKey, RETURN_UINT8_ARRAY);
+        __.encryptedBoxPrivateKey = data.box.secretKey;
+        __.encryptedSignPrivateKey = data.sign.secretKey;
+        return data.hash;
       } catch (e) {
-        throw new Error('Wrong data/secret')
+        throw new Error("Wrong data/secret");
       }
     }
 
-    static async derivePassword(
-        password = __.password,
-        iterations
-    ) {
-      password = Crypto.SHA3(password)
-      let salt = Crypto.SHA3(password + iterations.toString())
-      return bs64.encode(Crypto.deriveKey(password, salt, iterations, 32))
+    static async derivePassword(password = __.password, iterations) {
+      password = Crypto.SHA3(password);
+      let salt = Crypto.SHA3(password + iterations.toString());
+      return bs64.encode(Crypto.deriveKey(password, salt, iterations, 32));
     }
 
     generateSharedSecrets(secret) {
-      let parts = Crypto.splitSecret(__.masterKey, 2, 2)
-      parts[1] = this.preEncrypt(parts['1'])
-      parts[2] = Crypto.encrypt(parts['2'], Crypto.SHA3(secret))
-      return parts
+      let parts = Crypto.splitSecret(__.masterKey, 2, 2);
+      parts[1] = this.preEncrypt(parts["1"]);
+      parts[2] = Crypto.encrypt(parts["2"], Crypto.SHA3(secret));
+      return parts;
     }
 
     recoverSharedSecrets(parts, secret) {
       parts = {
         1: __.preDecrypt(parts[1], RETURN_UINT8_ARRAY),
-        2: Crypto.decrypt(parts[2], Crypto.SHA3(secret), RETURN_UINT8_ARRAY)
-      }
-      return Crypto.joinSecret(parts)
+        2: Crypto.decrypt(parts[2], Crypto.SHA3(secret), RETURN_UINT8_ARRAY),
+      };
+      return Crypto.joinSecret(parts);
     }
 
     signData(data) {
-      const signature = this.signMessage(JSON.stringify(this.sortObj(data)))
+      const signature = this.signMessage(JSON.stringify(this.sortObj(data)));
       const conf = {
         data,
-        signature
-      }
-      return conf
+        signature,
+      };
+      return conf;
     }
 
     sortObj(obj) {
-      const sortedData = {}
+      const sortedData = {};
       for (let prop of Object.keys(obj).sort()) {
-        if (typeof obj[prop] === 'object') {
-          obj[prop] = this.sortObj(obj[prop])
+        if (typeof obj[prop] === "object") {
+          obj[prop] = this.sortObj(obj[prop]);
         }
-        sortedData[prop] = obj[prop]
+        sortedData[prop] = obj[prop];
       }
-      return sortedData
+      return sortedData;
     }
-
   }
 
-  return _Secrez
-}
+  return _Secrez;
+};

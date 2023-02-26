@@ -9,14 +9,19 @@
     "test": "pnpm -r test",
     "test-only": "pnpm -r run test-only",
     "bin-lint": "eslint -c .eslintrc 'bin/*.js'",
-    "lint": "pnpm run bin-lint && pnpm -r run lint",
     "reset": "bin/clean-all-modules.sh && pnpm install",
     "patch-versions": "node bin/patch-versions.js",
-    "pre-push": "pnpm run lint && node bin/pre-push.js",
+    "pre-push": "npm run format && node bin/pre-push.js",
     "publish": "node bin/publish-changed-packages.js",
-    "check-unused": "bin/check-unused.sh"
+    "check-unused": "bin/check-unused.sh",
+    "format": "npx prettier --write ."
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.1",
+    "prettier": "^2.4.1"
   },
   "license": "MIT",
-  "dependencies": {
-  }
+  "dependencies": {}
 }

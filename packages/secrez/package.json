@@ -4,7 +4,6 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=dev bin/secrez.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
-    "lint": "eslint -c .eslintrc 'src/**/*.js' 'bin/*.js' 'test/*.test.js' 'test/**/*.js' 'test/**/**/*.js'",
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js test/**/**/*.js --exit",
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text mocha test/*.test.js test/**/*.test.js test/**/**/*.js --exit",
     "posttest": "nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65",
@@ -42,8 +41,6 @@
     "chai": "^4.2.0",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.2",
-    "eslint": "^6.8.0",
-    "eslint-plugin-node": "^11.0.0",
     "mocha": "^7.1.1",
     "nyc": "^15.1.0",
     "test-console": "^1.1.0"

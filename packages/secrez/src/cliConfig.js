@@ -1,9 +1,9 @@
-const TRUE = 1
-const STRING = 2
-const ARRAY = 3
-const NUMBER = 4
-const BOOL = 5
-const OBJECT = 6
+const TRUE = 1;
+const STRING = 2;
+const ARRAY = 3;
+const NUMBER = 4;
+const BOOL = 5;
+const OBJECT = 6;
 
 const completionTypes = {
   TRUE,
@@ -11,17 +11,17 @@ const completionTypes = {
   ARRAY,
   NUMBER,
   BOOL,
-  OBJECT
-}
+  OBJECT,
+};
 
-const cliConfig = Object.assign(require('@secrez/core').config, {
+const cliConfig = Object.assign(require("@secrez/core").config, {
   completion: {
-    help: {}
+    help: {},
   },
   chatCompletion: {
-    help: {}
+    help: {},
   },
-  completionTypes
-})
+  completionTypes,
+});
 
-module.exports = cliConfig
+module.exports = cliConfig;

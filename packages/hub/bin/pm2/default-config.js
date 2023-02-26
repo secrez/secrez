@@ -8,5 +8,5 @@ module.exports = {
   domain: undefined,
   landing: undefined,
   address: undefined,
-  maxSockets: 4
-}
+  maxSockets: 4,
+};

@@ -1,77 +1,76 @@
-class Lcd extends require('../Command') {
-
+class Lcd extends require("../Command") {
   setHelpAndCompletion() {
     this.cliConfig.completion.lcd = {
       _func: this.selfCompletion(this, {
         external: true,
         all: true,
-        dironly: true
+        dironly: true,
       }),
-      _self: this
-    }
-    this.cliConfig.completion.help.lcd = true
+      _self: this,
+    };
+    this.cliConfig.completion.help.lcd = true;
     this.optionDefinitions = [
       {
-        name: 'help',
-        alias: 'h',
-        type: Boolean
+        name: "help",
+        alias: "h",
+        type: Boolean,
       },
       {
-        name: 'path',
-        completionType: 'file',
-        alias: 'p',
+        name: "path",
+        completionType: "file",
+        alias: "p",
         defaultOption: true,
         type: String,
-        defaultValue: '/'
-      }
-    ]
+        defaultValue: "/",
+      },
+    ];
   }
 
   help() {
     return {
-      description: ['Changes the external working directory.',
-        'Secrez refers to external when refers to unencrypted standard files in the OS.'
+      description: [
+        "Changes the external working directory.",
+        "Secrez refers to external when refers to unencrypted standard files in the OS.",
       ],
       examples: [
-        'lcd ~/Downloads',
-        ['lcd', 'change to home dir, like "lcd ~"'],
-        'lcd /var/nginx/log',
-      ]
-    }
+        "lcd ~/Downloads",
+        ["lcd", 'change to home dir, like "lcd ~"'],
+        "lcd /var/nginx/log",
+      ],
+    };
   }
 
   async lcd(options) {
-    let dir = options.path
+    let dir = options.path;
     if (!this.externalFs.initialLocalWorkingDir) {
-      this.externalFs.initialLocalWorkingDir = this.secrez.config.localWorkingDir
+      this.externalFs.initialLocalWorkingDir =
+        this.secrez.config.localWorkingDir;
     }
-    if (/^~\//.test(dir) || dir === '~') {
-      dir = dir.replace(/^~/, this.externalFs.initialLocalWorkingDir)
+    if (/^~\//.test(dir) || dir === "~") {
+      dir = dir.replace(/^~/, this.externalFs.initialLocalWorkingDir);
     }
-    dir = this.externalFs.getNormalizedPath(dir)
+    dir = this.externalFs.getNormalizedPath(dir);
     if (await this.externalFs.isDir(dir)) {
-      this.secrez.config.localWorkingDir = dir
+      this.secrez.config.localWorkingDir = dir;
     } else {
-      throw new Error('No such directory')
+      throw new Error("No such directory");
     }
   }
 
   async exec(options = {}) {
     if (options.help) {
-      return this.showHelp()
+      return this.showHelp();
     }
     try {
-      this.validate(options)
-      options.all = true
-      options.dironly = true
-      await this.lcd(options)
+      this.validate(options);
+      options.all = true;
+      options.dironly = true;
+      await this.lcd(options);
     } catch (e) {
-      this.Logger.red(e.message)
+      this.Logger.red(e.message);
     }
-    await this.prompt.run()
+    await this.prompt.run();
   }
 }
 
-module.exports = Lcd
-
-
+module.exports = Lcd;

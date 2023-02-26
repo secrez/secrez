@@ -1,342 +1,378 @@
-const homedir = require('homedir')
-const fs = require('fs-extra')
-const _ = require('lodash')
-const Crypto = require('@secrez/crypto')
-const ConfigUtils = require('./config/ConfigUtils')
-const Entry = require('./Entry')
+const homedir = require("homedir");
+const fs = require("fs-extra");
+const _ = require("lodash");
+const Crypto = require("@secrez/crypto");
+const ConfigUtils = require("./config/ConfigUtils");
+const Entry = require("./Entry");
 
-const {
-  DO_NOT_VERIFY,
-  URL_SAFE
-} = require('./config/booleans')
+const { DO_NOT_VERIFY, URL_SAFE } = require("./config/booleans");
 
 module.exports = function () {
-
-  let _secrez
-  const _Secrez = require('./_Secrez')()
+  let _secrez;
+  const _Secrez = require("./_Secrez")();
 
   class Secrez {
-
     constructor() {
-      this.config = _.clone(require('./config'))
-      this.types = this.config.types
+      this.config = _.clone(require("./config"));
+      this.types = this.config.types;
     }
 
     async init(
-        container = `${homedir()}/.secrez`,
-        localWorkingDir = homedir()
+      container = `${homedir()}/.secrez`,
+      localWorkingDir = homedir()
     ) {
-      if (process.env.NODE_ENV === 'test' && container === `${homedir()}/.secrez`) {
-        throw new Error('You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data.')
+      if (
+        process.env.NODE_ENV === "test" &&
+        container === `${homedir()}/.secrez`
+      ) {
+        throw new Error(
+          "You are not supposed to test Secrez in the default folder. This can lead to mistakes and loss of data."
+        );
       }
-      this.config = await ConfigUtils.setSecrez(this.config, container, localWorkingDir)
+      this.config = await ConfigUtils.setSecrez(
+        this.config,
+        container,
+        localWorkingDir
+      );
     }
 
     async signup(password, iterations) {
       if (!this.config || !this.config.keysPath) {
-        throw new Error('Secrez not initiated')
+        throw new Error("Secrez not initiated");
       }
       if (!(await fs.pathExists(this.config.keysPath))) {
+        let id = Crypto.b64Hash(Crypto.generateKey());
+        _secrez = new _Secrez(this);
 
-        let id = Crypto.b64Hash(Crypto.generateKey())
-        _secrez = new _Secrez(this)
+        await _secrez.init(password, iterations);
 
-        await _secrez.init(password, iterations)
-
-        let {sign, box, key, hash} = await _secrez.signup()
-        this.masterKeyHash = hash
+        let { sign, box, key, hash } = await _secrez.signup();
+        this.masterKeyHash = hash;
 
         const data = {
-          id, sign, box, key, hash,
+          id,
+          sign,
+          box,
+          key,
+          hash,
           when: _secrez.encrypt(Date.now().toString()),
-          version: this.config.VERSION
-        }
-        _secrez.setConf(await this.signAndSave(data), DO_NOT_VERIFY)
+          version: this.config.VERSION,
+        };
+        _secrez.setConf(await this.signAndSave(data), DO_NOT_VERIFY);
       } else {
-        throw new Error('An account already exists. Please, sign in or chose a different container directory')
+        throw new Error(
+          "An account already exists. Please, sign in or chose a different container directory"
+        );
       }
     }
 
     async signin(password, iterations) {
       if (!this.config || !this.config.keysPath) {
-        throw new Error('Secrez not initiated')
+        throw new Error("Secrez not initiated");
       }
       if (!iterations) {
-        const env = await ConfigUtils.getEnv(this.config)
-        iterations = env.iterations
+        const env = await ConfigUtils.getEnv(this.config);
+        iterations = env.iterations;
       }
       if (!iterations || iterations !== parseInt(iterations.toString())) {
-        throw new Error('Iterations is missed')
+        throw new Error("Iterations is missed");
       }
-      iterations = parseInt(iterations)
-      const conf = await this.readConf()
-      const data = conf.data
-      _secrez = new _Secrez(this)
-      await _secrez.init(password, iterations)
+      iterations = parseInt(iterations);
+      const conf = await this.readConf();
+      const data = conf.data;
+      _secrez = new _Secrez(this);
+      await _secrez.init(password, iterations);
       /* istanbul ignore if  */
       if (!data.key && !data.keys) {
-        throw new Error('No valid data found')
+        throw new Error("No valid data found");
       }
       if (data.key) {
-        let masterKeyHash = await _secrez.signin(data)
-        this.setMasterKeyHash(conf, masterKeyHash)
+        let masterKeyHash = await _secrez.signin(data);
+        this.setMasterKeyHash(conf, masterKeyHash);
       } else {
-        throw new Error('A second factor is required')
+        throw new Error("A second factor is required");
       }
-      return 0
+      return 0;
     }
 
     async sharedSignin(authenticator, secret) {
-      if (!this.config || !this.config.keysPath || !_secrez || !_secrez.isInitiated()) {
-        throw new Error('A standard sign in must be run before to initiate Secrez')
+      if (
+        !this.config ||
+        !this.config.keysPath ||
+        !_secrez ||
+        !_secrez.isInitiated()
+      ) {
+        throw new Error(
+          "A standard sign in must be run before to initiate Secrez"
+        );
       }
-      const conf = await this.readConf()
-      const data = conf.data
+      const conf = await this.readConf();
+      const data = conf.data;
       /* istanbul ignore if  */
       if (!data.keys) {
-        throw new Error('No second factor registered')
+        throw new Error("No second factor registered");
       }
       if (!data.keys[authenticator]) {
-        throw new Error(`No second factor registered with the authenticator ${authenticator}`)
+        throw new Error(
+          `No second factor registered with the authenticator ${authenticator}`
+        );
       }
-      let masterKeyHash = await _secrez.sharedSignin(data, authenticator, secret)
-      this.setMasterKeyHash(conf, masterKeyHash)
-      return 0
+      let masterKeyHash = await _secrez.sharedSignin(
+        data,
+        authenticator,
+        secret
+      );
+      this.setMasterKeyHash(conf, masterKeyHash);
+      return 0;
     }
 
     async derivePassword(password, iterations) {
-      return await _Secrez.derivePassword(password, iterations)
+      return await _Secrez.derivePassword(password, iterations);
     }
 
     async signAndSave(data) {
-      const conf = _secrez.signData(data)
-      await fs.writeFile(this.config.keysPath, JSON.stringify(conf))
-      return conf
+      const conf = _secrez.signData(data);
+      await fs.writeFile(this.config.keysPath, JSON.stringify(conf));
+      return conf;
     }
 
     async saveIterations(iterations) {
-      const env = await ConfigUtils.getEnv(this.config)
-      env.iterations = iterations
-      await ConfigUtils.putEnv(this.config, env)
+      const env = await ConfigUtils.getEnv(this.config);
+      env.iterations = iterations;
+      await ConfigUtils.putEnv(this.config, env);
     }
 
     generateSharedSecrets(secret) {
-      return _secrez.generateSharedSecrets(secret)
+      return _secrez.generateSharedSecrets(secret);
     }
 
     async removeSharedSecret(authenticator, all) {
-      let data = _secrez.conf.data
-      let code = 1
-      let removeAll = true
+      let data = _secrez.conf.data;
+      let code = 1;
+      let removeAll = true;
       if (!all) {
         if (data.keys && data.keys[authenticator]) {
-          delete data.keys[authenticator]
+          delete data.keys[authenticator];
         }
         for (let authenticator in data.keys) {
-          if (data.keys[authenticator].type === this.config.sharedKeys.FIDO2_KEY) {
-            removeAll = false
-            break
+          if (
+            data.keys[authenticator].type === this.config.sharedKeys.FIDO2_KEY
+          ) {
+            removeAll = false;
+            break;
           }
         }
       }
       if (removeAll) {
-        code = 2
-        _secrez.restoreKey()
+        code = 2;
+        _secrez.restoreKey();
       }
-      let conf = await this.signAndSave(data)
-      _secrez.setConf(conf, DO_NOT_VERIFY)
-      return code
+      let conf = await this.signAndSave(data);
+      _secrez.setConf(conf, DO_NOT_VERIFY);
+      return code;
     }
 
     async saveSharedSecrets(sharedData) {
-      let conf = await this.readConf()
+      let conf = await this.readConf();
       if (!conf.data.keys) {
-        conf.data.keys = {}
+        conf.data.keys = {};
       }
-      let authenticator = sharedData.authenticator
-      delete sharedData.authenticator
+      let authenticator = sharedData.authenticator;
+      delete sharedData.authenticator;
       if (sharedData.id) {
-        sharedData.id = this.preEncryptData(sharedData.id)
+        sharedData.id = this.preEncryptData(sharedData.id);
       }
       if (sharedData.salt) {
-        sharedData.salt = this.preEncryptData(sharedData.salt)
+        sharedData.salt = this.preEncryptData(sharedData.salt);
       }
       if (sharedData.credential) {
-        sharedData.credential = this.preEncryptData(sharedData.credential)
+        sharedData.credential = this.preEncryptData(sharedData.credential);
       }
-      conf.data.keys[authenticator] = sharedData
+      conf.data.keys[authenticator] = sharedData;
       if (conf.data.key) {
-        delete conf.data.key
+        delete conf.data.key;
       }
-      conf = await this.signAndSave(conf.data)
-      _secrez.setConf(conf, DO_NOT_VERIFY)
-      return conf
+      conf = await this.signAndSave(conf.data);
+      _secrez.setConf(conf, DO_NOT_VERIFY);
+      return conf;
     }
 
     getConf() {
-      return _secrez.conf
+      return _secrez.conf;
     }
 
     getPublicKey() {
-      return _secrez.conf.data.box.publicKey + '$' + _secrez.conf.data.sign.publicKey
+      return (
+        _secrez.conf.data.box.publicKey + "$" + _secrez.conf.data.sign.publicKey
+      );
     }
 
     async readConf() {
       if (!this.config || !this.config.keysPath) {
-        throw new Error('Secrez not initiated')
+        throw new Error("Secrez not initiated");
       }
       if (await fs.pathExists(this.config.keysPath)) {
-        return JSON.parse(await fs.readFile(this.config.keysPath, 'utf8'))
+        return JSON.parse(await fs.readFile(this.config.keysPath, "utf8"));
       } else {
-        throw new Error('Account not set yet')
+        throw new Error("Account not set yet");
       }
     }
 
     async upgradeAccount(password, iterations) {
-      let data = await _secrez.changePassword(password, iterations)
-      _secrez.setConf(await this.signAndSave(data), DO_NOT_VERIFY)
+      let data = await _secrez.changePassword(password, iterations);
+      _secrez.setConf(await this.signAndSave(data), DO_NOT_VERIFY);
     }
 
     async verifyPassword(password) {
-      return await _secrez.verifyPassword(password)
+      return await _secrez.verifyPassword(password);
     }
 
     signMessage(message) {
-      return _secrez.signMessage(message)
+      return _secrez.signMessage(message);
     }
 
     verifySignedMessage(message, signature, publicKey) {
-      return Crypto.verifySignature(message, signature, Crypto.bs64.decode(publicKey || this.getConf().data.sign.publicKey))
+      return Crypto.verifySignature(
+        message,
+        signature,
+        Crypto.bs64.decode(publicKey || this.getConf().data.sign.publicKey)
+      );
     }
 
     async getSecondFactorData(authenticator) {
-      if (!this.config || !this.config.keysPath || !_secrez || !_secrez.isInitiated()) {
-        throw new Error('A standard sign in must be run before to initiate Secrez')
+      if (
+        !this.config ||
+        !this.config.keysPath ||
+        !_secrez ||
+        !_secrez.isInitiated()
+      ) {
+        throw new Error(
+          "A standard sign in must be run before to initiate Secrez"
+        );
       }
-      const conf = await this.readConf()
-      let data = conf.data.keys[authenticator]
+      const conf = await this.readConf();
+      let data = conf.data.keys[authenticator];
       if (data) {
-        return data
+        return data;
       } else {
-        throw new Error(`No registered data with the authenticator ${authenticator}`)
+        throw new Error(
+          `No registered data with the authenticator ${authenticator}`
+        );
       }
     }
 
     setMasterKeyHash(conf, masterKeyHash) {
       /* istanbul ignore if  */
       if (!_secrez.setConf(conf)) {
-        throw new Error('keys.json looks corrupted')
+        throw new Error("keys.json looks corrupted");
       }
-      this.masterKeyHash = masterKeyHash
+      this.masterKeyHash = masterKeyHash;
     }
 
     preserveEntry(prev, next) {
-      let options = prev.get()
+      let options = prev.get();
       for (let o in options) {
         if (!next[o]) {
-          next.set(o, options[o])
+          next.set(o, options[o]);
         }
       }
-      return next
+      return next;
     }
 
     encryptData(data, urlSafe) {
-      return _secrez.encrypt(data, urlSafe)
+      return _secrez.encrypt(data, urlSafe);
     }
 
     decryptData(encryptedData, urlSafe, returnUint8Array) {
-      return _secrez.decrypt(encryptedData, urlSafe, returnUint8Array)
+      return _secrez.decrypt(encryptedData, urlSafe, returnUint8Array);
     }
 
     preEncryptData(data) {
-      return _secrez.preEncrypt(data)
+      return _secrez.preEncrypt(data);
     }
 
     preDecryptData(encryptedData) {
-      return _secrez.preDecrypt(encryptedData)
+      return _secrez.preDecrypt(encryptedData);
     }
 
     encryptSharedData(data, publicKey) {
-      return _secrez.encryptShared(data, publicKey)
+      return _secrez.encryptShared(data, publicKey);
     }
 
     decryptSharedData(encryptedData, publicKey) {
-      return _secrez.decryptShared(encryptedData, publicKey)
+      return _secrez.decryptShared(encryptedData, publicKey);
     }
 
     encryptEntry(entry, useTs) {
-
-      if (!entry || entry.constructor.name !== 'Entry') {
-        throw new Error('An Entry instance is expected as parameter')
+      if (!entry || entry.constructor.name !== "Entry") {
+        throw new Error("An Entry instance is expected as parameter");
       }
 
-      const {
-        type,
-        name,
-        content,
-        preserveContent,
-        id
-      } = entry.get()
+      const { type, name, content, preserveContent, id } = entry.get();
 
       if (this.masterKeyHash) {
-
         if (!ConfigUtils.isValidType(type)) {
-          throw new Error('Unsupported type')
+          throw new Error("Unsupported type");
         }
 
-        let ts = useTs && entry.ts
+        let ts =
+          useTs && entry.ts
             ? entry.ts
-            : Crypto.getTimestampWithMicroseconds().join('.')
+            : Crypto.getTimestampWithMicroseconds().join(".");
         let encryptedEntry = new Entry({
           id,
           type,
-          ts
-        })
+          ts,
+        });
         if (name) {
-          let encryptedName = type + _secrez.encrypt(JSON.stringify({
-            i: id,
-            t: ts,
-            n: name
-          }), URL_SAFE)
-          let extraName
+          let encryptedName =
+            type +
+            _secrez.encrypt(
+              JSON.stringify({
+                i: id,
+                t: ts,
+                n: name,
+              }),
+              URL_SAFE
+            );
+          let extraName;
           if (encryptedName.length > 255) {
-            extraName = encryptedName.substring(254)
-            encryptedName = encryptedName.substring(0, 254) + '$'
+            extraName = encryptedName.substring(254);
+            encryptedName = encryptedName.substring(0, 254) + "$";
           }
 
           encryptedEntry.set({
             encryptedName,
-            extraName
-          })
+            extraName,
+          });
 
           if (preserveContent) {
-            encryptedEntry = this.preserveEntry(entry, encryptedEntry)
+            encryptedEntry = this.preserveEntry(entry, encryptedEntry);
           }
-
         }
         if (content) {
           encryptedEntry.set({
-            encryptedContent: _secrez.encrypt(JSON.stringify({
-              i: id,
-              t: ts,
-              c: content
-            }))
-          })
+            encryptedContent: _secrez.encrypt(
+              JSON.stringify({
+                i: id,
+                t: ts,
+                c: content,
+              })
+            ),
+          });
           if (preserveContent) {
-            encryptedEntry = this.preserveEntry(entry, encryptedEntry)
+            encryptedEntry = this.preserveEntry(entry, encryptedEntry);
           }
         }
-        return encryptedEntry
-
+        return encryptedEntry;
       } else {
-        throw new Error('User not logged')
+        throw new Error("User not logged");
       }
     }
 
     decryptEntry(encryptedEntry, urlSafe) {
-
-      if (!encryptedEntry || encryptedEntry.constructor.name !== 'Entry') {
-        throw new Error('An Entry instance is expected as parameter')
+      if (!encryptedEntry || encryptedEntry.constructor.name !== "Entry") {
+        throw new Error("An Entry instance is expected as parameter");
       }
 
       const {
@@ -345,32 +381,30 @@ module.exports = function () {
         encryptedName,
         preserveContent,
         nameId,
-        nameTs
-      } = encryptedEntry.get()
+        nameTs,
+      } = encryptedEntry.get();
 
       if (this.masterKeyHash) {
-
         try {
-
           if (encryptedName) {
-            let data = encryptedName
+            let data = encryptedName;
             if (extraName) {
-              data = encryptedName.substring(0, 254) + extraName
+              data = encryptedName.substring(0, 254) + extraName;
             }
-            let type = parseInt(data[0])
-            let e = JSON.parse(_secrez.decrypt(data.substring(1), URL_SAFE))
-            let id = e.i
-            let ts = e.t
-            let name = e.n
-            let content = ''
+            let type = parseInt(data[0]);
+            let e = JSON.parse(_secrez.decrypt(data.substring(1), URL_SAFE));
+            let id = e.i;
+            let ts = e.t;
+            let name = e.n;
+            let content = "";
 
             // during the indexing internalFS reads only the names of the files
             if (encryptedContent) {
-              let e = JSON.parse(_secrez.decrypt(encryptedContent))
+              let e = JSON.parse(_secrez.decrypt(encryptedContent));
               if (id !== e.i || ts !== e.t) {
-                throw new Error('Data is corrupted')
+                throw new Error("Data is corrupted");
               }
-              content = e.c
+              content = e.c;
             }
 
             let decryptedEntry = new Entry({
@@ -378,64 +412,66 @@ module.exports = function () {
               type,
               ts,
               name,
-              content
-            })
+              content,
+            });
 
             if (preserveContent) {
-              decryptedEntry = this.preserveEntry(encryptedEntry, decryptedEntry)
+              decryptedEntry = this.preserveEntry(
+                encryptedEntry,
+                decryptedEntry
+              );
             }
 
-            return decryptedEntry
+            return decryptedEntry;
           }
 
           // when the encryptedName has been already decrypted and we need only the content
           if (encryptedContent) {
-            let e = JSON.parse(_secrez.decrypt(encryptedContent))
+            let e = JSON.parse(_secrez.decrypt(encryptedContent));
 
             if ((nameId && e.i !== nameId) || (nameTs && e.t !== nameTs)) {
-              throw new Error('Content is corrupted')
+              throw new Error("Content is corrupted");
             }
 
             let decryptedEntry = new Entry({
               id: e.i,
               ts: e.i,
-              content: e.c
-            })
+              content: e.c,
+            });
 
             if (preserveContent) {
-              decryptedEntry = this.preserveEntry(encryptedEntry, decryptedEntry)
+              decryptedEntry = this.preserveEntry(
+                encryptedEntry,
+                decryptedEntry
+              );
             }
 
-            return decryptedEntry
+            return decryptedEntry;
           }
-
         } catch (e) {
-          if (e.message === 'Data is corrupted') {
-            throw e
-          } else if (e.message === 'Content is corrupted') {
-            throw e
+          if (e.message === "Data is corrupted") {
+            throw e;
+          } else if (e.message === "Content is corrupted") {
+            throw e;
           }
-          throw new Error('Fatal error during decryption')
+          throw new Error("Fatal error during decryption");
         }
 
-        throw new Error('Missing parameters')
+        throw new Error("Missing parameters");
       } else {
-        throw new Error('User not logged')
+        throw new Error("User not logged");
       }
     }
 
     signout() {
       if (this.masterKeyHash) {
-        delete this.masterKeyHash
-        _secrez = undefined
+        delete this.masterKeyHash;
+        _secrez = undefined;
       } else {
-        throw new Error('User not logged')
+        throw new Error("User not logged");
       }
     }
-
   }
 
-  return Secrez
-
-}
-
+  return Secrez;
+};

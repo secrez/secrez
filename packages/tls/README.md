@@ -4,17 +4,16 @@ Secrez tls generates local SSL certificates to be used by @secrez/courier and ot
 
 A documentation will come soon.
 
-
 ## Test coverage
 
 ```
   4 passing (582ms)
 
 ----------|---------|----------|---------|---------|-------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 ----------|---------|----------|---------|---------|-------------------
-All files |     100 |    92.86 |     100 |     100 |                   
- TLS.js   |     100 |    92.86 |     100 |     100 | 8                 
+All files |     100 |    92.86 |     100 |     100 |
+ TLS.js   |     100 |    92.86 |     100 |     100 | 8
 ----------|---------|----------|---------|---------|-------------------
 ```
 

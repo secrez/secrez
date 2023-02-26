@@ -1,28 +1,29 @@
 // const Fido2Client = require('../utils/Fido2Client')
 // const _ = require('lodash')
 // const Case = require('case')
-const { //config,
-  ConfigUtils} = require('@secrez/core')
+const {
+  //config,
+  ConfigUtils,
+} = require("@secrez/core");
 // const Crypto = require('@secrez/crypto')
-const chalk = require('chalk')
+const chalk = require("chalk");
 
-class Conf extends require('../Command') {
-
+class Conf extends require("../Command") {
   setHelpAndCompletion() {
     this.cliConfig.completion.conf = {
-      _self: this
-    }
-    this.cliConfig.completion.help.conf = true
+      _self: this,
+    };
+    this.cliConfig.completion.help.conf = true;
     this.optionDefinitions = [
       {
-        name: 'help',
-        alias: 'h',
-        type: Boolean
+        name: "help",
+        alias: "h",
+        type: Boolean,
       },
       {
-        name: 'show',
-        alias: 's',
-        type: Boolean
+        name: "show",
+        alias: "s",
+        type: Boolean,
       },
       // {
       //   name: 'register',
@@ -52,23 +53,25 @@ class Conf extends require('../Command') {
       //   type: String
       // },
       {
-        name: 'new-password',
-        type: Boolean
+        name: "new-password",
+        type: Boolean,
       },
       {
-        name: 'new-iterations-number',
-        type: Boolean
-      }
-    ]
+        name: "new-iterations-number",
+        type: Boolean,
+      },
+    ];
   }
 
   help() {
     return {
-      description: ['Shows current configuration and allow to change password and number of iterations).'],
+      description: [
+        "Shows current configuration and allow to change password and number of iterations).",
+      ],
       examples: [
-        ['conf -s', 'shows the general settings'],
-        ['conf --new-password', 'changes your password'],
-        ['conf --new-iterations-number', 'changes the number of iterations'],
+        ["conf -s", "shows the general settings"],
+        ["conf --new-password", "changes your password"],
+        ["conf --new-iterations-number", "changes the number of iterations"],
         // ['conf --fido2 -r solo',
         //   'registers a new key saving it as "solo"; if there are registered keys, it will checks if the new one is one of them before adding it.'],
         // ['conf -l', 'lists second factors'],
@@ -77,9 +80,8 @@ class Conf extends require('../Command') {
         // ['conf --recovery-code -r seed --use-this "salad spring peace silk snake real they thunder please final clinic close"', 'registers an emergency recovery code called "seed" using the seed passed with the parameter "--use-this"'],
         // ['conf -u solo',
         //   'unregister the fido2 key "solo"; if that is the only key, it unregister also any emergency code and restores the normal access.']
-
-      ]
-    }
+      ],
+    };
   }
 
   // isEmergencyCodeSetUp() {
@@ -129,9 +131,12 @@ class Conf extends require('../Command') {
   // }
 
   async showConf(options) {
-    const env = await ConfigUtils.getEnv(this.secrez.config)
-    this.Logger.reset(chalk.grey('Container: ') + this.secrez.config.container)
-    this.Logger.reset(chalk.grey('Number of iterations: ') + (env.iterations || chalk.yellow('-- not saved locally --')))
+    const env = await ConfigUtils.getEnv(this.secrez.config);
+    this.Logger.reset(chalk.grey("Container: ") + this.secrez.config.container);
+    this.Logger.reset(
+      chalk.grey("Number of iterations: ") +
+        (env.iterations || chalk.yellow("-- not saved locally --"))
+    );
   }
 
   // async showList(options) {
@@ -336,88 +341,109 @@ class Conf extends require('../Command') {
   // }
 
   async upgradeAccount(options) {
-    let pw = options.newPassword
-    let it = options.newIterationsNumber
+    let pw = options.newPassword;
+    let it = options.newIterationsNumber;
     if (pw && it) {
-      throw new Error('Changing password and number of iterations in the same operation not allowed')
+      throw new Error(
+        "Changing password and number of iterations in the same operation not allowed"
+      );
     }
-    let haveSomeFactors = false
+    let haveSomeFactors = false;
     if (Object.keys(await this.getAllFactors()).length) {
-      haveSomeFactors = true
+      haveSomeFactors = true;
     }
-    let message = 'Are you sure you want to upgrade your '
-        + (pw ? 'password' : 'number of iterations') + '?'
+    let message =
+      "Are you sure you want to upgrade your " +
+      (pw ? "password" : "number of iterations") +
+      "?";
     let yes = await this.useConfirm({
       message,
-      default: false
-    })
+      default: false,
+    });
     if (yes) {
       if (pw) {
         let oldPassword = await this.useInput({
-          message: 'Type your existing password',
-          type: 'password'
-        })
+          message: "Type your existing password",
+          type: "password",
+        });
         if (oldPassword) {
           if (!(await this.secrez.verifyPassword(oldPassword))) {
-            throw new Error('Wrong password. Try again')
+            throw new Error("Wrong password. Try again");
           }
           let newPassword = await this.useInput({
-            message: 'Type your new password',
-            type: 'password'
-          })
+            message: "Type your new password",
+            type: "password",
+          });
           if (newPassword) {
             let password = await this.useInput({
-              message: 'Retype your password',
-              type: 'password',
-              name: 'password',
+              message: "Retype your password",
+              type: "password",
+              name: "password",
               validate: (value, exitCode) => {
                 if (value === newPassword) {
-                  return true
+                  return true;
                 } else {
-                  return chalk.red(`The two passwords do not match. Try again or cancel typing ${chalk.bold(exitCode)}`)
+                  return chalk.red(
+                    `The two passwords do not match. Try again or cancel typing ${chalk.bold(
+                      exitCode
+                    )}`
+                  );
                 }
-              }
-            })
+              },
+            });
             if (password) {
-              await this.secrez.upgradeAccount(password)
-              await this.saveAndOverwrite('main:/.NEW_PASSWORD', 'password', password, 'the new password')
-              this.Logger.reset('In case you have doubts about it, please, "cat" the file and take a look before exiting.')
+              await this.secrez.upgradeAccount(password);
+              await this.saveAndOverwrite(
+                "main:/.NEW_PASSWORD",
+                "password",
+                password,
+                "the new password"
+              );
+              this.Logger.reset(
+                'In case you have doubts about it, please, "cat" the file and take a look before exiting.'
+              );
               if (haveSomeFactors) {
-                this.Logger.yellow('All the second factors have been unregistered.')
+                this.Logger.yellow(
+                  "All the second factors have been unregistered."
+                );
               }
-              return
+              return;
             }
           }
         }
       } else if (it) {
         let iterations = await this.useInput({
-          message: 'Type the new number of iterations',
-          name: 'password',
+          message: "Type the new number of iterations",
+          name: "password",
           validate: (value, exitCode) => {
             if (/^\d+$/.test(value)) {
-              return true
+              return true;
             } else {
-              return chalk.red(`Type a valid integer, or cancel typing ${chalk.bold(exitCode)}`)
+              return chalk.red(
+                `Type a valid integer, or cancel typing ${chalk.bold(exitCode)}`
+              );
             }
-          }
-        })
+          },
+        });
         if (iterations) {
-          iterations = parseInt(iterations)
+          iterations = parseInt(iterations);
           if (iterations === 0) {
-            throw new Error('Invalid number')
+            throw new Error("Invalid number");
           }
-          await this.secrez.upgradeAccount(undefined, iterations)
-          const env = await ConfigUtils.getEnv(this.secrez.config)
+          await this.secrez.upgradeAccount(undefined, iterations);
+          const env = await ConfigUtils.getEnv(this.secrez.config);
           if (env.iterations) {
-            env.iterations = iterations
-            await ConfigUtils.putEnv(this.secrez.config, env)
+            env.iterations = iterations;
+            await ConfigUtils.putEnv(this.secrez.config, env);
           }
-          this.Logger.reset('The number of iterations has been successfully changed.')
-          return
+          this.Logger.reset(
+            "The number of iterations has been successfully changed."
+          );
+          return;
         }
       }
     }
-    this.Logger.grey('Operation canceled')
+    this.Logger.grey("Operation canceled");
   }
 
   async conf(options) {
@@ -427,53 +453,51 @@ class Conf extends require('../Command') {
     // if (options.list) {
     //   await this.showList(options)
     // } else
-      if (options.show) {
-      await this.showConf(options)
-    // } else if (options.recoveryCode) {
-    //   await this.setRecoveryCode(options)
-    // } else if (options.fido2) {
-    //   let yes = await this.useConfirm({
-    //     message: 'Fido2 requires external libraries written in Python. It is an experimental feature, and it is not guaranteed to work. Are you sure you want to set it up?',
-    //     default: false
-    //   })
-    //   if (!yes) {
-    //     throw new Error('Operation canceled')
-    //   }
-    //   await this.fido2Client.checkIfReady()
-    //   await this.setFido2(options)
-    // } else if (options.unregister) {
-    //   await this.unregister(options)
+    if (options.show) {
+      await this.showConf(options);
+      // } else if (options.recoveryCode) {
+      //   await this.setRecoveryCode(options)
+      // } else if (options.fido2) {
+      //   let yes = await this.useConfirm({
+      //     message: 'Fido2 requires external libraries written in Python. It is an experimental feature, and it is not guaranteed to work. Are you sure you want to set it up?',
+      //     default: false
+      //   })
+      //   if (!yes) {
+      //     throw new Error('Operation canceled')
+      //   }
+      //   await this.fido2Client.checkIfReady()
+      //   await this.setFido2(options)
+      // } else if (options.unregister) {
+      //   await this.unregister(options)
     } else if (options.newPassword || options.newIterationsNumber) {
-      await this.upgradeAccount(options)
+      await this.upgradeAccount(options);
     } else {
-      throw new Error('Missing parameters. Run "conf -h" to see examples.')
+      throw new Error('Missing parameters. Run "conf -h" to see examples.');
     }
   }
 
   async exec(options = {}) {
     if (options.help) {
-      return this.showHelp()
+      return this.showHelp();
     }
     try {
       // if (!Object.keys(options).length) {
       //   options.list = true
       // }
-      this.validate(options)
+      this.validate(options);
       // if (options.fido2 && options.recoveryCode) {
       //   throw new Error('Conflicting params. Launch "conf -h" for examples.')
       // }
       // if (options.register && !(options.fido2 || options.recoveryCode)) {
       //   throw new Error('Missing parameters. Launch "conf -h" for examples.')
       // }
-      await this.conf(options)
+      await this.conf(options);
     } catch (e) {
       // console.error(e)
-      this.Logger.red(e.message)
+      this.Logger.red(e.message);
     }
-    await this.prompt.run()
+    await this.prompt.run();
   }
 }
 
-module.exports = Conf
-
-
+module.exports = Conf;

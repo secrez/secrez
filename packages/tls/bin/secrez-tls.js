@@ -1,79 +1,84 @@
 #!/usr/bin/env node
 
-const pkg = require('../package')
-const chalk = require('chalk')
-const {TLS} = require('../src')
-const commandLineArgs = require('command-line-args')
+const pkg = require("../package");
+const chalk = require("chalk");
+const { TLS } = require("../src");
+const commandLineArgs = require("command-line-args");
 
 const optionDefinitions = [
   {
-    name: 'help',
-    alias: 'h',
-    type: Boolean
+    name: "help",
+    alias: "h",
+    type: Boolean,
   },
   {
-    name: 'destination',
-    alias: 'd',
+    name: "destination",
+    alias: "d",
     defaultValue: true,
-    type: String
+    type: String,
   },
   {
-    name: 'authority',
-    alias: 'a',
-    type: String
-  },{
-    name: 'name',
-    alias: 'n',
-    type: String
-  },{
-    name: 'city',
-    alias: 'c',
-    type: String
-  },{
-    name: 'organization',
-    alias: 'o',
-    type: String
-  },{
-    name: 'destination',
-    alias: 'd',
-    type: String
-  },{
-    name: 'v3ext',
-    alias: 'v',
-    type: String
-  },{
-    name: 'ca',
-    alias: 'c',
-    type: String
+    name: "authority",
+    alias: "a",
+    type: String,
   },
-]
+  {
+    name: "name",
+    alias: "n",
+    type: String,
+  },
+  {
+    name: "city",
+    alias: "c",
+    type: String,
+  },
+  {
+    name: "organization",
+    alias: "o",
+    type: String,
+  },
+  {
+    name: "destination",
+    alias: "d",
+    type: String,
+  },
+  {
+    name: "v3ext",
+    alias: "v",
+    type: String,
+  },
+  {
+    name: "ca",
+    alias: "c",
+    type: String,
+  },
+];
 
 function error(message) {
   if (!Array.isArray(message)) {
-    message = [message]
+    message = [message];
   }
-  console.error(chalk.red(message[0]))
+  console.error(chalk.red(message[0]));
   if (message[1]) {
-    console.info(message[1])
+    console.info(message[1]);
   }
   /*eslint-disable-next-line*/
-  process.exit(1)
+  process.exit(1);
 }
 
-let options = {}
+let options = {};
 try {
   options = commandLineArgs(optionDefinitions, {
-    camelCase: true
-  })
+    camelCase: true,
+  });
 } catch (e) {
-  error(e.message)
+  error(e.message);
 }
 
-options.host = options.host || 'https://secrez.cc'
-options.port = options.port || 4433
+options.host = options.host || "https://secrez.cc";
+options.port = options.port || 4433;
 
-console.info(chalk.bold.grey(`@secrez/courier v${pkg.version}`))
-
+console.info(chalk.bold.grey(`@secrez/courier v${pkg.version}`));
 
 if (options.help) {
   console.info(`${pkg.description}
@@ -102,15 +107,16 @@ Defaults:
 Examples:
   $ secrez-tls   \`pwd\`/ssl
    
-`)
+`);
   // eslint-disable-next-line no-process-exit
-  process.exit(0)
+  process.exit(0);
 }
 
 (async () => {
-  console.info(`Generating new self-signed certificates in ${options.destination}`)
-  const tls = new TLS(options)
-  await tls.generateCertificates()
-  console.info('Done')
-})()
-
+  console.info(
+    `Generating new self-signed certificates in ${options.destination}`
+  );
+  const tls = new TLS(options);
+  await tls.generateCertificates();
+  console.info("Done");
+})();
