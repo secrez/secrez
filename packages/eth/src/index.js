@@ -11,7 +11,7 @@ class Eth {
   static async getWalletFromMnemonic(
     mnemonic,
     derivedPath = "m/44'/60'/0'/0",
-    walletListIndex
+    walletListIndex = 0
   ) {
     const seed = bip39.mnemonicToSeedSync(mnemonic);
     const hdNode = hdkey.fromMasterSeed(seed);
@@ -28,10 +28,6 @@ class Eth {
 
   static async getWalletFromEncryptedJson(json, password) {
     return ethers.Wallet.fromEncryptedJson(json, password);
-  }
-
-  static async getAddressFromWallet(wallet) {
-    return wallet.address;
   }
 
   static equals(address1, address2) {

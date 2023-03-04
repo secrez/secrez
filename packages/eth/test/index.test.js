@@ -84,11 +84,4 @@ describe("#Eth", () => {
     });
   });
 
-  describe("#getAddressFromWallet()", () => {
-    it("should get the address from a wallet", async () => {
-      const address = await Eth.getAddressFromWallet(wallet);
-      expect(address).to.exist;
-      expect(address).to.equal(wallet.address);
-    });
-  });
 });

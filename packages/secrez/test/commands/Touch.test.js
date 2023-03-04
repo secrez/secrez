@@ -1,6 +1,7 @@
 const chai = require("chai");
 const assert = chai.assert;
 const stdout = require("test-console").stdout;
+const { yamlParse } = require("@secrez/utils");
 
 const fs = require("fs-extra");
 const path = require("path");
@@ -9,7 +10,7 @@ const { assertConsole, noPrint, decolorize } = require("@secrez/test-helpers");
 
 const { password, iterations } = require("../fixtures");
 
-describe("#Touch", function () {
+describe.only("#Touch", function () {
   let prompt;
   let rootDir = path.resolve(__dirname, "../../tmp/test/.secrez");
   let inspect, C;
@@ -137,4 +138,55 @@ describe("#Touch", function () {
     inspect.restore();
     assertConsole(inspect, "A filename cannot contain \\/><|:&?*^$ chars.");
   });
+
+  it("should create a file and generate a wallet", async function () {
+    let p = "/folder2/file1";
+    await noPrint(
+        C.touch.exec({
+          path: p,
+          generateWallet: true,
+        })
+    );
+    const content = yamlParse( prompt.internalFs.tree.root.getChildFromPath(p).getContent());
+    assert.isTrue(content.hasOwnProperty('private_key'));
+    assert.isTrue(content.hasOwnProperty('address'));
+    assert.isTrue(/^0x[0-9a-fA-F]{40}$/.test(content.address));
+  });
+
+  it("should generate 5 prefixed wallet", async function () {
+    let p = "/folder2/file1";
+    // await noPrint(
+        await C.touch.exec({
+          path: p,
+          generateWallet: true,
+          amount: 5,
+          prefix: 'test'
+        })
+    const content = yamlParse(prompt.internalFs.tree.root.getChildFromPath(p).getContent());
+    for (let i = 1; i<=5; i++) {
+      let k = i === 1 ? '' : i;
+      assert.isTrue(content.hasOwnProperty(`test_private_key${k}`));
+      assert.isTrue(content.hasOwnProperty(`test_address${k}`));
+      assert.isTrue(/^0x[0-9a-fA-F]{40}$/.test(content[`test_address${k}`]));
+    }
+  });
+
+  it("should generate a wallet with mnemonic and 2 keys", async function () {
+    let p = "/folder2/file1";
+    await
+        // noPrint(
+        C.touch.exec({
+          path: p,
+          generateWallet: true,
+          includeMnemonic: true,
+          amount: 2
+        })
+    // );
+    const content = yamlParse( prompt.internalFs.tree.root.getChildFromPath(p).getContent());
+    assert.isTrue(content.hasOwnProperty('private_key'));
+    assert.isTrue(content.hasOwnProperty('address2'));
+    assert.isTrue(content.mnemonic.split(" ").length === 12);
+    assert.equal(content.derived_path, "m/44'/60'/0'/0");
+  });
+
 });

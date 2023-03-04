@@ -16,6 +16,7 @@
   "dependencies": {
     "@secrez/core": "workspace:~1.0.3",
     "@secrez/crypto": "workspace:~1.0.1",
+    "@secrez/eth": "workspace:~0.0.1",
     "@secrez/fs": "workspace:~1.0.3",
     "@secrez/hub": "workspace:~0.2.1",
     "@secrez/utils": "workspace:~1.0.2",

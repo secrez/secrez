@@ -1,4 +1,6 @@
 const { config, Entry } = require("@secrez/core");
+const { yamlStringify } = require("@secrez/utils");
+const { newWallet, getWalletFromMnemonic } = require("@secrez/eth");
 
 class Touch extends require("../Command") {
   setHelpAndCompletion() {
@@ -26,8 +28,33 @@ class Touch extends require("../Command") {
         type: String,
       },
       {
+        name: "prefix",
+        alias: "x",
+        type: String,
+      },
+      {
+        name: "wait-for-content",
+        alias: "w",
+        type: Boolean,
+      },
+      {
         name: "not-visible-content",
         alias: "n",
+        type: Boolean,
+      },
+      {
+        name: "generate-wallet",
+        alias: "g",
+        type: Boolean,
+      },
+      {
+        name: "amount",
+        alias: "a",
+        type: Number,
+      },
+      {
+        name: "include-mnemonic",
+        alias: "m",
         type: Boolean,
       },
       {
@@ -35,6 +62,7 @@ class Touch extends require("../Command") {
         alias: "v",
         type: Boolean,
       },
+
     ];
   }
 
@@ -46,10 +74,37 @@ class Touch extends require("../Command") {
         'Check also "help create" for more options.',
       ],
       examples: [
-        "touch somefile",
+        ["touch somefile", "If the the file exists, it create 'somefile.2', 'somefile.3', etc."],
         'touch -p afile --content "Password: 1432874565"',
         'touch ether -c "Private Key: eweiu34y23h4y23ih4uy23hiu4y234i23y4iuh3"',
-        ["touch ether -v", "Save the file as ether.2 if ether already exists"],
+        [
+          "touch sample.txt -e",
+          "Prompt the user to type the content of the file. The text cannot contain newlines. It will cut at the first one, if so. If '-e' and '-c' are both present, '-c' will be ignored.",
+        ],
+        [
+          "touch walletPassword -n",
+          "Prompt the user to type the password without showing it. Notice that '-n' has priority on '-e' and '-c'",
+        ],
+        [
+          "touch gilbert -f name -c 'Albert Goose'",
+          "If the file does not exists, it creates 'gilbert.yaml' with the field 'name'. If a yaml file exists, it adds the field 'name' to it if the the field does not exist.",
+        ],
+        [
+          "touch new-wallet -w",
+          "Creates a new wallet file containing 'private_key' and `address`. Wallet has priority on other creation options."
+        ],
+        [
+          "touch new-wallets.yaml -w -n 3",
+          "Creates 'new-wallets.yaml', containing 3 wallet, calling them 'private_key', `private_key2` and `private_key3`, and relative addresses."
+        ],
+        [
+          "touch new-wallet --wallet -x trust0",
+          "In combination con '-x', it creates a new wallet file calling the fields 'trust0_private_key' and 'trust0_address'."
+        ],
+          [
+          "touch new-wallets.yaml -wi",
+              "Includes the mnemonic. In this case, it will also add the fields 'mnemonic' (mnemonic phrase) and 'derived_path' (path used to generate the keys). "
+          ]
       ],
     };
   }
@@ -57,12 +112,43 @@ class Touch extends require("../Command") {
   async touch(options = {}) {
     this.checkPath(options);
     let data = await this.internalFs.getTreeIndexAndPath(options.path);
-    let sanitizedPath = Entry.sanitizePath(data.path);
-    if (sanitizedPath !== data.path) {
-      throw new Error("A filename cannot contain \\/><|:&?*^$ chars.");
+    let fileExists = false;
+    let node;
+    if (options.generateWallet) {
+      let content = {};
+      let amount = options.amount || 1;
+      let wallet = newWallet();
+      for (let i = 1; i <= amount; i++) {
+        let wallet0;
+        if (i === 1) {
+          wallet0 = wallet;
+        } else {
+          wallet0 = await getWalletFromMnemonic(wallet.mnemonic.phrase, wallet.path, i - 1);
+        }
+        let field = `${options.prefix ? options.prefix + "_" : ""}private_key${i > 1 ? i : ""}`
+        content[field] = wallet0.privateKey.replace(/^0x/, "");
+        content[field.replace(/private_key/, "address")] = wallet0.address;
+        if (i === 1 && options.includeMnemonic) {
+          content[field.replace(/private_key/, "mnemonic")] = wallet.mnemonic.phrase;
+          let derivedPath = wallet.path;
+          if (derivedPath.split("/").length === 6) {
+            derivedPath = derivedPath.replace(/\/0$/, "");
+          }
+          content[field.replace(/private_key/, "derived_path")] = derivedPath;
+        }
+      }
+      options.content = yamlStringify(content);
     }
-    options.type = config.types.TEXT;
-    return await this.internalFs.make(options);
+    if (fileExists) {
+      await this.internalFs.tree.update(node, options.content);
+    } else {
+      let sanitizedPath = Entry.sanitizePath(data.path);
+      if (sanitizedPath !== data.path) {
+        throw new Error("A filename cannot contain \\/><|:&?*^$ chars.");
+      }
+      options.type = config.types.TEXT;
+      return await this.internalFs.make(options);
+    }
   }
 
   async exec(options = {}) {
@@ -73,21 +159,39 @@ class Touch extends require("../Command") {
       this.validate(options);
       this.checkPath(options);
       /* istanbul ignore if  */
-      if (options.notVisibleContent) {
-        let content = await this.useInput(
-          Object.assign(options, {
-            type: "password",
-            message: "Type the secret",
-          })
-        );
-        if (content) {
-          options.content = content;
-        } else {
-          throw new Error("Command canceled");
+      if (!options.generateWallet) {
+        if (options.notVisibleContent) {
+          let content = await this.useInput(
+              Object.assign(options, {
+                type: "password",
+                message: "Type the secret",
+              })
+          );
+          if (content) {
+            options.content = content;
+          } else {
+            throw new Error("Command canceled");
+          }
+        } else if (options.waitForContent) {
+          let content = await this.useInput(
+              Object.assign(options, {
+                type: "input",
+                message: "Type/paste the content",
+              })
+          );
+          if (content) {
+            options.content = content;
+          } else {
+            throw new Error("Command canceled");
+          }
         }
       }
       let newFile = await this.touch(options);
-      this.Logger.grey(`New file "${newFile.getPath()}" created.`);
+      if (newFile) {
+        this.Logger.grey(`New file "${newFile.getPath()}" created.`);
+      } else {
+        this.Logger.grey(`File "${options.path}" updated.`);
+      }
     } catch (e) {
       this.Logger.red(e.message);
     }

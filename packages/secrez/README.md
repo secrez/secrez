@@ -448,6 +448,13 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+**1.1.1**
+- New options for `touch`:
+  - `--wait-for-content` to prompt the user to add the content, instead of expecting it as a parameter. The content will be trimmed at the first newline, if there is any.
+  - `--generate-wallet` to generate an Ethereum-compatible wallet in a new card or in an existing one. It generates the fields `private_key` and `address`, with private key and address.
+  - `--prefix` in combination with `--generate-wallet` specifies the prefix of the field, calling the fields, for example `my_private_key` and `my_address` if the prefix is `my`.
+  - `--amount` in combination with `--generate-wallet` specifies the amount of wallets to generate. The default is 1.
+
 **1.1.0**
 
 - Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I disapproved my own proposal at: https://github.com/secrez/secrez/pull/163
