@@ -62,7 +62,6 @@ class Touch extends require("../Command") {
         alias: "v",
         type: Boolean,
       },
-
     ];
   }
 
@@ -74,7 +73,10 @@ class Touch extends require("../Command") {
         'Check also "help create" for more options.',
       ],
       examples: [
-        ["touch somefile", "If the the file exists, it create 'somefile.2', 'somefile.3', etc."],
+        [
+          "touch somefile",
+          "If the the file exists, it create 'somefile.2', 'somefile.3', etc.",
+        ],
         'touch -p afile --content "Password: 1432874565"',
         'touch ether -c "Private Key: eweiu34y23h4y23ih4uy23hiu4y234i23y4iuh3"',
         [
@@ -91,20 +93,20 @@ class Touch extends require("../Command") {
         ],
         [
           "touch new-wallet -w",
-          "Creates a new wallet file containing 'private_key' and `address`. Wallet has priority on other creation options."
+          "Creates a new wallet file containing 'private_key' and `address`. Wallet has priority on other creation options.",
         ],
         [
           "touch new-wallets.yaml -w -n 3",
-          "Creates 'new-wallets.yaml', containing 3 wallet, calling them 'private_key', `private_key2` and `private_key3`, and relative addresses."
+          "Creates 'new-wallets.yaml', containing 3 wallet, calling them 'private_key', `private_key2` and `private_key3`, and relative addresses.",
         ],
         [
           "touch new-wallet --wallet -x trust0",
-          "In combination con '-x', it creates a new wallet file calling the fields 'trust0_private_key' and 'trust0_address'."
+          "In combination con '-x', it creates a new wallet file calling the fields 'trust0_private_key' and 'trust0_address'.",
         ],
-          [
+        [
           "touch new-wallets.yaml -wi",
-              "Includes the mnemonic. In this case, it will also add the fields 'mnemonic' (mnemonic phrase) and 'derived_path' (path used to generate the keys). "
-          ]
+          "Includes the mnemonic. In this case, it will also add the fields 'mnemonic' (mnemonic phrase) and 'derived_path' (path used to generate the keys). ",
+        ],
       ],
     };
   }
@@ -123,13 +125,20 @@ class Touch extends require("../Command") {
         if (i === 1) {
           wallet0 = wallet;
         } else {
-          wallet0 = await getWalletFromMnemonic(wallet.mnemonic.phrase, wallet.path, i - 1);
+          wallet0 = await getWalletFromMnemonic(
+            wallet.mnemonic.phrase,
+            wallet.path,
+            i - 1
+          );
         }
-        let field = `${options.prefix ? options.prefix + "_" : ""}private_key${i > 1 ? i : ""}`
+        let field = `${options.prefix ? options.prefix + "_" : ""}private_key${
+          i > 1 ? i : ""
+        }`;
         content[field] = wallet0.privateKey.replace(/^0x/, "");
         content[field.replace(/private_key/, "address")] = wallet0.address;
         if (i === 1 && options.includeMnemonic) {
-          content[field.replace(/private_key/, "mnemonic")] = wallet.mnemonic.phrase;
+          content[field.replace(/private_key/, "mnemonic")] =
+            wallet.mnemonic.phrase;
           let derivedPath = wallet.path;
           if (derivedPath.split("/").length === 6) {
             derivedPath = derivedPath.replace(/\/0$/, "");
@@ -162,10 +171,10 @@ class Touch extends require("../Command") {
       if (!options.generateWallet) {
         if (options.notVisibleContent) {
           let content = await this.useInput(
-              Object.assign(options, {
-                type: "password",
-                message: "Type the secret",
-              })
+            Object.assign(options, {
+              type: "password",
+              message: "Type the secret",
+            })
           );
           if (content) {
             options.content = content;
@@ -174,10 +183,10 @@ class Touch extends require("../Command") {
           }
         } else if (options.waitForContent) {
           let content = await this.useInput(
-              Object.assign(options, {
-                type: "input",
-                message: "Type/paste the content",
-              })
+            Object.assign(options, {
+              type: "input",
+              message: "Type/paste the content",
+            })
           );
           if (content) {
             options.content = content;

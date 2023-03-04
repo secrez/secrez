@@ -9,19 +9,21 @@ It is used internally by the @secrez/courier and it is not supposed to be used d
 ## Test coverage
 
 ```
-  5 passing (996ms)
+  4 passing (723ms)
+  1 pending
 
 ---------------------------|---------|----------|---------|---------|-------------------------------
-File                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+File                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s             
 ---------------------------|---------|----------|---------|---------|-------------------------------
-All files                  |   84.76 |    53.03 |   86.11 |   85.09 |
- tunnel                    |      75 |       40 |      75 |      80 |
-  index.js                 |      75 |       40 |      75 |      80 | 8-9
- tunnel/src                |   85.53 |    55.36 |    87.5 |   85.43 |
-  HeaderHostTransformer.js |     100 |       40 |     100 |     100 | 4-11
-  Tunnel.js                |   82.89 |    42.31 |   88.24 |   82.67 | ...91,118-119,164-165,172,180
-  TunnelCluster.js         |   86.57 |       72 |   83.33 |   86.57 | 55-56,80,109-119
+All files                  |   80.49 |    48.48 |   83.33 |   80.75 |                               
+ tunnel                    |      75 |       40 |      75 |      80 |                               
+  index.js                 |      75 |       40 |      75 |      80 | 8-9                           
+ tunnel/src                |   80.92 |       50 |   84.38 |   80.79 |                               
+  HeaderHostTransformer.js |     100 |       40 |     100 |     100 | 4-11                          
+  Tunnel.js                |   81.58 |    38.46 |   88.24 |   81.33 | ...28-129,144,172-173,180,188 
+  TunnelCluster.js         |   77.61 |       64 |      75 |   77.61 | 48-65,70-72,84,117-127        
 ---------------------------|---------|----------|---------|---------|-------------------------------
+
 ```
 
 ## Copyright

@@ -83,5 +83,4 @@ describe("#Eth", () => {
       expect(walletFromEncryptedJson.privateKey).to.equal(wallet.privateKey);
     });
   });
-
 });
