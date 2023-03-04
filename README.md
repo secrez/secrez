@@ -448,6 +448,14 @@ Secrez does not want to compete with password managers. So, don't expect in the 
 
 ## History
 
+**1.1.1**
+
+- New options for `touch`:
+  - `--wait-for-content` to prompt the user to add the content, instead of expecting it as a parameter. The content will be trimmed at the first newline, if there is any.
+  - `--generate-wallet` to generate an Ethereum-compatible wallet in a new card or in an existing one. It generates the fields `private_key` and `address`, with private key and address.
+  - `--prefix` in combination with `--generate-wallet` specifies the prefix of the field, calling the fields, for example `my_private_key` and `my_address` if the prefix is `my`.
+  - `--amount` in combination with `--generate-wallet` specifies the amount of wallets to generate. The default is 1.
+
 **1.1.0**
 
 - Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I disapproved my own proposal at: https://github.com/secrez/secrez/pull/163
@@ -886,79 +894,68 @@ Thanks a lot for any contribution 😉
 ## Test coverage
 
 ```
-  162 passing (28s)
-  1 pending
+  8 passing (1s)
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   71.33 |    58.19 |   71.98 |   71.28 |
- src                   |   59.63 |    54.79 |      55 |   61.32 |
-  Command.js           |   79.66 |    78.72 |   76.92 |   83.93 | 35,54-59,68,71,95
-  PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 9-95,108
-  cliConfig.js         |     100 |      100 |     100 |     100 |
- src/commands          |   81.58 |    66.85 |   89.95 |    81.4 |
-  Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 85,96,118,145,149,154,164
-  Bash.js              |      75 |        0 |   66.67 |      75 | 20-21
-  Cat.js               |    98.9 |    88.89 |     100 |    98.9 | 144
-  Cd.js                |   96.43 |    86.67 |     100 |   96.43 | 45
-  Chat.js              |   19.51 |        0 |   16.67 |   19.51 | 24-130
-  Conf.js              |   10.45 |        0 |      25 |   10.45 | 132-473
-  Contacts.js          |   74.67 |    65.98 |   92.86 |    74.5 | ...75-197,221,226,238,294,307,317
-  Copy.js              |   94.87 |    74.51 |     100 |   94.81 | 96,141,158,183
-  Courier.js           |   63.54 |    41.86 |   85.71 |   63.83 | ...24,139-156,168,180-183,195-201
-  Ds.js                |   92.54 |    82.05 |     100 |   92.42 | 94,103-108,120
-  Edit.js              |   13.58 |        0 |      40 |   13.58 | 78-193
-  Export.js            |   90.91 |       68 |     100 |   90.91 | 109,114-115,120,130,137,140
-  Find.js              |   93.59 |    86.67 |     100 |   93.42 | 90,153,192-196,202
-  Help.js              |     100 |       80 |     100 |     100 | 30
-  Import.js            |    93.2 |    85.48 |     100 |    93.1 | ...06,308,321,327,369,384-390,417
-  Lcat.js              |     100 |    85.71 |     100 |     100 | 55
-  Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 49
-  Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 91
-  Lpwd.js              |   92.31 |      100 |     100 |   92.31 | 38
-  Ls.js                |    91.3 |       75 |     100 |   90.77 | 99,110-112,126,169
-  Mkdir.js             |     100 |    66.67 |     100 |     100 | 39-45
-  Mv.js                |   91.01 |    77.36 |     100 |    90.8 | 114,137,148-154
-  Paste.js             |   87.23 |       75 |     100 |   87.23 | 66,72,75,83,107,124
-  Pwd.js               |   92.31 |      100 |     100 |   92.31 | 36
-  Quit.js              |      90 |       50 |     100 |      90 | 29
-  Rm.js                |      94 |    80.95 |     100 |   93.88 | 61,116,124
-  Shell.js             |   88.24 |       60 |     100 |   88.24 | 39,54
-  Ssh.js               |      25 |        0 |      40 |      25 | 64-104
-  Tag.js               |   98.04 |    92.31 |     100 |   97.94 | 123,164
-  Totp.js              |   96.47 |    74.47 |     100 |   96.47 | 164-165,209
-  Touch.js             |     100 |    71.43 |     100 |     100 | 57,68
-  Use.js               |   96.77 |    89.47 |     100 |   96.77 | 65
-  Ver.js               |      90 |    66.67 |     100 |      90 | 27
-  Whoami.js            |    93.1 |    63.64 |      80 |    93.1 | 32,65
-  chat.js              |   85.37 |    53.85 |     100 |   85.37 | 94,103-116,122,128
-  index.js             |   91.67 |       60 |     100 |    91.3 | 23,32
- src/commands/chat     |   79.44 |    63.29 |   92.31 |   79.33 |
-  Contacts.js          |      80 |    42.86 |      80 |      80 | 56,65,69,82
-  Help.js              |   86.67 |       60 |     100 |   86.67 | 38-39
-  Join.js              |   95.65 |    82.61 |     100 |   95.56 | 41,104
-  Leave.js             |     100 |       60 |     100 |     100 | 28,32
-  Quit.js              |     100 |       75 |     100 |     100 | 27
-  Send.js              |   67.65 |    46.67 |     100 |   67.65 | 40,44,47,74,83-92
-  Show.js              |   68.75 |    70.59 |     100 |   68.75 | 63-67,76,91-97
-  Whoami.js            |   42.86 |        0 |      60 |   42.86 | 24,32-41
- src/prompts           |   15.14 |        0 |   14.29 |   15.36 |
-  ChatPrompt.js        |    6.17 |        0 |       0 |    6.17 | 9-155
-  ChatPromptMock.js    |     100 |      100 |   66.67 |     100 |
-  CommandPrompt.js     |   10.42 |        0 |       0 |   10.56 | 25-286
-  Completion.js        |    4.41 |        0 |       0 |    4.62 | 7-107
-  MainPromptMock.js    |     100 |      100 |   66.67 |     100 |
-  MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 8-35
-  SigintManager.js     |      25 |        0 |      20 |      25 | 11-37
- src/utils             |   69.92 |    63.28 |   56.25 |   69.55 |
-  AliasManager.js      |     100 |    91.67 |     100 |     100 | 48
-  ContactManager.js    |   71.43 |       60 |   85.71 |   71.43 | 13,36-38
-  Fido2Client.js       |   15.38 |        0 |   11.11 |   15.38 | 15-101
-  HelpProto.js         |    91.6 |    84.06 |     100 |   91.45 | 44,137-138,155-160,179
-  Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...38-50,58,66-70,75,85,89,94,107
+All files              |   19.31 |     6.31 |   17.43 |   19.32 |                                   
+ src                   |   33.03 |    15.07 |      25 |   33.33 |                                   
+  Command.js           |   37.29 |     23.4 |   38.46 |   37.93 | 29-35,40-97,108,119,122-130       
+  PreCommand.js        |    12.2 |        0 |       0 |    12.2 | 8-115                             
+  cliConfig.js         |     100 |      100 |     100 |     100 |                                   
+ src/commands          |   15.44 |     2.67 |   19.63 |    15.5 |                                   
+  Alias.js             |    8.11 |        0 |      25 |    8.22 | 62-213                            
+  Bash.js              |    62.5 |        0 |   33.33 |    62.5 | 11-19                             
+  Cat.js               |   12.09 |        0 |   14.29 |   12.09 | 61-220                            
+  Cd.js                |   17.86 |        0 |      25 |   17.86 | 28-73                             
+  Chat.js              |   19.51 |        0 |   16.67 |   19.51 | 23-144                            
+  Conf.js              |    8.96 |        0 |    12.5 |    8.96 | 67-499                            
+  Contacts.js          |       6 |        0 |    7.14 |    6.04 | 55-352                            
+  Copy.js              |   10.26 |        0 |   14.29 |   10.39 | 69-237                            
+  Courier.js           |    6.25 |        0 |    7.14 |    6.38 | 20-221                            
+  Ds.js                |    5.97 |        0 |   16.67 |    6.06 | 39-160                            
+  Edit.js              |   12.35 |        0 |      20 |   12.35 | 61-214                            
+  Export.js            |   12.99 |        0 |   16.67 |   12.99 | 68-232                            
+  Find.js              |    7.69 |        0 |    8.33 |    7.89 | 63-211                            
+  Help.js              |   73.33 |       40 |      75 |   73.33 | 26,36-40                          
+  Import.js            |    6.31 |        0 |    9.09 |    6.37 | 87-496                            
+  Lcat.js              |      30 |        0 |      25 |      30 | 35-65                             
+  Lcd.js               |   17.39 |        0 |      25 |   17.39 | 30-72                             
+  Lls.js               |   22.73 |        0 |      25 |   22.73 | 49-99                             
+  Lpwd.js              |   30.77 |        0 |      25 |   30.77 | 15-38                             
+  Ls.js                |     5.8 |        0 |      10 |    6.15 | 46-183                            
+  Mkdir.js             |   22.73 |        0 |      25 |   22.73 | 27-61                             
+  Mv.js                |    6.52 |        0 |   16.67 |    6.67 | 46-240                            
+  Paste.js             |   14.89 |        0 |      25 |   14.89 | 40-131                            
+  Pwd.js               |   30.77 |        0 |      25 |   30.77 | 15-35                             
+  Quit.js              |      50 |        0 |   33.33 |      50 | 19-40                             
+  Rm.js                |      16 |        0 |   16.67 |   16.33 | 36-137                            
+  Shell.js             |   29.41 |        0 |      25 |   29.41 | 25-57                             
+  Ssh.js               |   22.22 |        0 |      20 |   22.22 | 49-120                            
+  Tag.js               |    8.82 |        0 |    9.09 |    8.91 | 66-236                            
+  Totp.js              |   15.29 |        0 |      10 |   15.29 | 75-288                            
+  Touch.js             |   95.92 |    81.48 |     100 |   95.83 | 152,202                           
+  Use.js               |    12.9 |        0 |      25 |    12.9 | 30-85                             
+  Ver.js               |      50 |        0 |   33.33 |      50 | 17-28                             
+  Whoami.js            |   24.14 |        0 |      20 |   24.14 | 22-66                             
+  chat.js              |   19.51 |        0 |   16.67 |   19.51 | 23-144                            
+  index.js             |    87.5 |       50 |     100 |   86.96 | 15,22,31                          
+ src/prompts           |      14 |        0 |    4.76 |   14.12 |                                   
+  ChatPrompt.js        |    6.17 |        0 |       0 |    6.17 | 8-163                             
+  ChatPromptMock.js    |   42.86 |      100 |       0 |   42.86 | 6-14                              
+  CommandPrompt.js     |   10.42 |        0 |       0 |   10.56 | 24-296                            
+  Completion.js        |    4.41 |        0 |       0 |    4.48 | 6-103                             
+  MainPromptMock.js    |     100 |      100 |   33.33 |     100 |                                   
+  MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 7-36                              
+  SigintManager.js     |      25 |        0 |      20 |      25 | 10-36                             
+ src/utils             |   51.63 |    40.63 |   20.83 |   51.03 |                                   
+  AliasManager.js      |    5.88 |        0 |       0 |    5.88 | 3-48                              
+  ContactManager.js    |    7.14 |        0 |       0 |    7.14 | 3-44                              
+  Fido2Client.js       |    9.62 |        0 |       0 |    9.62 | 8-108                             
+  HelpProto.js         |   78.99 |    62.32 |   83.33 |   78.63 | 11-39,49,153-154,171-176,195      
+  Logger.js            |   59.09 |    56.25 |   26.32 |   58.14 | ...29,37-57,65-69,74,84,88,93,105 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-
 ```
 
 ## Copyright

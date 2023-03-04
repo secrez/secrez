@@ -1,6 +1,6 @@
 {
   "name": "@secrez/eth",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -18,7 +18,7 @@
     "hdkey": "^2.1.0"
   },
   "devDependencies": {
-    "@secrez/utils": "workspace:~1.0.2",
+    "@secrez/utils": "workspace:~1.0.3",
     "chai": "^4.2.0",
     "cross-env": "^7.0.2",
     "mocha": "^7.1.2",

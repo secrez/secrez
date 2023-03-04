@@ -1,6 +1,6 @@
 {
   "name": "@secrez/tls",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -12,7 +12,7 @@
     "posttest": "nyc check-coverage --statements 99 --branches 90 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/utils": "workspace:~1.0.2",
+    "@secrez/utils": "workspace:~1.0.3",
     "chalk": "^4.1.0",
     "command-line-args": "^5.1.1",
     "cross-env": "^7.0.2",

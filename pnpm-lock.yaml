@@ -215,6 +215,7 @@ importers:
       '@secrez/core': workspace:~1.0.3
       '@secrez/courier': workspace:~0.2.2
       '@secrez/crypto': workspace:~1.0.1
+      '@secrez/eth': workspace:~0.0.1
       '@secrez/fs': workspace:~1.0.3
       '@secrez/hub': workspace:~0.2.1
       '@secrez/test-helpers': workspace:~2.0.0
@@ -242,6 +243,7 @@ importers:
     dependencies:
       '@secrez/core': link:../core
       '@secrez/crypto': link:../crypto
+      '@secrez/eth': link:../eth
       '@secrez/fs': link:../fs
       '@secrez/hub': link:../hub
       '@secrez/utils': link:../utils
