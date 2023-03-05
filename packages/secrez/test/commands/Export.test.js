@@ -1,8 +1,9 @@
 const chai = require("chai");
-const assert = chai.assert;
+const { assert, expect } = chai;
 const stdout = require("test-console").stdout;
 const fs = require("fs-extra");
 const path = require("path");
+const { getWalletFromEncryptedJson } = require("@secrez/eth");
 
 const MainPrompt = require("../../src/prompts/MainPromptMock");
 const {
@@ -316,5 +317,42 @@ describe("#Export", function () {
     });
     inspect.restore();
     assertConsole(inspect, ["Path does not exist"]);
+  });
+
+  it("should export a keystore json file if a private_key exists in the entry", async function () {
+    const p = "/folder/pk.yml";
+    const expected = "pk.keystore.json";
+    const password = "some weird password";
+
+    await noPrint(
+      C.touch.exec({
+        path: p,
+        generateWallet: true,
+      })
+    );
+
+    const pkYml = await C.cat.cat({
+      path: p,
+      unformatted: true,
+    });
+    const privateKey = pkYml[0].content
+      .split("private_key: ")[1]
+      .split("\n")[0];
+
+    inspect = stdout.inspect();
+    await C.export.exec({
+      path: p,
+      keystore: true,
+      password,
+    });
+    inspect.restore();
+    assertConsole(inspect, ["Exported file:", expected]);
+
+    const jsonFileContent = await C.lcat.lcat({
+      path: path.join(await C.lpwd.lpwd(), expected),
+    });
+
+    const wallet = await getWalletFromEncryptedJson(jsonFileContent, password);
+    expect(wallet.privateKey).equal("0x" + privateKey);
   });
 });

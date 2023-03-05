@@ -31,91 +31,55 @@
 
 </p>
 
-Secrez is:
-
-- a CLI secret manager working as an encrypted file system;
-- a decentralized surveillance-resistant end-to-end encrypted messaging system.
+Secrez is a CLI secret manager that functions as an encrypted file system, as well as a decentralized, surveillance-resistant, end-to-end encrypted messaging system.
 
 ## Intro
 
-At the very basic, Secrez is a CLI application that manages a particular encrypted file system, with commands working similarly to Unix commands like `cd`, `mkdir`, `ls`, `mv`, etc.
-
-The idea is to interact with encrypted virtual files as if they are just files in a standard file system.
+At its core, Secrez is a command-line interface that manages an encrypted file system, with commands that work similarly to Unix commands like `cd`, `mkdir`, `ls`, `mv`, etc. The idea is to interact with encrypted virtual files as if they are just files in a standard file system.
 
 ## Why Secrez?
 
-There are two primary approaches to secrets and password management:
+Secrez aims to provide a secure password management solution that is available everywhere. While online password managers like LastPass require you to trust a remote server, desktop tools like KeyPass are more secure but difficult to use on multiple computers. To address this, Secrez combines the security of KeyPass with the accessibility of LastPass.
 
-1. Online systems that save the data online (like LastPass)
-2. Desktop tools who keep data in the computer (like KeyPass)
+To achieve its goal, Secrez uses several strategies. First, any secret is a local file. Second, any file, whether it's a tree version, a directory, a text file, or a binary file, is immutable. Finally, any change can be pulled/pushed to a remote private repository. You can either create a private repository on GitHub, BitBucket, etc. or set up your own self-hosted Git server.
 
-An Online Password Manager requires that you trust the remote server.
-I founded Passpack in 2006, and I know very well how, at any moment, you can add a backdoor —— even only for a specific user —— and most likely nobody will notice it.
+In addition to functioning as a password manager, Secrez also includes an optional decentralized, surveillance-resistant, end-to-end encrypted messaging system. This provides an extra layer of security for your communications, ensuring that your messages cannot be intercepted or read by anyone other than the intended recipient.
 
-The second case, a desktop tool is intrinsically more secure, but it is hard to use on more than one computer.
-The standard solution is to backup the database on Dropbox or Google Drive and —— before using it —— download it locally, which is prone to produce unfixable problems and cause data loss.
-
-Secrez's goal is to be as safe as KeyPass but available everywhere, like Lastpass.
-
-To obtain this goal, Secrez assembles a few strategies:
-
-- Any secret is a local file
-- Any file — besides if it is a tree version, a directory, a text file, or a binary file — is immutable
-- Any change can be pulled/pushed to a remote private repo
-
-You can either create a private repo on GitHub, BitBucket, etc. or — much better — setting your own, self-hosted git server.
-
-For now, this is a manual approach. In a future version, the git repo will be manageable from inside Secrez.
+Overall, Secrez offers a powerful and secure solution for managing your passwords and secrets, all from the command line.
 
 ## The structure
 
-Secrez simulates an operating system. When you load the environment, you can execute commands like `ls`, `mv`, etc. similarly to what you normally to in a Unix terminal.
+Secrez simulates an operating system, allowing you to execute commands like ls and mv when you load the environment, similar to what you would normally do in a Unix terminal.
 
-Starting from version `0.6.0`, the data are organized in datasets. Think of them like separate disks, something like `/dev/disk1` and `/dev/disk2`.
+Starting from version 0.6.0, Secrez organizes data into datasets, which act like separate disks, such as /dev/disk1 and /dev/disk2. By default, Secrez generates two datasets: main and trash. You can create more using the use -c command, such as use -c archive.
+One of the primary goals of a secrets manager is to ensure that no data is ever lost. However, in some cases, secrets may exist in a folder but not be loaded if only the most recent index is read.
 
-By default, Secrez generates two datasets: `main` and `trash`. You can create more with, for example, `use -c archive`. The advantage of multiple datasets is mostly for people who have a lot of secrets to manage. If you have 2,000, if they are all in the primary dataset, the system will probably become quite slow. The solution is to move data to separate datasets (`archive`, `backup`, `twitter`, `cryptos`, etc.)
+Here's an example: Alice uses Secrez on both computer A and B, and the two data sets are aligned. Suddenly, GitHub goes down, and she makes some changes on both computers. When GitHub comes back online, she pushes the master branch on computer A, and everything goes fine. However, when she pulls on computer B and pushes, the data online become inconsistent because the most recent tree (from B) does not contain the new changes that were previously saved on A. This means that some secrets are in one index, while others are in the other.
 
-## Secrez never lose secrets
+No problem. When Alice restarts Secrez, the system finds the extra secrets, reads their positions from the previous indexes, and puts them back in the tree. Since files are immutable, the recovery strategy is not always obvious. Here's what happens in different cases:
 
-One of the primary goal of a secrets manager is that you will never lose any data.
+If the recovered secret is in a folder that does not exist in the "official" index, the entire path is added using the encrypted data of the recovered secret.
+If the secret is a file in a folder that already exists, the file is added as is, but the folders with existing paths are trashed.
+If the secret is a file and a file with the same name already exists in the same position, the system checks the content of the file. If it is the same, the secret is ignored. If it's different, it is added as a version.
+Any unused or rewritten secrets (as versions) are trashed (you can check them in the trash dataset). In any case, all the contents are kept.
 
-However, since only the most recent index is read, some secrets could be in the folder and not been loaded.
+To avoid repeating the same process on the other computer (which will generate files with different IDs and more deleted items), Alice should align the repo on computer A before doing anything there. But if she doesn't, nothing will be lost anyway.
 
-Let do an example. Alice uses Secrez on computer A and computer B. The two data sets are aligned. Suddenly, GitHub is down and she has to make some change on both computers.
-
-When GitHub is up again, she pushes master on A and everything goes fine.
-
-She pulls on B and pushes.
-Now, the data online are not consistent because the most recent tree (from B) does not contains the new changes saved previously on A, i.e., some secrets are in one index, some are in the other one.
-
-No problem. When Alice restart Secrez, the system finds the extra secrets, reads their positions from the previous indexes and puts them back in the tree.
-
-Since files are immutable, the strategy is not obvious. This is what happens in different cases:
-
-1. The recovered secret is in a folder that does not exists in the "official" index. In this case, the entire path is added using the encrypted data of the recovered secret
-2. The secret is a file in a folder that actually exists. The file is added as is, but the folders with existent paths are trashed.
-3. The secret is a file but a file with the same name exists in the same position. The system checks the content of the file. If it is the same, the secret is ignored, if not it is added as a version.
-
-Either any unused secret or secret that is rewritten (as a version) is trashed (you can check them in the `trash` dataset).
-
-In any case, all the contents are kept.
-
-To avoid to repeat the same process on the other computer (which will generate files with different IDs and more deleted items), Alice should align the repo on A before doing anything there. But, if she does not, nothing will be lost anyway.
+Thus said, **it is a good practice to align the repo before doing anything. You never know.**
 
 ## The name convention
 
-A file name in Secrez looks like
+In Secrez, file names follow a specific convention:
 
 ```
 1VAnGLojzCDWhfZRK8PCYK203WBzJkAA28FhKHdS7DM5SkJaTgYdGfN1MAjTdfUYSzvtDVsMJvGodoHWzMuK6zr
 ```
 
-where `1` is the type (DIR, other types are TEXT and BINARY), and the rest is a encrypted message with nonce, in Base58 format.
+The first character, 1, indicates the type of file. The remaining characters represent an encrypted message with a nonce, in Base58 format. The encrypted part consists of an ID, timestamp, and the actual filename.
 
-The encrypted part is the combination of id, timestamp, and actual filename.
-This implies that, at bootstrap, Secrez must read all the files' names and build a tree of the entire file system. This is done using particular files: trees. Only after reading all the data, Secrez is able to understand which is the tree and, if something is missed, add the missing secrets. Since everything is encrypted, there is no information deductible from the files on disk, except what you can deduct from the Git repo (mostly about versioning and timestamp). But the idea is to use a private repo, so this is a minor issue.
+During initialization, Secrez reads all file names and builds a tree of the entire file system. This is done using special files called trees. Once all data has been read, Secrez can determine the tree and add any missing secrets. Since everything is encrypted, it is not possible to deduce information from the files on disk, except for versioning and timestamps, which can be obtained from the Git repo.
 
-To mitigate this risk, you can create a new Git repo, save everything as the first commit, and delete the previously used repo. This way, you lose the repo's history, but you also lose info about timestamps and versions in case someone gains access to the repo.
+To mitigate this risk, you can create a new Git repo, save everything as the first commit, and delete the previously used repo. This will result in losing the repo's history, but it will also prevent someone from accessing information about timestamps and versions.
 
 ## The tree
 
@@ -123,26 +87,19 @@ Secrez manages trees as single immutable files. During a session, temporary file
 
 ## The cryptographic foundation
 
-After comparing many possibilities, Secrez uses [NaCl](https://github.com/dchest/tweetnacl-js) as a crypto library. The advantage is that the library includes many algorithms for synchronous and asynchronous encryption.
+Secrez uses [NaCl](https://github.com/dchest/tweetnacl-js) as its primary cryptographic library. NaCl is a widely respected library that provides many algorithms for both synchronous and asynchronous encryption, and its design has been rigorously reviewed by experts in the field. By using NaCl, Secrez is able to provide strong security guarantees for its users.
 
 ## How to install it
 
-First, Secrez require at least Node 10. If you have installed a previous version it will generates unclear errors and refuse to install or work. I suggest you install Node using `nvm`, if you can. For more info look at [https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm).
+Secrez requires at least Node 10. If you have installed a previous version, it may generate unclear errors and refuse to install or work properly. We recommend installing Node using nvm if possible. For more information, refer to [https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm).
 
-To install Secrez globally you can use Npm
-
-```
-npm install -g secrez
-```
-
-but, since this monorepo uses pnpm, it is even better if you use pnpm because the lock file will be used avoiding unespected conflicts among modules.  
-To install pnpm run
+Since this monorepo uses [Pnpm](https://pnpm.io/), it is better to install secrez using pnpm because the lock file will be used to avoid unexpected conflicts among modules. To install pnpm, run:
 
 ```
 npm i -g pnpm
 ```
 
-and later
+and then run:
 
 ```
 pnpm i -g secrez
@@ -150,76 +107,53 @@ pnpm i -g secrez
 
 ## How to use it
 
-In the simplest case, you can just run
+To get started with Secrez, simply run the command:
 
 ```
 secrez
 ```
 
-At first run, Secrez will ask you for the number of iterations (suggested between 500000 and 1000000, but the more the better) and a master password — ideally a phrase hard to guess, but easy to remember and type, something like, for example "heavy march with 2 eggs" or "grace was a glad president".
-
-Since Secrez derives a master key from your password using `crypto.pbkdf2`, the number of iterations is a significant addition to the general security because the number of iterations is part of the salt used for the derivation. Even if you use a not-very-hard-to-guess password, if the attacker does not know the number of iterations, he has to try all the possible ones. Considering that 2,000,000 iterations require a second or so, customizable iterations increases enormously the overall security.
-
-At first launch, you can also explicitly set up the number of iterations:
+Upon first launch, Secrez will prompt you to enter a master password and the number of iterations. The number of iterations is used to derive a master key from your password, so the higher the number, the more secure your data will be. It's recommended to use between 500,000 and 1,000,000 iterations, but you can customize this based on your needs. For example, you can set the number of iterations explicitly by running:
 
 ```
 secrez -i 1023896
 ```
 
-or
-
-```
-secrez -si 876352
-```
-
-where the `-s` option saves the number locally in a git-ignored `env.json` file. This way you don't have to retype it all the time to launch Secrez (typing a wrong number of iterations, of course, will produce an error).
-
-You can save locally the number of iterations adding the options `-s`, like:
+You can also save the number of iterations locally by adding the -s option:
 
 ```
 secrez -s
 ```
 
-It is possible that the number of iterations you chose makes the initial decryption too slow. You can change it inside the Secrez CLI with the command `conf`.
+This will save the number of iterations in a git-ignored env.json file, so you don't have to enter it every time you launch Secrez. If you mistype the number of iterations, Secrez will produce an error.
 
-Other options at launch are:
-
-- `-l` to set up the initial "external" folder on you computer
-- `-c` to set up the container (i.e, the folder) where the encrypted data are located
-
-By default, both folders are your homedir (`~`).
-
-Running Secrez in different containers (with the `-c` option), you can set up multiple independent encrypted databases. For example:
+In addition to the master password and number of iterations, you can also specify other options at launch, such as the initial "external" folder on your computer (-l option) and the container (i.e., the folder) where the encrypted data is located (-c option). By default, both folders are set to your home directory (~). For example, if you want to set up a separate encrypted database in a different folder, you can run:
 
 ```
 secrez -c ~/data/secrez
 ```
 
+If the number of iterations you chose makes the initial decryption too slow, you can change it inside the Secrez CLI with the conf command.
+
 ## The commands
 
+Launching `help` you can list all available commands.
+
 ```
+Available commands:
   alias     Create aliases of other commands.
+  bash      << deprecated - use "shell" instead
   cat       Shows the content of a file.
   cd        Changes the working directory.
   chat      Enters the Secrez chat
-      contacts  Manages your contacts
-      help      This help.
-      join      Joins conversation.
-      leave     Leaves a room
-      quit      Quit the chat environment
-      send      Sends either a room or the chat
-      show      Show chat history in a room
-      whoami    Show data that other users need to chat with you
-  conf      Configure security data (2FA, password, number of iterations).
+  conf      Shows current configuration and allow to change password and number of iterations).
   contacts  Manages your contacts
   copy      Copy a text file to the clipboard.
   courier   Configure the connection to a local courier
   ds        Manages datasets
   edit      Edits a file containing a secret.
-  exit      << deprecated - use "quit" instead
   export    Export encrypted data to the OS in the current local folder
   find      Find a secret.
-  git       Pushes to a repo and pulls from a repo.
   help      This help.
   import    Import files from the OS into the current folder
   lcat      Similar to a standard cat in the external fs.
@@ -233,7 +167,7 @@ secrez -c ~/data/secrez
   pwd       Shows the path of the working directory.
   quit      Quits Secrez.
   rm        Removes one or more files and folders.
-  shell     Execute a bash command in the current disk folder.
+  shell     Execute a shell command in the current disk folder.
   ssh       Opens a new tab and run ssh to connect to a remote server via SSH
   tag       Tags a file and shows existent tags.
   totp      Generate a TOTP code if a totp field exists in the card.
@@ -246,45 +180,43 @@ secrez -c ~/data/secrez
 
 ## Some example
 
+To display the content of an encrypted file called myPrivateKey, run the following command:
+
 ```
 cat myPrivateKey
 ```
 
-This command will show the content of an encrypted file, which is called `myPrivateKey`. In particular, it will show the latest version of the file.
+By default, the latest version of the file will be displayed. However, you can use additional options to view a specific version or list all versions.
 
-Adding options to the command, it is possible to either see a specific version or list all the versions.
+Secrez uses versioning to ensure data integrity and avoid conflicts when backing up and distributing data through Git. Each time a file is modified, a new encrypted file is created with metadata about its ID and timestamp. The timestamp is used to assign a version to the file, which is a 4-letter hash of the timestamp.
 
-The versioning is very important in Secrez because the primary way to backup and distribute the data is using Git. In this case, you want to avoid conflicts that can be not fixable because of the encryption. So, every time there is a change, an entirely new file is created, with metadata about its id and timestamp.
-
-The timestamp is used to assign a version to the file. A version is a 4-letters hash of the timestamp.
-
-Another example:
+Another useful command is the import command. For example:
 
 ```
 import ~/Desktop/myWallet.json -m
 ```
 
-This command takes the standard file myWallet.json, contained in the Desktop folder, encrypts it, saves it in the encrypted file system, and removes (-m) it from the original folder.
+This command will encrypt the file myWallet.json located on your Desktop, save it in the encrypted file system, and then delete the original file using the -m option.
 
-This is one of my favorite commands. In fact, let's say that you have just downloaded the private key to access your crypto wallet, you want to encrypt it as soon as possible. With Secrez, you can import the file and delete the cleartext version in one command.
+This is particularly useful if you have just downloaded a private key to access your crypto wallet and want to encrypt it as soon as possible. With Secrez, you can import the file and delete the cleartext version in one command.
 
-## Aliases — where the fun comes :-)
+## Aliases — where the fun begins :-)
 
-Suppose that you have a card for your bank and want to log into it. You could copy email and password to the clipboard to paste them in the browser. Suppose that you expect to be able in 4 seconds to move from the terminal to the browser, you could run the command:
+Suppose you have a bank card and want to log in to your online account. You could copy the email and password to the clipboard to paste them in the browser. If you expect to be able to move from the terminal to the browser in 4 seconds, you could run the command:
 
 ```
 copy bank.yml -f email password -d 4 2
 ```
 
-This will copy the email field and give you 4 seconds to paste it in the browser. Then, it will emit a beep and you have 2 seconds to paste the password. It sounds quite useful, but it can be better.
+This will copy the email field and give you 4 seconds to paste it in the browser. Then, it will emit a beep, and you have 2 seconds to paste the password. It sounds quite useful, but it can be even better.
 
-If you use that login often, you could like to create an alias for it with:
+If you use that login often, you could create an alias for it with:
 
 ```
-alias b -c "copy bank.yml -f email password -d 4 2
+alias b -c "copy bank.yml -f email password -d 4 2"
 ```
 
-Next time, you can just type
+Next time, you can just type:
 
 ```
 b
@@ -292,13 +224,13 @@ b
 
 It looks great, right? Well, it can be even better.
 
-Let’s say that you are using a 2FA app (like Google Authenticator) to connect to a website, for example, GitHub. Suppose that you have a file github.yml with a field totp which is the secret that GitHub gave you when you activated the 2FA. You could execute
+Let’s say you're using a 2FA app like Google Authenticator to connect to a website, for example, GitHub. Suppose you have a file called github.yml with a field called totp, which is the secret that GitHub gave you when you activated 2FA. You could execute:
 
 ```
 totp github.yml
 ```
 
-to generate a TOTP token for GitHub. The token will be shown and copied in the clipboard. Now, you can create an alias like this
+to generate a TOTP token for GitHub. The token will be shown and copied to the clipboard. Now, you can create an alias like this:
 
 ```
 alias G -c "copy github.yml -f username password -d 4 2 --wait && totp github.yml"
@@ -306,31 +238,28 @@ alias G -c "copy github.yml -f username password -d 4 2 --wait && totp github.ym
 
 Can you guess what this will do?
 
-- It copies the username in the clipboard;
-- it waits 5 seconds, emits a beep and copies the password;
-- it waits 3 seconds, emits a beep and copies the TOTP token and keep it in the clipboard.
-
-You can also use parameters in aliases and create a macro like
+It copies the username to the clipboard;
+It waits 5 seconds, emits a beep, and copies the password;
+It waits 3 seconds, emits a beep, and copies the TOTP token, keeping it in the clipboard.
+You can also use parameters in aliases and create a macro like this:
 
 ```
 alias M -c "copy $1 -f username password -d 4 2 --wait && totp $1"
 ```
 
-and call it with
+and call it with:
 
 ```
 M github.yml
 ```
 
-It is fantastic, isn’t it?
+It's fantastic, isn't it?
 
-_Btw, using a TOTP factor in Secrez is a bit of a contradiction, because you are converting a second factor (something that you have) in a first factor (something that you know). So, use this feature only when it makes sense._
+_Btw, using a TOTP factor in Secrez is a bit of a contradiction because you are converting a second factor (something that you have) into a first factor (something that you know). So, use this feature only when it makes sense._
 
 ## Importing from other password/secret managers
 
-From version 0.5.2, Secrez supports import of backups from other softwares.
-
-Suppose you have exported your password in a CSV file name export.csv like this:
+Secrez supports importing backups from other software. Suppose you have exported your passwords in a CSV file named export.csv like this:
 
 ```
 Path,Username,Password,Web Site,Notes
@@ -341,17 +270,17 @@ line
 notes"
 ```
 
-It is necessary a field named `path` because if not Secrez does not know where to put the new data. The path is supposed to be relative, allowing you to import it in your favorite folder.
+A field named path is necessary because Secrez needs to know where to place the new data. The path should be relative, allowing you to import it into your favorite folder.
 
-For example, to import it in the `1PasswordData` you could call
+To import the CSV file into the 1PasswordData folder, for example, you can run:
 
 ```
 import export.csv -e 1PasswordData -t
 ```
 
-The parameter `-e, --expand` is necessary. If missed, Secrez will import the file as a single file.
+The parameter -e or --expand is necessary. If it's not provided, Secrez will import the file as a single file.
 
-Internally, Secrez converts the CSV in a JSON file like this:
+Internally, Secrez converts the CSV file to a JSON file like this:
 
 ```
  [
@@ -375,13 +304,13 @@ Internally, Secrez converts the CSV in a JSON file like this:
   ]
 ```
 
-which means that you can also format your data as a JSON like that and import that directly with
+This means that you can also format your data as a JSON and import it directly using:
 
 ```
 import export.json -e 1PasswordData
 ```
 
-Any item will generate a single Yaml file, like, for example, the last element in the JSON, will generate the file `/1PasswordDate/somePath.yml` with the following content:
+Each item in the JSON will generate a single YAML file. For example, the last element in the JSON will generate the file /1PasswordDate/somePath.yml with the following content:
 
 ```
 password: s83832jedjdj
@@ -392,44 +321,43 @@ notes: |-
   notes
 ```
 
-When you edit the new file, Secrez recognize it as a card and asks you which field you want to edit (if you don't explicit it with, for example, `-f password`) and edit just that field.
+When you edit the new file, Secrez recognizes it as a card and asks you which field you want to edit (unless you explicitly specify it with, for example, -f password) and edits just that field.
 
-At the end of the process, you can remove the original backup, adding the option `-m`.
-You can also simulate the process to see which files will be created with the option `-s`.
+At the end of the process, you can remove the original backup using the -m option. You can also simulate the process to see which files will be created using the -s option.
 
-If in the CSV file there is also the field `tags`, you can tag automatically any entries with the options `-t, --tags`. If you don't use the option, instead, they will be saved in the yaml file like any other field.
+If the CSV file also contains a tags field, you can automatically tag any entries using the -t or --tags option. If you don't use this option, the tags will be saved in the YAML file like any other field.
 
 ### What if there is no path field?
 
-Let's say that you want to import a CSV file exported by LastPass. There is not `path` field but you probably want to use the fields `grouping` and `name` to build the path. From version `0.8.8`, you can do it, launching, for example:
+Let's say you want to import a CSV file exported by LastPass, which doesn't have a path field. In this case, you can use other fields, such as grouping and name, to build the path instead. Starting from version 0.8.8, you can do this by running:
 
 ```
 import ~/Downloads/lastpass_export.csv -e lastpass -P grouping name
 ```
 
-or, if you like to put everything in the folder `lastpass` without generating any subfolder, you can just run
+Or, if you want to put everything in the folder `lastpass` without generating any subfolders, you can run:
 
 ```
 import ~/Downloads/lastpass_export.csv -e lastpass -P name -m
 ```
 
-using only the `name` field. Still, if in the name there is any slash, a subfolder will be created. The `-m` option will remove the csv file from the OS.
+By using only the name field, any entries with a slash in the name will create a subfolder. The -m option will remove the CSV file from the operating system after importing.
 
-In these two examples, be sure that any of your entries in LastPass has a name. If not, the import will fail because it does't know how to call the file.
+In both examples, make sure that all entries in the LastPass CSV file have a name. If not, the import will fail because Secrez won't know how to name the file.
 
 ### Best practices
 
-For security reason, if would be better if you do the export from you password manager and the import into Secrez as fast as possible, removing the exported file from your OS using `-m`.
+For security reasons, it is better to export from your password manager and import into Secrez as quickly as possible, removing the exported file from your OS using -m.
 
-Still, it is convenient to edit the exported file to fix paths and names. Doing it after than the data is imported can require a lot more time. Think about it.
+However, if you need to edit the exported file to fix paths and names, it is more convenient to do it before importing the data, as it can take a lot more time to do so after the data is imported.
 
-## Second factor authentication?
+## FIDO2 second factor authentication?
 
-**It has been removed in version 0.11.0 due to potentially critical issues with Python and the required libraries on MacOS (2FA will be restored as soon as a pure Javascript library is available)**
+It has been removed in version 0.11.0 due to potential critical issues with Python and the required libraries on MacOS (2FA may be restored if a pure Javascript library becomes available).
 
 ## (experimental) End-to-end encrypted communication with other accounts
 
-Starting from version 0.8.0, Secrez allows to exchange encrypted messages with other users. To do it, you must set up a local Courier ([look here for more info](https://github.com/secrez/secrez/tree/master/packages/courier)).
+Starting from version 0.8.0, Secrez allows you to exchange encrypted messages with other users. To do so, you must set up a local Courier ([look here for more info](https://github.com/secrez/secrez/tree/master/packages/courier)).
 
 ## Blog posts
 
@@ -439,22 +367,26 @@ Starting from version 0.8.0, Secrez allows to exchange encrypted messages with o
 
 ## Some thoughts
 
-Secrez does not want to compete with password managers. So, don't expect in the future to have "form filling" and staff like that. The idea behind Secrez was born in 2017, when I was participating in many ICO and I had so many files to save and any password manager I used was very bad for that. Still, Secrez, for its nature, is file oriented and I guess will remain this way. However, it is open source, and someone is welcome to built a GUI or a mobile app built on it.
-
-## TODO
-
-- Good documentation
-- Plugin architecture to allow others to add their own commands
+Secrez is not intended to compete with password managers, so do not expect it to have features like "form filling." The idea behind Secrez originated in 2017 when I was participating in many ICOs, and I had so many files to save, but any password manager I used was not very effective. Secrez is file-oriented and will likely remain so. However, it is open source, and someone is welcome to build a GUI or mobile app built on it.
 
 ## History
 
-**1.1.1**
+**1.1.3**
+
+- add new option `--keystore, -k` to `export`. If a file contains a private key field (i.e., a field with a name containing `private_key`), it can be exported in the keystore format. The file will have the same name with the extension replaced with `.keystore.json`.
+- this README has been redacted by ChatGPT to make it more clear and concise.
+
+**1.1.2**
 
 - New options for `touch`:
   - `--wait-for-content` to prompt the user to add the content, instead of expecting it as a parameter. The content will be trimmed at the first newline, if there is any.
   - `--generate-wallet` to generate an Ethereum-compatible wallet in a new card or in an existing one. It generates the fields `private_key` and `address`, with private key and address.
   - `--prefix` in combination with `--generate-wallet` specifies the prefix of the field, calling the fields, for example `my_private_key` and `my_address` if the prefix is `my`.
   - `--amount` in combination with `--generate-wallet` specifies the amount of wallets to generate. The default is 1.
+
+**1.1.1** (unpublished)
+
+- using prettier for consistent formatting
 
 **1.1.0**
 
@@ -824,64 +756,57 @@ npm run reset
 
 #### Install OS requirements
 
-To complete the tests, you must install some tool, depending on you operating system.
+To complete the tests, you must install some tools depending on your operating system.
 
-The `copy` command does not work on Linux is `xsel` is not installed. So, if you, for example, are working on Ubuntu, install it with
+The `copy` command does not work on Linux if `xsel` is not installed. So, if you are working on Ubuntu, install it with:
 
 ```
 sudo apt install xsel
 ```
 
-The `totp` command requires, on MacOS, `pngpaste`. You can install it with
+The `totp` command requires `pngpaste` on macOS. You can install it with:
 
 ```
 brew install pngpaste
 ```
 
-The `conf` command, requires `Python-fido2`. If you don't have Python, install it. After you can install `fido2` running:
-
-```
-pip install fido2
-```
-
-Notice that during the execution of Secrez, an error is generated if those tools have not been found. But, nothing happens, during testing. So, please, install them.
+Please note that during the execution of Secrez, an error is generated if those tools have not been found. Please make sure to install them.
 
 #### Testing
 
-Run
+To run all the tests, navigate to the root directory of the project and run:
 
 ```
 npm run test
 ```
 
-This depends where you run it. If you run from the root it executes all the tests, if you run from inside a package, it runs only its specific tests.
-You can also run
+If you are inside a package directory, running this command will only execute the package-specific tests. You can also skip coverage by running:
 
 ```
 npm run test-only
 ```
 
-to skip the coverage. This is very helpful during the development.
+This is useful during development.
 
 #### Debugging
 
-To see if it works, you can execute your version of Secrez running, from inside `packages/secrez`
+To see if Secrez works properly, you can execute your version of Secrez by running the following command from inside the `packages/secrez` directory:
 
 ```
 npm run dev
 ```
 
-and create a dev account for you playing.
+You will create a dev account to play with it.
 
 #### Pull Requests
 
-To prepare the code for a PR, you should realign the versions. You can do this, from the root, calling
+Before submitting a pull request, you should realign the versions. You can do this by running the following command from the root directory:
 
 ```
 npm run patch-versions
 ```
 
-Then, you can prepare the README inserting the coverage. To do it, run
+Then, you can prepare the README file by inserting the coverage. To do this, run:
 
 ```
 npm run pre-push
@@ -889,73 +814,84 @@ npm run pre-push
 
 Finally, you can push to GitHub.
 
-Thanks a lot for any contribution 😉
+Thank you for any contributions! 😉
 
 ## Test coverage
 
 ```
-  8 passing (1s)
+  166 passing (25s)
+  1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   19.31 |     6.31 |   17.43 |   19.32 |                                   
- src                   |   33.03 |    15.07 |      25 |   33.33 |                                   
-  Command.js           |   37.29 |     23.4 |   38.46 |   37.93 | 29-35,40-97,108,119,122-130       
-  PreCommand.js        |    12.2 |        0 |       0 |    12.2 | 8-115                             
+All files              |   71.47 |    58.49 |   71.98 |   71.36 |                                   
+ src                   |   59.63 |    54.79 |      55 |   60.19 |                                   
+  Command.js           |   79.66 |    78.72 |   76.92 |   81.03 | 32,55-62,73,80,119                
+  PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 8-98,115                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
- src/commands          |   15.44 |     2.67 |   19.63 |    15.5 |                                   
-  Alias.js             |    8.11 |        0 |      25 |    8.22 | 62-213                            
-  Bash.js              |    62.5 |        0 |   33.33 |    62.5 | 11-19                             
-  Cat.js               |   12.09 |        0 |   14.29 |   12.09 | 61-220                            
-  Cd.js                |   17.86 |        0 |      25 |   17.86 | 28-73                             
+ src/commands          |   81.53 |       67 |   89.95 |    81.4 |                                   
+  Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 101,112,139,169,173,180,190       
+  Bash.js              |      75 |        0 |   66.67 |      75 | 18-19                             
+  Cat.js               |    98.9 |    88.89 |     100 |    98.9 | 152                               
+  Cd.js                |   96.43 |    86.67 |     100 |   96.43 | 44                                
   Chat.js              |   19.51 |        0 |   16.67 |   19.51 | 23-144                            
-  Conf.js              |    8.96 |        0 |    12.5 |    8.96 | 67-499                            
-  Contacts.js          |       6 |        0 |    7.14 |    6.04 | 55-352                            
-  Copy.js              |   10.26 |        0 |   14.29 |   10.39 | 69-237                            
-  Courier.js           |    6.25 |        0 |    7.14 |    6.38 | 20-221                            
-  Ds.js                |    5.97 |        0 |   16.67 |    6.06 | 39-160                            
-  Edit.js              |   12.35 |        0 |      20 |   12.35 | 61-214                            
-  Export.js            |   12.99 |        0 |   16.67 |   12.99 | 68-232                            
-  Find.js              |    7.69 |        0 |    8.33 |    7.89 | 63-211                            
-  Help.js              |   73.33 |       40 |      75 |   73.33 | 26,36-40                          
-  Import.js            |    6.31 |        0 |    9.09 |    6.37 | 87-496                            
-  Lcat.js              |      30 |        0 |      25 |      30 | 35-65                             
-  Lcd.js               |   17.39 |        0 |      25 |   17.39 | 30-72                             
-  Lls.js               |   22.73 |        0 |      25 |   22.73 | 49-99                             
-  Lpwd.js              |   30.77 |        0 |      25 |   30.77 | 15-38                             
-  Ls.js                |     5.8 |        0 |      10 |    6.15 | 46-183                            
-  Mkdir.js             |   22.73 |        0 |      25 |   22.73 | 27-61                             
-  Mv.js                |    6.52 |        0 |   16.67 |    6.67 | 46-240                            
-  Paste.js             |   14.89 |        0 |      25 |   14.89 | 40-131                            
-  Pwd.js               |   30.77 |        0 |      25 |   30.77 | 15-35                             
-  Quit.js              |      50 |        0 |   33.33 |      50 | 19-40                             
-  Rm.js                |      16 |        0 |   16.67 |   16.33 | 36-137                            
-  Shell.js             |   29.41 |        0 |      25 |   29.41 | 25-57                             
-  Ssh.js               |   22.22 |        0 |      20 |   22.22 | 49-120                            
-  Tag.js               |    8.82 |        0 |    9.09 |    8.91 | 66-236                            
-  Totp.js              |   15.29 |        0 |      10 |   15.29 | 75-288                            
+  Conf.js              |   10.45 |        0 |      25 |   10.45 | 134-499                           
+  Contacts.js          |   74.67 |    65.98 |   92.86 |    74.5 | ...90-214,240,247,259,315,328,338 
+  Copy.js              |   94.87 |    74.51 |     100 |   94.81 | 111,162,179,204                   
+  Courier.js           |   63.54 |    41.86 |   85.71 |   63.83 | ...37,152-171,188,200-203,215-221 
+  Ds.js                |   92.54 |    82.05 |     100 |   92.42 | 99,108-113,125                    
+  Edit.js              |   13.58 |        0 |      40 |   13.58 | 88-214                            
+  Export.js            |   87.63 |    67.74 |     100 |   87.63 | ...66,175,182-186,191,203,212,215 
+  Find.js              |   93.59 |    86.67 |     100 |   93.42 | 101,164,200-203,209               
+  Help.js              |     100 |       80 |     100 |     100 | 29                                
+  Import.js            |    93.2 |    85.48 |     100 |   93.14 | ...65,367,387,393,441,456-463,490 
+  Lcat.js              |     100 |    85.71 |     100 |     100 | 54                                
+  Lcd.js               |   95.65 |    81.82 |     100 |   95.65 | 50                                
+  Lls.js               |   95.45 |    72.73 |     100 |   95.45 | 97                                
+  Lpwd.js              |   92.31 |      100 |     100 |   92.31 | 36                                
+  Ls.js                |    91.3 |       75 |     100 |   90.77 | 103,114-116,130,181               
+  Mkdir.js             |     100 |    66.67 |     100 |     100 | 38-44                             
+  Mv.js                |   88.04 |    73.21 |     100 |   87.78 | 93-99,133,155,165-172             
+  Paste.js             |   87.23 |       75 |     100 |   87.23 | 72,78,81,89,113,129               
+  Pwd.js               |   92.31 |      100 |     100 |   92.31 | 33                                
+  Quit.js              |      90 |       50 |     100 |      90 | 27                                
+  Rm.js                |      94 |    80.95 |     100 |   93.88 | 63,126,134                        
+  Shell.js             |   88.24 |       60 |     100 |   88.24 | 38,55                             
+  Ssh.js               |      25 |        0 |      40 |      25 | 72-120                            
+  Tag.js               |   98.04 |    92.31 |     100 |   98.02 | 122,171                           
+  Totp.js              |   96.47 |    74.47 |     100 |   96.47 | 188-189,235                       
   Touch.js             |   95.92 |    81.48 |     100 |   95.83 | 152,202                           
-  Use.js               |    12.9 |        0 |      25 |    12.9 | 30-85                             
-  Ver.js               |      50 |        0 |   33.33 |      50 | 17-28                             
-  Whoami.js            |   24.14 |        0 |      20 |   24.14 | 22-66                             
-  chat.js              |   19.51 |        0 |   16.67 |   19.51 | 23-144                            
-  index.js             |    87.5 |       50 |     100 |   86.96 | 15,22,31                          
- src/prompts           |      14 |        0 |    4.76 |   14.12 |                                   
+  Use.js               |   96.77 |    89.47 |     100 |   96.77 | 68                                
+  Ver.js               |      90 |    66.67 |     100 |      90 | 25                                
+  Whoami.js            |    93.1 |    63.64 |      80 |    93.1 | 29,64                             
+  chat.js              |   85.37 |    53.85 |     100 |   85.37 | 105,117-130,136,142               
+  index.js             |   91.67 |       60 |     100 |    91.3 | 22,31                             
+ src/commands/chat     |   79.44 |    63.29 |   92.31 |   79.33 |                                   
+  Contacts.js          |      80 |    42.86 |      80 |      80 | 54,65,69,81                       
+  Help.js              |   86.67 |       60 |     100 |   86.67 | 37-38                             
+  Join.js              |   95.65 |    82.61 |     100 |   95.56 | 43,110                            
+  Leave.js             |     100 |       60 |     100 |     100 | 24,28                             
+  Quit.js              |     100 |       75 |     100 |     100 | 24                                
+  Send.js              |   67.65 |    46.67 |     100 |   67.65 | 37,41,44,77,86-95                 
+  Show.js              |   68.75 |    70.59 |     100 |   68.75 | 74-78,87,102-108                  
+  Whoami.js            |   42.86 |        0 |      60 |   42.86 | 22,30-39                          
+ src/prompts           |   15.14 |        0 |   14.29 |   15.27 |                                   
   ChatPrompt.js        |    6.17 |        0 |       0 |    6.17 | 8-163                             
-  ChatPromptMock.js    |   42.86 |      100 |       0 |   42.86 | 6-14                              
+  ChatPromptMock.js    |     100 |      100 |   66.67 |     100 |                                   
   CommandPrompt.js     |   10.42 |        0 |       0 |   10.56 | 24-296                            
   Completion.js        |    4.41 |        0 |       0 |    4.48 | 6-103                             
-  MainPromptMock.js    |     100 |      100 |   33.33 |     100 |                                   
+  MainPromptMock.js    |     100 |      100 |   66.67 |     100 |                                   
   MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 7-36                              
   SigintManager.js     |      25 |        0 |      20 |      25 | 10-36                             
- src/utils             |   51.63 |    40.63 |   20.83 |   51.03 |                                   
-  AliasManager.js      |    5.88 |        0 |       0 |    5.88 | 3-48                              
-  ContactManager.js    |    7.14 |        0 |       0 |    7.14 | 3-44                              
-  Fido2Client.js       |    9.62 |        0 |       0 |    9.62 | 8-108                             
-  HelpProto.js         |   78.99 |    62.32 |   83.33 |   78.63 | 11-39,49,153-154,171-176,195      
-  Logger.js            |   59.09 |    56.25 |   26.32 |   58.14 | ...29,37-57,65-69,74,84,88,93,105 
+ src/utils             |   69.92 |    63.28 |   56.25 |   69.55 |                                   
+  AliasManager.js      |     100 |    91.67 |     100 |     100 | 47                                
+  ContactManager.js    |   71.43 |       60 |   85.71 |   71.43 | 12,35-37                          
+  Fido2Client.js       |   15.38 |        0 |   11.11 |   15.38 | 14-108                            
+  HelpProto.js         |    91.6 |    84.06 |     100 |   91.45 | 49,153-154,171-176,195            
+  Logger.js            |   63.64 |    56.25 |   36.84 |   62.79 | ...37-49,57,65-69,74,84,88,93,105 
 -----------------------|---------|----------|---------|---------|-----------------------------------
+
 ```
 
 ## Copyright
