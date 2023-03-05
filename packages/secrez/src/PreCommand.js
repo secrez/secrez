@@ -76,6 +76,7 @@ class PreCommand {
         name: "result",
         message: options.message,
         default: options.content,
+        choices: options.choices,
         validate: (val) => {
           if (val) {
             if (val === exitCode) {

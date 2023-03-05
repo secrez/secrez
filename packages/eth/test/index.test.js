@@ -2,7 +2,7 @@ const chai = require("chai");
 const expect = chai.expect;
 const Eth = require("../src"); // import the Eth class from the file
 
-describe("#Eth", () => {
+describe.only("#Eth", async () => {
   let wallet;
 
   // from hardhat
@@ -29,51 +29,62 @@ describe("#Eth", () => {
 
   before(async () => {});
 
-  describe("#newWallet()", () => {
+  describe("#newWallet()", async () => {
     it("should create a new random wallet", async () => {
-      wallet = await Eth.newWallet();
+      wallet = Eth.newWallet();
       expect(wallet.address).to.exist;
       expect(wallet.privateKey).to.exist;
     });
   });
 
-  describe("#getWalletFromMnemonic()", () => {
+  describe("#getWalletFromMnemonic()", async () => {
     it("should create a wallet from a mnemonic", async () => {
-      let walletFromMnemonic = await Eth.getWalletFromMnemonic(mnemonic);
+      let walletFromMnemonic = Eth.getWalletFromMnemonic(mnemonic);
       expect(walletFromMnemonic.address).equal(bob.address);
       expect(walletFromMnemonic.privateKey).equal(bob.privatekey);
       expect(
         Eth.equals(
-          (await Eth.getWalletFromMnemonic(mnemonic, undefined, 1)).address,
+          Eth.getWalletFromMnemonic(mnemonic, undefined, 1).address,
           alice.address
         )
       ).to.be.true;
       expect(
         Eth.equals(
-          (await Eth.getWalletFromMnemonic(mnemonic, undefined, 2)).address,
+          Eth.getWalletFromMnemonic(mnemonic, undefined, 2).address,
           joe.address
         )
       ).to.be.true;
     });
   });
 
-  describe("#getWalletFromPrivateKey()", () => {
+  describe("#getWalletFromPrivateKey()", async () => {
     it("should create a wallet from a private key", async () => {
-      wallet = await Eth.newWallet();
+      wallet = Eth.newWallet();
       const privateKey = wallet.privateKey;
-      const walletFromPrivateKey = await Eth.getWalletFromPrivateKey(
-        privateKey
-      );
+      const walletFromPrivateKey = Eth.getWalletFromPrivateKey(privateKey);
       expect(walletFromPrivateKey.address).to.exist;
       expect(walletFromPrivateKey.privateKey).to.exist;
       expect(walletFromPrivateKey.privateKey).to.equal(privateKey);
     });
   });
 
-  describe("#getWalletFromEncryptedJson()", () => {
-    it("should create a wallet from an encrypted JSON", async () => {
+  describe("#encryptWalletAsKeystoreJson()", async () => {
+    it("should encrypt a wallet as a keystore JSON", async () => {
+      wallet = Eth.newWallet();
       const password = "test";
-      const json = await wallet.encrypt(password);
+      const json = await Eth.encryptWalletAsKeystoreJson(wallet, password);
+      expect(json).to.exist;
+    });
+  });
+
+  describe("#getWalletFromEncryptedJson()", async () => {
+    it("should create a wallet from an encrypted JSON", async () => {
+      wallet = Eth.newWallet();
+      const password = "test";
+      const json = await Eth.encryptPrivateKeyAsKeystoreJson(
+        wallet.privateKey,
+        password
+      );
       const walletFromEncryptedJson = await Eth.getWalletFromEncryptedJson(
         json,
         password

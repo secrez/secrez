@@ -3,8 +3,8 @@ const path = require("path");
 const chalk = require("chalk");
 
 const Crypto = require("@secrez/crypto");
-const { sleep } = require("@secrez/utils");
-
+const { sleep, yamlParse } = require("@secrez/utils");
+const { encryptPrivateKeyAsKeystoreJson } = require("@secrez/eth");
 const { Node, FileCipher } = require("@secrez/fs");
 
 class Export extends require("../Command") {
@@ -61,6 +61,11 @@ class Export extends require("../Command") {
         name: "include-me",
         type: Boolean,
       },
+      {
+        name: "keystore",
+        alias: "k",
+        type: Boolean,
+      },
     ];
   }
 
@@ -97,6 +102,10 @@ class Export extends require("../Command") {
           "export seed.json -e --include-me",
           "encrypts seed.json also using your key",
         ],
+        [
+          "export my-wallet.yml -k",
+          "it will export a private key from the entry to a keystore file. The fill will be named as the entry replacing the extension with '.keystore.json'. If in the entry there are more than one private_key, it will ask which one to export. If no '--password' is specified, it will ask for a password to encrypt the keystore file. The entry must be a valid card, with at least one 'private_key' field.",
+        ],
       ],
     };
   }
@@ -131,7 +140,43 @@ class Export extends require("../Command") {
       if (Node.isBinary(entry) && typeof content === "string") {
         content = Crypto.bs64.decode(content);
       }
-      if (options.encrypt) {
+      if (options.keystore) {
+        let card;
+        try {
+          card = yamlParse(content);
+        } catch (e) {
+          throw new Error("The entry is not a valid card");
+        }
+        let pks = [];
+        for (let k in card) {
+          if (/private_key/.test(k)) {
+            pks.push(k);
+          }
+        }
+        if (!pks.length) {
+          throw new Error("The entry does not contain any private key");
+        }
+        let privateKey = card[pks[0]];
+        if (pks.length > 1) {
+          let pk = await this.useInput({
+            type: "list",
+            message: "Which private key do you want to export?",
+            choices: pks,
+          });
+          privateKey = card[pk];
+        }
+        let pwd =
+          options.password ||
+          (await this.useInput({
+            type: "password",
+            message: "Type the password to encrypt the keystore file",
+          }));
+        if (!pwd) {
+          throw new Error("Operation canceled");
+        }
+        content = await encryptPrivateKeyAsKeystoreJson(privateKey, pwd);
+        name = name.replace(/\.[^.]+$/, ".keystore.json");
+      } else if (options.encrypt) {
         const myPublicKey = this.secrez.getPublicKey();
         if (options.publicKeys) {
           if (
@@ -176,7 +221,8 @@ class Export extends require("../Command") {
       let fn = path.join(dir, name);
       await fs.writeFile(fn, content);
       if (options.duration) {
-        this.deleteFromDisk(fn, options.duration);
+        // we do not wait for the deletion
+        this.deleteFromDisk(fn, options.duration).then();
       }
       return name;
     } else {

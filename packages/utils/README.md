@@ -20,11 +20,11 @@ This is a utils library used by other packages in the @secrez suite.
   38 passing (151ms)
 
 -------------|---------|----------|---------|---------|-------------------
-File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 -------------|---------|----------|---------|---------|-------------------
-All files    |   93.89 |    84.88 |   84.21 |   93.71 |                   
- UglyDate.js |     100 |    96.67 |     100 |     100 | 60                
- index.js    |   91.54 |    78.57 |   82.86 |    91.2 | 240-263           
+All files    |   93.89 |    84.88 |   84.21 |   93.71 |
+ UglyDate.js |     100 |    96.67 |     100 |     100 | 60
+ index.js    |   91.54 |    78.57 |   82.86 |    91.2 | 240-263
 -------------|---------|----------|---------|---------|-------------------
 ```
 

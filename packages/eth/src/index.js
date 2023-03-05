@@ -8,7 +8,7 @@ class Eth {
     return ethers.Wallet.createRandom();
   }
 
-  static async getWalletFromMnemonic(
+  static getWalletFromMnemonic(
     mnemonic,
     derivedPath = "m/44'/60'/0'/0",
     walletListIndex = 0
@@ -22,12 +22,26 @@ class Eth {
     return Eth.getWalletFromPrivateKey(privateKey);
   }
 
-  static async getWalletFromPrivateKey(privateKey) {
+  static getWalletFromPrivateKey(privateKey) {
     return new ethers.Wallet(privateKey);
   }
 
   static async getWalletFromEncryptedJson(json, password) {
     return ethers.Wallet.fromEncryptedJson(json, password);
+  }
+
+  static async encryptWalletAsKeystoreJson(wallet, password) {
+    return wallet.encrypt(password);
+  }
+
+  static async encryptPrivateKeyAsKeystoreJson(privateKey, password) {
+    if (!privateKey.startsWith("0x")) {
+      privateKey = "0x" + privateKey;
+    }
+    return Eth.encryptWalletAsKeystoreJson(
+      await Eth.getWalletFromPrivateKey(privateKey),
+      password
+    );
   }
 
   static equals(address1, address2) {

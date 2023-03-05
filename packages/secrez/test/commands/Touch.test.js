@@ -10,7 +10,7 @@ const { assertConsole, noPrint, decolorize } = require("@secrez/test-helpers");
 
 const { password, iterations } = require("../fixtures");
 
-describe.only("#Touch", function () {
+describe("#Touch", function () {
   let prompt;
   let rootDir = path.resolve(__dirname, "../../tmp/test/.secrez");
   let inspect, C;

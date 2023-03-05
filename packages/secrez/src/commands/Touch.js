@@ -125,7 +125,7 @@ class Touch extends require("../Command") {
         if (i === 1) {
           wallet0 = wallet;
         } else {
-          wallet0 = await getWalletFromMnemonic(
+          wallet0 = getWalletFromMnemonic(
             wallet.mnemonic.phrase,
             wallet.path,
             i - 1
