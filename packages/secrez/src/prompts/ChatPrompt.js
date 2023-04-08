@@ -42,6 +42,7 @@ class ChatPrompt extends require("./CommandPrompt") {
   }
 
   prePromptMessage(options = {}) {
+    this.resetTimeout();
     if (this.environment.room) {
       let nicks = this.nicks(this.environment.room[0].contact);
       return [

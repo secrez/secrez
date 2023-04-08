@@ -371,6 +371,11 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 ## History
 
+**1.1.4**
+
+- add clear screen after 180 seconds to avoid that the user forgot its terminal open and accidentally shares it while sharing the screen during meetings — it happened to me :-(
+- add option `--timeout, -t` to customize the timeout when launching secrez
+
 **1.1.3**
 
 - add new option `--keystore, -k` to `export`. If a file contains a private key field (i.e., a field with a name containing `private_key`), it can be exported in the keystore format. The file will have the same name with the extension replaced with `.keystore.json`.
@@ -819,16 +824,16 @@ Thank you for any contributions! 😉
 ## Test coverage
 
 ```
-  166 passing (25s)
+  166 passing (24s)
   1 pending
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                 
 -----------------------|---------|----------|---------|---------|-----------------------------------
-All files              |   71.47 |    58.49 |   71.98 |   71.36 |                                   
+All files              |   71.22 |    58.41 |   71.25 |   71.11 |                                   
  src                   |   59.63 |    54.79 |      55 |   60.19 |                                   
   Command.js           |   79.66 |    78.72 |   76.92 |   81.03 | 32,55-62,73,80,119                
-  PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 8-98,115                          
+  PreCommand.js        |   21.95 |    11.54 |   14.29 |   21.95 | 8-99,116                          
   cliConfig.js         |     100 |      100 |     100 |     100 |                                   
  src/commands          |   81.53 |       67 |   89.95 |    81.4 |                                   
   Alias.js             |   90.54 |    77.36 |     100 |   90.41 | 101,112,139,169,173,180,190       
@@ -876,10 +881,10 @@ All files              |   71.47 |    58.49 |   71.98 |   71.36 |
   Send.js              |   67.65 |    46.67 |     100 |   67.65 | 37,41,44,77,86-95                 
   Show.js              |   68.75 |    70.59 |     100 |   68.75 | 74-78,87,102-108                  
   Whoami.js            |   42.86 |        0 |      60 |   42.86 | 22,30-39                          
- src/prompts           |   15.14 |        0 |   14.29 |   15.27 |                                   
-  ChatPrompt.js        |    6.17 |        0 |       0 |    6.17 | 8-163                             
+ src/prompts           |   14.72 |        0 |   13.43 |   14.85 |                                   
+  ChatPrompt.js        |     6.1 |        0 |       0 |     6.1 | 8-164                             
   ChatPromptMock.js    |     100 |      100 |   66.67 |     100 |                                   
-  CommandPrompt.js     |   10.42 |        0 |       0 |   10.56 | 24-296                            
+  CommandPrompt.js     |     9.8 |        0 |       0 |    9.93 | 24-318                            
   Completion.js        |    4.41 |        0 |       0 |    4.48 | 6-103                             
   MainPromptMock.js    |     100 |      100 |   66.67 |     100 |                                   
   MultiEditorPrompt.js |      25 |        0 |       0 |      25 | 7-36                              

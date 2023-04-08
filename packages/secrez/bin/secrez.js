@@ -32,6 +32,11 @@ const optionDefinitions = [
     type: Boolean,
   },
   {
+    name: "timeout",
+    alias: "t",
+    type: Number,
+  },
+  {
     name: "localDir",
     alias: "l",
     type: String,
@@ -100,12 +105,13 @@ Options:
   -s, --save-iterations   Saves the number of iterations in env.json (which 
                           is git-ignored). Do it only if you computer is very safe.               
   -l, --localDir          The local (out of the enctrypted fs) working dir. "~" by default.
-                      
+  -t, --timeout           The timeout in seconds before the screen is cleared. By default it is 180 seconds.
+                        
 Examples:
   $ secrez
   $ secrez -c /var/my-secrets -i 787099 -l ~/Desktop
   $ secrez -si 1213672
-  $ secrez -c ~/.secrez-archive
+  $ secrez -c ~/.secrez-archive -t 60
      
 `
   );
