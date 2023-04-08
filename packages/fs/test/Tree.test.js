@@ -6,6 +6,7 @@ const Secrez = require("@secrez/core").Secrez(Math.random());
 const Node = require("../src/Node");
 const Tree = require("../src/Tree");
 const InternalFs = require("../src/InternalFs");
+const _ = require("lodash");
 
 const { sleep } = require("@secrez/test-helpers");
 
@@ -18,7 +19,7 @@ describe("#Tree", function () {
   let internalFs;
 
   describe("#constructor", async function () {
-    before(async function () {
+    beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, "../tmp/test"));
       secrez = new Secrez();
       await secrez.init(rootDir);
@@ -43,7 +44,7 @@ describe("#Tree", function () {
   });
 
   describe("#load", async function () {
-    before(async function () {
+    beforeEach(async function () {
       await fs.emptyDir(path.resolve(__dirname, "../tmp/test"));
       secrez = new Secrez();
       await secrez.init(rootDir);
@@ -189,8 +190,8 @@ describe("#Tree", function () {
       assert.isTrue(tree.tags.content["wib"].includes(cid));
     });
 
-    it("should simulate a conflict in the repo and recover lost entries", async function () {
-      await sleep(1000);
+    it("should simulate a conflict in the repo and recover lost entries when a valid tree exists", async function () {
+      // await sleep(1000);
 
       signedUp = false;
 
@@ -225,8 +226,6 @@ describe("#Tree", function () {
 
       let files1 = await fs.readdir(`${rootDir}/data`);
       assert.equal(files1.length, 7);
-
-      await sleep(200);
 
       let tmp = await startTree();
       secrez = tmp.secrez;
@@ -268,8 +267,6 @@ describe("#Tree", function () {
         }
       }
 
-      await sleep(200);
-
       tmp = await startTree();
       secrez = tmp.secrez;
       internalFs = tmp.internalFs;
@@ -296,28 +293,24 @@ describe("#Tree", function () {
         await fs.move(`${backup}/${f}`, `${rootDir}/data/${f}`);
       }
 
-      // jlog(Object.keys(tree.root.flat()))
-
-      await sleep(300);
-
       tmp = await startTree();
       tree = tmp.tree;
       internalFs = tmp.internalFs;
 
       assert.equal(tree.alerts.length, 5);
-      assert.equal(tree.alerts[1], "/B/D/g");
-      assert.equal(tree.alerts[2], "/B/b");
-      assert.equal(tree.alerts[3], "/E/L/N");
-      assert.equal(tree.alerts[4], "/E/c");
 
-      // jlog(Object.keys(tree.root.flat()))
+      let arr = tree.alerts.slice(1).sort((a, b) => {
+        return a < b ? -1 : 1;
+      });
+
+      assert.deepEqual(arr, ["/B/D/g", "/B/b", "/E/L/N", "/E/c"]);
 
       await internalFs.mountTrash();
       const deleteds = internalFs.trees[1].root.children;
       assert.equal(Object.keys(deleteds).length, 1);
     });
 
-    it.skip("should simulate a lost index in the repo and recover the entries", async function () {
+    it("should simulate a lost index in the repo and recover the entries when no valid tree is found", async function () {
       signedUp = false;
 
       let { secrez, tree, internalFs } = await startTree();
@@ -354,12 +347,21 @@ describe("#Tree", function () {
       tree = tmp.tree;
 
       assert.equal(tree.alerts.length, 7);
-      assert.isTrue(tree.alerts[1].indexOf("/b") !== -1);
-      assert.isTrue(tree.alerts[2].indexOf("/B") !== -1);
-      assert.isTrue(tree.alerts[3].indexOf("/a") !== -1);
-      assert.isTrue(tree.alerts[4].indexOf("/C") !== -1);
-      assert.isTrue(tree.alerts[5].indexOf("/M") !== -1);
-      assert.isTrue(tree.alerts[6].indexOf("/A") !== -1);
+
+      tree.alerts.sort((a, b) => {
+        a = a.split("/")[2];
+        b = b.split("/")[2];
+        return a < b ? -1 : 1;
+      });
+
+      assert.deepEqual(_.compact(tree.alerts.map((e) => e.split("/")[2])), [
+        "A",
+        "B",
+        "C",
+        "M",
+        "a",
+        "b",
+      ]);
 
       function findRecovered(root) {
         let recovered;

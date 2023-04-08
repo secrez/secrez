@@ -27,6 +27,9 @@ class MainPrompt extends require("./CommandPrompt") {
       commands: new Commands(this, cliConfig).getCommands(),
     });
     this.cache = {};
+    if (options.timeout) {
+      this.clearScreenTimeout = options.timeout;
+    }
   }
 
   async preRun(options = {}) {
@@ -73,6 +76,7 @@ class MainPrompt extends require("./CommandPrompt") {
   }
 
   prePromptMessage(options = {}) {
+    this.resetTimeout();
     return chalk.reset(
       `Secrez ${
         this.internalFs.tree.name

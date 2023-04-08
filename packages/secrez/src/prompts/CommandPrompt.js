@@ -20,6 +20,28 @@ const sigintManager = require("./SigintManager");
 let thiz;
 
 class CommandPrompt {
+  constructor() {
+    this.timeoutId = null;
+    this.clearScreenTimeout = 180;
+  }
+
+  clearScreen() {
+    process.stdout.write("\u001b[2J\u001b[0;0H");
+    process.stdout.write(
+      `Screen cleared. Press any key to reactivate the terminal`
+    );
+  }
+
+  resetTimeout() {
+    const s = 180000;
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+    this.timeoutId = setTimeout(() => {
+      this.clearScreen();
+    }, this.clearScreenTimeout * 1000);
+  }
+
   async getReady(options) {
     thiz = this;
     this.inquirer = inquirer;
