@@ -10,11 +10,12 @@
     "test-only": "pnpm -r run test-only",
     "bin-lint": "eslint -c .eslintrc 'bin/*.js'",
     "reset": "bin/clean-all-modules.sh && pnpm install",
+    "check-unused": "bin/check-unused.sh",
+    "format": "npx prettier --write .",
+    "README": "echo 'For new versions, rung patch-versions, pre-push and push. Then publish to publish the new package.'",
     "patch-versions": "node bin/patch-versions.js",
     "pre-push": "npm run format && node bin/pre-push.js",
     "publish": "node bin/publish-changed-packages.js",
-    "check-unused": "bin/check-unused.sh",
-    "format": "npx prettier --write ."
   },
   "devDependencies": {
     "eslint": "^7.32.0",
