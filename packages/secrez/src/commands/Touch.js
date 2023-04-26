@@ -80,31 +80,31 @@ class Touch extends require("../Command") {
         'touch -p afile --content "Password: 1432874565"',
         'touch ether -c "Private Key: eweiu34y23h4y23ih4uy23hiu4y234i23y4iuh3"',
         [
-          "touch sample.txt -e",
-          "Prompt the user to type the content of the file. The text cannot contain newlines. It will cut at the first one, if so. If '-e' and '-c' are both present, '-c' will be ignored.",
+          "touch sample.txt -w",
+          "Prompt the user to type the content of the file. The text cannot contain newlines. It will cut at the first one, if so. If '-w' and '-c' are both present, '-c' will be ignored.",
         ],
         [
           "touch walletPassword -n",
-          "Prompt the user to type the password without showing it. Notice that '-n' has priority on '-e' and '-c'",
+          "Prompt the user to type the password without showing it. Notice that '-n' has priority on '-w' and '-c'",
         ],
         [
           "touch gilbert -f name -c 'Albert Goose'",
           "If the file does not exists, it creates 'gilbert.yaml' with the field 'name'. If a yaml file exists, it adds the field 'name' to it if the the field does not exist.",
         ],
         [
-          "touch new-wallet -w",
+          "touch new-wallet -g",
           "Creates a new wallet file containing 'private_key' and `address`. Wallet has priority on other creation options.",
         ],
         [
-          "touch new-wallets.yaml -w -n 3",
+          "touch new-wallets.yaml -g --amount 3",
           "Creates 'new-wallets.yaml', containing 3 wallet, calling them 'private_key', `private_key2` and `private_key3`, and relative addresses.",
         ],
         [
-          "touch new-wallet --wallet -x trust0",
+          "touch new-wallet --generate-wallet -x trust0",
           "In combination con '-x', it creates a new wallet file calling the fields 'trust0_private_key' and 'trust0_address'.",
         ],
         [
-          "touch new-wallets.yaml -wi",
+          "touch new-wallets.yaml -gi",
           "Includes the mnemonic. In this case, it will also add the fields 'mnemonic' (mnemonic phrase) and 'derived_path' (path used to generate the keys). ",
         ],
       ],

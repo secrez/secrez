@@ -371,6 +371,10 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 ## History
 
+**1.1.5**
+
+- fix touch's help showing wrong, temporary options, changed during the development :-(
+
 **1.1.4**
 
 - add clear screen after 180 seconds to avoid that the user forgot its terminal open and accidentally shares it while sharing the screen during meetings — it happened to me :-(
