@@ -47,7 +47,7 @@
     "node-dev": "4.1.0",
     "nyc": "^15.1.0",
     "supertest": "4.0.2",
-    "ws": "7.3.0"
+    "ws": "7.4.6"
   },
   "scripts": {
     "test-only": "cross-env NODE_ENV=test ./node_modules/.bin/mocha test/*.test.js test/**/*.test.js  --exit",
