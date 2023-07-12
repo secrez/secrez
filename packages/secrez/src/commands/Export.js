@@ -66,6 +66,11 @@ class Export extends require("../Command") {
         alias: "k",
         type: Boolean,
       },
+      {
+        name: "crypto-env",
+        alias: "C",
+        type: Boolean,
+      },
     ];
   }
 
@@ -106,6 +111,10 @@ class Export extends require("../Command") {
           "export my-wallet.yml -k",
           "it will export a private key from the entry to a keystore file. The fill will be named as the entry replacing the extension with '.keystore.json'. If in the entry there are more than one private_key, it will ask which one to export. If no '--password' is specified, it will ask for a password to encrypt the keystore file. The entry must be a valid card, with at least one 'private_key' field.",
         ],
+        [
+          "export my-wallet.yml --crypto-env",
+          "it works like with keystore files, but it will export to file with .crypto.env extension ready to be used with @secrez/cryptoenv. Notice that the option -k has priority over -C.",
+        ],
       ],
     };
   }
@@ -140,7 +149,7 @@ class Export extends require("../Command") {
       if (Node.isBinary(entry) && typeof content === "string") {
         content = Crypto.bs64.decode(content);
       }
-      if (options.keystore) {
+      if (options.keystore || options.cryptoEnv) {
         let card;
         try {
           card = yamlParse(content);
@@ -165,17 +174,23 @@ class Export extends require("../Command") {
           });
           privateKey = card[pk];
         }
+        let fileType = options.keystore ? "keystore" : "crypto-env";
         let pwd =
           options.password ||
           (await this.useInput({
             type: "password",
-            message: "Type the password to encrypt the keystore file",
+            message: `Type the password to encrypt the ${fileType} file`,
           }));
         if (!pwd) {
           throw new Error("Operation canceled");
         }
-        content = await encryptPrivateKeyAsKeystoreJson(privateKey, pwd);
-        name = name.replace(/\.[^.]+$/, ".keystore.json");
+        if (options.keystore) {
+          content = await encryptPrivateKeyAsKeystoreJson(privateKey, pwd);
+          name = name.replace(/\.[^.]+$/, ".keystore.json");
+        } else {
+          content = await Crypto.encrypt(privateKey, Crypto.SHA3(pwd));
+          name = name.replace(/\.[^.]+$/, ".crypto.env");
+        }
       } else if (options.encrypt) {
         const myPublicKey = this.secrez.getPublicKey();
         if (options.publicKeys) {
