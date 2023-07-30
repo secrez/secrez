@@ -1,7 +1,5 @@
 const { chalk } = require("./utils/Logger");
 const Crypto = require("@secrez/crypto");
-const { utils: hubUtils } = require("@secrez/hub");
-const superagent = require("superagent");
 
 class PreCommand {
   async useEditor(options) {
@@ -97,23 +95,6 @@ class PreCommand {
     ]);
     if (result !== exitCode) {
       return result;
-    }
-  }
-
-  async callCourier(_payload, port, caCrt, pathname) {
-    const { payload, signature } = hubUtils.setPayloadAndSignIt(
-      this.secrez,
-      _payload
-    );
-    try {
-      const res = await superagent
-        .get(`https://localhost:${port}${pathname || ""}`)
-        .set("Accept", "application/json")
-        .query({ payload, signature })
-        [caCrt ? "ca" : "trustLocalhost"](caCrt);
-      return res.body;
-    } catch (e) {
-      return { error: e.message };
     }
   }
 }

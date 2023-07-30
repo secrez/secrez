@@ -1,8 +1,6 @@
 const Crypto = require("@secrez/crypto");
-const { utils: hubUtils } = require("@secrez/hub");
 const chalk = require("chalk");
 const ContactManager = require("../utils/ContactManager");
-const superagent = require("superagent");
 
 class Contacts extends require("../Command") {
   setHelpAndCompletion() {
@@ -68,20 +66,6 @@ class Contacts extends require("../Command") {
     };
   }
 
-  async getPublicKeyFromUrl(url) {
-    try {
-      url = new URL(url);
-      let id = hubUtils.getClientIdFromHostname(url.hostname);
-      let apiurl = url.protocol + "//" + url.host.split(id + ".")[1];
-      let res = await superagent
-        .get(`${apiurl}/api/v1/publickey/${id}`)
-        .set("Accept", "application/json");
-      return res.body.publickey;
-    } catch (e) {
-      throw new Error("Inactive/wrong url");
-    }
-  }
-
   async createContact(options) {
     const { name } = options;
     if (options.update) {
@@ -89,7 +73,7 @@ class Contacts extends require("../Command") {
     }
     await this.contactManager.create({
       name,
-      publicKey: options.publicKey
+      publicKey: options.publicKey,
     });
   }
 
@@ -109,20 +93,18 @@ class Contacts extends require("../Command") {
         })
       );
       if (!publicKey) {
-        throw new Error(
-          "Operation canceled"
-        );
+        throw new Error("Operation canceled");
       }
     }
     if (!Crypto.isValidSecrezPublicKey(publicKey)) {
       throw new Error("The public key is not a valid one");
     }
     this.checkIfAlreadyExists(name, publicKey);
-    await this.createContact(Object.assign(options, { publicKey}));
+    await this.createContact(Object.assign(options, { publicKey }));
     return `The contact "${name}" has been added to your trusted contacts`;
   }
 
-  checkIfAlreadyExists(name, publicKey) {
+  checkIfAlreadyExists(name, publicKey, updating = false) {
     let allContacts = this.contactManager.get();
     for (let contact in allContacts) {
       let content = JSON.parse(allContacts[contact].content);
@@ -132,12 +114,10 @@ class Contacts extends require("../Command") {
             `The contact "${contact}" is already associated to this public key`
           );
         }
-      } else {
-        if (publicKey && content.publicKey !== publicKey) {
-          throw new Error(
-            `"${contact}" is associated to a different public key. Verify your contact, please`
-          );
-        }
+      } else if (!updating && content.publicKey !== publicKey) {
+        throw new Error(
+          `"${contact}" is associated to a different public key. Verify your contact, please`
+        );
       }
     }
   }
@@ -158,19 +138,17 @@ class Contacts extends require("../Command") {
         })
       );
       if (!publicKey) {
-        throw new Error(
-          "Operation canceled"
-        );
+        throw new Error("Operation canceled");
       }
     }
     if (!publicKey) {
       publicKey = JSON.parse(existingDataIfSo.content).publicKey;
     }
-    this.checkIfAlreadyExists(name, publicKey);
+    this.checkIfAlreadyExists(name, publicKey, true);
     if (existingDataIfSo) {
       await this.contactManager.remove(name);
     }
-    await this.createContact(Object.assign(options, { publicKey}));
+    await this.createContact(Object.assign(options, { publicKey }));
     return `The contact "${name}" has been updated`;
   }
 

@@ -1,7 +1,7 @@
 const QRCode = require("qrcode");
-const { yamlParse, isYaml} = require("@secrez/utils");
+const { yamlParse, isYaml } = require("@secrez/utils");
 const { Node } = require("@secrez/fs");
-const _ = require('lodash')
+const _ = require("lodash");
 
 class Show extends require("../Command") {
   setHelpAndCompletion() {
@@ -37,29 +37,33 @@ class Show extends require("../Command") {
         name: "field",
         alias: "f",
         type: String,
-      }
+      },
     ];
   }
 
   help() {
     return {
-      description: [
-        "Show the content of a field in a card.",
-      ],
+      description: ["Show a card field as a QR code."],
       examples: [
-        ["show -q wallet.yml -f password", "shows the field 'password' of the card 'wallet.yml' as a QR code"],
+        [
+          "show -q wallet.yml -f password",
+          "shows the field 'password' of the card 'wallet.yml' as a QR code",
+        ],
         [
           "show wallet.yml -f password",
           "shows the field 'password' of the card 'wallet.yml'",
         ],
-        ["show ethKeys.yaml -v 8uW3", "asks you to select a field from the version 8uW3 of the file"],
+        [
+          "show ethKeys.yaml -v 8uW3",
+          "asks you to select a field from the version 8uW3 of the file",
+        ],
       ],
     };
   }
 
   async generateQrCode(content) {
     return new Promise((resolve, reject) => {
-      QRCode.toString(content, {type: 'terminal'}, (err, qrcode) => {
+      QRCode.toString(content, { type: "terminal" }, (err, qrcode) => {
         if (err) reject(err);
         else resolve(qrcode);
       });
@@ -80,11 +84,11 @@ class Show extends require("../Command") {
     let file = tree.root.getChildFromPath(p);
     if (Node.isFile(file)) {
       let entry = (
-          await cat.cat({
-            path: p,
-            version: options.version ? [options.version] : undefined,
-            unformatted: true,
-          })
+        await cat.cat({
+          path: p,
+          version: options.version ? [options.version] : undefined,
+          unformatted: true,
+        })
       )[0];
       if (Node.isText(entry)) {
         let { name, content } = entry;
@@ -93,9 +97,7 @@ class Show extends require("../Command") {
           try {
             parsed = yamlParse(content);
           } catch (e) {
-            throw new Error(
-                "The yml is malformed."
-            );
+            throw new Error("The yml is malformed.");
           }
           if (options.field) {
             if (parsed[options.field]) {

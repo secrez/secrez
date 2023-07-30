@@ -66,13 +66,15 @@ function updateOtherPackages(package0, name, newVersion) {
 
 for (let p in packages) {
   let json = packagesJson[p];
-  let { version, name } = json;
-  if (version === getExistingVersion(name)) {
-    let v = version.split(".");
-    v[2] = parseInt(v[2]) + 1;
-    v = v.join(".");
-    json.version = v;
-    updateOtherPackages(p, name, v);
+  if (json) {
+    let {version, name} = json;
+    if (version === getExistingVersion(name)) {
+      let v = version.split(".");
+      v[2] = parseInt(v[2]) + 1;
+      v = v.join(".");
+      json.version = v;
+      updateOtherPackages(p, name, v);
+    }
   }
 }
 

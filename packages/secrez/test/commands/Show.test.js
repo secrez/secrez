@@ -6,11 +6,7 @@ const path = require("path");
 const { yamlStringify } = require("@secrez/utils");
 
 const MainPrompt = require("../../src/prompts/MainPromptMock");
-const {
-  noPrint,
-  decolorize,
-  assertConsole,
-} = require("@secrez/test-helpers");
+const { noPrint, decolorize, assertConsole } = require("@secrez/test-helpers");
 
 const { password, iterations } = require("../fixtures");
 
@@ -58,21 +54,20 @@ describe("#Show", function () {
     inspect = stdout.inspect();
     await C.show.exec({
       path: "card.yml",
-      field: "password"
+      field: "password",
     });
     inspect.restore();
     assertConsole(inspect, [password]);
-return
+    return;
     inspect = stdout.inspect();
     await C.show.exec({
       path: "card.yml",
       field: "password",
-      qrCode: true
+      qrCode: true,
     });
     inspect.restore();
-    console.log(9999)
+    console.log(9999);
     // TODO we have to figure out how to test this since the reverse seem not to work
     assert.isTrue(!"false");
   });
-
 });

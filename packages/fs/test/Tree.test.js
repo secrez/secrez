@@ -191,7 +191,7 @@ describe("#Tree", function () {
     });
 
     it("should simulate a conflict in the repo and recover lost entries when a valid tree exists", async function () {
-      // await sleep(1000);
+      await sleep(1000);
 
       signedUp = false;
 
