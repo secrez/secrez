@@ -1,6 +1,4 @@
 const chalk = require("chalk");
-const { ConfigUtils } = require("@secrez/core");
-const clipboardy = require("clipboardy");
 
 class Whoami extends require("../Command") {
   setHelpAndCompletion() {
@@ -20,12 +18,12 @@ class Whoami extends require("../Command") {
 
   help() {
     return {
-      description: ["Show data that other users need to chat with you"],
+      description: ["Show your Secrez public key"],
       examples: ["whoami"],
     };
   }
 
-  async customCompletion(options, originalLine, defaultOption) {
+  async customCompletion() {
     return [];
   }
 
@@ -33,24 +31,10 @@ class Whoami extends require("../Command") {
     let result = {
       publicKey: this.secrez.getPublicKey(),
     };
-    const env = (options.env = await ConfigUtils.getEnv(this.secrez.config));
-    if (env.courier) {
-      await this.prompt.commands.courier.preInit(options);
-      if (options.ready) {
-        result.url = env.courier.tunnel.url;
-      }
-    }
     if (options.asIs) {
       return result;
     }
     this.Logger.reset(chalk.grey("Public key: ") + result.publicKey);
-    if (result.url) {
-      this.Logger.reset(chalk.grey("Hub url: ") + result.url);
-      await clipboardy.write(result.url);
-      this.Logger.grey(
-        "For your convenience, the url has been copied to the clipboard."
-      );
-    }
   }
 
   async exec(options = {}) {

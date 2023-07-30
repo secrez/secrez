@@ -23,11 +23,7 @@ checkAndGetCoverage("test-helpers");
 checkAndGetCoverage("crypto");
 checkAndGetCoverage("eth");
 checkAndGetCoverage("core");
-checkAndGetCoverage("courier");
 checkAndGetCoverage("fs");
-checkAndGetCoverage("hub");
-checkAndGetCoverage("tls");
-checkAndGetCoverage("tunnel");
 checkAndGetCoverage("secrez");
 
 if (!changes) {

@@ -1,8 +1,6 @@
 const Crypto = require("@secrez/crypto");
-const { utils: hubUtils } = require("@secrez/hub");
 const chalk = require("chalk");
 const ContactManager = require("../utils/ContactManager");
-const superagent = require("superagent");
 
 class Contacts extends require("../Command") {
   setHelpAndCompletion() {
@@ -57,29 +55,15 @@ class Contacts extends require("../Command") {
       examples: [
         [
           "contacts -a pan",
-          "adds a new trusted contact pan, asking for his public key or hub url",
+          "adds a new trusted contact pan, asking for his public key",
         ],
-        ["contacts -u pan", "updates the hub url"],
-        ["contacts -s pan", "returns pan's public key and url"],
+        ["contacts -u pan", "updates a contact"],
+        ["contacts -s pan", "returns pan's public key"],
         ["contacts -d ema", "deletes ema's data"],
         ["contacts -r ema joe", "renames ema"],
         ["contacts", "listed all trusted contacts"],
       ],
     };
-  }
-
-  async getPublicKeyFromUrl(url) {
-    try {
-      url = new URL(url);
-      let id = hubUtils.getClientIdFromHostname(url.hostname);
-      let apiurl = url.protocol + "//" + url.host.split(id + ".")[1];
-      let res = await superagent
-        .get(`${apiurl}/api/v1/publickey/${id}`)
-        .set("Accept", "application/json");
-      return res.body.publickey;
-    } catch (e) {
-      throw new Error("Inactive/wrong url");
-    }
   }
 
   async createContact(options) {
@@ -90,7 +74,6 @@ class Contacts extends require("../Command") {
     await this.contactManager.create({
       name,
       publicKey: options.publicKey,
-      url: options.url,
     });
   }
 
@@ -101,57 +84,27 @@ class Contacts extends require("../Command") {
       throw new Error(`A contact named "${name}" already exists`);
     }
     let publicKey;
-    let url;
     if (process.env.NODE_ENV === "test") {
       publicKey = options.publicKey;
-      url = options.url;
     } else {
-      let choice = await this.useSelect({
-        message: "Chose method",
-        choices: ["Public key", "Url on hub"],
-      });
-      if (!choice) {
-        throw new Error("Operation canceled");
-      }
-      if (choice === "Url on hub") {
-        url = await this.useInput(
-          Object.assign(options, {
-            message: `Paste ${name}'s url on hub`,
-          })
-        );
-        if (!url) {
-          throw new Error("Operation canceled");
-        }
-        try {
-          publicKey = await this.getPublicKeyFromUrl(url);
-        } catch (e) {}
-      } else {
-        publicKey = await this.useInput(
-          Object.assign(options, {
-            message: `Paste ${name}'s public key`,
-          })
-        );
-      }
+      publicKey = await this.useInput(
+        Object.assign(options, {
+          message: `Paste ${name}'s public key`,
+        })
+      );
       if (!publicKey) {
-        throw new Error(
-          choice === "Url on hub"
-            ? "Client not found on hub"
-            : "Operation canceled"
-        );
+        throw new Error("Operation canceled");
       }
     }
     if (!Crypto.isValidSecrezPublicKey(publicKey)) {
       throw new Error("The public key is not a valid one");
     }
-    if (url && !hubUtils.isValidUrl(url)) {
-      throw new Error("The url does not look valid");
-    }
-    this.checkIfAlreadyExists(name, publicKey, url);
-    await this.createContact(Object.assign(options, { publicKey, url }));
+    this.checkIfAlreadyExists(name, publicKey);
+    await this.createContact(Object.assign(options, { publicKey }));
     return `The contact "${name}" has been added to your trusted contacts`;
   }
 
-  checkIfAlreadyExists(name, publicKey, url) {
+  checkIfAlreadyExists(name, publicKey, updating = false) {
     let allContacts = this.contactManager.get();
     for (let contact in allContacts) {
       let content = JSON.parse(allContacts[contact].content);
@@ -160,17 +113,11 @@ class Contacts extends require("../Command") {
           throw new Error(
             `The contact "${contact}" is already associated to this public key`
           );
-        } else if (url && content.url === url) {
-          throw new Error(
-            `The contact "${contact}" is already associated to this url`
-          );
         }
-      } else {
-        if (publicKey && content.publicKey !== publicKey) {
-          throw new Error(
-            `"${contact}" is associated to a different public key. Verify your contact, please`
-          );
-        }
+      } else if (!updating && content.publicKey !== publicKey) {
+        throw new Error(
+          `"${contact}" is associated to a different public key. Verify your contact, please`
+        );
       }
     }
   }
@@ -182,48 +129,26 @@ class Contacts extends require("../Command") {
       throw new Error("Contact not found");
     }
     let publicKey;
-    let url;
     if (process.env.NODE_ENV === "test") {
       publicKey = options.publicKey;
-      url = options.url;
     } else {
-      let choice = await this.useSelect({
-        message: "Chose method",
-        choices: ["Public key", "Url on hub"],
-      });
-      if (choice === "Url on hub") {
-        url = await this.useInput(
-          Object.assign(options, {
-            message: `Paste ${name}'s url on hub`,
-          })
-        );
-        if (!url) {
-          throw new Error("Operation canceled");
-        }
-        try {
-          publicKey = await this.getPublicKeyFromUrl(url);
-        } catch (e) {}
-      } else {
-        publicKey = await this.useInput(
-          Object.assign(options, {
-            message: `Paste ${name}'s public key`,
-          })
-        );
-      }
+      publicKey = await this.useInput(
+        Object.assign(options, {
+          message: `Paste ${name}'s public key`,
+        })
+      );
       if (!publicKey) {
-        throw new Error(
-          choice === "Url on hub" ? "Url not active" : "Operation canceled"
-        );
+        throw new Error("Operation canceled");
       }
     }
     if (!publicKey) {
       publicKey = JSON.parse(existingDataIfSo.content).publicKey;
     }
-    this.checkIfAlreadyExists(name, publicKey, url);
+    this.checkIfAlreadyExists(name, publicKey, true);
     if (existingDataIfSo) {
       await this.contactManager.remove(name);
     }
-    await this.createContact(Object.assign(options, { publicKey, url }));
+    await this.createContact(Object.assign(options, { publicKey }));
     return `The contact "${name}" has been updated`;
   }
 
@@ -277,9 +202,6 @@ class Contacts extends require("../Command") {
       chalk.grey("public key: "),
       l[1].publicKey,
     ];
-    if (l[1].url) {
-      result.push("\n", chalk.grey("url: "), l[1].url);
-    }
     return result.join("");
   }
 

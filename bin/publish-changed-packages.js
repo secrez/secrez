@@ -24,7 +24,13 @@ MUST PUBLISH ${pkg}${dir} v${version} with
 
 (cd packages/${dir} && pnpm publish)
 `);
-    // console.debug(execSync(`cd packages/${dir} && pnpm publish ${/beta/.test(version) ? '--tag beta' : ''}`) .toString())
+    console.debug(
+      execSync(
+        `cd packages/${dir} && pnpm publish ${
+          /beta/.test(version) ? "--tag beta" : ""
+        }`
+      ).toString()
+    );
     changes = true;
   }
 }
@@ -34,11 +40,7 @@ checkIfMustBePublished("test-helpers", "@secrez");
 checkIfMustBePublished("crypto", "@secrez");
 checkIfMustBePublished("eth", "@secrez");
 checkIfMustBePublished("core", "@secrez");
-checkIfMustBePublished("courier", "@secrez");
 checkIfMustBePublished("fs", "@secrez");
-checkIfMustBePublished("hub", "@secrez");
-checkIfMustBePublished("tls", "@secrez");
-checkIfMustBePublished("tunnel", "@secrez");
 // the deployed version is latest one
 // checkIfMustBePublished('migrate', '@secrez')
 checkIfMustBePublished("secrez");

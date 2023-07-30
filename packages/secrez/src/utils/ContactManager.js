@@ -22,7 +22,6 @@ class ContactManager {
       value: options.name,
       content: JSON.stringify({
         publicKey: options.publicKey,
-        url: options.url,
       }),
     });
   }
@@ -38,12 +37,13 @@ class ContactManager {
     }
   }
 
-  async rename(existentName, contact) {
+  async rename(existentName, name) {
     let old = this.get(existentName);
+    let { publicKey } = JSON.parse(old.content);
     if (await this.remove(existentName)) {
       return await this.create({
-        name: contact,
-        content: old.content,
+        name,
+        publicKey,
       });
     }
   }

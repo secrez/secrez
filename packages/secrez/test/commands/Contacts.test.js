@@ -3,7 +3,6 @@ const assert = chai.assert;
 const stdout = require("test-console").stdout;
 const fs = require("fs-extra");
 const path = require("path");
-const { utils: hubUtils } = require("@secrez/hub");
 const MainPrompt = require("../../src/prompts/MainPromptMock");
 const { assertConsole, noPrint, decolorize } = require("@secrez/test-helpers");
 
@@ -22,7 +21,7 @@ describe("#Contacts", function () {
   };
 
   before(async function () {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 5; i++) {
       await fs.emptyDir(testDir);
       prompt = new MainPrompt();
       await prompt.init(options);
@@ -88,14 +87,10 @@ describe("#Contacts", function () {
   });
 
   it("should list contacts", async function () {
-    let randomId = hubUtils.newId(publicKeys.user1);
-    let url = `https://${randomId}.secrez.cc`;
-
     await noPrint(
       C.contacts.contacts({
         add: "user1",
         publicKey: publicKeys.user1,
-        url,
       })
     );
 
@@ -112,33 +107,21 @@ describe("#Contacts", function () {
     });
     inspect.restore();
     let output = inspect.output.map((e) => decolorize(e).replace(/ +/g, " "));
-    assert.equal(
-      output[0],
-      "user1\npublic key: " + publicKeys.user1 + "\nurl: " + url
-    );
+    assert.equal(output[0], "user1\npublic key: " + publicKeys.user1);
   });
 
   it("should update a contact", async function () {
-    let randomId = hubUtils.newId(publicKeys.user1);
-    let url = `https://${randomId}.secrez.cc`;
-
     await C.contacts.contacts({
       add: "user1",
       publicKey: publicKeys.user1,
-      url,
     });
-
-    assert.equal((await C.contacts.list())[0][1].url, url);
-
-    randomId = hubUtils.newId(publicKeys.user1);
-    url = `https://${randomId}.secrez.cc`;
 
     await C.contacts.contacts({
       update: "user1",
-      url,
+      publicKey: publicKeys.user2,
     });
 
-    assert.equal((await C.contacts.list())[0][1].url, url);
+    assert.equal((await C.contacts.list())[0][1].publicKey, publicKeys.user2);
   });
 
   it("should rename a contacts", async function () {
@@ -189,33 +172,6 @@ describe("#Contacts", function () {
   });
 
   it("should throw if there are errors", async function () {
-    let randomId = hubUtils.newId(publicKeys.user1);
-    let url = `https://${randomId}9999.secrez.cc`;
-
-    try {
-      await C.contacts.contacts({
-        add: "user1",
-        publicKey: publicKeys.user1,
-        url,
-      });
-      assert.isTrue(false);
-    } catch (e) {
-      assert.equal(e.message, "The url does not look valid");
-    }
-
-    url = "https://somerandom.secrez.cc";
-
-    try {
-      await C.contacts.contacts({
-        add: "user1",
-        publicKey: publicKeys.user1,
-        url,
-      });
-      assert.isTrue(false);
-    } catch (e) {
-      assert.equal(e.message, "The url does not look valid");
-    }
-
     await noPrint(
       C.contacts.exec({
         add: "user1",
