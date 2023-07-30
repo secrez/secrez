@@ -373,7 +373,6 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 - remove `@crypto/hub`, `@crypto/courier`, `@crypto/tunnel` and `@crypto/tls` since they are not maintained anymore
 - add `show` command to show a card field as a QR code, for example to encode a private key and let a mobile wallet to scan it
-- fix issue when editing a file and not wanting the screen to be cleared
 
 **1.1.6**
 
