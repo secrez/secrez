@@ -15,7 +15,7 @@
     "chai": "^4.2.0",
     "chalk": "^3.0.0",
     "fs-extra": "^9.1.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "sha3": "^2.1.2",
     "superagent": "^5.3.1",
     "test-console": "^1.1.0",
