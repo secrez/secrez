@@ -21,13 +21,13 @@ API documentation
 ## Test coverage
 
 ```
-  5 passing (1s)
+  6 passing (2s)
 
 ----------|---------|----------|---------|---------|-------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 ----------|---------|----------|---------|---------|-------------------
-All files |   94.12 |       75 |     100 |   94.12 |
- index.js |   94.12 |       75 |     100 |   94.12 | 39
+All files |     100 |      100 |     100 |     100 |                   
+ index.js |     100 |      100 |     100 |     100 |                   
 ----------|---------|----------|---------|---------|-------------------
 ```
 

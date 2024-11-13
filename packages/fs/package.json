@@ -1,6 +1,6 @@
 {
   "name": "@secrez/fs",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -12,18 +12,18 @@
     "posttest": "nyc check-coverage --statements 80 --branches 65 --functions 80 --lines 80"
   },
   "dependencies": {
-    "@secrez/core": "workspace:~1.0.4",
-    "@secrez/crypto": "workspace:~1.0.3",
-    "@secrez/utils": "workspace:~1.0.3",
-    "command-line-args": "^5.1.1",
+    "@secrez/core": "workspace:~1.0.5",
+    "@secrez/crypto": "workspace:~1.0.4",
+    "@secrez/utils": "workspace:~1.0.4",
+    "command-line-args": "^5.2.1",
     "fs-extra": "^9.1.0",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~2.0.0",
-    "chai": "^4.2.0",
-    "cross-env": "^7.0.2",
-    "mocha": "^7.1.1",
+    "@secrez/test-helpers": "workspace:~2.0.1",
+    "chai": "^4.5.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^7.2.0",
     "nyc": "^15.1.0"
   },
   "description": "The Secrez fs library.",

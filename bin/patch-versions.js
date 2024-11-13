@@ -67,7 +67,7 @@ function updateOtherPackages(package0, name, newVersion) {
 for (let p in packages) {
   let json = packagesJson[p];
   if (json) {
-    let {version, name} = json;
+    let { version, name } = json;
     if (version === getExistingVersion(name)) {
       let v = version.split(".");
       v[2] = parseInt(v[2]) + 1;

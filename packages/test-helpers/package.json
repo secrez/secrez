@@ -1,6 +1,6 @@
 {
   "name": "@secrez/test-helpers",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -11,19 +11,19 @@
     "test": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text mocha test/*.test.js test/**/*.test.js --exit"
   },
   "dependencies": {
-    "base-x": "^3.0.8",
-    "chai": "^4.2.0",
+    "base-x": "^3.0.10",
+    "chai": "^4.5.0",
     "chalk": "^3.0.0",
     "fs-extra": "^9.1.0",
-    "lodash": "^4.17.19",
-    "sha3": "^2.1.2",
+    "lodash": "^4.17.21",
+    "sha3": "^2.1.4",
     "superagent": "^5.3.1",
     "test-console": "^1.1.0",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "cross-env": "^7.0.2",
-    "mocha": "^7.1.2",
+    "cross-env": "^7.0.3",
+    "mocha": "^7.2.0",
     "nyc": "^15.1.0"
   },
   "description": "The common helpers used for testing",
