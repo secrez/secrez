@@ -1,6 +1,6 @@
 {
   "name": "@secrez/eth",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -12,16 +12,16 @@
     "posttest": "nyc check-coverage --statements 99 --branches 85 --functions 99 --lines 99"
   },
   "dependencies": {
-    "bip39": "^3.0.4",
+    "bip39": "^3.1.0",
     "ethereumjs-util": "^7.1.5",
-    "ethers": "^6.0.8",
+    "ethers": "^6.13.4",
     "hdkey": "^2.1.0"
   },
   "devDependencies": {
-    "@secrez/utils": "workspace:~1.0.3",
-    "chai": "^4.2.0",
-    "cross-env": "^7.0.2",
-    "mocha": "^7.1.2",
+    "@secrez/utils": "workspace:~1.0.4",
+    "chai": "^4.5.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^7.2.0",
     "nyc": "^15.1.0"
   },
   "description": "The Secrez EVM-related library.",

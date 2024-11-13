@@ -93,5 +93,21 @@ describe.only("#Eth", async () => {
       expect(walletFromEncryptedJson.privateKey).to.exist;
       expect(walletFromEncryptedJson.privateKey).to.equal(wallet.privateKey);
     });
+
+    it("should create a wallet from an encrypted JSON if private keys misses initial 0x", async () => {
+      wallet = Eth.newWallet();
+      const password = "test";
+      const json = await Eth.encryptPrivateKeyAsKeystoreJson(
+        wallet.privateKey.substring(2),
+        password
+      );
+      const walletFromEncryptedJson = await Eth.getWalletFromEncryptedJson(
+        json,
+        password
+      );
+      expect(walletFromEncryptedJson.address).to.exist;
+      expect(walletFromEncryptedJson.privateKey).to.exist;
+      expect(walletFromEncryptedJson.privateKey).to.equal(wallet.privateKey);
+    });
   });
 });

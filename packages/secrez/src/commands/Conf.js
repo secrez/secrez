@@ -94,15 +94,15 @@ class Conf extends require("../Command") {
   //   }
   // }
   //
-  // async getAllFactors() {
-  //   let allFactors = {}
-  //   const conf = this.secrez.getConf()
-  //   let keys = conf.data.keys || {}
-  //   for (let authenticator in keys) {
-  //     allFactors[authenticator] = keys[authenticator].type
-  //   }
-  //   return allFactors
-  // }
+  async getAllFactors() {
+    let allFactors = {};
+    const conf = this.secrez.getConf();
+    let keys = conf.data.keys || {};
+    for (let authenticator in keys) {
+      allFactors[authenticator] = keys[authenticator].type;
+    }
+    return allFactors;
+  }
   //
   // async verifyIfAlreadyRegistered() {
   //   let client = this.fido2Client
@@ -196,20 +196,21 @@ class Conf extends require("../Command") {
   //   await this.saveAndOverwrite(`main:/.RECOVERY_CODE_${authenticator}`, 'recovery code', recoveryCode, 'it')
   // }
   //
-  // async saveAndOverwrite(p, spec, content, message) {
-  //   try {
-  //     await this.prompt.commands.rm.rm({
-  //       path: p
-  //     })
-  //   } catch (e) {
-  //   }
-  //   let node = await this.prompt.commands.touch.touch({
-  //     path: p,
-  //     content,
-  //     versionIfExists: true
-  //   })
-  //   this.Logger.reset(`For your convenience, ${message} has been saved in main:${node.getPath()}`)
-  // }
+  async saveAndOverwrite(p, spec, content, message) {
+    try {
+      await this.prompt.commands.rm.rm({
+        path: p,
+      });
+    } catch (e) {}
+    let node = await this.prompt.commands.touch.touch({
+      path: p,
+      content,
+      versionIfExists: true,
+    });
+    this.Logger.reset(
+      `For your convenience, ${message} has been saved in main:${node.getPath()}`
+    );
+  }
   //
   // async setFido2(options) {
   //   let client = this.fido2Client

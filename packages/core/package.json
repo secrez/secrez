@@ -1,6 +1,6 @@
 {
   "name": "@secrez/core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -12,17 +12,17 @@
     "posttest": "nyc check-coverage --statements 99 --branches 94 --functions 99 --lines 99"
   },
   "dependencies": {
-    "@secrez/crypto": "workspace:~1.0.3",
-    "@secrez/utils": "workspace:~1.0.3",
+    "@secrez/crypto": "workspace:~1.0.4",
+    "@secrez/utils": "workspace:~1.0.4",
     "fs-extra": "^9.1.0",
     "homedir": "^0.6.0",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~2.0.0",
-    "chai": "^4.2.0",
-    "cross-env": "^7.0.2",
-    "mocha": "^7.1.2",
+    "@secrez/test-helpers": "workspace:~2.0.1",
+    "chai": "^4.5.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^7.2.0",
     "nyc": "^15.1.0"
   },
   "description": "The Secrez core library.",

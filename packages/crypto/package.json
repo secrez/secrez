@@ -1,6 +1,6 @@
 {
   "name": "@secrez/crypto",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -12,18 +12,18 @@
     "posttest": "nyc check-coverage --statements 99 --branches 85 --functions 99 --lines 99"
   },
   "dependencies": {
-    "base-x": "^3.0.8",
+    "base-x": "^3.0.10",
     "byte-base64": "^1.1.0",
     "microseconds": "^0.2.0",
-    "sha3": "^2.1.2",
+    "sha3": "^2.1.4",
     "shamir": "^0.7.1",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "@secrez/utils": "workspace:~1.0.3",
-    "chai": "^4.2.0",
-    "cross-env": "^7.0.2",
-    "mocha": "^7.1.2",
+    "@secrez/utils": "workspace:~1.0.4",
+    "chai": "^4.5.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^7.2.0",
     "nyc": "^15.1.0"
   },
   "description": "The Secrez crypto library.",
