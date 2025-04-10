@@ -77,7 +77,7 @@ class Totp extends require("../Command") {
       examples: [
         [
           "totp coinbase.yml",
-          "prints a totp code and copies it to the clipboard for 5 seconds",
+          "prints a totp code and copies it to the clipboard for 5 seconds if not in a headless shell",
         ],
         [
           'totp coinbase.yml -s "9syh 34rd ge6s hey3 u874"',
@@ -225,10 +225,14 @@ class Totp extends require("../Command") {
         let { content } = entry;
         if (isYaml(p) && !options.allFile) {
           let parsed;
-          try {
-            parsed = yamlParse(content);
-          } catch (e) {
-            throw new Error("The yml is malformed");
+          if (content === undefined) {
+            parsed = {};
+          } else {
+            try {
+              parsed = yamlParse(content);
+            } catch (e) {
+              throw new Error("The yml is malformed");
+            }
           }
           if (secret) {
             if (parsed.totp && !options.force) {
@@ -249,11 +253,13 @@ class Totp extends require("../Command") {
             if (totp) {
               totp = totp.replace(/\s/g, "");
               const token = authenticator.generate(totp);
-              this.prompt.commands.copy.copy({
-                thisString: token,
-                duration: [options.duration || this.defaults.duration],
-                noBeep: options.noBeep,
-              });
+              if (this.isMacGuiSession()) {
+                this.prompt.commands.copy.copy({
+                  thisString: token,
+                  duration: [options.duration || this.defaults.duration],
+                  noBeep: options.noBeep,
+                });
+              }
               return token;
             }
           }
@@ -261,6 +267,15 @@ class Totp extends require("../Command") {
       }
     }
     throw new Error(err);
+  }
+
+  isMacGuiSession() {
+    try {
+      execSync("echo test | pbcopy", { stdio: "ignore" });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async exec(options = {}) {
@@ -273,10 +288,10 @@ class Totp extends require("../Command") {
       if (options.fromImage || options.fromClipboard) {
         this.Logger.grey(token);
       } else {
-        this.Logger.grey("TOTP token: " + this.chalk.bold.black(token));
-        if (!options.test) {
+        this.Logger.grey("TOTP token: " + this.chalk.bold(token));
+        if (!options.test && this.isMacGuiSession()) {
           this.Logger.grey(
-            `It will stay in the clipboard for ${
+            `Copied to the clipboard. It will stay in it for ${
               options.duration || this.defaults.duration
             } seconds`
           );

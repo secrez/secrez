@@ -2,6 +2,7 @@ const path = require("path");
 const clipboardy = require("clipboardy");
 const { isYaml, yamlParse, TRUE, sleep, playMp3 } = require("@secrez/utils");
 const { Node } = require("@secrez/fs");
+const { execSync } = require("child_process");
 
 class Copy extends require("../Command") {
   setHelpAndCompletion() {
@@ -67,7 +68,9 @@ class Copy extends require("../Command") {
 
   help() {
     return {
-      description: ["Copy a text file to the clipboard."],
+      description: [
+        "Copy a text file to the clipboard. It won't work in headless shells.",
+      ],
       examples: [
         [
           "copy ethKeys",
@@ -189,6 +192,15 @@ class Copy extends require("../Command") {
     }
   }
 
+  isMacGuiSession() {
+    try {
+      execSync("echo test | pbcopy", { stdio: "ignore" });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async write(content, options, counter) {
     let duration = options.duration
       ? options.duration.map((e) => 1000 * e)
@@ -201,19 +213,25 @@ class Copy extends require("../Command") {
         let wait = i ? duration[1] : duration[0];
         await this.writeAndWait(content[i], wait, counter);
         if (this.counter === counter && !options.noBeep) {
-          await playMp3(path.resolve(__dirname, "../../sounds/ding.mp3"));
+          try {
+            await playMp3(path.resolve(__dirname, "../../sounds/ding.mp3"));
+          } catch (e) {
+            // Ignore the error
+          }
         }
       }
     }
   }
 
   async writeAndWait(content, wait, counter) {
-    let previousContent = await clipboardy.read();
-    if (this.counter === counter) {
-      await clipboardy.write(content);
-      await sleep(wait);
-      if (this.counter === counter && content === (await clipboardy.read())) {
-        await clipboardy.write(previousContent);
+    if (this.isMacGuiSession()) {
+      let previousContent = await clipboardy.read();
+      if (this.counter === counter) {
+        await clipboardy.write(content);
+        await sleep(wait);
+        if (this.counter === counter && content === (await clipboardy.read())) {
+          await clipboardy.write(previousContent);
+        }
       }
     }
   }

@@ -55,8 +55,9 @@ describe("#Totp", function () {
       })
     );
 
-    let previousContent = await clipboardy.read();
+    await clipboardy.write("test\n");
 
+    let previousContent = await clipboardy.read();
     inspect = stdout.inspect();
     await C.totp.exec({
       path: "card.yml",
