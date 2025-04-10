@@ -59,6 +59,8 @@ describe("#Copy", function () {
       })
     );
 
+    await clipboardy.write("test\n");
+
     let previousContent = await clipboardy.read();
 
     inspect = stdout.inspect();

@@ -226,7 +226,7 @@ class Totp extends require("../Command") {
         if (isYaml(p) && !options.allFile) {
           let parsed;
           if (content === undefined) {
-            parsed = {}
+            parsed = {};
           } else {
             try {
               parsed = yamlParse(content);
@@ -271,10 +271,10 @@ class Totp extends require("../Command") {
 
   isMacGuiSession() {
     try {
-      execSync('echo test | pbcopy', {stdio: 'ignore'})
-      return true
+      execSync("echo test | pbcopy", { stdio: "ignore" });
+      return true;
     } catch {
-      return false
+      return false;
     }
   }
 

@@ -18,7 +18,7 @@ const {
 
 const { password, iterations } = require("../fixtures");
 
-describe.only("#Totp", function () {
+describe("#Totp", function () {
   let prompt;
   let rootDir = path.resolve(__dirname, "../../tmp/test/.secrez");
   let inspect, C;
@@ -55,10 +55,9 @@ describe.only("#Totp", function () {
       })
     );
 
-    await clipboardy.write("some note");
+    await clipboardy.write("test\n");
 
     let previousContent = await clipboardy.read();
-    console.log("previousContent", previousContent);
     inspect = stdout.inspect();
     await C.totp.exec({
       path: "card.yml",
@@ -69,14 +68,11 @@ describe.only("#Totp", function () {
     let output = inspect.output.map((e) => decolorize(e));
     assert.isTrue(/TOTP token: \d{6}/.test(output[0]));
     let token = output[0].split("TOTP token: ")[1];
-    console.log(token)
 
     await sleep(100);
-    console.log("await clipboardy.read()", await clipboardy.read())
     assert.equal(await clipboardy.read(), token);
 
     await sleep(200);
-    console.log("await clipboardy.read()", await clipboardy.read())
     assert.equal(await clipboardy.read(), previousContent);
   });
 

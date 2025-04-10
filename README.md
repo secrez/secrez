@@ -369,6 +369,11 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 ## History
 
+**2.1.1**
+
+- manage missing clipboard when in headless shells
+- fix bug in creating a `totp` when the target Yaml file is empty
+
 **2.0.1**
 
 - fix commands to change password and number of iterations
@@ -839,25 +844,25 @@ Thank you for any contributions! 😉
 ## Test coverage
 
 ```
-  148 passing (15s)
+  148 passing (16s)
   1 pending
 
 --------------------|---------|----------|---------|---------|--------------------------------------
 File                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                    
 --------------------|---------|----------|---------|---------|--------------------------------------
-All files           |   81.16 |    67.69 |   81.02 |   81.05 |                                      
+All files           |   81.09 |    67.66 |   81.15 |   80.99 |                                      
  src                |   57.84 |    53.62 |   52.63 |   58.41 |                                      
   Command.js        |   79.66 |    78.72 |   76.92 |   81.03 | 32,55-62,73,80,119                   
   PreCommand.js     |    8.82 |        0 |       0 |    8.82 | 6-97                                 
   cliConfig.js      |     100 |      100 |     100 |     100 |                                      
- src/commands       |   83.82 |    69.19 |   90.54 |   83.71 |                                      
+ src/commands       |   83.73 |    69.14 |   90.64 |   83.61 |                                      
   Alias.js          |   90.54 |    77.35 |     100 |   90.41 | 101,112,139,169,173,180,190          
   Bash.js           |      75 |        0 |   66.66 |      75 | 18-19                                
   Cat.js            |    98.9 |    88.88 |     100 |    98.9 | 152                                  
   Cd.js             |   96.42 |    86.66 |     100 |   96.42 | 44                                   
   Conf.js           |    9.09 |        0 |      20 |    9.09 | 98-500                               
   Contacts.js       |   87.17 |    74.32 |     100 |   87.06 | ...5-141,145,165,172,184,237,250,260 
-  Copy.js           |   94.87 |     74.5 |     100 |    94.8 | 111,162,179,204                      
+  Copy.js           |   92.94 |    73.58 |     100 |   92.85 | 114,165,182,200,216-217              
   Ds.js             |   92.53 |    82.05 |     100 |   92.42 | 99,108-113,125                       
   Edit.js           |   13.58 |        0 |      40 |   13.58 | 88-214                               
   Export.js         |   88.11 |    70.58 |     100 |   88.11 | ...0-175,185,197-201,206,218,227,230 
@@ -879,7 +884,7 @@ All files           |   81.16 |    67.69 |   81.02 |   81.05 |
   Show.js           |      72 |    45.45 |   57.14 |   73.46 | ...8,100,106-114,117,123-126,132,143 
   Ssh.js            |      25 |        0 |      40 |      25 | 72-120                               
   Tag.js            |   98.03 |     92.3 |     100 |   98.01 | 122,171                              
-  Totp.js           |   96.47 |    74.46 |     100 |   96.47 | 188-189,235                          
+  Totp.js           |   94.56 |    73.58 |     100 |   94.56 | 188-189,229,239,277                  
   Touch.js          |   95.91 |    81.48 |     100 |   95.83 | 152,202                              
   Use.js            |   96.77 |    89.47 |     100 |   96.77 | 68                                   
   Ver.js            |      90 |    66.66 |     100 |      90 | 25                                   
@@ -895,7 +900,7 @@ All files           |   81.16 |    67.69 |   81.02 |   81.05 |
   Logger.js         |   63.63 |    56.25 |   36.84 |   62.79 | ...25,37-49,57,65-69,74,84,88,93,105 
 --------------------|---------|----------|---------|---------|--------------------------------------
 
-> secrez@2.1.0 posttest /Users/francescosullo/Projects/Secrez/secrez/packages/secrez
+> secrez@2.1.1 posttest /Users/francescosullo/Projects/Secrez/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 
