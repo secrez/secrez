@@ -369,6 +369,11 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 ## History
 
+**2.1.1**
+
+- manage missing clipboard when in headless shells
+- fix bug in creating a `totp` when the target Yaml file is empty
+
 **2.0.1**
 
 - fix commands to change password and number of iterations
