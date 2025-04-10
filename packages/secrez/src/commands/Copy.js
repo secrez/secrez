@@ -193,12 +193,20 @@ class Copy extends require("../Command") {
   }
 
   isMacGuiSession() {
-    try {
-      execSync("echo test | pbcopy", { stdio: "ignore" });
-      return true;
-    } catch {
-      return false;
+    const platform = os.platform(); // 'darwin', 'linux', 'win32', etc.
+
+    if (platform === "darwin") {
+      // macOS only
+      try {
+        execSync("echo test | pbcopy", { stdio: "ignore" });
+        return true;
+      } catch {
+        return false;
+      }
     }
+
+    // On Linux and Windows, pbcopy doesn't exist, so we assume false
+    return false;
   }
 
   async write(content, options, counter) {
@@ -240,17 +248,21 @@ class Copy extends require("../Command") {
     if (options.help) {
       return this.showHelp();
     }
-    try {
-      /* istanbul ignore if  */
-      if (this.isMacGuiSession() && !this.clipboardyVerified) {
-        await clipboardy.read();
+    if (!this.isMacGuiSession()) {
+      this.Logger.red("Clipboard is not available in this shell");
+    } else {
+      try {
+        /* istanbul ignore if  */
+        if (!this.clipboardyVerified) {
+          await clipboardy.read();
+        }
+        this.validate(options);
+        let name = await this.copy(options);
+        this.Logger.grey("Copied to clipboard:");
+        this.Logger.reset(name);
+      } catch (e) {
+        this.Logger.red(e.message);
       }
-      this.validate(options);
-      let name = await this.copy(options);
-      this.Logger.grey("Copied to clipboard:");
-      this.Logger.reset(name);
-    } catch (e) {
-      this.Logger.red(e.message);
     }
     await this.prompt.run();
   }

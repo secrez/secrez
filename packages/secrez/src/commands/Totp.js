@@ -270,12 +270,20 @@ class Totp extends require("../Command") {
   }
 
   isMacGuiSession() {
-    try {
-      execSync("echo test | pbcopy", { stdio: "ignore" });
-      return true;
-    } catch {
-      return false;
+    const platform = os.platform(); // 'darwin', 'linux', 'win32', etc.
+
+    if (platform === "darwin") {
+      // macOS only
+      try {
+        execSync("echo test | pbcopy", { stdio: "ignore" });
+        return true;
+      } catch {
+        return false;
+      }
     }
+
+    // On Linux and Windows, pbcopy doesn't exist, so we assume false
+    return false;
   }
 
   async exec(options = {}) {
