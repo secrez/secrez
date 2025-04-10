@@ -1,4 +1,5 @@
 const path = require("path");
+const os = require("os");
 const clipboardy = require("clipboardy");
 const { isYaml, yamlParse, TRUE, sleep, playMp3 } = require("@secrez/utils");
 const { Node } = require("@secrez/fs");

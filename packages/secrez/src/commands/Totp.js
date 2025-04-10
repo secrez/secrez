@@ -1,5 +1,6 @@
 const { authenticator } = require("otplib");
 const path = require("path");
+const os = require("os");
 const fs = require("fs-extra");
 const { execSync } = require("child_process");
 const {
