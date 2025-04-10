@@ -242,7 +242,7 @@ class Copy extends require("../Command") {
     }
     try {
       /* istanbul ignore if  */
-      if (!this.clipboardyVerified) {
+      if (this.isMacGuiSession() && !this.clipboardyVerified) {
         await clipboardy.read();
       }
       this.validate(options);
