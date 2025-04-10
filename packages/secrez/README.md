@@ -369,6 +369,10 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 ## History
 
+**2.1.2**
+
+- disable `copy` command when in headless shells 
+
 **2.1.1**
 
 - manage missing clipboard when in headless shells
