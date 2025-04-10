@@ -371,7 +371,7 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 **2.1.2**
 
-- disable `copy` command when in headless shells 
+- disable `copy` command when in headless shells
 
 **2.1.1**
 
@@ -854,19 +854,19 @@ Thank you for any contributions! 😉
 --------------------|---------|----------|---------|---------|--------------------------------------
 File                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                    
 --------------------|---------|----------|---------|---------|--------------------------------------
-All files           |   81.09 |    67.66 |   81.15 |   80.99 |                                      
+All files           |   81.09 |    67.71 |   81.15 |   80.99 |                                      
  src                |   57.84 |    53.62 |   52.63 |   58.41 |                                      
   Command.js        |   79.66 |    78.72 |   76.92 |   81.03 | 32,55-62,73,80,119                   
   PreCommand.js     |    8.82 |        0 |       0 |    8.82 | 6-97                                 
   cliConfig.js      |     100 |      100 |     100 |     100 |                                      
- src/commands       |   83.73 |    69.14 |   90.64 |   83.61 |                                      
+ src/commands       |   83.73 |     69.2 |   90.64 |   83.61 |                                      
   Alias.js          |   90.54 |    77.35 |     100 |   90.41 | 101,112,139,169,173,180,190          
   Bash.js           |      75 |        0 |   66.66 |      75 | 18-19                                
   Cat.js            |    98.9 |    88.88 |     100 |    98.9 | 152                                  
   Cd.js             |   96.42 |    86.66 |     100 |   96.42 | 44                                   
   Conf.js           |    9.09 |        0 |      20 |    9.09 | 98-500                               
   Contacts.js       |   87.17 |    74.32 |     100 |   87.06 | ...5-141,145,165,172,184,237,250,260 
-  Copy.js           |   92.94 |    73.58 |     100 |   92.85 | 114,165,182,200,216-217              
+  Copy.js           |   92.94 |    74.54 |     100 |   92.85 | 114,165,182,200,216-217              
   Ds.js             |   92.53 |    82.05 |     100 |   92.42 | 99,108-113,125                       
   Edit.js           |   13.58 |        0 |      40 |   13.58 | 88-214                               
   Export.js         |   88.11 |    70.58 |     100 |   88.11 | ...0-175,185,197-201,206,218,227,230 
@@ -904,7 +904,7 @@ All files           |   81.09 |    67.66 |   81.15 |   80.99 |
   Logger.js         |   63.63 |    56.25 |   36.84 |   62.79 | ...25,37-49,57,65-69,74,84,88,93,105 
 --------------------|---------|----------|---------|---------|--------------------------------------
 
-> secrez@2.1.1 posttest /Users/francescosullo/Projects/Secrez/secrez/packages/secrez
+> secrez@2.1.2 posttest /Users/francescosullo/Projects/Secrez/secrez/packages/secrez
 > nyc check-coverage --statements 65 --branches 50 --functions 65 --lines 65
 
 
