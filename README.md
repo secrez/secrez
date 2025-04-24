@@ -369,7 +369,11 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 ## History
 
-**2.1.3**
+**2.1.5**
+
+- duplicate files using `touch <newfile> --from <file>` to copy the file from the source to the destination
+
+**2.1.4**
 
 - uses clipboard only on macOS
 - fixes `copy` return message when clipboard is not available

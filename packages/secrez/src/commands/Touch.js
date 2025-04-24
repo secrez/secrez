@@ -1,6 +1,7 @@
 const { config, Entry } = require("@secrez/core");
 const { yamlStringify } = require("@secrez/utils");
 const { newWallet, getWalletFromMnemonic } = require("@secrez/eth");
+const { Node } = require("@secrez/fs");
 
 class Touch extends require("../Command") {
   setHelpAndCompletion() {
@@ -62,6 +63,11 @@ class Touch extends require("../Command") {
         alias: "v",
         type: Boolean,
       },
+      {
+        name: "from",
+        type: String,
+        completionType: "file",
+      },
     ];
   }
 
@@ -77,8 +83,10 @@ class Touch extends require("../Command") {
           "touch somefile",
           "If the the file exists, it create 'somefile.2', 'somefile.3', etc.",
         ],
-        'touch -p afile --content "Password: 1432874565"',
-        'touch ether -c "Private Key: eweiu34y23h4y23ih4uy23hiu4y234i23y4iuh3"',
+        [
+          'touch -p afile --content "Password: 1432874565"',
+          "Save the specified content in 'afile'.",
+        ],
         [
           "touch sample.txt -w",
           "Prompt the user to type the content of the file. The text cannot contain newlines. It will cut at the first one, if so. If '-w' and '-c' are both present, '-c' will be ignored.",
@@ -106,6 +114,10 @@ class Touch extends require("../Command") {
         [
           "touch new-wallets.yaml -gi",
           "Includes the mnemonic. In this case, it will also add the fields 'mnemonic' (mnemonic phrase) and 'derived_path' (path used to generate the keys). ",
+        ],
+        [
+          "touch wallet2.yml --from wallet.yaml",
+          "Creates the new file 'wallet2.yml' duplicating 'wallet.yml'.",
         ],
       ],
     };
@@ -192,6 +204,23 @@ class Touch extends require("../Command") {
             options.content = content;
           } else {
             throw new Error("Command canceled");
+          }
+        } else if (options.from) {
+          let data = await this.internalFs.getTreeIndexAndPath(options.from);
+          let tree = data.tree;
+          let p = tree.getNormalizedPath(data.path);
+          let node;
+          try {
+            node = tree.root.getChildFromPath(p);
+          } catch (e) {
+            throw new Error(`File "${options.from}" not found.`);
+          }
+          if (Node.isFile(node)) {
+            console.log("is file");
+            let details = await tree.getEntryDetails(node);
+            options.content = details.content;
+          } else {
+            throw new Error(`"${options.from}" is not a file.`);
           }
         }
       }
