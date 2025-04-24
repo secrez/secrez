@@ -90,6 +90,63 @@ describe("#Touch", function () {
     );
   });
 
+  it("should duplicate a file", async function () {
+    let p = "/folder2/file1";
+    let content = "Password: eh3h447d743yh4r";
+    await noPrint(
+      C.touch.exec({
+        path: p,
+        content,
+      })
+    );
+
+    assert.equal(
+      prompt.internalFs.tree.root.getChildFromPath(p).getContent(),
+      content
+    );
+
+    await noPrint(
+      C.touch.exec({
+        path: "/folder2/file2",
+        from: p,
+      })
+    );
+    assert.equal(
+      prompt.internalFs.tree.root
+        .getChildFromPath("/folder2/file2")
+        .getContent(),
+      content
+    );
+  });
+
+  it("should throw if trying to duplicate a non existing file", async function () {
+    inspect = stdout.inspect();
+
+    await C.touch.exec({
+      path: "/folder2/file2",
+      from: "/folder2/file1",
+    });
+    inspect.restore();
+    assertConsole(inspect, 'File "/folder2/file1" not found.');
+  });
+
+  it("should throw if trying to duplicate a folder", async function () {
+    await noPrint(
+      C.mkdir.mkdir({
+        path: "/folder2/folder3",
+      })
+    );
+
+    inspect = stdout.inspect();
+
+    await C.touch.exec({
+      path: "/folder2/file2",
+      from: "/folder2/folder3",
+    });
+    inspect.restore();
+    assertConsole(inspect, '"/folder2/folder3" is not a file.');
+  });
+
   it("should throw if trying to create a child of a file", async function () {
     await noPrint(
       C.touch.exec({
