@@ -162,19 +162,35 @@ class Export extends require("../Command") {
             pks.push(k);
           }
         }
+        let shouldEncryptAll = false;
         if (!pks.length) {
-          throw new Error("The entry does not contain any private key");
+          if (options.cryptoEnv) {
+            shouldEncryptAll = await this.useInput({
+              type: "confirm",
+              message:
+                "No private_key fields found. Would you like to encrypt the entire content instead?",
+              default: false,
+            });
+          }
+          if (!shouldEncryptAll) {
+            throw new Error("The entry does not contain any private key");
+          }
         }
-        let privateKey = card[pks[0]];
-        if (pks.length > 1) {
-          let pk = await this.useInput({
-            type: "list",
-            message: "Which private key do you want to export?",
-            choices: pks,
-          });
-          privateKey = card[pk];
+        let privateKey;
+        if (shouldEncryptAll) {
+          privateKey = content;
+        } else {
+          privateKey = card[pks[0]];
+          if (pks.length > 1) {
+            let pk = await this.useInput({
+              type: "list",
+              message: "Which private key do you want to export?",
+              choices: pks,
+            });
+            privateKey = card[pk];
+          }
         }
-        let fileType = options.keystore ? "keystore" : "crypto-env";
+        let fileType = options.cryptoEnv ? "crypto-env" : "keystore";
         let pwd =
           options.password ||
           (await this.useInput({
@@ -184,12 +200,12 @@ class Export extends require("../Command") {
         if (!pwd) {
           throw new Error("Operation canceled");
         }
-        if (options.keystore) {
-          content = await encryptPrivateKeyAsKeystoreJson(privateKey, pwd);
-          name = name.replace(/\.[^.]+$/, ".keystore.json");
-        } else {
+        if (options.cryptoEnv) {
           content = await Crypto.encrypt(privateKey, Crypto.SHA3(pwd));
           name = name.replace(/\.[^.]+$/, ".crypto.env");
+        } else {
+          content = await encryptPrivateKeyAsKeystoreJson(privateKey, pwd);
+          name = name.replace(/\.[^.]+$/, ".keystore.json");
         }
       } else if (options.encrypt) {
         const myPublicKey = this.secrez.getPublicKey();

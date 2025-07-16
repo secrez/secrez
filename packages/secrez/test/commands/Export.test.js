@@ -5,6 +5,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const { getWalletFromEncryptedJson } = require("@secrez/eth");
 const Crypto = require("@secrez/crypto");
+const { FileCipher } = require("@secrez/fs");
 
 const MainPrompt = require("../../src/prompts/MainPromptMock");
 const {
@@ -90,51 +91,65 @@ describe("#Export", function () {
       path: "file",
     });
     inspect.restore();
-    assertConsole(inspect, ["Exported file:", "file.2"]);
+    assertConsole(inspect, ["Exported file:", "file"]);
 
     content2 = await C.lcat.lcat({
-      path: path.join(await C.lpwd.lpwd(), "file.2"),
+      path: path.join(await C.lpwd.lpwd(), "file"),
     });
     assert.equal(content2, content);
   });
 
-  // it('should export a file encrypted only for the user itself', async function () {
-  //
-  //   let content = 'Some secret'
-  //   let p = '/file'
-  //
-  //   await noPrint(C.touch.exec({
-  //     path: p,
-  //     content
-  //   }))
-  //
-  //   await noPrint(C.lcd.exec({
-  //     path: testDir
-  //   }))
-  //
-  //   inspect = stdout.inspect()
-  //   await C.export.exec({
-  //     path: 'file',
-  //     encrypt: true,
-  //     includeMe: true
-  //   })
-  //   inspect.restore()
-  //   assertConsole(inspect, ['Exported file:', 'file.secrez'])
-  //
-  //   let content2 = await C.lcat.lcat({path: path.join(await C.lpwd.lpwd(), 'file')})
-  //   assert.equal(content2, content)
-  //
-  //   inspect = stdout.inspect()
-  //   await C.export.exec({
-  //     path: 'file'
-  //   })
-  //   inspect.restore()
-  //   assertConsole(inspect, ['Exported file:', 'file.2'])
-  //
-  //   content2 = await C.lcat.lcat({path: path.join(await C.lpwd.lpwd(), 'file.2')})
-  //   assert.equal(content2, content)
-  //
-  // })
+  it("should export a file encrypted only for the user itself", async function () {
+    let content = "Some secret";
+    let p = "/file";
+
+    await noPrint(
+      C.touch.exec({
+        path: p,
+        content,
+      })
+    );
+
+    await noPrint(
+      C.lcd.exec({
+        path: testDir,
+      })
+    );
+
+    inspect = stdout.inspect();
+    await C.export.exec({
+      path: "file",
+      encrypt: true,
+      includeMe: true,
+    });
+    inspect.restore();
+    assertConsole(inspect, ["Exported file:", "file.secrez"]);
+
+    let encryptedContent = await C.lcat.lcat({
+      path: path.join(await C.lpwd.lpwd(), "file.secrez"),
+    });
+    // Decrypt the content since it was exported with encryption
+
+    const fileCipher = new FileCipher(prompt.secrez);
+    const decryptedContent = fileCipher.decryptFile(encryptedContent, {});
+    assert.equal(decryptedContent, content);
+
+    inspect = stdout.inspect();
+    await C.export.exec({
+      path: "file",
+      encrypt: true,
+      includeMe: true,
+    });
+    inspect.restore();
+    assertConsole(inspect, ["Exported file:", "file.secrez.2"]);
+
+    encryptedContent = await C.lcat.lcat({
+      path: path.join(await C.lpwd.lpwd(), "file.secrez.2"),
+    });
+    // Decrypt the content since it was exported with encryption
+    const decryptedContent2 = fileCipher.decryptFile(encryptedContent, {});
+    assert.equal(decryptedContent2, content);
+  });
 
   it("should export a binary file to the current local folder", async function () {
     await noPrint(
@@ -392,5 +407,101 @@ describe("#Export", function () {
 
     const recovered = Crypto.decrypt(jsonFileContent, Crypto.SHA3(password));
     expect(recovered).equal(privateKey);
+  });
+
+  it("should export a cryptoenv file with entire content when no private_key fields exist and user confirms", async function () {
+    const p = "/folder/no-pk.yml";
+    const expected = "no-pk.crypto.env";
+    const password = "some weird password";
+    const content = "some_secret_value: abc123\napi_key: xyz789";
+
+    await noPrint(
+      C.touch.exec({
+        path: p,
+        content,
+      })
+    );
+
+    // Mock the user input to confirm encrypting entire content
+    const originalUseInput = C.export.useInput;
+    C.export.useInput = async (options) => {
+      if (options.type === "confirm") {
+        return true; // User confirms to encrypt entire content
+      }
+      if (options.type === "password") {
+        return password;
+      }
+      return originalUseInput.call(C.export, options);
+    };
+
+    inspect = stdout.inspect();
+    await C.export.exec({
+      path: p,
+      cryptoEnv: true,
+    });
+    inspect.restore();
+    assertConsole(inspect, ["Exported file:", expected]);
+
+    const jsonFileContent = await C.lcat.lcat({
+      path: path.join(await C.lpwd.lpwd(), expected),
+    });
+
+    const recovered = Crypto.decrypt(jsonFileContent, Crypto.SHA3(password));
+    expect(recovered).equal(content);
+
+    // Restore original useInput
+    C.export.useInput = originalUseInput;
+  });
+
+  it("should throw error when no private_key fields exist and user declines", async function () {
+    const p = "/folder/no-pk.yml";
+    const content = "some_secret_value: abc123\napi_key: xyz789";
+
+    await noPrint(
+      C.touch.exec({
+        path: p,
+        content,
+      })
+    );
+
+    // Mock the user input to decline encrypting entire content
+    const originalUseInput = C.export.useInput;
+    C.export.useInput = async (options) => {
+      if (options.type === "confirm") {
+        return false; // User declines to encrypt entire content
+      }
+      return originalUseInput.call(C.export, options);
+    };
+
+    inspect = stdout.inspect();
+    await C.export.exec({
+      path: p,
+      cryptoEnv: true,
+    });
+    inspect.restore();
+    assertConsole(inspect, ["The entry does not contain any private key"]);
+
+    // Restore original useInput
+    C.export.useInput = originalUseInput;
+  });
+
+  it("should throw error when no private_key fields exist and keystore option is used", async function () {
+    const p = "/folder/no-pk.yml";
+    const content = "some_secret_value: abc123\napi_key: xyz789";
+
+    await noPrint(
+      C.touch.exec({
+        path: p,
+        content,
+      })
+    );
+
+    inspect = stdout.inspect();
+    await C.export.exec({
+      path: p,
+      keystore: true,
+    });
+    inspect.restore();
+    assertConsole(inspect, ["The entry does not contain any private key"]);
   });
 });

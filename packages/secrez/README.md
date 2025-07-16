@@ -369,6 +369,10 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 ## History
 
+**2.1.6**
+
+- export and encrypt, with option `--crypto-env`, the entire content of an item
+
 **2.1.5**
 
 - duplicate files using `touch <newfile> --from <file>` to copy the file from the source to the destination
