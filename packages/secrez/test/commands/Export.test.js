@@ -504,4 +504,45 @@ describe("#Export", function () {
     inspect.restore();
     assertConsole(inspect, ["The entry does not contain any private key"]);
   });
+
+  it("should display encrypted content in console when using crypto-env with no-export", async function () {
+    const p = "/folder/pk.yml";
+    const password = "some weird password";
+
+    await noPrint(
+      C.touch.exec({
+        path: p,
+        generateWallet: true,
+      })
+    );
+
+    const pkYml = await C.cat.cat({
+      path: p,
+      unformatted: true,
+    });
+    const privateKey = pkYml[0].content
+      .split("private_key: ")[1]
+      .split("\n")[0];
+
+    inspect = stdout.inspect();
+    await C.export.exec({
+      path: p,
+      cryptoEnv: true,
+      noExport: true,
+      password,
+    });
+    inspect.restore();
+
+    // Should display encrypted content instead of exporting file
+    assertConsole(inspect, ["Encrypted content:"]);
+    // Verify the encrypted content is a valid base64 string
+    const output = inspect.output.map((e) => decolorize(e)).join("");
+    const encryptedContent = output.split("Encrypted content:")[1].trim();
+    assert.isTrue(/^[A-Za-z0-9+/=]+$/.test(encryptedContent));
+
+    // Verify no file was created
+    const files = await C.lls.lls({ path: await C.lpwd.lpwd() });
+    const cryptoEnvFiles = files.filter((f) => f.endsWith(".crypto.env"));
+    assert.equal(cryptoEnvFiles.length, 0);
+  });
 });

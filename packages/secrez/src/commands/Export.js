@@ -71,6 +71,10 @@ class Export extends require("../Command") {
         alias: "C",
         type: Boolean,
       },
+      {
+        name: "no-export",
+        type: Boolean,
+      },
     ];
   }
 
@@ -114,6 +118,10 @@ class Export extends require("../Command") {
         [
           "export my-wallet.yml --crypto-env",
           "it works like with keystore files, but it will export to file with .crypto.env extension ready to be used with @secrez/cryptoenv. Notice that the option -k has priority over -C.",
+        ],
+        [
+          "export my-wallet.yml --crypto-env --no-export",
+          "encrypts the private key but displays it in console instead of exporting to file.",
         ],
       ],
     };
@@ -202,6 +210,12 @@ class Export extends require("../Command") {
         }
         if (options.cryptoEnv) {
           content = await Crypto.encrypt(privateKey, Crypto.SHA3(pwd));
+          if (options.noExport) {
+            // Display encrypted content in console instead of exporting
+            this.Logger.grey("Encrypted content:");
+            this.Logger.reset(content);
+            return null; // Return null to indicate no file was created
+          }
           name = name.replace(/\.[^.]+$/, ".crypto.env");
         } else {
           content = await encryptPrivateKeyAsKeystoreJson(privateKey, pwd);
@@ -289,8 +303,10 @@ class Export extends require("../Command") {
     try {
       this.validate(options);
       let name = await this.export(options);
-      this.Logger.grey("Exported file:");
-      this.Logger.reset(name);
+      if (name) {
+        this.Logger.grey("Exported file:");
+        this.Logger.reset(name);
+      }
       if (
         options.encrypt &&
         !options.password &&
