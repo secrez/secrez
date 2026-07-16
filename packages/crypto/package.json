@@ -1,6 +1,6 @@
 {
   "name": "@secrez/crypto",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -19,10 +19,10 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "@secrez/utils": "workspace:~1.0.5",
+    "@secrez/utils": "workspace:~1.1.0",
     "chai": "^4.5.0",
     "cross-env": "^7.0.3",
-    "mocha": "^7.2.0",
+    "mocha": "^10.8.2",
     "nyc": "^15.1.0"
   },
   "description": "The Secrez crypto library.",
@@ -36,6 +36,6 @@
     "email": "francesco@sullo.co"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=20.0.0"
   }
 }

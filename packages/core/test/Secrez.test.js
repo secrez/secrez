@@ -149,6 +149,17 @@ describe("#Secrez", function () {
         assert.equal(masterKeyHash, secrez.masterKeyHash);
       });
 
+      it("should clear secrets from memory on signout", async function () {
+        await secrez.init(rootDir);
+        await secrez.signup(password, iterations);
+        const encrypted = secrez.encryptData("some secret");
+        secrez.signout();
+        assert.isUndefined(secrez.masterKeyHash);
+        assert.throws(() => secrez.encryptData("x"), /User not logged/);
+        await secrez.signin(password, iterations);
+        assert.equal(secrez.decryptData(encrypted), "some secret");
+      });
+
       describe("should throw an error", async function () {
         it("trying to signup if Secrez has not been initiated", async function () {
           try {
@@ -316,6 +327,27 @@ describe("#Secrez", function () {
         );
         encryptedData.set({ preserveContent: true });
         assert.equal(content, secrez.decryptEntry(encryptedData).content);
+      });
+
+      it("should decrypt content-only entry with the bound timestamp", async function () {
+        await secrez.signup(password, iterations);
+        const name = "some random data";
+        const content = "some random content";
+        const id = Crypto.getRandomId();
+        const encryptedData = secrez.encryptEntry(
+          new Entry({ id, type: F, name, content })
+        );
+        const { ts } = encryptedData.get(["ts"]);
+        encryptedData.set({
+          nameId: id,
+          nameTs: ts,
+        });
+        encryptedData.unset(["encryptedName"]);
+        const decryptedData = secrez.decryptEntry(encryptedData);
+        assert.equal(id, decryptedData.id);
+        assert.equal(ts, decryptedData.ts);
+        assert.notEqual(decryptedData.ts, decryptedData.id);
+        assert.equal(content, decryptedData.content);
       });
 
       it("should re-encrypt the content and decrypt it", async function () {

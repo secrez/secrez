@@ -1,17 +1,6 @@
-// Next line is to avoid that npm-check-unused reports it
-require("tiny-cli-editor");
-//
-
 const _ = require("lodash");
-const path = require("path");
-const fs = require("fs-extra");
 const { Entry } = require("@secrez/core");
-const {
-  isYaml,
-  yamlParse,
-  yamlStringify,
-  execAsync,
-} = require("@secrez/utils");
+const { isYaml, yamlParse, yamlStringify } = require("@secrez/utils");
 
 class Edit extends require("../Command") {
   setHelpAndCompletion() {
@@ -34,16 +23,6 @@ class Edit extends require("../Command") {
         type: String,
       },
       {
-        name: "editor",
-        alias: "e",
-        type: String,
-      },
-      {
-        name: "internal",
-        alias: "i",
-        type: Boolean,
-      },
-      {
         name: "field",
         alias: "f",
         type: String,
@@ -60,24 +39,22 @@ class Edit extends require("../Command") {
   help() {
     return {
       description: [
-        "Edits a file containing a secret.",
-        "If no default editor is installed, you can use the minimalistic internal editor.",
-        "It supports only two commands:",
-        "" + "   Ctrl-c to cancel",
+        "Edits a file containing a secret using the in-memory editor.",
+        "Secrets are never written to a temporary file on disk.",
+        "Editor commands:",
+        "   Ctrl-c to cancel",
         "   Ctrl-d to save",
-        "WARNING: Do not quit forcely because a temp file can remain on disk, unencrypted. If for any reason you do it, launch Secrez again because at start it empties the temp folder.",
+        "   Ctrl-k to delete the current line",
       ],
       examples: [
-        ["edit ../coins/ether2-pwd", "uses the OS default editor"],
-        ["edit ../bitcoin/seed -i", "uses the minimalistic internal editor"],
-        [
-          "edit ../bitcoin/seed -e nano",
-          "choses the editor, in this case nano",
-        ],
-        ["edit ../bitcoin/seed -e vim", "uses vim"],
+        ["edit ../coins/ether2-pwd", "edits a secret file"],
         [
           "edit gmail.yml -f password",
           "edits only the field password of the yaml file. If the field does not exist, a new field is added",
+        ],
+        [
+          "edit main:/gmail.yml -f password",
+          "edits a file using a dataset-qualified path",
         ],
         ["edit damaged.yaml -u", "edits damaged.yaml without parsing it"],
       ],
@@ -85,21 +62,22 @@ class Edit extends require("../Command") {
   }
 
   async edit(options) {
-    let file = options.path;
-    if (/:/.test(file)) {
-      // TODO Fix this
-      throw new Error(
-        "Edit works only on the current dataset. Remove the dataset from the path, please"
-      );
-    }
-    let sanitizedPath = Entry.sanitizePath(options.path);
-    if (sanitizedPath !== options.path) {
+    let data = await this.internalFs.getTreeIndexAndPath(options.path);
+    let file = data.path;
+    let tree = data.tree;
+
+    let sanitizedPath = Entry.sanitizePath(file);
+    if (sanitizedPath !== file) {
       throw new Error("A filename cannot contain \\/><|:&?*^$ chars.");
     }
+
     let exists = false;
     let fileData;
     try {
-      fileData = await this.prompt.commands.cat.cat({ path: file }, true);
+      fileData = await this.prompt.commands.cat.cat(
+        { path: options.path },
+        true
+      );
       exists = true;
     } catch (e) {
       if (options.field) {
@@ -108,8 +86,9 @@ class Edit extends require("../Command") {
       fileData = [{ content: "" }];
     }
 
+    let p = tree.getNormalizedPath(file);
     let fields = {};
-    if (exists && !options.unformatted && isYaml(file)) {
+    if (exists && !options.unformatted && isYaml(p)) {
       fields = fileData[0].content ? yamlParse(fileData[0].content) : {};
       if (typeof fields === "object") {
         options.choices = Object.keys(fields);
@@ -124,7 +103,7 @@ class Edit extends require("../Command") {
       } else {
         delete options.field;
       }
-    } else if (!isYaml(file)) {
+    } else if (!isYaml(p)) {
       delete options.field;
     }
     let content = options.field
@@ -134,18 +113,18 @@ class Edit extends require("../Command") {
 
     if (newContent && newContent !== content) {
       if (exists) {
-        let node = this.internalFs.tree.workingNode.getChildFromPath(file);
+        let node = tree.root.getChildFromPath(p);
         let entry = node.getEntry();
         if (options.field) {
           fields[options.field] = _.trim(newContent);
-          entry.content = yamlStringify(fields);
+          entry.set({ content: yamlStringify(fields) });
         } else {
-          entry.content = newContent;
+          entry.set({ content: newContent });
         }
-        await this.internalFs.tree.update(node, entry);
+        await tree.update(node, entry);
       } else {
         await this.prompt.commands.touch.touch({
-          path: file,
+          path: options.path,
           content: newContent,
         });
       }
@@ -155,70 +134,24 @@ class Edit extends require("../Command") {
     }
   }
 
-  getTinyCliEditorBinPath() {
-    if (!this.editorBinPath) {
-      let bin = path.resolve(
-        __dirname,
-        "../../node_modules/tiny-cli-editor/bin.js"
-      );
-      if (!fs.existsSync(bin)) {
-        bin = path.resolve(
-          __dirname,
-          "../../../../node_modules/tiny-cli-editor/bin.js"
-        );
-      }
-      if (!fs.existsSync(bin)) {
-        throw new Error("Default editor not found");
-      }
-      this.editorBinPath = bin;
-    }
-    return this.editorBinPath;
-  }
-
   async exec(options = {}) {
     if (options.help) {
       return this.showHelp();
     }
-    let currentEditor;
     try {
       this.validate(options, {
         path: true,
       });
 
-      if (!options.help) {
-        // Check for git conflicts before editing files (edit always changes something)
-        const shouldProceed = await this.checkGitConflictsBeforeOperation();
-        if (!shouldProceed) {
-          return;
-        }
+      const shouldProceed = await this.checkGitConflictsBeforeOperation();
+      if (!shouldProceed) {
+        return;
       }
-      currentEditor = process.env.EDITOR;
-      if (options.internal) {
-        process.env.EDITOR = this.getTinyCliEditorBinPath();
-      } else if (options.editor) {
-        process.env.EDITOR = options.editor;
-      }
-      if (!process.env.EDITOR) {
-        let result = await execAsync("which", __dirname, ["nano"]);
-        if (!result.message || result.code === 1) {
-          result = await execAsync("which", __dirname, ["vim"]);
-          if (!result.message || result.code === 1) {
-            throw new Error(
-              'No text editor found. Set up the EDITOR env variable or use the -e option. Type "edit -h" for more options.'
-            );
-          } else {
-            process.env.EDITOR = "vim";
-          }
-        } else {
-          process.env.EDITOR = "nano";
-        }
-      }
+
       await this.edit(options);
     } catch (e) {
       this.Logger.red(e.message);
     }
-    // eslint-disable-next-line require-atomic-updates
-    process.env.EDITOR = currentEditor;
     await this.prompt.run();
   }
 }

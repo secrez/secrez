@@ -1,6 +1,6 @@
 {
   "name": "@secrez/utils",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -22,11 +22,11 @@
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "@secrez/test-helpers": "workspace:~2.0.2",
+    "@secrez/test-helpers": "workspace:~2.0.3",
     "chai": "^4.5.0",
     "chalk": "^3.0.0",
     "cross-env": "^7.0.3",
-    "mocha": "^7.2.0",
+    "mocha": "^10.8.2",
     "nyc": "^15.1.0"
   },
   "description": "The Secrez core library.",
@@ -40,6 +40,6 @@
     "email": "francesco@sullo.co"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=20.0.0"
   }
 }
