@@ -41,17 +41,17 @@ API documentation
 ## Test coverage
 
 ```
-  36 passing (231ms)
+  36 passing (241ms)
   2 pending
 
 ----------|---------|----------|---------|---------|--------------------------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                    
 ----------|---------|----------|---------|---------|--------------------------------------
-All files |     100 |    89.13 |     100 |     100 |
- index.js |     100 |    89.13 |     100 |     100 | 34-45,78,104-115,195-199,224,398-402
+All files |     100 |    89.13 |     100 |     100 |                                      
+ index.js |     100 |    89.13 |     100 |     100 | 34-45,78,104-115,195-199,224,398-402 
 ----------|---------|----------|---------|---------|--------------------------------------
 
-> @secrez/crypto@1.1.0 posttest /Users/francescosullo/Projects/Secrez/secrez/packages/crypto
+> @secrez/crypto@1.1.1 posttest /Users/francescosullo/Projects/Secrez/secrez/packages/crypto
 > nyc check-coverage --statements 99 --branches 85 --functions 99 --lines 99
 
 
