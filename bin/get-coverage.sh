@@ -5,5 +5,6 @@ echo "Generating coverage report for $2"
 node bin/insert-coverage.js $1
 if [[ "$1" == "secrez" ]]; then
   cp packages/secrez/README.md .
+  cp packages/secrez/CHANGELOG.md .
 fi
 echo "Done"
