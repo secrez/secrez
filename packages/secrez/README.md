@@ -89,7 +89,7 @@ Secrez uses [NaCl](https://github.com/dchest/tweetnacl-js) as its primary crypto
 
 ## How to install it
 
-Secrez requires at least Node 10. If you have installed a previous version, it may generate unclear errors and refuse to install or work properly. We recommend installing Node using nvm if possible. For more information, refer to [https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm).
+Secrez requires Node.js 20 or later. If you have installed an older version, it may generate unclear errors and refuse to install or work properly. We recommend installing Node using nvm if possible. For more information, refer to [https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm).
 
 Since this monorepo uses [Pnpm](https://pnpm.io/), it is better to install secrez using pnpm because the lock file will be used to avoid unexpected conflicts among modules. To install pnpm, run:
 
@@ -111,7 +111,7 @@ To get started with Secrez, simply run the command:
 secrez
 ```
 
-Upon first launch, Secrez will prompt you to enter a master password and the number of iterations. The number of iterations is used to derive a master key from your password, so the higher the number, the more secure your data will be. It's recommended to use between 500,000 and 1,000,000 iterations, but you can customize this based on your needs. For example, you can set the number of iterations explicitly by running:
+Upon first launch, Secrez will prompt you to enter a master password and the number of iterations. The number of iterations is used to derive a master key from your password, so the higher the number, the more secure your data will be. It's recommended to use between 500,000 and 1,000,000 iterations, but you can customize this based on your needs. At signup, if you choose fewer than 100,000 iterations, Secrez shows a warning and asks for confirmation before proceeding (the threshold is lower than the recommended range because Secrez mixes the iteration count into the KDF salt, not just the password). For example, you can set the number of iterations explicitly by running:
 
 ```
 secrez -i 1023896
@@ -140,7 +140,6 @@ Launching `help` you can list all available commands.
 ```
 Available commands:
   alias     Create aliases of other commands.
-  bash      << deprecated - use "shell" instead
   cat       Shows the content of a file.
   cd        Changes the working directory.
   conf      Shows current configuration and allow to change password and number of iterations).
@@ -196,6 +195,32 @@ import ~/Desktop/myWallet.json -m
 This command will encrypt the file myWallet.json located on your Desktop, save it in the encrypted file system, and then delete the original file using the -m option.
 
 This is particularly useful if you have just downloaded a private key to access your crypto wallet and want to encrypt it as soon as possible. With Secrez, you can import the file and delete the cleartext version in one command.
+
+### Exporting and importing encrypted files
+
+You can export a file encrypted for use outside Secrez with:
+
+```
+export mySecret.yml -e
+```
+
+Secrez asks for a password and the number of PBKDF2 iterations. The exported file gets a `.secrez` extension (or `.secrezb` for binary files). Starting from version 2.2.0, password-based exports use format **v2**: a random salt is stored in the file, while the password and iteration count stay out of band (you must remember both to decrypt later).
+
+To import a v2 file:
+
+```
+import mySecret.yml.secrez --password "your export password" -i 500000
+```
+
+Use the same iteration count you chose at export time (`-i` on the command line, or Secrez will prompt you).
+
+Files exported with older versions used format **v1** (weaker key derivation). You can still import them with the password only:
+
+```
+import old-backup.secrez --password "your export password"
+```
+
+Exports encrypted for contacts or for yourself inside Secrez (shared keys) are unchanged and do not require a password or iterations at import time.
 
 ## Aliases — where the fun begins :-)
 
@@ -368,450 +393,7 @@ Secrez is not intended to compete with password managers, so do not expect it to
 
 ## History
 
-**2.1.16**
-
-- remove legacy second-factor handling from the CLI (`Welcome`, `Conf`)
-- refactor `git` command tests to use a local bare repository instead of a private GitHub remote (no SSH keys or external setup required)
-
-**2.1.15**
-
-- add `find -R` to look for recent entries only. With `-l` to set a limit (default 10)
-
-**2.1.14**
-
-- reverse changes done in version 2.1.12
-- add a push option to Git that checks if there are changes in the repo and, if so, pushes them remotely, updating the system
-
-**2.1.12**
-
-- enforce the usage of pnpm during global install. When that is not possible, for example with yarn, it blocks the execution asking the user to uninstall and install it again properly
-
-**2.1.11**
-
-- fix warning "(node:70960) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities" caused by the Git checker
-
-**2.1.10**
-
-- add external git change detection to block operations when repository state changes outside of Secrez (e.g., `git pull` in another terminal)
-- fix critical cache bug in git conflict detection that prevented external changes from being detected within 30 seconds
-- improve git conflict detection tests with comprehensive coverage for both git and non-git repositories
-
-**2.1.9**
-
-- add `<` parameter to reuse the last used path in commands (e.g., `totp <` will use the last path from previous command)
-- fix deprecation warning in `execSync` by properly escaping command arguments
-
-**2.1.8**
-
-- add `git` command to check repository status and detect remote changes
-- add git conflict detection middleware to prevent conflicts during data-changing operations
-
-**2.1.7**
-
-- add option `--no-export` to `export --crypto-env` to display the encrypted content in the console instead of writing it to a file
-
-**2.1.6**
-
-- export and encrypt, with option `--crypto-env`, the entire content of an item
-
-**2.1.5**
-
-- duplicate files using `touch <newfile> --from <file>` to copy the file from the source to the destination
-
-**2.1.4**
-
-- uses clipboard only on macOS
-- fixes `copy` return message when clipboard is not available
-
-**2.1.2**
-
-- disable `copy` command when in headless shells
-
-**2.1.1**
-
-- manage missing clipboard when in headless shells
-- fix bug in creating a `totp` when the target Yaml file is empty
-
-**2.0.1**
-
-- fix commands to change password and number of iterations
-
-**2.0.0** (breaking changes)
-
-- remove `@crypto/hub`, `@crypto/courier`, `@crypto/tunnel` and `@crypto/tls` since they are not maintained anymore
-- add `show` command to show a card field as a QR code, for example to encode a private key and let a mobile wallet scan it
-
-**1.1.6**
-
-- add support for cryptoEnv format to `export` (look at https://github.com/secrez/cryptoenv for details about CryptoEnv)
-
-**1.1.5**
-
-- fix touch's help showing wrong, temporary options, changed during the development :-(
-
-**1.1.4**
-
-- add clear screen after 180 seconds to avoid that the user forgot its terminal open and accidentally shares it while sharing the screen during meetings — it happened to me :-(
-- add option `--timeout, -t` to customize the timeout when launching secrez
-
-**1.1.3**
-
-- add new option `--keystore, -k` to `export`. If a file contains a private key field (i.e., a field with a name containing `private_key`), it can be exported in the keystore format. The file will have the same name with the extension replaced with `.keystore.json`.
-- this README has been redacted by ChatGPT to make it more clear and concise.
-
-**1.1.2**
-
-- New options for `touch`:
-  - `--wait-for-content` to prompt the user to add the content, instead of expecting it as a parameter. The content will be trimmed at the first newline, if there is any.
-  - `--generate-wallet` to generate an Ethereum-compatible wallet in a new card or in an existing one. It generates the fields `private_key` and `address`, with private key and address.
-  - `--prefix` in combination with `--generate-wallet` specifies the prefix of the field, calling the fields, for example `my_private_key` and `my_address` if the prefix is `my`.
-  - `--amount` in combination with `--generate-wallet` specifies the amount of wallets to generate. The default is 1.
-
-**1.1.1** (unpublished)
-
-- using prettier for consistent formatting
-
-**1.1.0**
-
-- Remove `git`. If used carefully, the command was helpful, but still it is at risk of creating conflicts. After long thoughts, I disapproved my own proposal at: https://github.com/secrez/secrez/pull/163
-
-**1.0.4**
-
-- Fix wrong example in `import`
-
-**1.0.3**
-
-- `git` asks to quit Secrez and merge manually if there are remote changes
-- `totp` allows to add a totp code to an existing yaml file using the option `--set` (see the examples)
-- Default duration before clipboard reverse for `totp` is now 8 seconds
-
-**1.0.2**
-
-- Export and Import can encrypt/decrypt files using shared keys generated from a specified public key
-- Can export ecrypted file for the user itself, files that can be decrypted only from inside the secrez account that exported them
-
-**1.0.1**
-
-- Export and Import can handle encryption. Files can be exported encrypted using a specified password or a key shared with contacts
-- Contacts can add a contact also using contact's public key (previously you need a hub url)
-- Import specifies the file that have been skipped (because binary, encrypted or both)
-
-**1.0.0**
-
-- Requires `@secrez/utils@1.0.1` which fixes a yaml parsing error with ETH-like addresses
-
-**1.0.0-beta.3**
-
-- Rm allows to delete specific versions of a file
-
-**1.0.0-beta.2**
-
-- Git has new options `--init`, `--remote-url` and `--main-branch` to initiate a repo from inside Secrez
-
-**1.0.0-beta.1**
-
-- use @secrez/core@1.0.0, which changes the encoding from base58 to base64, making the encoding much faster
-- remove second factor authentication due to potentially critical issues with Python and the required libraries on macOS (2FA will be restored as soon as either a pure Javascript library is available or using external Python libraries is reliable again)
-- `Bash` has been renamed `Shell`
-
-**0.11.0**
-
-- removed support for FIDO2 second factor authentication due to potential critical issues with Python and the required libraries on MacOS (2FA may be restored if a pure Javascript library becomes available)
-
-**0.10.8**
-
-- expose a prompt mock to allow other software to run commands programmatically
-- fix bug in totp when the command is called but no totp is set
-
-**0.10.7**
-
-- fix bug in `git -i` showing less changed that expected
-
-**0.10.6**
-
-- use `£` as an alternative to `#` when getting find results (whoops, I made this for myself, because I use both English and Italian keyboards)
-- add `leave` to leave a room
-
-**10.0.5**
-
-- fix bug in `git` wrongly returning `already up to date`
-- fix `git`'s help
-
-**0.10.4**
-
-- remove spaces in secret when launching `totp`
-- add a `--test` option, to test a secret
-- remove deprecated `exit`
-
-**0.10.3**
-
-- since it's not possible to clear the entire terminal, the clear screen process creates a false sense of security and has been removed
-- fix bug in `ls -l` when there are empty files
-- add message to suggest user to clear or close the terminal after quitting
-
-**0.10.2**
-
-- add a `git` command to push changes to the repo and pull changes
-- allow to run `bash` without parameters, asking later for the shell command
-
-**0.10.1**
-
-- encrypts binary files as is, without converting them to `base64` strings, like before
-
-**0.10.0**
-
-- use @secrez/hub 0.2.0 and @secrez/courier 0.2.0 (which are incompatible with the previous versions)
-- duplicate `whoami` and `contacts` to make them working inside the `chat` environment
-
-**0.9.4**
-
-- fix bug during import, if a `path` contains `:`; now, they are replaced with `_`
-
-**0.9.3**
-
-- fix bug with `ds -l` not working
-
-**0.9.2**
-
-- fix issue in `ls -l` that was working only in the current dataset
-- fix dates in `ls -l` in UTC time, instead than in local time
-
-**0.9.1**
-
-- `ls -l` returns details: size, creation date, last update date, number of versions and name
-
-**0.9.0**
-
-- Add `ds` to manage datasets
-- `ds` is also able to delete a dataset (moving its content to the `trash` dataset)
-- Remove feature `--rename` from `use`, since now `ds` manages the datasets
-
-**0.8.10**
-
-- If the default editor is not defined (env variable EDITOR) try to use nano or vim
-
-**0.8.9**
-
-- Pause clearScreen during editing
-
-**0.8.8**
-
-- Add the option `pathFrom` in `import` to build the `path` field using other fields
-
-**0.8.7**
-
-- Importing from a CSV file generates `.yaml` file instead of `.yml`
-
-**0.8.6**
-
-- Uses new onBeforeRewrite in [inquirer-command-prompt](https://github.com/sullof/inquirer-command-prompt) to remove the `#\d` when autocompleting the result of a search
-
-**0.8.5**
-
-- Fix issue with find results when they include datasets.
-- Improve scripts (getting coverage only for modified packages)
-- Add a secrez.png as a generic asset
-
-**0.8.4**
-
-- fix issue if a file starts with #\d, like `#2something`
-
-**0.8.3**
-
-- add autocomplete based on `find` results; for example `cat #2` and press `tab` will complete with the second result in the search
-
-**0.8.2**
-
-- fix bug in `show` which listed all the messages
-
-**0.8.1**
-
-- fix bug in `conf` setting a 2FA
-- improve encapsulation of the `_Secrez` class
-
-**0.8.0**
-
-- add `contacts` to manage trusted users, i.e, trusted public keys
-- add `whoami` to get info about the account
-- add @secrez/courier to allow communication between local accounts
-- add @secrez/hub for the remote hub
-- add @secrez/tunnel to manage the tunneling for the Courier
-- add `chat` to enter the chat environemnt, and send/receive messages and data to any trusted user
-- add `chat`'s subcommands `join`, `send` and `show`.
-- return `find` results as a numbered list, to be used as variable (like `$1`) in following commands
-- deprecate `exit` in favor of `quit` to leave rooms, chat and app
-- add `ssh` to connect via ssh to a remote server from inside Secrez, to protect private keys without password
-
-**0.7.14**
-
-- fix chained aliases generating prompt duplications
-
-**0.7.13**
-
-- fix autocomplete when single command
-
-**0.7.12**
-
-- adds support for Linux to `totp --from-clipboard`, using `xclip`
-
-**0.7.11**
-
-- returns an alert if `clipboardy` does not find the required libraries
-
-**0.7.10**
-
-- fixes the autocomplete loading the data only when needed
-
-**0.7.9**
-
-- fix bug in MainPrompt.js which caused an exit if command not found
-
-**0.7.8**
-
-- upgrade `@secrez/core` to `0.7.1` which fixes an error if `env.json` does not exists
-
-**0.7.7**
-
-- aliases now accept params (ex. `alias x -c 'copy $1 && ls $2 $1')
-
-**0.7.6**
-
-- `rm` ask confirmation before delete forever from the `trash` dataset
-- `edit` does not crash if no path is passed
-
-**0.7.5**
-
-- `totp` can read an image to scan a qrcode and recover its secret
-- on MacOs, `totp` can also read the image from the clipboard to recover its secret; it requires `pngpaste`
-
-**0.7.4**
-
-- fix bug in autocomplete showing the error stack
-- add script to upgrade the versions of any changed packages
-
-**0.7.3**
-
-- `find` ignores `trash` during global searches if not using `--trash-too`
-- update to `@secrez/fs 0.7.2`, which fixes a bug in the `DataCache` class
-
-**0.7.2**
-
-- `totp` allows to generate TOTP codes (like Google Authenticator)
-- add option `--wait` to `copy` to force it to wait the end of the execution
-- `alias` handles chains of commands, like `copy coinbase.yml -f email password -d 3 2 --wait && totp coinbase.yml`
-
-**0.7.1**
-
-- Calling a command with unknown options will generate an error
-- Fix issue moving duplicates
-- Adds to `mv` an explicit destination field
-
-**0.7.0**
-
-- Introduce a more secure derivation process, using the iterations number in the salt. During the upgrade existing second factors of authentication will be removed
-- Allow to change password and number of iterations in `conf`. BE CAREFUl, any change in `conf` can cause conflicts in a remote repo. Don't do the same changes parallelly
-
-**0.6.5**
-
-- Add `duration` to `export` to delete the exported file after the duration (in seconds)
-
-**0.6.4**
-
-- Add `alias` to generate alias of any command
-
-**0.6.3**
-
-- Minor bug fix
-
-**0.6.2**
-
-- `copy` can put many fields in the clipboard, scheduling them
-
-**0.6.1**
-
-- Add support for U2F keys (Yubikey, Solokeys, etc.)
-- `ls` now returns sorted results
-- Fixed bug with `mv` and `rm` when using wildcards
-- Dynamic format for help, managing large examples
-
-**0.6.0**
-
-- Allow multiple datasets; `main` and `trash` exists by default
-- At start, purges old trees after successfully loading a dataset
-- `use` allows to use and create new dataset
-- `mv` supports `-d, --destination` for the destination
-- `mv` allows to move files among datasets with a syntax like `mv somefile archive:/` or `mv archive:somefile main:/some/`
-- `mv` adds `--find` and `--content-too` to use the result of a search as input
-- `mv`, if no destination set, asks if like to use the active directory in the target dataset
-- `ls -o d` and `ls -o f` to limit the listing only to folders or files
-- `copy` allows to select the field to copy in yaml files
-- Improve autocomplete to handle datasets
-- Fix autocomplete in `lcat`, which was wrongly using the internal files
-- `tag` is able to list and show tags along all the datasets, anche can use `--find` like `mv`
-
-**0.5.13**
-
-- Find in content excludes binary contents
-
-**0.5.12**
-
-- Optimize find inside contents caching the data
-- Fix an error returning wrong cases in the results
-- Remove an unnecessary message when nothing is recovered
-
-**0.5.11**
-
-- Use tags to prefix the path during import
-
-**0.5.10**
-
-- Fix the README that was not aligned
-
-**0.5.9**
-
-- Add Paste to paste the clipboard content in either a new or existent file, emptying the clipboard
-- Fix bug with Copy that was preventing the command from working
-
-**0.5.8**
-
-- Allow Import, with the options `-t`, to recognize tags during the import from CSV
-- Split Export in Export and Copy. The first only exports to the FS, the second copies to the clipboard
-
-**0.5.7**
-
-- Add wildcard support for Import, Mv, Rm and Tag
-- Add support for recursion during import
-
-**0.5.6**
-
-- Add Tag command to tag files and folders
-
-**0.5.5**
-
-- Optimize Import avoiding intermediate saves of the tree
-- Fix an issue with iterations at launch
-
-**0.5.4**
-
-- Add Import of many entries from CSV and JSON files
-
-**0.5.3**
-
-- Use Yaml files as cards, being able to read and edit single fields
-
-**0.5.2**
-
-- Remove obfuscation of the tree before saving (it was an overkill)
-
-**0.5.1**
-
-- Add Find to search in files and folders
-
-**0.5.0**
-
-- First stable version
-
-Versions < 0.5.0 are deprecated because the format was sligtly different and they are incompatible.
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ## Contribute
 
@@ -906,60 +488,60 @@ Thank you for any contributions! 😉
 ## Test coverage
 
 ```
-  1 passing (15s)
+  211 passing (28s)
 
---------------------|---------|----------|---------|---------|----------------------------------
+--------------------|---------|----------|---------|---------|--------------------------------------
 File                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
---------------------|---------|----------|---------|---------|----------------------------------
-All files           |   14.72 |     2.34 |   17.88 |   14.78 |
- src                |   25.42 |     6.25 |      15 |   25.64 |
-  Command.js        |      24 |     8.62 |   21.42 |   24.32 | 22-35,40-110,116,127,130-182
-  PreCommand.js     |    8.82 |        0 |       0 |    8.82 | 6-97
+--------------------|---------|----------|---------|---------|--------------------------------------
+All files           |   86.68 |    74.22 |   86.18 |   86.62 |
+ src                |    65.8 |    54.31 |   68.96 |   66.14 |
+  Command.js        |   74.66 |    74.13 |   78.57 |   75.67 | ...5-62,73,80,93,127,164-172,179-182
+  PreCommand.js     |   57.14 |    34.61 |      80 |   57.14 | 10-19,68-77
+  Welcome.js        |   56.75 |    34.37 |      50 |   56.75 | ...4,129,138-140,148-163,174-175,181
   cliConfig.js      |     100 |      100 |     100 |     100 |
- src/commands       |   13.44 |      1.7 |   19.32 |   13.52 |
-  Alias.js          |    7.59 |        0 |      25 |    7.69 | 62-228
-  Bash.js           |    62.5 |        0 |   33.33 |    62.5 | 11-19
-  Cat.js            |   11.95 |        0 |   14.28 |   11.95 | 61-222
-  Cd.js             |   17.85 |        0 |      25 |   17.85 | 28-73
-  Conf.js           |     7.4 |        0 |      10 |     7.4 | 34-216
-  Contacts.js       |    5.73 |        0 |    7.69 |    5.78 | 53-284
-  Copy.js           |   10.98 |        0 |    12.5 |   11.11 | 71-268
-  Ds.js             |    5.55 |        0 |   16.66 |    5.63 | 39-170
-  Edit.js           |   11.76 |        0 |      20 |   11.76 | 61-222
-  Export.js         |    9.82 |        0 |   16.66 |    9.82 | 82-325
-  Find.js           |    7.69 |        0 |    8.33 |    7.89 | 63-211
-  Git.js            |   48.88 |    35.71 |      75 |   48.88 | 31,49-54,61,70-97,103,108,114
-  Help.js           |   33.33 |        0 |      50 |   33.33 | 26-43
-  Import.js         |    6.16 |        0 |    9.09 |    6.22 | 87-506
-  Lcat.js           |      30 |        0 |      25 |      30 | 35-65
-  Lcd.js            |   17.39 |        0 |      25 |   17.39 | 30-72
-  Lls.js            |   22.72 |        0 |      25 |   22.72 | 49-99
-  Lpwd.js           |   30.76 |        0 |      25 |   30.76 | 15-38
-  Ls.js             |    5.63 |        0 |      10 |    5.97 | 46-187
-  Mkdir.js          |   18.51 |        0 |      25 |   18.51 | 27-71
-  Mv.js             |    6.18 |        0 |   16.66 |    6.31 | 46-250
-  Paste.js          |   13.46 |        0 |      25 |   13.46 | 40-141
-  Pwd.js            |   30.76 |        0 |      25 |   30.76 | 15-35
-  Quit.js           |      50 |        0 |   33.33 |      50 | 19-40
-  Rm.js             |   14.54 |        0 |   16.66 |   14.81 | 36-147
-  Shell.js          |   29.41 |        0 |      25 |   29.41 | 25-57
-  Show.js           |   15.68 |        0 |   14.28 |      16 | 45-147
-  Ssh.js            |   22.22 |        0 |      20 |   22.22 | 49-120
-  Tag.js            |    8.41 |        0 |    9.09 |    8.49 | 66-246
-  Totp.js           |   13.59 |        0 |    9.09 |   13.59 | 76-327
-  Touch.js          |   14.54 |        0 |      25 |   14.81 | 75-245
-  Use.js            |   11.11 |        0 |      25 |   11.11 | 30-95
-  Ver.js            |      50 |        0 |   33.33 |      50 | 17-28
-  Whoami.js         |   27.77 |        0 |      20 |   27.77 | 20-50
+ src/commands       |   89.08 |    75.91 |   93.77 |   89.02 |
+  Alias.js          |    88.6 |    78.68 |     100 |   88.46 | 101,112,139,169,173,180,190,213-214
+  Cat.js            |   98.91 |    88.88 |     100 |   98.91 | 152
+  Cd.js             |   96.42 |    86.66 |     100 |   96.42 | 44
+  Conf.js           |      90 |    74.46 |   77.77 |      90 | 107-110,138-141,150
+  Contacts.js       |   86.06 |     75.6 |     100 |   85.95 | ...5,165,172,184,237,250,260,268-269
+  Copy.js           |    87.5 |    71.92 |   72.72 |   87.36 | ...7,127,178,195,217-222,237-238,265
+  Ds.js             |   90.27 |     82.6 |     100 |   90.14 | 99,108-113,125,147-148
+  Edit.js           |   71.18 |       65 |     100 |   71.18 | 63,69,78,89-97,134-148
+  Export.js         |   85.71 |    71.76 |   85.71 |   85.71 | ...4,232-236,241,253,262,265,269-283
+  Find.js           |    90.3 |    74.16 |     100 |   90.12 | ...3,282-302,371,423-426,441-444,451
+  Git.js            |   88.88 |    80.95 |     100 |   88.88 | 61,73,81,88,114
+  Help.js           |     100 |       80 |     100 |     100 | 29
+  Import.js         |   89.95 |    82.14 |   91.66 |   89.86 | ...4,414,420,468,484-485,493-500,527
+  Lcat.js           |     100 |    85.71 |     100 |     100 | 54
+  Lcd.js            |   95.65 |    81.81 |     100 |   95.65 | 50
+  Lls.js            |   95.45 |    72.72 |     100 |   95.45 | 97
+  Lpwd.js           |    92.3 |      100 |     100 |    92.3 | 36
+  Ls.js             |   91.54 |    76.31 |     100 |   91.04 | 103,114-116,130,185
+  Mkdir.js          |   92.59 |       60 |     100 |   92.59 | 56-57
+  Mv.js             |   86.59 |    71.66 |     100 |   86.31 | 93-99,133,155-156,165,175-182
+  Paste.js          |   84.61 |    70.83 |     100 |   84.61 | 72,78,81,89,113,130-131,139
+  Pwd.js            |    92.3 |      100 |     100 |    92.3 | 33
+  Quit.js           |    92.3 |       50 |     100 |    92.3 | 27
+  Rm.js             |    90.9 |       76 |     100 |   90.74 | 63,125-126,136,144
+  Shell.js          |   86.66 |       40 |   88.88 |   86.66 | 15,21,65,82
+  Show.js           |   72.54 |    45.45 |   57.14 |      74 | ...8,100,106-114,117,123-126,132,145
+  Ssh.js            |      78 |    57.69 |   85.71 |      78 | 87,95,100,129,133,141-148
+  Tag.js            |   96.26 |    91.37 |     100 |   96.22 | 122,171,204-205
+  Totp.js           |   89.28 |     72.3 |    92.3 |   89.18 | ...7,196-197,237,247,289-294,308-309
+  Touch.js          |   96.36 |    80.64 |     100 |   96.29 | 164,240
+  Use.js            |   91.66 |    86.95 |     100 |   91.66 | 68,83-84
+  Ver.js            |      90 |    66.66 |     100 |      90 | 25
+  Whoami.js         |   83.33 |       60 |      80 |   83.33 | 27,35,48
   index.js          |    87.5 |       50 |     100 |   86.95 | 15,22,31
- src/prompts        |   58.33 |        0 |      25 |   58.33 |
-  MainPromptMock.js |   58.33 |        0 |      25 |   58.33 | 22-44
- src/utils          |   15.89 |     6.86 |   10.25 |   15.62 |
-  AliasManager.js   |    5.88 |        0 |       0 |    5.88 | 3-48
-  ContactManager.js |    6.66 |        0 |       0 |    6.66 | 3-44
-  HelpProto.js      |     4.2 |        0 |   16.66 |    4.27 | 11-200
-  Logger.js         |   54.54 |    43.75 |   15.78 |   53.48 | 8,12,16-57,65-69,74,84,88,93,105
---------------------|---------|----------|---------|---------|----------------------------------
+ src/prompts        |      72 |    33.33 |   36.36 |      72 |
+  MainPromptMock.js |      72 |    33.33 |   36.36 |      72 | 29-35,44-50
+ src/utils          |   83.58 |    78.43 |   69.23 |   83.33 |
+  AliasManager.js   |     100 |    91.66 |     100 |     100 | 47
+  ContactManager.js |   73.33 |       60 |   85.71 |   73.33 | 12,34-36
+  HelpProto.js      |   89.07 |     82.6 |     100 |   88.88 | 49,135-137,153-154,171-176,195
+  Logger.js         |    65.9 |    56.25 |    42.1 |   65.11 | ...16,25,37-49,57,69,74,84,88,93,105
+--------------------|---------|----------|---------|---------|--------------------------------------
 ```
 
 ## Copyright

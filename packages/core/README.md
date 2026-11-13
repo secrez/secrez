@@ -20,6 +20,15 @@ API documentation
 
 ## History
 
+**1.1.0**
+
+- clear cryptographic secrets from memory on `signout` via `clearSecrets()` (best-effort buffer zeroing)
+- guard crypto APIs with `assertLoggedIn()` after signout
+- replace deprecated `homedir` package with `os.homedir()`
+- require Node.js 20 or later (`engines.node >=20.0.0`)
+- fix `decryptEntry` content-only path: set `ts` from `e.t` instead of `e.i` (SIG-4)
+- vault permissions (FS-1): `VaultPermissions` — files `0o600`, dirs `0o700` on create; `secureVaultIfNeeded()` at login (probe `keys/default.json` or `keys/`)
+
 **1.0.7**
 
 - remove legacy shared-secret / second-factor authentication API (`sharedSignin`, `generateSharedSecrets`, `recoverSharedSecrets`, `removeSharedSecret`, `getSecondFactorData`, and related config); sign-in now requires only the master key
@@ -32,21 +41,22 @@ API documentation
 ## Test coverage
 
 ```
-  54 passing (929ms)
+  63 passing (836ms)
 
------------------|---------|----------|---------|---------|-------------------
-File             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
------------------|---------|----------|---------|---------|-------------------
-All files        |   99.39 |    93.49 |    98.5 |   99.39 |                   
- src             |   99.61 |    95.58 |   98.24 |   99.61 |                   
-  Entry.js       |     100 |    95.65 |     100 |     100 | 39                
-  Secrez.js      |     100 |    96.66 |     100 |     100 | 207,330           
-  _Secrez.js     |   98.93 |     91.3 |   95.65 |   98.93 | 101               
- src/config      |   98.57 |    84.84 |     100 |   98.57 |                   
-  ConfigUtils.js |   98.48 |    84.84 |     100 |   98.48 | 137               
-  booleans.js    |     100 |      100 |     100 |     100 |                   
-  index.js       |     100 |      100 |     100 |     100 |                   
------------------|---------|----------|---------|---------|-------------------
+----------------------|---------|----------|---------|---------|----------------------
+File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s    
+----------------------|---------|----------|---------|---------|----------------------
+All files             |    98.3 |    91.57 |   98.76 |    98.3 |                      
+ src                  |   97.92 |    94.28 |   98.33 |   97.92 |                      
+  Entry.js            |     100 |    95.65 |     100 |     100 | 39                   
+  Secrez.js           |     100 |    97.72 |     100 |     100 | 226                  
+  _Secrez.js          |   94.54 |    82.75 |      96 |   94.54 | 11,14-15,114,249-250 
+ src/config           |   99.19 |       84 |     100 |   99.19 |                      
+  ConfigUtils.js      |   98.57 |    84.84 |     100 |   98.57 | 143                  
+  VaultPermissions.js |     100 |    82.35 |     100 |     100 | 53,79,102            
+  booleans.js         |     100 |      100 |     100 |     100 |                      
+  index.js            |     100 |      100 |     100 |     100 |                      
+----------------------|---------|----------|---------|---------|----------------------
 ```
 
 ## Copyright

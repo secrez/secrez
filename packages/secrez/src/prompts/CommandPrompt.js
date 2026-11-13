@@ -6,13 +6,12 @@ const inquirer = require("inquirer");
 // eslint-disable-next-line node/no-unpublished-require
 // const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
 const inquirerCommandPrompt = require("inquirer-command-prompt");
-const multiEditorPrompt = require("./MultiEditorPrompt");
 inquirer.registerPrompt("command", inquirerCommandPrompt);
-inquirer.registerPrompt("multiEditor", multiEditorPrompt);
 
 const { sleep, getKeyValue } = require("@secrez/utils");
 const Completion = require("./Completion");
 const { FsUtils } = require("@secrez/fs");
+const { VaultPermissions } = require("@secrez/core");
 const Logger = require("../utils/Logger");
 const cliConfig = require("../cliConfig");
 const sigintManager = require("./SigintManager");
@@ -148,7 +147,7 @@ class CommandPrompt {
   async saveHistory() {
     let histories = JSON.stringify(inquirerCommandPrompt.getHistories(true));
     let encryptedHistory = this.secrez.encryptData(histories);
-    await fs.writeFile(this.historyPath, encryptedHistory);
+    await VaultPermissions.writeFile(this.historyPath, encryptedHistory);
   }
 
   async loadSavedHistory() {

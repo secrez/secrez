@@ -1,6 +1,6 @@
 {
   "name": "@secrez/test-helpers",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -14,16 +14,16 @@
     "base-x": "^3.0.10",
     "chai": "^4.5.0",
     "chalk": "^3.0.0",
+    "clipboardy": "^2.3.0",
     "fs-extra": "^9.1.0",
     "lodash": "^4.17.21",
     "sha3": "^2.1.4",
-    "superagent": "^5.3.1",
     "test-console": "^1.1.0",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "mocha": "^7.2.0",
+    "mocha": "^10.8.2",
     "nyc": "^15.1.0"
   },
   "description": "The common helpers used for testing",
@@ -37,6 +37,6 @@
     "email": "francesco@sullo.co"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=20.0.0"
   }
 }
