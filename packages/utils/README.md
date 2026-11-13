@@ -9,7 +9,7 @@ This is a utils library used by other packages in the @secrez suite.
 **1.1.0**
 
 - implement `secureCompare` with `crypto.timingSafeEqual` for constant-time comparison (PWD-3)
-- require Node.js 20 or later (`engines.node >=20.0.0`)
+- require Node.js 22.23.4 or later (`engines.node >=22.23.4`)
 
 **1.0.1**
 
@@ -25,11 +25,11 @@ This is a utils library used by other packages in the @secrez suite.
   38 passing (133ms)
 
 -------------|---------|----------|---------|---------|---------------------
-File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s   
+File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 -------------|---------|----------|---------|---------|---------------------
-All files    |   92.14 |    81.72 |   82.05 |   91.97 |                     
- UglyDate.js |     100 |    96.66 |     100 |     100 | 60                  
- index.js    |   89.36 |     74.6 |   80.55 |   89.05 | 127-129,227,259-282 
+All files    |   92.14 |    81.72 |   82.05 |   91.97 |
+ UglyDate.js |     100 |    96.66 |     100 |     100 | 60
+ index.js    |   89.36 |     74.6 |   80.55 |   89.05 | 127-129,227,259-282
 -------------|---------|----------|---------|---------|---------------------
 ```
 

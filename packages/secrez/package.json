@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "2.2.0-beta.1",
+  "version": "2.2.0",
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=dev bin/secrez.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -62,7 +62,7 @@
   },
   "homepage": "https://github.com/secrez/secrez#readme",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.23.4"
   },
   "gitHead": "42cbc519dd2802a1e03c6203bb724c726c2bfb79"
 }

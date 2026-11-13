@@ -89,7 +89,7 @@ Secrez uses [NaCl](https://github.com/dchest/tweetnacl-js) as its primary crypto
 
 ## How to install it
 
-Secrez requires Node.js 20 or later. If you have installed an older version, it may generate unclear errors and refuse to install or work properly. We recommend installing Node using nvm if possible. For more information, refer to [https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm).
+Secrez requires Node.js 22.23.4 or later (security-patched LTS). If you have installed an older version, it may generate unclear errors and refuse to install or work properly. We recommend installing Node using nvm if possible. For more information, refer to [https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm).
 
 Since this monorepo uses [Pnpm](https://pnpm.io/), it is better to install secrez using pnpm because the lock file will be used to avoid unexpected conflicts among modules. To install pnpm, run:
 
