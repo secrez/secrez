@@ -9,7 +9,7 @@ This is a utils library used by other packages in the @secrez suite.
 **1.1.0**
 
 - implement `secureCompare` with `crypto.timingSafeEqual` for constant-time comparison (PWD-3)
-- require Node.js 20 or later (`engines.node >=20.0.0`)
+- require Node.js 22.23.4 or later (`engines.node >=22.23.4`)
 
 **1.0.1**
 
@@ -22,7 +22,7 @@ This is a utils library used by other packages in the @secrez suite.
 ## Test coverage
 
 ```
-  38 passing (133ms)
+  38 passing (131ms)
 
 -------------|---------|----------|---------|---------|---------------------
 File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s   

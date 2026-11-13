@@ -13,7 +13,7 @@ API documentation
 **0.0.6**
 
 - replace deprecated `ethereumjs-util` with `ethers.getAddress()` in `equals()`
-- require Node.js 20 or later (`engines.node >=20.0.0`)
+- require Node.js 22.23.4 or later (`engines.node >=22.23.4`)
 
 **0.0.2**
 

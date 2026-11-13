@@ -10,7 +10,7 @@ This is a utils library for testing.
 
 - add `fileCipherLegacy` test helpers (`encryptWithPassword`, `writeV1EncryptedFile`) for v1 `.secrez` export/import tests
 - add clipboard image test helpers (`clipboardTest`, `copyImageToClipboard`)
-- require Node.js 20 or later (`engines.node >=20.0.0`)
+- require Node.js 22.23.4 or later (`engines.node >=22.23.4`)
 - remove unused `superagent` and dead HTTPS/`sendMessage` helpers left from the old shared-secrets test path
 - upgrade mocha to 10.x
 
@@ -25,7 +25,7 @@ This is a utils library for testing.
 ## Test coverage
 
 ```
-  1 passing (1ms)
+  1 passing (2ms)
 
 ----------------------|---------|----------|---------|---------|----------------------
 File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s    

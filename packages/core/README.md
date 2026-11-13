@@ -25,7 +25,7 @@ API documentation
 - clear cryptographic secrets from memory on `signout` via `clearSecrets()` (best-effort buffer zeroing)
 - guard crypto APIs with `assertLoggedIn()` after signout
 - replace deprecated `homedir` package with `os.homedir()`
-- require Node.js 20 or later (`engines.node >=20.0.0`)
+- require Node.js 22.23.4 or later (`engines.node >=22.23.4`)
 - fix `decryptEntry` content-only path: set `ts` from `e.t` instead of `e.i` (SIG-4)
 - vault permissions (FS-1): `VaultPermissions` — files `0o600`, dirs `0o700` on create; `secureVaultIfNeeded()` at login (probe `keys/default.json` or `keys/`)
 
@@ -41,7 +41,7 @@ API documentation
 ## Test coverage
 
 ```
-  63 passing (502ms)
+  63 passing (521ms)
 
 ----------------------|---------|----------|---------|---------|----------------------
 File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s    
