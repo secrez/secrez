@@ -25,7 +25,7 @@ This is a utils library for testing.
 ## Test coverage
 
 ```
-  1 passing (3ms)
+  1 passing (1ms)
 
 ----------------------|---------|----------|---------|---------|----------------------
 File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s    

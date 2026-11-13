@@ -147,9 +147,6 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
-      dotenv:
-        specifier: ^17.2.2
-        version: 17.2.2
       mocha:
         specifier: ^10.8.2
         version: 10.8.2
@@ -223,9 +220,6 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
-      dotenv:
-        specifier: ^17.2.2
-        version: 17.2.2
       mocha:
         specifier: ^10.8.2
         version: 10.8.2
@@ -944,10 +938,6 @@ packages:
 
   dijkstrajs@1.0.3:
     resolution: {integrity: sha512-qiSlmBq9+BCdCA/L46dw8Uy93mloxsPSbwnm5yrKn2vMPiy8KyAskTF6zuV/j5BMsmOGZDPs7KjU+mjb670kfA==}
-
-  dotenv@17.2.2:
-    resolution: {integrity: sha512-Sf2LSQP+bOlhKWWyhFsn0UsfdK/kCWRv1iuA2gXAwt3dyNabr6QSj00I2V10pidqz69soatm9ZwZvpQMTIOd5Q==}
-    engines: {node: '>=12'}
 
   electron-to-chromium@1.5.57:
     resolution: {integrity: sha512-xS65H/tqgOwUBa5UmOuNSLuslDo7zho0y/lgQw35pnrqiZh7UOWHCeL/Bt6noJATbA6tpQJGCifsFsIRZj1Fqg==}
@@ -2772,8 +2762,6 @@ snapshots:
   diff@5.2.2: {}
 
   dijkstrajs@1.0.3: {}
-
-  dotenv@17.2.2: {}
 
   electron-to-chromium@1.5.57: {}
 

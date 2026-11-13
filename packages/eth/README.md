@@ -26,7 +26,7 @@ API documentation
 ## Test coverage
 
 ```
-  6 passing (2s)
+  6 passing (1s)
 
 ----------|---------|----------|---------|---------|-------------------
 File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
