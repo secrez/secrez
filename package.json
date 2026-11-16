@@ -28,5 +28,10 @@
   "license": "MIT",
   "engines": {
     "node": ">=22.23.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "cipher-base": ">=1.0.5"
+    }
   }
 }
