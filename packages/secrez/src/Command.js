@@ -141,46 +141,61 @@ class Command extends PreCommand {
   }
 
   /**
+   * Fetch git status without prompting. `checkFailed` means the caller may proceed.
+   */
+  async readGitConflictStatus() {
+    try {
+      return await this.internalFs.checkGitSyncStatus();
+    } catch (e) {
+      return { hasRisk: false, checkFailed: true };
+    }
+  }
+
+  logGitConflictBlocked(conflictCheck) {
+    this.Logger.yellow(conflictCheck.message);
+    this.Logger.grey(
+      "Operation blocked for data integrity. Please quit and re-enter Secrez."
+    );
+  }
+
+  async askToBypassGitConflict(conflictCheck) {
+    this.Logger.yellow(conflictCheck.message);
+    const shouldContinue = await this.useInput({
+      type: "confirm",
+      message: "Do you want to continue anyway?",
+      default: false,
+    });
+    if (!shouldContinue) {
+      this.Logger.grey("Operation cancelled.");
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Check for git conflicts before performing data-changing operations
    * Returns true if the operation should proceed, false if it should be cancelled
    */
   async checkGitConflictsBeforeOperation() {
-    try {
-      const conflictCheck = await this.internalFs.checkGitSyncStatus();
+    const conflictCheck = await this.readGitConflictStatus();
 
-      if (conflictCheck.hasRisk) {
-        // Show the warning message
-        this.Logger.yellow(conflictCheck.message);
-
-        // If bypass is not allowed (e.g., external changes detected), block the operation
-        if (!conflictCheck.allowBypass) {
-          this.Logger.grey(
-            "Operation blocked for data integrity. Please quit and re-enter Secrez."
-          );
-          return false;
-        }
-
-        // Otherwise, ask user if they want to continue
-        const shouldContinue = await this.useInput({
-          type: "confirm",
-          message: "Do you want to continue anyway?",
-          default: false,
-        });
-
-        if (!shouldContinue) {
-          this.Logger.grey("Operation cancelled.");
-          return false;
-        }
-      }
-
-      return true;
-    } catch (e) {
-      // If git check fails, log a warning but continue
+    if (conflictCheck.checkFailed) {
       this.Logger.yellow(
         "Warning: Could not check git status. Proceeding anyway."
       );
       return true;
     }
+
+    if (!conflictCheck.hasRisk) {
+      return true;
+    }
+
+    if (!conflictCheck.allowBypass) {
+      this.logGitConflictBlocked(conflictCheck);
+      return false;
+    }
+
+    return this.askToBypassGitConflict(conflictCheck);
   }
 }
 
