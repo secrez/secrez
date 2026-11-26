@@ -7,16 +7,28 @@ class PreCommand {
     if (this.prompt.editorProvider) {
       return this.prompt.editorProvider(options);
     } /* istanbul ignore next */ else {
-      const rl = this.prompt.getRl && this.prompt.getRl();
-      if (rl) {
-        rl.pause();
-      }
+      // Do not pause/resume inquirer-command-prompt's cached rl: after the user
+      // submits `edit …`, that Interface is already closed. On Node 24+,
+      // rl.pause()/resume() on a closed Interface throw ERR_USE_AFTER_CLOSE
+      // ("readline was closed"). Even on Node 22, pause/resume on the dead
+      // Interface still toggles process.stdin and races the next prompt.
+      // MemoryEditor owns stdin directly instead.
+      const stdin = process.stdin;
+      const wasRaw = typeof stdin.isRaw === "boolean" ? stdin.isRaw : false;
 
       try {
         return await editInMemory(options.content || "");
       } finally {
-        if (rl) {
-          rl.resume();
+        if (stdin.isTTY && typeof stdin.setRawMode === "function") {
+          try {
+            stdin.setRawMode(wasRaw);
+          } catch (e) {
+            // ignore — stdin may already be in the desired mode
+          }
+        }
+        // Ensure stdin is flowing again for the next inquirer/command prompt
+        if (typeof stdin.resume === "function" && stdin.isPaused()) {
+          stdin.resume();
         }
       }
     }

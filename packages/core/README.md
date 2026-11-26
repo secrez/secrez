@@ -41,7 +41,7 @@ API documentation
 ## Test coverage
 
 ```
-  63 passing (521ms)
+  63 passing (469ms)
 
 ----------------------|---------|----------|---------|---------|----------------------
 File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s    

@@ -122,9 +122,16 @@ function onKeypress(stream, cb) {
   stream.resume();
 
   return () => {
-    stream.setRawMode(oldRawMode);
-    stream.pause();
     stream.removeListener("data", onData);
+    if (typeof stream.setRawMode === "function") {
+      try {
+        stream.setRawMode(oldRawMode);
+      } catch (e) {
+        // ignore
+      }
+    }
+    // Do not stream.pause() here: pausing process.stdin leaves the next
+    // inquirer prompt racing a closed/paused readline (ERR_USE_AFTER_CLOSE).
   };
 }
 
