@@ -143,4 +143,97 @@ describe("#Edit", function () {
     )[0].content;
     assert.equal(content, "same");
   });
+
+  it("should close the editor when the remote blocks the save", async function () {
+    await C.touch.touch({
+      path: "/folder2/blocked",
+      content: "old",
+    });
+
+    let resolveCheck;
+    const check = new Promise((resolve) => {
+      resolveCheck = resolve;
+    });
+
+    prompt.editorProvider = (opts) =>
+      new Promise((resolve) => {
+        opts.onEditorReady({
+          abort() {
+            resolve(undefined);
+          },
+        });
+        resolveCheck({
+          hasRisk: true,
+          allowBypass: false,
+          message: "repo changed",
+        });
+      });
+
+    inspect = stdout.inspect();
+    await C.edit.edit({ path: "/folder2/blocked" }, check);
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.match(output, /repo changed/);
+    assert.match(output, /Operation blocked for data integrity/);
+    assert.notMatch(output, /File saved/);
+    assert.notMatch(output, /Changes aborted/);
+
+    let content = (
+      await C.cat.cat({ path: "/folder2/blocked", unformatted: true })
+    )[0].content;
+    assert.equal(content, "old");
+  });
+
+  it("should ask before saving when the remote check only warns", async function () {
+    await C.touch.touch({
+      path: "/folder2/soft",
+      content: "old",
+    });
+
+    mockEditor("new");
+    C.edit.useInput = async () => false;
+    const check = Promise.resolve({
+      hasRisk: true,
+      allowBypass: true,
+      message: "behind remote",
+    });
+
+    inspect = stdout.inspect();
+    await C.edit.edit({ path: "/folder2/soft" }, check);
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.match(output, /behind remote/);
+    assert.match(output, /Operation cancelled/);
+    assert.notMatch(output, /File saved/);
+
+    let content = (
+      await C.cat.cat({ path: "/folder2/soft", unformatted: true })
+    )[0].content;
+    assert.equal(content, "old");
+  });
+
+  it("should save when the user accepts a bypassable remote warning", async function () {
+    await C.touch.touch({
+      path: "/folder2/soft-ok",
+      content: "old",
+    });
+
+    mockEditor("new");
+    C.edit.useInput = async () => true;
+    const check = Promise.resolve({
+      hasRisk: true,
+      allowBypass: true,
+      message: "behind remote",
+    });
+
+    inspect = stdout.inspect();
+    await C.edit.edit({ path: "/folder2/soft-ok" }, check);
+    inspect.restore();
+    assertConsole(inspect, ["behind remote", "File saved."]);
+
+    let content = (
+      await C.cat.cat({ path: "/folder2/soft-ok", unformatted: true })
+    )[0].content;
+    assert.equal(content, "new");
+  });
 });

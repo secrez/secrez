@@ -61,9 +61,32 @@ class Edit extends require("../Command") {
     };
   }
 
-  async edit(options) {
-    let data = await this.internalFs.getTreeIndexAndPath(options.path);
-    let file = data.path;
+  async edit(options, checkPromise) {
+    let editorAbort = null;
+    let hardBlocked = false;
+    let userLeftEditor = false;
+
+    const reportHardBlock = (result) => {
+      if (hardBlocked) return;
+      hardBlocked = true;
+      if (editorAbort) editorAbort();
+      this.logGitConflictBlocked(result);
+    };
+
+    if (checkPromise) {
+      checkPromise
+        .then((result) => {
+          if (userLeftEditor) return;
+          if (result && result.hasRisk && result.allowBypass === false) {
+            reportHardBlock(result);
+          }
+        })
+        .catch(() => {});
+    }
+
+    try {
+      let data = await this.internalFs.getTreeIndexAndPath(options.path);
+      let file = data.path;
     let tree = data.tree;
 
     let sanitizedPath = Entry.sanitizePath(file);
@@ -96,7 +119,9 @@ class Edit extends require("../Command") {
           options.message = "Select the field to edit";
           options.field = await this.useSelect(options);
           if (!options.field) {
-            this.Logger.reset("Changes aborted or file not changed");
+            if (!hardBlocked) {
+              this.Logger.reset("Changes aborted or file not changed");
+            }
             return;
           }
         }
@@ -106,12 +131,47 @@ class Edit extends require("../Command") {
     } else if (!isYaml(p)) {
       delete options.field;
     }
+    if (hardBlocked) return;
+
     let content = options.field
       ? fields[options.field] || ""
       : fileData[0].content;
-    let newContent = await this.useEditor(Object.assign(options, { content }));
+    let newContent = await this.useEditor(
+      Object.assign(options, {
+        content,
+        onEditorReady: checkPromise
+          ? (handle) => {
+              editorAbort = handle.abort;
+              if (hardBlocked) handle.abort();
+            }
+          : undefined,
+      })
+    );
 
-    if (newContent && newContent !== content) {
+    if (hardBlocked) return;
+
+    if (!(newContent && newContent !== content)) {
+      userLeftEditor = true;
+      this.Logger.reset("Changes aborted or file not changed");
+      return;
+    }
+
+    if (checkPromise) {
+      const result = await checkPromise;
+      if (hardBlocked) return;
+      if (result.checkFailed) {
+        this.Logger.yellow(
+          "Warning: Could not check git status. Proceeding anyway."
+        );
+      } else if (result.hasRisk && result.allowBypass === false) {
+        reportHardBlock(result);
+        return;
+      } else if (result.hasRisk) {
+        const shouldContinue = await this.askToBypassGitConflict(result);
+        if (!shouldContinue) return;
+      }
+    }
+
       if (exists) {
         let node = tree.root.getChildFromPath(p);
         let entry = node.getEntry();
@@ -129,8 +189,8 @@ class Edit extends require("../Command") {
         });
       }
       this.Logger.reset("File saved.");
-    } else {
-      this.Logger.reset("Changes aborted or file not changed");
+    } finally {
+      userLeftEditor = true;
     }
   }
 
@@ -143,12 +203,8 @@ class Edit extends require("../Command") {
         path: true,
       });
 
-      const shouldProceed = await this.checkGitConflictsBeforeOperation();
-      if (!shouldProceed) {
-        return;
-      }
-
-      await this.edit(options);
+      const checkPromise = this.readGitConflictStatus();
+      await this.edit(options, checkPromise);
     } catch (e) {
       this.Logger.red(e.message);
     }

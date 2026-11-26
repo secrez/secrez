@@ -17,7 +17,9 @@ class PreCommand {
       const wasRaw = typeof stdin.isRaw === "boolean" ? stdin.isRaw : false;
 
       try {
-        return await editInMemory(options.content || "");
+        return await editInMemory(options.content || "", {
+          onReady: options.onEditorReady,
+        });
       } finally {
         if (stdin.isTTY && typeof stdin.setRawMode === "function") {
           try {

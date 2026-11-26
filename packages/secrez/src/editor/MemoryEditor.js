@@ -294,6 +294,10 @@ function createEditor(text) {
   p.update();
   p.render();
 
+  emitter.abort = () => {
+    if (isClosed) return;
+    p.abort({});
+  };
   emitter.pause = pause;
   emitter.resume = resume;
   emitter.setText = (nextText) => {
@@ -309,15 +313,25 @@ function createEditor(text) {
   return emitter;
 }
 
-function editInMemory(text) {
+function editInMemory(text, hooks = {}) {
   return new Promise((resolve) => {
     const editor = createEditor(text);
+    let settled = false;
     const finish = (value) => {
+      if (settled) return;
+      settled = true;
       editor.pause();
       resolve(value);
     };
     editor.on("submit", finish);
     editor.on("abort", () => finish(undefined));
+    if (typeof hooks.onReady === "function") {
+      hooks.onReady({
+        abort() {
+          editor.abort();
+        },
+      });
+    }
   });
 }
 
