@@ -152,13 +152,17 @@ class Command extends PreCommand {
   }
 
   logGitConflictBlocked(conflictCheck) {
-    this.Logger.yellow(conflictCheck.message);
-    this.Logger.grey(
-      "Operation blocked for data integrity. Please quit and re-enter Secrez."
+    const checker = this.internalFs && this.internalFs.gitConflictChecker;
+    if (!checker || !checker.sessionBlockAnnounced) {
+      this.Logger.yellow(conflictCheck.message);
+      if (checker) checker.sessionBlockAnnounced = true;
+    }
+    this.Logger.red(
+      "Operation blocked for data integrity. Quit Secrez, sync the repo by hand, then start Secrez again."
     );
   }
 
-  async askToBypassGitConflict(conflictCheck) {
+  async askToBypassGitConflict(conflictCheck, options = {}) {
     this.Logger.yellow(conflictCheck.message);
     const shouldContinue = await this.useInput({
       type: "confirm",
@@ -166,7 +170,9 @@ class Command extends PreCommand {
       default: false,
     });
     if (!shouldContinue) {
-      this.Logger.grey("Operation cancelled.");
+      if (!options.reopenEditor) {
+        this.Logger.grey("Operation cancelled.");
+      }
       return false;
     }
     return true;

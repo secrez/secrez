@@ -190,7 +190,16 @@ describe("#Edit", function () {
       content: "old",
     });
 
-    mockEditor("new");
+    let opens = 0;
+    prompt.editorProvider = async (opts) => {
+      opens += 1;
+      if (opens === 1) {
+        assert.equal(opts.content, "old");
+        return "new password";
+      }
+      assert.equal(opts.content, "new password");
+      return undefined;
+    };
     C.edit.useInput = async () => false;
     const check = Promise.resolve({
       hasRisk: true,
@@ -202,8 +211,9 @@ describe("#Edit", function () {
     await C.edit.edit({ path: "/folder2/soft" }, check);
     inspect.restore();
     let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.equal(opens, 2);
     assert.match(output, /behind remote/);
-    assert.match(output, /Operation cancelled/);
+    assert.match(output, /Changes aborted or file not changed/);
     assert.notMatch(output, /File saved/);
 
     let content = (

@@ -465,8 +465,12 @@ class InternalFs {
   }
 
   async checkGitSyncStatus() {
-    // First, check for external repository changes WITHOUT using cache
-    // This is critical - we must always get fresh git status to detect external changes
+    // A hard block means this process is already out of date. Further fetches
+    // cannot make the in-memory tree safe, so later writes reuse that result.
+    if (this.gitConflictChecker.sessionBlock) {
+      return this.gitConflictChecker.sessionBlock;
+    }
+
     const currentStatus = await this.gitConflictChecker.getGitStatus();
     const riskInfo = this.gitConflictChecker.hasConflictRisk(currentStatus);
 
@@ -475,13 +479,17 @@ class InternalFs {
         currentStatus,
         riskInfo
       );
-      return {
+      const result = {
         hasRisk: true,
         riskType: riskInfo.type,
         allowBypass: riskInfo.allowBypass,
         message: warningMessage,
         status: currentStatus,
       };
+      if (riskInfo.allowBypass === false) {
+        this.gitConflictChecker.sessionBlock = result;
+      }
+      return result;
     }
 
     return {

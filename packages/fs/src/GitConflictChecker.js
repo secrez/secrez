@@ -8,6 +8,8 @@ class GitConflictChecker {
     this.isGitRepo = null;
     this.remoteStatus = null;
     this.initialGitState = null; // Initial state captured at account entry
+    this.sessionBlock = null; // Hard block kept until Secrez is restarted
+    this.sessionBlockAnnounced = false;
     this.lastCheck = null;
     this.checkInterval = 30000; // 30 seconds between checks
   }
@@ -280,9 +282,7 @@ The git repository state has changed since you entered your account.
 This likely means a 'git pull' or other git operation was performed in another terminal.
 
 Secrez cannot safely read these changes while running.
-For data integrity, only READ operations and QUIT are allowed.
-
-Please quit Secrez and re-enter your account to sync with the new repository state.`;
+For data integrity, only READ operations and QUIT are allowed.`;
     }
 
     if (status.error) {
@@ -315,6 +315,8 @@ Consider quitting Secrez and running in the container:
     this.isGitRepo = null;
     this.remoteStatus = null;
     this.initialGitState = null;
+    this.sessionBlock = null;
+    this.sessionBlockAnnounced = false;
     this.lastCheck = null;
   }
 }
