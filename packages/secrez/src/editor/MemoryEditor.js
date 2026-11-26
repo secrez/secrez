@@ -27,6 +27,22 @@ function terminalRows() {
   return process.stdout.rows || 24;
 }
 
+function terminalColumns() {
+  return Math.max(2, process.stdout.columns || 80);
+}
+
+// The footer is drawn on its own rows, one column short of the edge.
+// A character in the last column wraps, and a wrap on the last row scrolls
+// the viewport, which moves the text above the footer.
+function statusChunks(status, columns) {
+  const width = Math.max(1, columns - 1);
+  const chunks = [];
+  for (let i = 0; i < status.length; i += width) {
+    chunks.push(status.slice(i, i + width));
+  }
+  return chunks.length ? chunks : [""];
+}
+
 function keyAction(key) {
   if (key.ctrl) {
     if (key.name === "a") return "first";
@@ -185,17 +201,23 @@ const Editor = {
 
   render() {
     const rows = terminalRows();
-    const statusRow = Math.max(0, rows - 1);
+    const columns = terminalColumns();
+    const chunks = statusChunks(EDITOR_STATUS, columns);
+    const statusTop = Math.max(0, rows - chunks.length);
     const { lines, cursorX, cursorY } = this;
-    this.out.write(
-      clearViewport() +
-        lines.join("\n") +
-        esc.cursorTo(0, statusRow) +
+    let out = clearViewport() + lines.join("\n");
+    chunks.forEach((chunk, i) => {
+      out +=
+        esc.cursorTo(0, statusTop + i) +
+        esc.eraseLine +
         "\x1b[2m" +
-        EDITOR_STATUS +
-        "\x1b[0m" +
-        esc.cursorTo(cursorX, cursorY)
-    );
+        chunk +
+        "\x1b[0m";
+    });
+    const cursorRow = Math.min(cursorY, Math.max(0, statusTop - 1));
+    const cursorCol = Math.min(cursorX, columns - 1);
+    out += esc.cursorTo(cursorCol, cursorRow);
+    this.out.write(out);
   },
 };
 
