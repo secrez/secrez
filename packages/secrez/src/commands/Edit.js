@@ -133,43 +133,56 @@ class Edit extends require("../Command") {
     }
     if (hardBlocked) return;
 
-    let content = options.field
+    const originalContent = options.field
       ? fields[options.field] || ""
       : fileData[0].content;
-    let newContent = await this.useEditor(
-      Object.assign(options, {
-        content,
-        onEditorReady: checkPromise
-          ? (handle) => {
-              editorAbort = handle.abort;
-              if (hardBlocked) handle.abort();
-            }
-          : undefined,
-      })
-    );
+    let draft = originalContent;
+    let newContent;
 
-    if (hardBlocked) return;
-
-    if (!(newContent && newContent !== content)) {
-      userLeftEditor = true;
-      this.Logger.reset("Changes aborted or file not changed");
-      return;
-    }
-
-    if (checkPromise) {
-      const result = await checkPromise;
+    while (true) {
       if (hardBlocked) return;
-      if (result.checkFailed) {
-        this.Logger.yellow(
-          "Warning: Could not check git status. Proceeding anyway."
-        );
-      } else if (result.hasRisk && result.allowBypass === false) {
-        reportHardBlock(result);
+
+      newContent = await this.useEditor(
+        Object.assign(options, {
+          content: draft,
+          onEditorReady: checkPromise
+            ? (handle) => {
+                editorAbort = handle.abort;
+                if (hardBlocked) handle.abort();
+              }
+            : undefined,
+        })
+      );
+
+      if (hardBlocked) return;
+
+      if (!(newContent && newContent !== originalContent)) {
+        userLeftEditor = true;
+        this.Logger.reset("Changes aborted or file not changed");
         return;
-      } else if (result.hasRisk) {
-        const shouldContinue = await this.askToBypassGitConflict(result);
-        if (!shouldContinue) return;
       }
+
+      draft = newContent;
+
+      if (checkPromise) {
+        const result = await checkPromise;
+        if (hardBlocked) return;
+        if (result.checkFailed) {
+          this.Logger.yellow(
+            "Warning: Could not check git status. Proceeding anyway."
+          );
+        } else if (result.hasRisk && result.allowBypass === false) {
+          reportHardBlock(result);
+          return;
+        } else if (result.hasRisk) {
+          const shouldContinue = await this.askToBypassGitConflict(result, {
+            reopenEditor: true,
+          });
+          if (!shouldContinue) continue;
+        }
+      }
+
+      break;
     }
 
       if (exists) {

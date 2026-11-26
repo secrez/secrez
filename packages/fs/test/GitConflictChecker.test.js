@@ -61,6 +61,57 @@ describe("#GitConflictChecker", function () {
     assert.isNull(status);
   });
 
+  it("should reuse a hard block without checking git again", async function () {
+    const checker = testInternalFs.gitConflictChecker;
+    let calls = 0;
+    checker.getGitStatus = async () => {
+      calls += 1;
+      return {
+        localBranch: "main",
+        remoteBranch: "origin/main",
+        headCommit: "abc",
+        behind: 0,
+        ahead: 0,
+        uncommitted: 0,
+      };
+    };
+    checker.initialGitState = {
+      localBranch: "main",
+      remoteBranch: "origin/main",
+      headCommit: "old",
+      behind: 0,
+      ahead: 0,
+      uncommitted: 0,
+    };
+
+    const first = await testInternalFs.checkGitSyncStatus();
+    const second = await testInternalFs.checkGitSyncStatus();
+
+    assert.equal(calls, 1);
+    assert.strictEqual(second, first);
+    assert.equal(first.riskType, "external_change");
+    assert.isFalse(first.allowBypass);
+  });
+
+  it("should check git again when the risk can be bypassed", async function () {
+    const checker = testInternalFs.gitConflictChecker;
+    let calls = 0;
+    checker.getGitStatus = async () => {
+      calls += 1;
+      return { error: "network" };
+    };
+    checker.initialGitState = { headCommit: "old" };
+
+    const first = await testInternalFs.checkGitSyncStatus();
+    const second = await testInternalFs.checkGitSyncStatus();
+
+    assert.equal(calls, 2);
+    assert.equal(first.riskType, "error");
+    assert.isTrue(first.allowBypass);
+    assert.isNull(checker.sessionBlock);
+    assert.notStrictEqual(second, first);
+  });
+
   it("should not detect conflict risk in non-git repository", async function () {
     const status =
       await testInternalFs.gitConflictChecker.checkForRemoteChanges();
@@ -213,6 +264,8 @@ describe("#GitConflictChecker", function () {
       assert.isNull(testInternalFs.gitConflictChecker.isGitRepo);
       assert.isNull(testInternalFs.gitConflictChecker.remoteStatus);
       assert.isNull(testInternalFs.gitConflictChecker.initialGitState);
+      assert.isNull(testInternalFs.gitConflictChecker.sessionBlock);
+      assert.isFalse(testInternalFs.gitConflictChecker.sessionBlockAnnounced);
       assert.isNull(testInternalFs.gitConflictChecker.lastCheck);
     });
   });
