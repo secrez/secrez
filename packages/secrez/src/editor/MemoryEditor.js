@@ -15,6 +15,14 @@ const insert = (s, x, c) => s.slice(0, x) + c + s.slice(x);
 const EDITOR_STATUS =
   "Ctrl-d save · Ctrl-c abort · Ctrl-k del line · Ctrl-a home · Ctrl-e end · Ctrl-g reset";
 
+// ansi-escapes `clearScreen` is RIS (\u001bc). Terminal.app answers that
+// reset with a blue background and a foreground that does not contrast, so
+// the file text is drawn and then invisible. Erase the viewport, home the
+// cursor, and restore the default colors before painting the buffer.
+function clearViewport() {
+  return "\u001b[0m" + esc.eraseScreen + esc.cursorTo(0, 0);
+}
+
 function terminalRows() {
   return process.stdout.rows || 24;
 }
@@ -55,7 +63,7 @@ const Editor = {
   abort(c) {
     this.done = true;
     this.aborted = !(c.ctrl && c.name === "d");
-    this.out.write(esc.clearScreen + esc.cursorTo(0, 0));
+    this.out.write(clearViewport());
     this.close();
   },
 
@@ -176,16 +184,11 @@ const Editor = {
   },
 
   render() {
-    if (this.firstRender) {
-      this.firstRender = false;
-      this.out.write("\n".repeat(terminalRows()));
-    }
-
     const rows = terminalRows();
     const statusRow = Math.max(0, rows - 1);
     const { lines, cursorX, cursorY } = this;
     this.out.write(
-      esc.clearScreen +
+      clearViewport() +
         lines.join("\n") +
         esc.cursorTo(0, statusRow) +
         "\x1b[2m" +
@@ -207,7 +210,6 @@ function createEditor(text) {
     initialLines: [],
     cursorX: 0,
     cursorY: 0,
-    firstRender: true,
     done: false,
     aborted: false,
     value: "",
