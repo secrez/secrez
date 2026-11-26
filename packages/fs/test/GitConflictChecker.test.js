@@ -93,6 +93,32 @@ describe("#GitConflictChecker", function () {
     assert.isFalse(first.allowBypass);
   });
 
+  it("should reuse a behind-remote warning without checking git again", async function () {
+    const checker = testInternalFs.gitConflictChecker;
+    let calls = 0;
+    const status = {
+      localBranch: "main",
+      remoteBranch: "origin/main",
+      headCommit: "abc",
+      behind: 1,
+      ahead: 0,
+      uncommitted: 0,
+    };
+    checker.getGitStatus = async () => {
+      calls += 1;
+      return status;
+    };
+    checker.initialGitState = Object.assign({}, status);
+
+    const first = await testInternalFs.checkGitSyncStatus();
+    const second = await testInternalFs.checkGitSyncStatus();
+
+    assert.equal(calls, 1);
+    assert.strictEqual(second, first);
+    assert.equal(first.riskType, "behind_remote");
+    assert.isTrue(first.allowBypass);
+  });
+
   it("should check git again when the risk can be bypassed", async function () {
     const checker = testInternalFs.gitConflictChecker;
     let calls = 0;
