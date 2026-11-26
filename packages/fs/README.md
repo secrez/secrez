@@ -25,7 +25,7 @@ API documentation
 - strengthen password-based export encryption in `FileCipher`: new **v2** format (PBKDF2, random salt in file, iterations out of band)
 - write vault blobs and cache files with mode `0o600` via `VaultPermissions` (FS-1)
 - add `fileCipherLegacy` module and `FileCipherLegacy` export for **v1** password-encrypted files (import compatibility and test fixtures)
-- require Node.js 20 or later (`engines.node >=20.0.0`)
+- require Node.js 22.23.4 or later (`engines.node >=22.23.4`)
 
 **1.0.3**
 
@@ -38,7 +38,7 @@ API documentation
 ## Test coverage
 
 ```
-  108 passing (5s)
+  108 passing (2s)
 
 -----------------------|---------|----------|---------|---------|-----------------------------------
 File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s

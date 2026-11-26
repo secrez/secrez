@@ -7,11 +7,20 @@ const commandLineArgs = require("command-line-args");
 
 const pkg = require("../package");
 
-const nodeMajor = parseInt(process.versions.node.split(".")[0], 10);
-if (nodeMajor < 20) {
+const MIN_NODE = [22, 23, 4];
+const nodeParts = process.versions.node.split(".").map((n) => parseInt(n, 10));
+const nodeTooOld =
+  nodeParts[0] < MIN_NODE[0] ||
+  (nodeParts[0] === MIN_NODE[0] && nodeParts[1] < MIN_NODE[1]) ||
+  (nodeParts[0] === MIN_NODE[0] &&
+    nodeParts[1] === MIN_NODE[1] &&
+    (nodeParts[2] || 0) < MIN_NODE[2]);
+if (nodeTooOld) {
   console.error(
     chalk.red(
-      `Secrez requires Node.js 20 or later (current: ${process.versions.node}).`
+      `Secrez requires Node.js ${MIN_NODE.join(".")} or later (current: ${
+        process.versions.node
+      }).`
     )
   );
   process.exit(1);

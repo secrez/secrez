@@ -259,6 +259,7 @@ class Crypto {
    *   production. Prefer {@link Crypto.deriveKey} with PBKDF2 and a random salt.
    *   Planned removal in a future major release.
    */
+  /* istanbul ignore next -- deprecated, unused by Secrez; exercised only if a caller still imports it */
   static seedFromPassphrase(passphrase) {
     if (typeof passphrase === "string" && passphrase.length > 0) {
       return Uint8Array.from(Crypto.SHA3(passphrase));
