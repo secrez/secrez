@@ -87,103 +87,103 @@ class Edit extends require("../Command") {
     try {
       let data = await this.internalFs.getTreeIndexAndPath(options.path);
       let file = data.path;
-    let tree = data.tree;
+      let tree = data.tree;
 
-    let sanitizedPath = Entry.sanitizePath(file);
-    if (sanitizedPath !== file) {
-      throw new Error("A filename cannot contain \\/><|:&?*^$ chars.");
-    }
-
-    let exists = false;
-    let fileData;
-    try {
-      fileData = await this.prompt.commands.cat.cat(
-        { path: options.path },
-        true
-      );
-      exists = true;
-    } catch (e) {
-      if (options.field) {
-        throw new Error("Field can be specified only for existent files");
+      let sanitizedPath = Entry.sanitizePath(file);
+      if (sanitizedPath !== file) {
+        throw new Error("A filename cannot contain \\/><|:&?*^$ chars.");
       }
-      fileData = [{ content: "" }];
-    }
 
-    let p = tree.getNormalizedPath(file);
-    let fields = {};
-    if (exists && !options.unformatted && isYaml(p)) {
-      fields = fileData[0].content ? yamlParse(fileData[0].content) : {};
-      if (typeof fields === "object") {
-        options.choices = Object.keys(fields);
-        if (options.choices.length && !options.field) {
-          options.message = "Select the field to edit";
-          options.field = await this.useSelect(options);
-          if (!options.field) {
-            if (!hardBlocked) {
-              this.Logger.reset("Changes aborted or file not changed");
-            }
-            return;
-          }
+      let exists = false;
+      let fileData;
+      try {
+        fileData = await this.prompt.commands.cat.cat(
+          { path: options.path },
+          true
+        );
+        exists = true;
+      } catch (e) {
+        if (options.field) {
+          throw new Error("Field can be specified only for existent files");
         }
-      } else {
+        fileData = [{ content: "" }];
+      }
+
+      let p = tree.getNormalizedPath(file);
+      let fields = {};
+      if (exists && !options.unformatted && isYaml(p)) {
+        fields = fileData[0].content ? yamlParse(fileData[0].content) : {};
+        if (typeof fields === "object") {
+          options.choices = Object.keys(fields);
+          if (options.choices.length && !options.field) {
+            options.message = "Select the field to edit";
+            options.field = await this.useSelect(options);
+            if (!options.field) {
+              if (!hardBlocked) {
+                this.Logger.reset("Changes aborted or file not changed");
+              }
+              return;
+            }
+          }
+        } else {
+          delete options.field;
+        }
+      } else if (!isYaml(p)) {
         delete options.field;
       }
-    } else if (!isYaml(p)) {
-      delete options.field;
-    }
-    if (hardBlocked) return;
-
-    const originalContent = options.field
-      ? fields[options.field] || ""
-      : fileData[0].content;
-    let draft = originalContent;
-    let newContent;
-
-    while (true) {
       if (hardBlocked) return;
 
-      newContent = await this.useEditor(
-        Object.assign(options, {
-          content: draft,
-          onEditorReady: checkPromise
-            ? (handle) => {
-                editorAbort = handle.abort;
-                if (hardBlocked) handle.abort();
-              }
-            : undefined,
-        })
-      );
+      const originalContent = options.field
+        ? fields[options.field] || ""
+        : fileData[0].content;
+      let draft = originalContent;
+      let newContent;
 
-      if (hardBlocked) return;
-
-      if (!(newContent && newContent !== originalContent)) {
-        userLeftEditor = true;
-        this.Logger.reset("Changes aborted or file not changed");
-        return;
-      }
-
-      draft = newContent;
-
-      if (checkPromise) {
-        const result = await checkPromise;
+      while (true) {
         if (hardBlocked) return;
-        if (result.checkFailed) {
-          this.Logger.yellow(
-            "Warning: Could not check git status. Proceeding anyway."
-          );
-        } else if (result.hasRisk && result.allowBypass === false) {
-          reportHardBlock(result);
-          return;
-        } else if (result.hasRisk) {
-          const shouldContinue = await this.askToBypassGitConflict(result, {
-            reopenEditor: true,
-          });
-          if (!shouldContinue) continue;
-        }
-      }
 
-      break;
-    }
+        newContent = await this.useEditor(
+          Object.assign(options, {
+            content: draft,
+            onEditorReady: checkPromise
+              ? (handle) => {
+                  editorAbort = handle.abort;
+                  if (hardBlocked) handle.abort();
+                }
+              : undefined,
+          })
+        );
+
+        if (hardBlocked) return;
+
+        if (!(newContent && newContent !== originalContent)) {
+          userLeftEditor = true;
+          this.Logger.reset("Changes aborted or file not changed");
+          return;
+        }
+
+        draft = newContent;
+
+        if (checkPromise) {
+          const result = await checkPromise;
+          if (hardBlocked) return;
+          if (result.checkFailed) {
+            this.Logger.yellow(
+              "Warning: Could not check git status. Proceeding anyway."
+            );
+          } else if (result.hasRisk && result.allowBypass === false) {
+            reportHardBlock(result);
+            return;
+          } else if (result.hasRisk) {
+            const shouldContinue = await this.askToBypassGitConflict(result, {
+              reopenEditor: true,
+            });
+            if (!shouldContinue) continue;
+          }
+        }
+
+        break;
+      }
 
       if (exists) {
         let node = tree.root.getChildFromPath(p);

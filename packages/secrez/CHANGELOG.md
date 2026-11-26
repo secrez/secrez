@@ -1,20 +1,16 @@
 # Changelog
 
-**2.2.0-beta.1**
+**2.2.0**
 
+- replace the system editor with an integrated in-memory editor for `edit`. Secrets stay in memory and are no longer written to temporary files. The `-e`/`--editor` and `-i`/`--internal` options are removed; the in-memory editor is the only editor
+- change how `edit` treats the git repo. The remote check runs while you edit, instead of blocking before the editor opens. If the repository was changed outside Secrez, the editor closes and later writes stay blocked for the session: quit, sync the repo by hand, then start Secrez again. If Secrez is only behind the remote, editing continues; on save you can write anyway, or return to the unsaved text and leave it with Ctrl-c
 - remove deprecated `bash` command (use `shell` instead)
-- `edit` accepts dataset-qualified paths (e.g. `main:/file.yml`)
-- in-memory editor: `Ctrl-k` deletes the current line and pulls up the next one
-- replace `shell` command implementation: run commands with `spawn` and `cwd` instead of interpolating the working directory into a shell string (fixes command injection via malicious paths)
-- harden `ssh` command: validate user and host, pass arguments to `ttab`/`ssh` without shell interpolation (fixes command injection via crafted hostnames)
-- replace external editor with an in-memory editor for `edit`: secrets are no longer written to temporary files on disk; removed `-e`/`--editor` and `-i`/`--internal` options (the internal editor is now the only editor)
-- add `editorProvider` hook for tests and improve `edit` command test reliability
+- stop interpolating commands into a shell string: `shell` and `ssh` pass arguments with `spawn`, and `totp --from-clipboard` does the same for `xclip`
 - vault permissions (FS-1): secure legacy containers to `0o700` dirs / `0o600` files at login
 - strengthen password-based export encryption (`.secrez` files): new **v2** format uses PBKDF2 with a random salt stored in the file; password and iteration count are required at import (`-i`); legacy **v1** exports remain importable with password only
 - require Node.js 22.23.4 or later (`engines.node >=22.23.4`), matching the October 2026 Node.js security release
 - clear cryptographic secrets from memory on `signout`, `quit`, and double `^C` (best-effort buffer zeroing)
 - replace deprecated dependencies: `homedir` → `os.homedir`, `ethereumjs-util` → `ethers.getAddress`, `qrcode-reader` → `jsqr`, upgrade `jimp` to 1.x
-- harden `totp --from-clipboard` on Linux: run `xclip` with `spawn` and write PNG bytes to disk instead of shell redirection
 - companion workspace releases: `@secrez/core@1.1.0`, `@secrez/crypto@1.1.0`, `@secrez/fs@1.1.0`, `@secrez/utils@1.1.0`, `@secrez/eth@0.0.6`
 - warn at signup when PBKDF2 iterations are below 100,000 and require explicit confirmation to proceed (KDF-3)
 
