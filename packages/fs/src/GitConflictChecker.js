@@ -8,7 +8,7 @@ class GitConflictChecker {
     this.isGitRepo = null;
     this.remoteStatus = null;
     this.initialGitState = null; // Initial state captured at account entry
-    this.sessionBlock = null; // Hard block kept until Secrez is restarted
+    this.sessionBlock = null; // Known repo risk kept until Secrez is restarted
     this.sessionBlockAnnounced = false;
     this.lastCheck = null;
     this.checkInterval = 30000; // 30 seconds between checks

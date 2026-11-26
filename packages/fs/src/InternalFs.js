@@ -465,8 +465,8 @@ class InternalFs {
   }
 
   async checkGitSyncStatus() {
-    // A hard block means this process is already out of date. Further fetches
-    // cannot make the in-memory tree safe, so later writes reuse that result.
+    // Behind-remote and a hard block stay true until Secrez restarts, so later
+    // writes reuse the result instead of fetching again.
     if (this.gitConflictChecker.sessionBlock) {
       return this.gitConflictChecker.sessionBlock;
     }
@@ -486,7 +486,7 @@ class InternalFs {
         message: warningMessage,
         status: currentStatus,
       };
-      if (riskInfo.allowBypass === false) {
+      if (riskInfo.allowBypass === false || riskInfo.type === "behind_remote") {
         this.gitConflictChecker.sessionBlock = result;
       }
       return result;
