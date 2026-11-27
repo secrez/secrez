@@ -14,6 +14,7 @@
 - require Node.js 22.23.4 or later (`engines.node >=22.23.4`), matching the October 2026 Node.js security release
 - clear cryptographic secrets from memory on `signout`, `quit`, and double `^C` (best-effort buffer zeroing)
 - replace deprecated dependencies: `homedir` → `os.homedir`, `ethereumjs-util` → `ethers.getAddress`, `qrcode-reader` → `jsqr`, upgrade `jimp` to 1.x
+- replace `otplib` 12 with 13. `totp` still generates the same 6-digit, 30-second codes, including secrets shorter than 16 bytes
 - companion workspace releases: `@secrez/prompt@1.0.0`, `@secrez/core@1.1.0`, `@secrez/crypto@1.1.0`, `@secrez/fs@1.1.0`, `@secrez/utils@1.1.0`, `@secrez/eth@0.0.6`
 - warn at signup when PBKDF2 iterations are below 100,000 and require explicit confirmation to proceed (KDF-3)
 

@@ -1,4 +1,7 @@
-const { authenticator } = require("otplib");
+const { createGuardrails, generate } = require("otplib");
+
+// otplib 13 refuses secrets under 16 bytes. Issuers still use shorter ones.
+const totpGuardrails = createGuardrails({ MIN_SECRET_BYTES: 1 });
 const path = require("path");
 const os = require("os");
 const fs = require("fs-extra");
@@ -193,7 +196,10 @@ class Totp extends require("../Command") {
     let secret = options.set;
     let originalPath = options.path;
     if (options.test) {
-      const token = authenticator.generate(options.test.replace(/\s/g, ""));
+      const token = await generate({
+        secret: options.test.replace(/\s/g, ""),
+        guardrails: totpGuardrails,
+      });
       return token;
     }
     if (options.fromImage || options.fromClipboard) {
@@ -260,7 +266,10 @@ class Totp extends require("../Command") {
             let totp = parsed.totp;
             if (totp) {
               totp = totp.replace(/\s/g, "");
-              const token = authenticator.generate(totp);
+              const token = await generate({
+                secret: totp,
+                guardrails: totpGuardrails,
+              });
               if (this.isMacGuiSession()) {
                 this.prompt.commands.copy.copy({
                   thisString: token,
