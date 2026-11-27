@@ -15,30 +15,18 @@ const { VaultPermissions } = require("@secrez/core");
 const Logger = require("../utils/Logger");
 const cliConfig = require("../cliConfig");
 const sigintManager = require("./SigintManager");
+const Prompt = require("./Prompt");
 
 let thiz;
 
 class CommandPrompt {
   constructor() {
-    this.timeoutId = null;
     this.clearScreenTimeout = 180;
-  }
-
-  clearScreen() {
-    process.stdout.write("\u001b[2J\u001b[0;0H");
-    process.stdout.write(
-      `Screen cleared. Press any key to reactivate the terminal`
-    );
+    this.prompts = new Prompt(this);
   }
 
   resetTimeout() {
-    const s = 180000;
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
-    this.timeoutId = setTimeout(() => {
-      this.clearScreen();
-    }, this.clearScreenTimeout * 1000);
+    this.prompts.armClear();
   }
 
   async getReady(options) {
@@ -257,29 +245,32 @@ class CommandPrompt {
     }
     try {
       let prefix = (this.lastPrefix = this.prePromptMessage(options));
-      let { cmd } = await inquirer.prompt([
-        {
-          type: "command",
-          name: "cmd",
-          autoCompletion: this.getCommands,
-          short: this.short,
-          prefix,
-          noColorOnAnswered: this.noColorOnAnswered(),
-          colorOnAnswered: this.colorOnAnswered(),
-          message: this.promptMessage(),
-          ellipsize: true,
-          autocompletePrompt: this.availableOptionsMessage(),
-          onBeforeKeyPress: undefined,
-          onBeforeRewrite: this.onBeforeRewrite,
-          context: this.context,
-          onClose: () => {
-            fs.emptyDirSync(this.secrez.config.tmpPath);
+      let { cmd } = await this.prompts.ask(
+        [
+          {
+            type: "command",
+            name: "cmd",
+            autoCompletion: this.getCommands,
+            short: this.short,
+            prefix,
+            noColorOnAnswered: this.noColorOnAnswered(),
+            colorOnAnswered: this.colorOnAnswered(),
+            message: this.promptMessage(),
+            ellipsize: true,
+            autocompletePrompt: this.availableOptionsMessage(),
+            onBeforeKeyPress: undefined,
+            onBeforeRewrite: this.onBeforeRewrite,
+            context: this.context,
+            onClose: () => {
+              fs.emptyDirSync(this.secrez.config.tmpPath);
+            },
+            validate: (val) => {
+              return val ? true : chalk.grey("Press TAB for suggestions.");
+            },
           },
-          validate: (val) => {
-            return val ? true : chalk.grey("Press TAB for suggestions.");
-          },
-        },
-      ]);
+        ],
+        { skipClear: false }
+      );
       options.cmd = _.trim(cmd);
       await this.postRun(options);
     } catch (e) {

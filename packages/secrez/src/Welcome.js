@@ -1,15 +1,20 @@
 const chalk = require("chalk");
-const inquirer = require("inquirer");
 const fs = require("fs-extra");
-const Crypto = require("@secrez/crypto");
 const Logger = require("./utils/Logger");
+const Prompt = require("./prompts/Prompt");
 
 const LOW_ITERATIONS_WARNING_THRESHOLD = 100000;
 
 class Welcome {
-  async start(secrez, options) {
+  ensurePrompts() {
+    if (!this.prompts) this.prompts = new Prompt(this);
+    return this.prompts;
+  }
+
+  async start(secrez, options, prompts) {
     this.secrez = secrez;
     this.options = options;
+    if (prompts) this.prompts = prompts;
     this.iterations = options.iterations || (await this.getIterations());
     if (await fs.pathExists(this.secrez.config.oldKeysPath)) {
       const oldConf = require(this.secrez.config.oldKeysPath);
@@ -50,7 +55,7 @@ Thanks.`);
         return env.iterations;
       }
     }
-    let { iterations } = await inquirer.prompt([
+    let { iterations } = await this.ensurePrompts().ask([
       {
         name: "iterations",
         type: "input",
@@ -81,7 +86,7 @@ Warning: you chose fewer than ${LOW_ITERATIONS_WARNING_THRESHOLD.toLocaleString(
 
 We recommend 500,000–1,000,000 iterations for most setups. A random per-account salt is planned for a future release.`
     );
-    const { proceed } = await inquirer.prompt([
+    const { proceed } = await this.ensurePrompts().ask([
       {
         name: "proceed",
         type: "confirm",
@@ -102,7 +107,7 @@ We recommend 500,000–1,000,000 iterations for most setups. A random per-accoun
   async login() {
     for (;;) {
       try {
-        let { password } = await inquirer.prompt([
+        let { password } = await this.ensurePrompts().ask([
           {
             name: "password",
             type: "password",
@@ -139,7 +144,7 @@ We recommend 500,000–1,000,000 iterations for most setups. A random per-accoun
           this.iterations = await this.getIterations();
           continue;
         }
-        let p = await inquirer.prompt([
+        let p = await this.ensurePrompts().ask([
           {
             name: "password",
             type: "password",
