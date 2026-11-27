@@ -1,6 +1,6 @@
 {
   "name": "secrez",
-  "version": "2.2.0-beta.14",
+  "version": "2.2.0-beta.15",
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=dev bin/secrez.js -c `pwd`/tmp/secrez-dev -i 1e3 -l `pwd`/tmp",
@@ -29,7 +29,7 @@
     "jimp": "^1.6.0",
     "jsqr": "^1.4.0",
     "lodash": "^4.17.21",
-    "otplib": "^12.0.1",
+    "otplib": "^13.6.0",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
