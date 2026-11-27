@@ -107,6 +107,50 @@ describe("@secrez/prompt basics", function () {
       assert.deepEqual(await removed, { name: "" });
     });
 
+    it("should move to the start of a word with option and the arrows", async function () {
+      const { input, prompt } = harness();
+      const back = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
+      type(input, "one two three");
+      press(input, "left", { meta: true, str: "" });
+      type(input, "X");
+      enter(input);
+      assert.deepEqual(await back, { name: "one two Xthree" });
+
+      const forward = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
+      type(input, "one two");
+      press(input, "a", { ctrl: true, str: "" });
+      press(input, "f", { meta: true, str: "" });
+      type(input, "X");
+      enter(input);
+      assert.deepEqual(await forward, { name: "one Xtwo" });
+    });
+
+    it("should move to the start of a word with ctrl and the arrows", async function () {
+      const { input, prompt } = harness();
+      const back = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
+      type(input, "one two three");
+      press(input, "left", { ctrl: true, str: "" });
+      type(input, "X");
+      enter(input);
+      assert.deepEqual(await back, { name: "one two Xthree" });
+
+      const forward = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
+      type(input, "one two");
+      press(input, "a", { ctrl: true, str: "" });
+      press(input, "right", { ctrl: true, str: "" });
+      type(input, "X");
+      enter(input);
+      assert.deepEqual(await forward, { name: "one Xtwo" });
+    });
+
     it("should move to the ends of the line", async function () {
       const { input, prompt } = harness();
       const pending = prompt.ask([
@@ -161,7 +205,7 @@ describe("@secrez/prompt basics", function () {
   });
 
   describe("password", function () {
-    it("should return the secret and print stars", async function () {
+    it("should return the secret and print nothing", async function () {
       const { input, chunks, prompt } = harness();
       const pending = prompt.ask([
         { type: "password", name: "secret", message: "Password" },
@@ -172,8 +216,21 @@ describe("@secrez/prompt basics", function () {
       enter(input);
       assert.deepEqual(await pending, { secret: "ac" });
       const painted = chunks.join("");
-      assert.match(painted, /\*/);
+      assert.notMatch(painted, /\*/);
       assert.notMatch(painted, /ac/);
+    });
+
+    it("should print stars when mask is set", async function () {
+      const { input, chunks, prompt } = harness();
+      const pending = prompt.ask([
+        { type: "password", name: "secret", message: "Password", mask: true },
+      ]);
+      type(input, "ab");
+      enter(input);
+      assert.deepEqual(await pending, { secret: "ab" });
+      const painted = chunks.join("");
+      assert.match(painted, /\*\*/);
+      assert.notMatch(painted, /ab/);
     });
 
     it("should use the password default when the line is empty", async function () {

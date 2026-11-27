@@ -6,7 +6,7 @@ const Prompt = require("./prompts/Prompt");
 const LOW_ITERATIONS_WARNING_THRESHOLD = 100000;
 
 function exitIfPromptClosed(error) {
-  if (error && error.message === "User force closed the prompt") {
+  if (error && error.message === "The command was interrupted by the user.") {
     // eslint-disable-next-line no-process-exit
     process.exit(0);
   }

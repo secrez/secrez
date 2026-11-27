@@ -124,7 +124,7 @@ describe("@secrez/prompt", function () {
     const answers = await pending;
     assert.equal(answers.secret, "xy");
     const painted = chunks.join("");
-    assert.match(painted, /\*\*/);
+    assert.notMatch(painted, /\*/);
     assert.notMatch(painted, /xy/);
     track(prompt);
   });
@@ -278,6 +278,48 @@ describe("@secrez/prompt", function () {
     track(prompt);
   });
 
+  it("should interrupt a command on ctrl-c when the line has text", async function () {
+    const { input, prompt } = harness();
+    const pending = prompt.ask([
+      { type: "command", name: "cmd", message: "$" },
+    ]);
+    press(input, "c");
+    press(input, "a");
+    press(input, "t");
+    press(input, "c", { ctrl: true, str: "" });
+    try {
+      await pending;
+      assert.fail("should reject");
+    } catch (err) {
+      assert.match(err.message, /interrupted by the user/);
+    }
+    assert.deepEqual(prompt.getHistories().histories._default, []);
+    track(prompt);
+  });
+
+  it("should stay open when ctrl-c finds an empty command", async function () {
+    const { input, prompt } = harness();
+    let hits = 0;
+    const pending = prompt.ask([
+      {
+        type: "command",
+        name: "cmd",
+        message: "$",
+        onEmptyInterrupt() {
+          hits += 1;
+        },
+      },
+    ]);
+    press(input, "c", { ctrl: true, str: "" });
+    press(input, "l");
+    press(input, "s");
+    enter(input);
+    const answers = await pending;
+    assert.equal(hits, 1);
+    assert.equal(answers.cmd, "ls");
+    track(prompt);
+  });
+
   it("should cancel with ctrl-c", async function () {
     const { input, prompt } = harness();
     const pending = prompt.ask([
@@ -288,7 +330,7 @@ describe("@secrez/prompt", function () {
       await pending;
       assert.fail("should reject");
     } catch (err) {
-      assert.match(err.message, /force closed/);
+      assert.match(err.message, /interrupted by the user/);
     }
   });
 
@@ -512,7 +554,7 @@ describe("@secrez/prompt", function () {
       await list;
       assert.fail("should reject");
     } catch (err) {
-      assert.match(err.message, /force closed/);
+      assert.match(err.message, /interrupted by the user/);
     }
     track(prompt);
   });

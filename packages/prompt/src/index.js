@@ -185,6 +185,7 @@ class Prompt {
     return askLine(this, {
       message: this.messageOf(question, " "),
       mute,
+      mask: question.mask === true,
       defaultValue: question.default,
       validate: question.validate,
     });
@@ -254,7 +255,7 @@ class Prompt {
           stopped = true;
           stop();
           paint(output, "\n");
-          reject(new Error("User force closed the prompt"));
+          reject(new Error("The command was interrupted by the user."));
           return;
         }
         if (info.name === "up") {
@@ -294,6 +295,15 @@ class Prompt {
           question.onBeforeKeyPress(state.key);
         }
         const key = state.key;
+        if (key.ctrl && key.name === "c") {
+          if (state.line) return false;
+          if (typeof question.onEmptyInterrupt === "function") {
+            question.onEmptyInterrupt();
+            state.setLine("");
+            return true;
+          }
+          return false;
+        }
         const rewrite = (next) => {
           let value = next == null ? "" : String(next);
           if (typeof question.onBeforeRewrite === "function") {

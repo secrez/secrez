@@ -1,8 +1,44 @@
 const { listen } = require("./keys");
 const { paint, visibleLength } = require("./text");
 
+function wordLeft(line, cursor) {
+  if (cursor <= 0) return 0;
+  const leading = Array.from(line.slice(0, cursor)).reverse().join("");
+  const match = /^\s*(?:[^\w\s]+|\w+)?/.exec(leading);
+  return cursor - match[0].length;
+}
+
+function wordRight(line, cursor) {
+  if (cursor >= line.length) return cursor;
+  const match = /^(?:\s+|[^\w\s]+|\w+)\s*/.exec(line.slice(cursor));
+  return cursor + match[0].length;
+}
+
+function wordDirection(info) {
+  if (info.shift) return null;
+  if (info.meta && !info.ctrl) {
+    if (info.name === "left" || info.name === "b") return "left";
+    if (info.name === "right" || info.name === "f") return "right";
+  }
+  if (
+    info.ctrl &&
+    !info.meta &&
+    (info.name === "left" || info.name === "right")
+  ) {
+    return info.name;
+  }
+  return null;
+}
+
 function askLine(session, options) {
-  const { message = "", mute = false, validate, onKey, defaultValue } = options;
+  const {
+    message = "",
+    mute = false,
+    mask = false,
+    validate,
+    onKey,
+    defaultValue,
+  } = options;
   const input = session.input;
   const output = session.output;
 
@@ -13,7 +49,7 @@ function askLine(session, options) {
     let stop = () => {};
 
     const render = () => {
-      const shown = mute ? "*".repeat(line.length) : line;
+      const shown = mute ? (mask ? "*".repeat(line.length) : "") : line;
       paint(output, `\r\x1b[2K${message}${shown}`);
       if (output && typeof output.cursorTo === "function") {
         output.cursorTo(
@@ -64,13 +100,6 @@ function askLine(session, options) {
     const onPress = async (str, key) => {
       if (stopped) return;
       const info = key || {};
-      if (info.ctrl && info.name === "c") {
-        close(() => {
-          paint(output, "\n");
-          reject(new Error("User force closed the prompt"));
-        });
-        return;
-      }
       if (onKey) {
         const consumed = await onKey({
           str,
@@ -82,6 +111,13 @@ function askLine(session, options) {
           submit: () => finish(line),
         });
         if (consumed) return;
+      }
+      if (info.ctrl && info.name === "c") {
+        close(() => {
+          paint(output, "\n");
+          reject(new Error("The command was interrupted by the user."));
+        });
+        return;
       }
       if (info.name === "return" || info.name === "enter") {
         let value = line;
@@ -104,12 +140,19 @@ function askLine(session, options) {
         }
         return;
       }
-      if (info.name === "left" && !info.shift) {
+      const byWord = wordDirection(info);
+      if (byWord) {
+        cursor =
+          byWord === "left" ? wordLeft(line, cursor) : wordRight(line, cursor);
+        render();
+        return;
+      }
+      if (info.name === "left" && !info.shift && !info.meta) {
         cursor = Math.max(0, cursor - 1);
         render();
         return;
       }
-      if (info.name === "right" && !info.shift && !info.ctrl) {
+      if (info.name === "right" && !info.shift && !info.ctrl && !info.meta) {
         cursor = Math.min(line.length, cursor + 1);
         render();
         return;
