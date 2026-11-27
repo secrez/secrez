@@ -132,6 +132,29 @@ describe("#Welcome", function () {
       assert.isOk(secrez.getPublicKey());
     });
 
+    it("should exit when Ctrl-c closes the password prompt", async function () {
+      Welcome.prompts = {
+        ask: async () => {
+          throw new Error("User force closed the prompt");
+        },
+      };
+      const originalExit = process.exit;
+      let code;
+      process.exit = (status) => {
+        code = status;
+        throw new Error("exit");
+      };
+      try {
+        await Welcome.login();
+        assert.fail("should exit");
+      } catch (e) {
+        assert.equal(e.message, "exit");
+        assert.equal(code, 0);
+      } finally {
+        process.exit = originalExit;
+      }
+    });
+
     it("should retry after a wrong password", async function () {
       let attempts = 0;
       Welcome.prompts = {

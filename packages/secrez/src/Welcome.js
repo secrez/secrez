@@ -5,6 +5,13 @@ const Prompt = require("./prompts/Prompt");
 
 const LOW_ITERATIONS_WARNING_THRESHOLD = 100000;
 
+function exitIfPromptClosed(error) {
+  if (error && error.message === "User force closed the prompt") {
+    // eslint-disable-next-line no-process-exit
+    process.exit(0);
+  }
+}
+
 class Welcome {
   ensurePrompts() {
     if (!this.prompts) this.prompts = new Prompt(this);
@@ -131,6 +138,7 @@ We recommend 500,000–1,000,000 iterations for most setups. A random per-accoun
           Logger.red(`${e.message}.Try again or Ctrl - C to exit.`);
         }
       } catch (e) {
+        exitIfPromptClosed(e);
         Logger.red("Unrecognized error. Try again or Ctrl-c to exit.");
       }
     }
@@ -183,6 +191,7 @@ We recommend 500,000–1,000,000 iterations for most setups. A random per-accoun
           Logger.red("The two passwords do not match. Try again");
         }
       } catch (e) {
+        exitIfPromptClosed(e);
         Logger.red("Unrecognized error. Try again or Ctrl-c to exit.");
       }
     }
