@@ -1,7 +1,6 @@
 const chai = require("chai");
 const assert = chai.assert;
 const stdout = require("test-console").stdout;
-const inquirer = require("inquirer");
 const fs = require("fs-extra");
 const path = require("path");
 const { ConfigUtils } = require("@secrez/core");
@@ -11,13 +10,16 @@ const { assertConsole } = require("@secrez/test-helpers");
 const { password, iterations } = require("./fixtures");
 
 describe("#Welcome", function () {
-  let originalPrompt;
   let testDir;
   let rootDir;
   let secrez;
 
   beforeEach(async function () {
-    originalPrompt = inquirer.prompt;
+    Welcome.prompts = {
+      ask: async () => {
+        throw new Error("unexpected prompt");
+      },
+    };
     testDir = path.resolve(__dirname, "../tmp/welcome-test");
     rootDir = path.resolve(testDir, ".secrez");
     await fs.emptyDir(testDir);
@@ -31,7 +33,7 @@ describe("#Welcome", function () {
   });
 
   afterEach(function () {
-    inquirer.prompt = originalPrompt;
+    Welcome.prompts = null;
   });
 
   describe("#confirmLowIterations", function () {
@@ -45,7 +47,7 @@ describe("#Welcome", function () {
     });
 
     it("should show a warning when iterations are below the threshold", async function () {
-      inquirer.prompt = async () => ({ proceed: true });
+      Welcome.prompts = { ask: async () => ({ proceed: true }) };
 
       const inspect = stdout.inspect();
       await Welcome.confirmLowIterations(50000);
@@ -60,9 +62,11 @@ describe("#Welcome", function () {
 
     it("should prompt for confirmation when iterations are below the threshold", async function () {
       let prompted = false;
-      inquirer.prompt = async () => {
-        prompted = true;
-        return { proceed: true };
+      Welcome.prompts = {
+        ask: async () => {
+          prompted = true;
+          return { proceed: true };
+        },
       };
 
       const inspect = stdout.inspect();
@@ -73,7 +77,7 @@ describe("#Welcome", function () {
     });
 
     it("should return false when the user declines the low-iteration warning", async function () {
-      inquirer.prompt = async () => ({ proceed: false });
+      Welcome.prompts = { ask: async () => ({ proceed: false }) };
 
       const inspect = stdout.inspect();
       assert.isFalse(await Welcome.confirmLowIterations(1000));
@@ -90,7 +94,7 @@ describe("#Welcome", function () {
     it("should prompt when env.json has no iterations", async function () {
       await fs.writeFile(secrez.config.envPath, "{}");
       delete require.cache[secrez.config.envPath];
-      inquirer.prompt = async () => ({ iterations: "12345" });
+      Welcome.prompts = { ask: async () => ({ iterations: "12345" }) };
       assert.equal(await Welcome.getIterations(), 12345);
     });
   });
@@ -121,7 +125,7 @@ describe("#Welcome", function () {
     });
 
     it("should sign in with the correct password", async function () {
-      inquirer.prompt = async () => ({ password });
+      Welcome.prompts = { ask: async () => ({ password }) };
       const inspect = stdout.inspect();
       await Welcome.login();
       inspect.restore();
@@ -130,9 +134,11 @@ describe("#Welcome", function () {
 
     it("should retry after a wrong password", async function () {
       let attempts = 0;
-      inquirer.prompt = async () => {
-        attempts++;
-        return { password: attempts === 1 ? "wrong-password" : password };
+      Welcome.prompts = {
+        ask: async () => {
+          attempts++;
+          return { password: attempts === 1 ? "wrong-password" : password };
+        },
       };
       const inspect = stdout.inspect();
       await Welcome.login();
@@ -146,7 +152,7 @@ describe("#Welcome", function () {
   describe("#signup", function () {
     it("should create an account when passwords match", async function () {
       Welcome.iterations = 500000;
-      inquirer.prompt = async () => ({ password, retype: password });
+      Welcome.prompts = { ask: async () => ({ password, retype: password }) };
       const inspect = stdout.inspect();
       await Welcome.signup();
       inspect.restore();
@@ -156,12 +162,14 @@ describe("#Welcome", function () {
     it("should retry when passwords do not match", async function () {
       Welcome.iterations = 500000;
       let attempts = 0;
-      inquirer.prompt = async () => {
-        attempts++;
-        if (attempts === 1) {
-          return { password, retype: "different" };
-        }
-        return { password, retype: password };
+      Welcome.prompts = {
+        ask: async () => {
+          attempts++;
+          if (attempts === 1) {
+            return { password, retype: "different" };
+          }
+          return { password, retype: password };
+        },
       };
       const inspect = stdout.inspect();
       await Welcome.signup();

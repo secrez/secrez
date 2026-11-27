@@ -2,13 +2,7 @@ const { listen } = require("./keys");
 const { paint, visibleLength } = require("./text");
 
 function askLine(session, options) {
-  const {
-    message = "",
-    mute = false,
-    validate,
-    onKey,
-    defaultValue,
-  } = options;
+  const { message = "", mute = false, validate, onKey, defaultValue } = options;
   const input = session.input;
   const output = session.output;
 
@@ -22,7 +16,9 @@ function askLine(session, options) {
       const shown = mute ? "*".repeat(line.length) : line;
       paint(output, `\r\x1b[2K${message}${shown}`);
       if (output && typeof output.cursorTo === "function") {
-        output.cursorTo(visibleLength(message) + Math.min(cursor, shown.length));
+        output.cursorTo(
+          visibleLength(message) + Math.min(cursor, shown.length)
+        );
       }
     };
 
@@ -45,7 +41,9 @@ function askLine(session, options) {
           finishing = false;
           paint(
             output,
-            `\n${typeof result === "string" ? result : "Please enter a value."}\n`
+            `\n${
+              typeof result === "string" ? result : "Please enter a value."
+            }\n`
           );
           render();
           return;

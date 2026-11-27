@@ -1,40 +1,41 @@
 const chai = require("chai");
 const assert = chai.assert;
-const inquirer = require("inquirer");
 const Crypto = require("@secrez/crypto");
 const PreCommand = require("../src/PreCommand");
+const Prompt = require("../src/prompts/Prompt");
 
 describe("#PreCommand", function () {
   let cmd;
-  let prompt;
-  let originalPrompt;
+  let host;
 
   beforeEach(function () {
     cmd = new PreCommand();
-    originalPrompt = inquirer.prompt;
-    prompt = {
-      inquirer,
+    host = {
       getRl() {
         return { pause() {}, resume() {} };
       },
     };
-    cmd.prompt = prompt;
+    host.prompts = new Prompt(host);
+    cmd.prompt = host;
   });
 
-  afterEach(function () {
-    inquirer.prompt = originalPrompt;
-  });
+  function stubAsk(answer) {
+    return async (questions) => {
+      host.questions = questions;
+      return answer;
+    };
+  }
 
   describe("#useConfirm", function () {
     it("should return the confirm result", async function () {
-      inquirer.prompt = async () => ({ result: true });
+      host.prompts.ask = stubAsk({ result: true });
       assert.isTrue(await cmd.useConfirm({ message: "Sure?", default: false }));
     });
   });
 
   describe("#useSelect", function () {
     it("should return the selected choice", async function () {
-      inquirer.prompt = async () => ({ result: "alpha" });
+      host.prompts.ask = stubAsk({ result: "alpha" });
       assert.equal(
         await cmd.useSelect({ message: "Pick", choices: ["alpha", "beta"] }),
         "alpha"
@@ -42,30 +43,26 @@ describe("#PreCommand", function () {
     });
 
     it("should return undefined when cancelled", async function () {
-      inquirer.prompt = async () => ({ result: "(cancel)" });
+      host.prompts.ask = stubAsk({ result: "(cancel)" });
       assert.isUndefined(
         await cmd.useSelect({ message: "Pick", choices: ["alpha"] })
       );
     });
 
     it("should not add cancel when dontCancel is set", async function () {
-      let captured;
-      inquirer.prompt = async (qs) => {
-        captured = qs[0].choices;
-        return { result: "only" };
-      };
+      host.prompts.ask = stubAsk({ result: "only" });
       await cmd.useSelect({
         message: "Pick",
         choices: ["only"],
         dontCancel: true,
       });
-      assert.deepEqual(captured, ["only"]);
+      assert.deepEqual(host.questions[0].choices, ["only"]);
     });
   });
 
   describe("#useInput", function () {
     it("should return the typed value", async function () {
-      inquirer.prompt = async () => ({ result: "hello" });
+      host.prompts.ask = stubAsk({ result: "hello" });
       assert.equal(
         await cmd.useInput({ message: "Name", name: "name" }),
         "hello"
@@ -76,7 +73,7 @@ describe("#PreCommand", function () {
       const exitCode = "ZZ";
       const original = Crypto.getRandomBase58String;
       Crypto.getRandomBase58String = () => exitCode;
-      inquirer.prompt = async () => ({ result: exitCode });
+      host.prompts.ask = stubAsk({ result: exitCode });
       try {
         assert.isUndefined(
           await cmd.useInput({ message: "Name", name: "name" })
@@ -87,7 +84,7 @@ describe("#PreCommand", function () {
     });
 
     it("should run custom validate", async function () {
-      inquirer.prompt = async () => ({ result: "valid" });
+      host.prompts.ask = stubAsk({ result: "valid" });
       assert.equal(
         await cmd.useInput({
           message: "Code",
@@ -100,7 +97,7 @@ describe("#PreCommand", function () {
 
   describe("#useEditor", function () {
     it("should use editorProvider when set", async function () {
-      prompt.editorProvider = async (opts) => `edited:${opts.content}`;
+      host.editorProvider = async (opts) => `edited:${opts.content}`;
       assert.equal(await cmd.useEditor({ content: "start" }), "edited:start");
     });
   });

@@ -1,4 +1,5 @@
 const { execSync } = require("child_process");
+const { publishedVersion } = require("./published-version");
 const fs = require("fs-extra");
 const path = require("path");
 
@@ -16,12 +17,11 @@ function checkIfMustBePublished(dir) {
   const pkg = dir === "secrez" ? "" : "@secrez/";
   console.debug(`Checking  ${pkg}${dir}`);
   const version = require(`../packages/${dir}/package.json`).version;
-  const currVersion = execSync(`npm view ${pkg}${dir} | grep latest`)
-    .toString()
-    .split("\n")[0]
-    .split(" ")[1];
-  if (version !== currVersion) {
-    console.log(`📦 MUST PUBLISH ${pkg}${dir} v${version}`);
+  const name = `${pkg}${dir}`;
+  const currVersion = publishedVersion(name);
+  if (currVersion == null || version !== currVersion) {
+    const note = currVersion == null ? " (not on npm yet)" : "";
+    console.log(`📦 MUST PUBLISH ${name} v${version}${note}`);
     const publishCommand = `(cd packages/${dir} && pnpm publish ${
       /beta/.test(version) ? "--tag beta" : ""
     })`;

@@ -3,7 +3,10 @@
 **2.2.0**
 
 - replace the system editor with an integrated in-memory editor for `edit`. Secrets stay in memory and are no longer written to temporary files. The `-e`/`--editor` and `-i`/`--internal` options are removed; the in-memory editor is the only editor
-- change how `edit` treats the git repo. The remote check runs while you edit, instead of blocking before the editor opens. If the repository was changed outside Secrez, the editor closes and later writes stay blocked for the session: quit, sync the repo by hand, then start Secrez again. If Secrez is only behind the remote, editing continues; on save you can write anyway, or return to the unsaved text and leave it with Ctrl-c
+- replace Inquirer with `@secrez/prompt`. The command prompt, the questions, and the in-memory editor come from that package. The idle screen clear stays suspended while a question or the editor is on screen
+- change how a write treats the git repo. The remote check runs while you edit, instead of blocking before the editor opens. When a command cannot run because the repo changed, choose one of three actions: update the repo and restart, cancel the operation, or run it anyway. Update stores that command in the history, then runs `git pull --ff-only` and restarts only if the pull succeeds. If the repo has local changes, or the pull fails, Secrez stays in the session. `git -p` refreshes the fingerprint, and the next write still checks the remote. A hard block or a behind-remote state is remembered for the rest of the session, so later commands do not fetch again. Cancelling an edit returns to the unsaved text; leave it with Ctrl-c
+- edit YAML fields whose values are numbers. A value such as `0002` is saved as `"0002"`, so it stays a string. A plain number such as `234` stays a number
+- reset the terminal before a restart, so the new process receives the master password
 - remove deprecated `bash` command (use `shell` instead)
 - stop interpolating commands into a shell string: `shell` and `ssh` pass arguments with `spawn`, and `totp --from-clipboard` does the same for `xclip`
 - vault permissions (FS-1): secure legacy containers to `0o700` dirs / `0o600` files at login
@@ -11,7 +14,7 @@
 - require Node.js 22.23.4 or later (`engines.node >=22.23.4`), matching the October 2026 Node.js security release
 - clear cryptographic secrets from memory on `signout`, `quit`, and double `^C` (best-effort buffer zeroing)
 - replace deprecated dependencies: `homedir` → `os.homedir`, `ethereumjs-util` → `ethers.getAddress`, `qrcode-reader` → `jsqr`, upgrade `jimp` to 1.x
-- companion workspace releases: `@secrez/core@1.1.0`, `@secrez/crypto@1.1.0`, `@secrez/fs@1.1.0`, `@secrez/utils@1.1.0`, `@secrez/eth@0.0.6`
+- companion workspace releases: `@secrez/prompt@1.0.0`, `@secrez/core@1.1.0`, `@secrez/crypto@1.1.0`, `@secrez/fs@1.1.0`, `@secrez/utils@1.1.0`, `@secrez/eth@0.0.6`
 - warn at signup when PBKDF2 iterations are below 100,000 and require explicit confirmation to proceed (KDF-3)
 
 **2.1.16**

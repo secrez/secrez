@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const { execSync } = require("child_process");
+const { publishedVersion } = require("./published-version");
 
 const preview =
   process.argv.includes("--preview") || process.argv.includes("--dry-run");
@@ -39,14 +40,11 @@ for (let package0 of packagesFolder) {
 }
 
 function getExistingVersion(pkg) {
-  return execSync(`npm view ${pkg} | grep latest`)
-    .toString()
-    .split("\n")[0]
-    .split(" ")[1];
+  return publishedVersion(pkg);
 }
 
-function getVersionToPublish(packageVersion, publishedVersion) {
-  if (packageVersion !== publishedVersion) {
+function getVersionToPublish(packageVersion, alreadyPublished) {
+  if (alreadyPublished == null || packageVersion !== alreadyPublished) {
     return packageVersion;
   }
   let v = packageVersion.split(".");
@@ -86,7 +84,9 @@ if (preview) {
       let published = getExistingVersion(name);
       let toPublish = getVersionToPublish(version, published);
       console.log(
-        `${p} (${name}): published ${published}, to publish ${toPublish}`
+        `${p} (${name}): published ${
+          published || "not on npm"
+        }, to publish ${toPublish}`
       );
     }
   }
@@ -95,7 +95,8 @@ if (preview) {
     let json = packagesJson[p];
     if (json) {
       let { version, name } = json;
-      if (version === getExistingVersion(name)) {
+      let published = getExistingVersion(name);
+      if (published != null && version === published) {
         let v = getVersionToPublish(version, version);
         json.version = v;
         updateOtherPackages(p, name, v);

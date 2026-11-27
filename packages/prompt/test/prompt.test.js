@@ -4,6 +4,7 @@ const assert = chai.assert;
 const { Prompt } = require("../src");
 const { complete } = require("../src/complete");
 const { formatList, ellipsize, columnsOf } = require("../src/text");
+const { formatColumns } = require("../src");
 const { listen } = require("../src/keys");
 
 function harness(options) {
@@ -25,7 +26,12 @@ function harness(options) {
 
 function press(input, name, extra) {
   const key = Object.assign({ name }, extra);
-  const str = extra && extra.str !== undefined ? extra.str : name.length === 1 ? name : "";
+  const str =
+    extra && extra.str !== undefined
+      ? extra.str
+      : name.length === 1
+      ? name
+      : "";
   input.emit("keypress", str, key);
 }
 
@@ -168,7 +174,9 @@ describe("@secrez/prompt", function () {
       during = prompt.clearHolds;
       return original(question);
     };
-    const pending = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+    const pending = prompt.ask([
+      { type: "input", name: "name", message: "Name" },
+    ]);
     press(input, "a");
     enter(input);
     await pending;
@@ -185,7 +193,9 @@ describe("@secrez/prompt", function () {
       assert.isNull(prompt.timeoutId);
       return original(question);
     };
-    const pending = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+    const pending = prompt.ask([
+      { type: "input", name: "name", message: "Name" },
+    ]);
     press(input, "a");
     enter(input);
     await pending;
@@ -202,9 +212,12 @@ describe("@secrez/prompt", function () {
       during = prompt.clearHolds;
       return original(question);
     };
-    const pending = prompt.ask([{ type: "input", name: "name", message: "Name" }], {
-      skipClear: false,
-    });
+    const pending = prompt.ask(
+      [{ type: "input", name: "name", message: "Name" }],
+      {
+        skipClear: false,
+      }
+    );
     press(input, "a");
     enter(input);
     await pending;
@@ -267,7 +280,9 @@ describe("@secrez/prompt", function () {
 
   it("should cancel with ctrl-c", async function () {
     const { input, prompt } = harness();
-    const pending = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+    const pending = prompt.ask([
+      { type: "input", name: "name", message: "Name" },
+    ]);
     press(input, "c", { ctrl: true, str: "c" });
     try {
       await pending;
@@ -327,7 +342,10 @@ describe("@secrez/prompt", function () {
     assert.equal(answers.cmd, "go");
     assert.match(chunks.join("\n"), /History/);
     prompt.addToHistory("main", "nope");
-    assert.deepEqual(prompt.getHistories(true).histories.main.includes("nope"), false);
+    assert.deepEqual(
+      prompt.getHistories(true).histories.main.includes("nope"),
+      false
+    );
     track(prompt);
   });
 
@@ -393,6 +411,7 @@ describe("@secrez/prompt", function () {
     assert.equal(ellipsize("short", 10), "short");
     assert.equal(ellipsize("abcdef", 1, "…"), "…");
     assert.equal(columnsOf(null), process.stdout.columns || 80);
+    assert.match(formatColumns(["ab", "cd"], 4, false), /ab +cd/);
     const row = formatList(["ab", "cd"], { columns: 80 }, 4, false);
     assert.match(row, /ab +cd/);
     const wrapped = formatList(["a", "b", "c", "d"], { columns: 10 }, 4, false);

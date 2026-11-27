@@ -28,7 +28,10 @@ function terminalRows(output) {
 }
 
 function terminalColumns(output) {
-  return Math.max(2, (output && output.columns) || process.stdout.columns || 80);
+  return Math.max(
+    2,
+    (output && output.columns) || process.stdout.columns || 80
+  );
 }
 
 function statusChunks(status, columns) {
@@ -82,7 +85,12 @@ const Editor = {
 
   submit() {
     const line = this.lines[this.cursorY];
-    this.lines.splice(this.cursorY, 1, line.slice(0, this.cursorX), line.slice(this.cursorX));
+    this.lines.splice(
+      this.cursorY,
+      1,
+      line.slice(0, this.cursorX),
+      line.slice(this.cursorX)
+    );
     this.cursorY++;
     this.cursorX = 0;
     this.update();
@@ -199,7 +207,8 @@ const Editor = {
     const { lines, cursorX, cursorY } = this;
     let out = clearViewport() + lines.join("\n");
     chunks.forEach((chunk, i) => {
-      out += cursorTo(0, statusTop + i) + "\u001b[2K\u001b[2m" + chunk + "\u001b[0m";
+      out +=
+        cursorTo(0, statusTop + i) + "\u001b[2K\u001b[2m" + chunk + "\u001b[0m";
     });
     const cursorRow = Math.min(cursorY, Math.max(0, statusTop - 1));
     const cursorCol = Math.min(cursorX, columns - 1);
@@ -306,17 +315,17 @@ function createEditor(text, hooks = {}) {
 }
 
 async function readEditorText(options = {}) {
-  const hasPath = options.path != null;
+  const hasFile = options.filePath != null;
   const hasContent = Object.prototype.hasOwnProperty.call(options, "content");
-  if (hasPath && hasContent) {
-    throw new Error("useEditor takes either content or path.");
+  if (hasFile && hasContent) {
+    throw new Error("useEditor takes either content or filePath.");
   }
-  if (!hasPath) return options.content || "";
-  if (typeof options.path !== "string" || options.path === "") {
-    throw new Error("useEditor path must be a file path.");
+  if (!hasFile) return options.content || "";
+  if (typeof options.filePath !== "string" || options.filePath === "") {
+    throw new Error("useEditor filePath must be a file path.");
   }
   try {
-    return await fs.promises.readFile(options.path, "utf8");
+    return await fs.promises.readFile(options.filePath, "utf8");
   } catch (err) {
     if (err && err.code === "ENOENT") return "";
     throw err;
@@ -358,4 +367,9 @@ function editInMemory(text, hooks = {}) {
   });
 }
 
-module.exports = { editInMemory, createEditor, readEditorText, writeEditorText };
+module.exports = {
+  editInMemory,
+  createEditor,
+  readEditorText,
+  writeEditorText,
+};

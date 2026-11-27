@@ -376,6 +376,17 @@ describe("#utils from core", function () {
       }
     });
 
+    it("should keep a leading-zero number as a string", function () {
+      const parsed = utils.yamlParse("a: 234\nb: 0002\nc: 33\n");
+      assert.strictEqual(parsed.a, 234);
+      assert.strictEqual(parsed.b, "0002");
+      assert.strictEqual(parsed.c, 33);
+      assert.equal(
+        utils.yamlQuoteNumbers("a: 234\nb: 0002\nc: 33\n"),
+        'a: 234\nb: "0002"\nc: 33\n'
+      );
+    });
+
     it("should not treat an ETH address as a number", async function () {
       let src = `addr0: 0xff8B2194572B2D5b2f12537b394e11d798EC75fF
 addr1: 0xb4e19C4c88257460ec31D3CD4d02E7371e502D62

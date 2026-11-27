@@ -1,7 +1,7 @@
 const chalk = require("chalk");
 const { askLine } = require("./line");
 const { listen } = require("./keys");
-const { paint, formatList } = require("./text");
+const { paint, formatList, formatColumns } = require("./text");
 const { resolveCompletion } = require("./complete");
 const { editInMemory, readEditorText, writeEditorText } = require("./editor");
 
@@ -41,7 +41,8 @@ class Prompt {
   addToHistory(context, value) {
     this.initHistory(context);
     const list = this.histories[context];
-    const blacklist = (this.config.history && this.config.history.blacklist) || [];
+    const blacklist =
+      (this.config.history && this.config.history.blacklist) || [];
     if (list[list.length - 1] === value || blacklist.includes(value)) return;
     list.push(value);
     const limit = this.config.history && this.config.history.limit;
@@ -58,7 +59,9 @@ class Prompt {
     for (const key of Object.keys(this.histories)) {
       const list = this.histories[key];
       histories[key] =
-        limit && list.length > limit ? list.slice(list.length - limit) : list.slice();
+        limit && list.length > limit
+          ? list.slice(list.length - limit)
+          : list.slice();
     }
     return { histories };
   }
@@ -151,12 +154,12 @@ class Prompt {
         output: options.output || this.output,
         onReady: options.onEditorReady,
       };
-      if (options.path == null) {
+      if (options.filePath == null) {
         return await editInMemory(options.content || "", hooks);
       }
       const content = await readEditorText(options);
       const text = await editInMemory(content, hooks);
-      if (text !== undefined) await writeEditorText(options.path, text);
+      if (text !== undefined) await writeEditorText(options.filePath, text);
       return text;
     } finally {
       if (this.clearScreenEnabled && skipClear) this.releaseClear();
@@ -188,14 +191,17 @@ class Prompt {
   }
 
   askConfirm(question) {
-    const yesDefault = question.default !== false && question.default !== undefined
-      ? question.default === true
-      : false;
+    const yesDefault =
+      question.default !== false && question.default !== undefined
+        ? question.default === true
+        : false;
     const hint = yesDefault ? " (Y/n) " : " (y/N) ";
     return askLine(this, {
       message: this.messageOf(question, hint),
       validate: async (value) => {
-        const text = String(value || "").trim().toLowerCase();
+        const text = String(value || "")
+          .trim()
+          .toLowerCase();
         if (!text) return true;
         if (text === "y" || text === "yes" || text === "n" || text === "no") {
           return true;
@@ -203,7 +209,9 @@ class Prompt {
         return "Please answer y or n.";
       },
     }).then((value) => {
-      const text = String(value || "").trim().toLowerCase();
+      const text = String(value || "")
+        .trim()
+        .toLowerCase();
       if (!text) return yesDefault;
       return text === "y" || text === "yes";
     });
@@ -218,7 +226,10 @@ class Prompt {
       };
     });
     const output = this.output;
-    let index = Math.max(0, choices.findIndex((choice) => choice.value === question.default));
+    let index = Math.max(
+      0,
+      choices.findIndex((choice) => choice.value === question.default)
+    );
     if (index < 0) index = 0;
     let drawn = 0;
 
@@ -269,7 +280,10 @@ class Prompt {
   }
 
   async askCommand(question) {
-    const context = question.context || "_default";
+    const context =
+      question.context == null || question.context === ""
+        ? "_default"
+        : question.context;
     this.initHistory(context);
     const message = this.messageOf(question, " ");
     const value = await askLine(this, {
@@ -296,7 +310,8 @@ class Prompt {
           return true;
         }
         if (key.name === "down") {
-          const next = this.histories[context][this.historyIndexes[context] + 1];
+          const next =
+            this.histories[context][this.historyIndexes[context] + 1];
           if (next) {
             this.historyIndexes[context] += 1;
             rewrite(next);
@@ -330,7 +345,10 @@ class Prompt {
   }
 
   async completeCommand(question, state, rewrite) {
-    const line = String(state.line || "").replace(/^ +/, "").replace(/\t/g, "").replace(/ +/g, " ");
+    const line = String(state.line || "")
+      .replace(/^ +/, "")
+      .replace(/\t/g, "")
+      .replace(/ +/g, " ");
     try {
       const found = await resolveCompletion(line, question.autoCompletion);
       if (found.match) {
@@ -351,8 +369,13 @@ class Prompt {
         );
         paint(
           this.output,
-          formatList(shown, this.output, question.maxSize, question.ellipsize, question.ellipsis) +
-            "\n"
+          formatList(
+            shown,
+            this.output,
+            question.maxSize,
+            question.ellipsize,
+            question.ellipsis
+          ) + "\n"
         );
         rewrite(line);
       }
@@ -369,7 +392,8 @@ class Prompt {
       rewrite(!isNaN(i) && history[i] ? history[i] : "");
       return;
     }
-    const limit = (this.config.history && this.config.history.limit) || history.length || 1;
+    const limit =
+      (this.config.history && this.config.history.limit) || history.length || 1;
     const width = String(limit).length;
     paint(this.output, `\n${chalk.bold("History")}\n`);
     history.forEach((entry, i) => {
@@ -380,4 +404,4 @@ class Prompt {
   }
 }
 
-module.exports = { Prompt };
+module.exports = { Prompt, formatColumns };

@@ -49,6 +49,20 @@ class GitConflictChecker {
   }
 
   /**
+   * Remember the repo after a push Secrez just made.
+   * The next write must fetch again: a commit can land on the remote after this.
+   */
+  async refreshFingerprint() {
+    const status = await this.getGitStatus();
+    this.entryStatus = null;
+    this.hasEntryStatus = false;
+    if (status && !status.error) {
+      this.initialGitState = this.getGitFingerprint(status);
+    }
+    return status;
+  }
+
+  /**
    * Get a fingerprint of the current git state for comparison
    */
   getGitFingerprint(status) {

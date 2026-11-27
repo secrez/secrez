@@ -1,6 +1,41 @@
 const _ = require("lodash");
 const { Entry } = require("@secrez/core");
-const { isYaml, yamlParse, yamlStringify } = require("@secrez/utils");
+const {
+  isYaml,
+  yamlParse,
+  yamlQuoteNumbers,
+  yamlStringify,
+} = require("@secrez/utils");
+
+function textForEditor(value) {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
+  return value;
+}
+
+function canonicalNumber(text) {
+  if (!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(text)) return null;
+  const value = Number(text);
+  if (!Number.isFinite(value)) return null;
+  if (String(value) !== text) return null;
+  return value;
+}
+
+function fieldFromEditor(original, text) {
+  const trimmed = _.trim(text);
+  if (trimmed.includes("\n")) return yamlQuoteNumbers(trimmed);
+  if (
+    typeof original === "boolean" &&
+    (trimmed === "true" || trimmed === "false")
+  ) {
+    return trimmed === "true";
+  }
+  const asNumber = canonicalNumber(trimmed);
+  if (asNumber != null && typeof original === "number") return asNumber;
+  return trimmed;
+}
 
 class Edit extends require("../Command") {
   setHelpAndCompletion() {
@@ -134,9 +169,10 @@ class Edit extends require("../Command") {
       }
       if (hardBlocked) return;
 
-      const originalContent = options.field
-        ? fields[options.field] || ""
+      const originalValue = options.field
+        ? fields[options.field]
         : fileData[0].content;
+      const originalContent = textForEditor(originalValue);
       let draft = originalContent;
       let newContent;
 
@@ -191,16 +227,20 @@ class Edit extends require("../Command") {
         let node = tree.root.getChildFromPath(p);
         let entry = node.getEntry();
         if (options.field) {
-          fields[options.field] = _.trim(newContent);
+          fields[options.field] = fieldFromEditor(originalValue, newContent);
           entry.set({ content: yamlStringify(fields) });
         } else {
-          entry.set({ content: newContent });
+          entry.set({
+            content: isYaml(p) ? yamlQuoteNumbers(newContent) : newContent,
+          });
         }
         await tree.update(node, entry);
       } else {
         await this.prompt.commands.touch.touch({
           path: options.path,
-          content: newContent,
+          content: isYaml(options.path)
+            ? yamlQuoteNumbers(newContent)
+            : newContent,
         });
       }
       this.Logger.reset("File saved.");

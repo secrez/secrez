@@ -20,7 +20,12 @@ function harness() {
 
 function press(input, name, extra) {
   const key = Object.assign({ name }, extra);
-  const str = extra && extra.str !== undefined ? extra.str : name.length === 1 ? name : "";
+  const str =
+    extra && extra.str !== undefined
+      ? extra.str
+      : name.length === 1
+      ? name
+      : "";
   input.emit("keypress", str, key);
 }
 
@@ -40,7 +45,9 @@ describe("@secrez/prompt basics", function () {
   describe("input", function () {
     it("should return the typed text", async function () {
       const { input, prompt } = harness();
-      const pending = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+      const pending = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
       type(input, "ada");
       enter(input);
       assert.deepEqual(await pending, { name: "ada" });
@@ -62,7 +69,9 @@ describe("@secrez/prompt basics", function () {
 
     it("should return an empty string when there is no default", async function () {
       const { input, prompt } = harness();
-      const pending = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+      const pending = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
       enter(input);
       assert.deepEqual(await pending, { name: "" });
     });
@@ -78,14 +87,18 @@ describe("@secrez/prompt basics", function () {
 
     it("should insert, move, and delete inside the line", async function () {
       const { input, prompt } = harness();
-      const pending = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+      const pending = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
       type(input, "ac");
       press(input, "left");
       type(input, "b");
       enter(input);
       assert.deepEqual(await pending, { name: "abc" });
 
-      const removed = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+      const removed = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
       type(input, "ab");
       press(input, "backspace");
       press(input, "left");
@@ -96,14 +109,18 @@ describe("@secrez/prompt basics", function () {
 
     it("should move to the ends of the line", async function () {
       const { input, prompt } = harness();
-      const pending = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+      const pending = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
       type(input, "ab");
       press(input, "a", { ctrl: true, str: "" });
       type(input, "z");
       enter(input);
       assert.deepEqual(await pending, { name: "zab" });
 
-      const atEnd = prompt.ask([{ type: "input", name: "name", message: "Name" }]);
+      const atEnd = prompt.ask([
+        { type: "input", name: "name", message: "Name" },
+      ]);
       type(input, "ab");
       press(input, "home");
       press(input, "e", { ctrl: true, str: "" });
@@ -162,7 +179,12 @@ describe("@secrez/prompt basics", function () {
     it("should use the password default when the line is empty", async function () {
       const { input, prompt } = harness();
       const pending = prompt.ask([
-        { type: "password", name: "secret", message: "Password", default: "hidden" },
+        {
+          type: "password",
+          name: "secret",
+          message: "Password",
+          default: "hidden",
+        },
       ]);
       enter(input);
       assert.deepEqual(await pending, { secret: "hidden" });
@@ -286,10 +308,23 @@ describe("@secrez/prompt basics", function () {
   });
 
   describe("command", function () {
+    it("should keep history for context 0", async function () {
+      const { input, prompt } = harness();
+      prompt.setHistory({ histories: { 0: ["ls"] } });
+      const pending = prompt.ask([
+        { type: "command", name: "cmd", message: "$", context: 0 },
+      ]);
+      press(input, "up");
+      enter(input);
+      assert.deepEqual(await pending, { cmd: "ls" });
+    });
+
     it("should walk history and clear it past the end", async function () {
       const { input, prompt } = harness();
       prompt.setHistory({ histories: { _default: ["ls"] } });
-      const pending = prompt.ask([{ type: "command", name: "cmd", message: "$" }]);
+      const pending = prompt.ask([
+        { type: "command", name: "cmd", message: "$" },
+      ]);
       press(input, "up");
       press(input, "down");
       enter(input);

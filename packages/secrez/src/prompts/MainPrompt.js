@@ -146,6 +146,7 @@ class MainPrompt extends require("./CommandPrompt") {
       this.run();
       return;
     }
+    this.pendingCommandLine = cmd;
     await this.exec([cmd]);
     this.previousCommandLine = cmd;
   }

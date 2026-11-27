@@ -23,7 +23,12 @@ function harness(options) {
 
 function press(input, name, extra) {
   const key = Object.assign({ name }, extra);
-  const str = extra && extra.str !== undefined ? extra.str : name.length === 1 ? name : "";
+  const str =
+    extra && extra.str !== undefined
+      ? extra.str
+      : name.length === 1
+      ? name
+      : "";
   input.emit("keypress", str, key);
 }
 
@@ -186,7 +191,7 @@ describe("@secrez/prompt editor", function () {
         opened = resolve;
       });
       const pending = prompt.useEditor({
-        path: file,
+        filePath: file,
         onEditorReady() {
           opened();
         },
@@ -249,29 +254,32 @@ describe("@secrez/prompt editor", function () {
       await fs.promises.writeFile(file, "old");
       const { prompt } = harness();
       const text = await prompt.useEditor({
-        path: file,
+        filePath: file,
         editor: async () => "other",
       });
       assert.equal(text, "other");
       assert.equal(await fs.promises.readFile(file, "utf8"), "old");
     });
 
-    it("should reject a path mixed with content, or a directory", async function () {
+    it("should reject a filePath mixed with content, or a directory", async function () {
       const { prompt } = harness();
       try {
-        await prompt.useEditor({ content: "a", path: path.join(dir, "note.txt") });
+        await prompt.useEditor({
+          content: "a",
+          filePath: path.join(dir, "note.txt"),
+        });
         assert.fail("should reject");
       } catch (err) {
-        assert.match(err.message, /either content or path/);
+        assert.match(err.message, /either content or filePath/);
       }
       try {
-        await prompt.useEditor({ path: dir });
+        await prompt.useEditor({ filePath: dir });
         assert.fail("should reject");
       } catch (err) {
         assert.ok(err);
       }
       try {
-        await prompt.useEditor({ path: "" });
+        await prompt.useEditor({ filePath: "" });
         assert.fail("should reject");
       } catch (err) {
         assert.match(err.message, /file path/);

@@ -1,65 +1,16 @@
-const inquirer = require("inquirer");
-const { chalk } = require("../utils/Logger");
+const chalk = require("chalk");
 const Crypto = require("@secrez/crypto");
-const { editInMemory } = require("../editor/MemoryEditor");
+const { Prompt: BasePrompt } = require("@secrez/prompt");
 
-class Prompt {
+class Prompt extends BasePrompt {
   constructor(host = {}) {
+    super({
+      clearScreen: true,
+      clearScreenTimeout: host.clearScreenTimeout || 180,
+      input: host.input,
+      output: host.output,
+    });
     this.host = host;
-    this.timeoutId = null;
-    this.clearHolds = 0;
-  }
-
-  clearScreen() {
-    process.stdout.write("\u001b[2J\u001b[0;0H");
-    process.stdout.write(
-      "Screen cleared. Press any key to reactivate the terminal"
-    );
-  }
-
-  armClear() {
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-    if (this.clearHolds > 0) return;
-    if (!process.stdout.isTTY) return;
-    const seconds = this.host.clearScreenTimeout || 180;
-    this.timeoutId = setTimeout(() => {
-      this.timeoutId = null;
-      this.clearScreen();
-    }, seconds * 1000);
-    if (typeof this.timeoutId.unref === "function") {
-      this.timeoutId.unref();
-    }
-  }
-
-  holdClear() {
-    this.clearHolds += 1;
-    if (this.clearHolds === 1 && this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-  }
-
-  releaseClear() {
-    this.clearHolds = Math.max(0, this.clearHolds - 1);
-    if (this.clearHolds === 0) this.armClear();
-  }
-
-  /**
-   * skipClear defaults to true: a question on screen suspends the clear.
-   * Pass false only for the idle command prompt, where the clear must run.
-   */
-  async ask(questions, options = {}) {
-    const skipClear = options.skipClear !== false;
-    if (skipClear) this.holdClear();
-    else this.armClear();
-    try {
-      return await inquirer.prompt(questions);
-    } finally {
-      if (skipClear) this.releaseClear();
-    }
   }
 
   async useConfirm(options = {}) {
@@ -135,34 +86,14 @@ class Prompt {
   }
 
   async useEditor(options = {}) {
-    const skipClear = options.skipClear !== false;
-    if (skipClear) this.holdClear();
-    try {
-      if (this.host.editorProvider) {
-        return await this.host.editorProvider(options);
-      }
-      /* istanbul ignore next */
-      const stdin = process.stdin;
-      const wasRaw = typeof stdin.isRaw === "boolean" ? stdin.isRaw : false;
-      try {
-        return await editInMemory(options.content || "", {
-          onReady: options.onEditorReady,
-        });
-      } finally {
-        if (stdin.isTTY && typeof stdin.setRawMode === "function") {
-          try {
-            stdin.setRawMode(wasRaw);
-          } catch (e) {
-            // ignore — stdin may already be in the desired mode
-          }
-        }
-        if (typeof stdin.resume === "function" && stdin.isPaused()) {
-          stdin.resume();
-        }
-      }
-    } finally {
-      if (skipClear) this.releaseClear();
+    if (this.host && typeof this.host.editorProvider === "function") {
+      return super.useEditor(
+        Object.assign({}, options, {
+          editor: (opts) => this.host.editorProvider(opts),
+        })
+      );
     }
+    return super.useEditor(options);
   }
 }
 

@@ -88,8 +88,8 @@ class Git extends require("../Command") {
           return chalk.red(`git push failed: ${pushRes.error}`);
         }
 
-        // Update the initial fingerprint so Secrez won't block further operations in this session
-        await this.internalFs.gitConflictChecker.captureInitialState();
+        // Remember this push. The next write still fetches, so a later remote commit is seen.
+        await this.internalFs.gitConflictChecker.refreshFingerprint();
 
         return "Pushed successfully. Fingerprint updated.";
       }

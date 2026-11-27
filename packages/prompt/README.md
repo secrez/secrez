@@ -76,12 +76,12 @@ A shell-style line. `context` names its history and defaults to `_default`.
 ```js
 const text = await prompt.useEditor({ content: "hello" });
 
-const saved = await prompt.useEditor({ path: "notes.txt" });
+const saved = await prompt.useEditor({ filePath: "notes.txt" });
 ```
 
-`content` edits that text in memory. Nothing is written to disk. This is the Secrez case.
+`content` edits that text in memory. Nothing is written to disk. This is the Secrez case. Other fields, including a vault `path`, are left untouched.
 
-`path` edits a file. The editor opens with the file's text, or empty when the file does not exist yet. Ctrl-d writes the buffer back to that path, creating the file when it is new. Ctrl-c leaves the disk untouched, and a new file is not created. Pass `content` or `path`, not both.
+`filePath` edits a file on disk. The editor opens with the file's text, or empty when the file does not exist yet. Ctrl-d writes the buffer back to that file, creating it when it is new. Ctrl-c leaves the disk untouched, and a new file is not created. Pass `content` or `filePath`, not both.
 
 Ctrl-d saves and resolves the text. Ctrl-c, or Escape, aborts and resolves `undefined`. Enter splits the line. The arrows move, Backspace deletes, Ctrl-k deletes the line, Ctrl-a and Ctrl-e move to the ends of the line, and Ctrl-g restores the original text.
 
@@ -99,7 +99,7 @@ Pass `editor(options)` on the call, or to `new Prompt`, to replace the built-in 
 
 - `new Prompt({ clearScreen, clearScreenTimeout, onClear, input, output, editor })`
 - `ask(questions, { skipClear })`
-- `useEditor({ content, path, editor, onEditorReady, skipClear })`
+- `useEditor({ content, filePath, editor, onEditorReady, skipClear })`
 - `setConfig(config)`
 - `getHistories(useLimit)`
 - `setHistory({ histories })`
@@ -109,6 +109,7 @@ Pass `editor(options)` on the call, or to `new Prompt`, to replace the built-in 
 - `holdClear()`
 - `releaseClear()`
 - `paintClear()`
+- `formatColumns(items, maxSize, ellipsize, ellipsis)` draws a padded list for the terminal width
 
 Question fields: `type`, `name`, `message`, `default`, `prefix`, `validate`, `choices`, `autoCompletion`, `short`, `autocompletePrompt`, `ellipsize`, `ellipsis`, `maxSize`, `context`, `onBeforeKeyPress`, `onBeforeRewrite`, `onClose`.
 
@@ -117,23 +118,23 @@ Question fields: `type`, `name`, `message`, `default`, `prefix`, `validate`, `ch
 **1.0.0**
 
 - prompt types `input`, `password`, `confirm`, `list`, and `command`
-- in-memory editor through `useEditor({ content })`, and file editing through `useEditor({ path })`
+- in-memory editor through `useEditor({ content })`, and file editing through `useEditor({ filePath })`
 - optional idle screen clear, suspended while a question or the editor is open
 
 ## Test coverage
 
 ```
-  58 passing (179ms)
+  59 passing (180ms)
 
 -------------|---------|----------|---------|---------|---------------------------------------------
 File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                           
 -------------|---------|----------|---------|---------|---------------------------------------------
-All files    |   97.85 |    86.02 |   98.16 |   99.83 |                                             
+All files    |   97.85 |    86.08 |   98.18 |   99.83 |                                             
  complete.js |     100 |       96 |     100 |     100 | 7                                           
- editor.js   |   97.45 |    83.19 |   97.72 |    99.5 | 114                                         
- index.js    |   97.67 |    86.38 |     100 |     100 | ...-226,240-241,259,284,287,340,366,369-372 
+ editor.js   |   97.45 |    83.19 |   97.72 |    99.5 | 122                                         
+ index.js    |   97.67 |    86.49 |     100 |     100 | ...-237,251-252,270,298,301,358,389,392-396 
  keys.js     |     100 |       75 |     100 |     100 | 7-24,28                                     
- line.js     |   97.11 |    86.84 |   94.44 |     100 | 6,24-40,61-68,95,129                        
+ line.js     |   97.11 |    86.84 |   94.44 |     100 | 5,18-36,59-66,93,127                        
  text.js     |     100 |       90 |     100 |     100 | 2-6,27                                      
 -------------|---------|----------|---------|---------|---------------------------------------------
 ```

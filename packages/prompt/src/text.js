@@ -53,10 +53,15 @@ function formatList(elems, output, maxSize, useEllipsis, ellipsis) {
   return str;
 }
 
+function formatColumns(elems, maxSize, useEllipsis, ellipsis) {
+  return formatList(elems, process.stdout, maxSize, useEllipsis, ellipsis);
+}
+
 module.exports = {
   visibleLength,
   paint,
   columnsOf,
   ellipsize,
   formatList,
+  formatColumns,
 };

@@ -1,7 +1,7 @@
 const path = require("path");
 
 const { InternalFs, ExternalFs, DataCache } = require("@secrez/fs");
-const inquirerCommandPrompt = require("inquirer-command-prompt");
+const { formatColumns } = require("@secrez/prompt");
 
 const cliConfig = require("../cliConfig");
 const Commands = require("../commands");
@@ -14,7 +14,11 @@ class MainPromptMock {
     this.internalFs = new InternalFs(this.secrez);
     this.externalFs = new ExternalFs(this.secrez);
     this.commands = new Commands(this, cliConfig).getCommands();
-    this.commandPrompt = inquirerCommandPrompt;
+    this.commandPrompt = {
+      formatList(elems, maxSize, ellipsized, ellipsis) {
+        return formatColumns(elems, maxSize, ellipsized, ellipsis);
+      },
+    };
     this.cache = {};
   }
 

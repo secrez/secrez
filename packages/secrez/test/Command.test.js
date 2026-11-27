@@ -1,3 +1,4 @@
+const { EventEmitter } = require("events");
 const chai = require("chai");
 const assert = chai.assert;
 const Command = require("../src/Command");
@@ -124,6 +125,38 @@ describe("#Command", function () {
           `Unknown option: ${options._unknown} (run "command -h" for help)`
         );
       }
+    });
+  });
+
+  describe("#releasePromptInput", function () {
+    it("should stop reading the terminal before a restart", function () {
+      const input = new EventEmitter();
+      input.isRaw = true;
+      let raw = true;
+      input.setRawMode = (value) => {
+        raw = value;
+      };
+      input.pause = () => {
+        input.paused = true;
+      };
+      input.unref = () => {
+        input.unrefed = true;
+      };
+      let heard = 0;
+      input.on("data", () => {
+        heard += 1;
+      });
+      command.prompt.prompts = {
+        input,
+        timeoutId: setTimeout(() => {}, 60000),
+      };
+      command.releasePromptInput();
+      input.emit("data", "quit");
+      assert.equal(heard, 0);
+      assert.isFalse(raw);
+      assert.isTrue(input.paused);
+      assert.isTrue(input.unrefed);
+      assert.isNull(command.prompt.prompts.timeoutId);
     });
   });
 });

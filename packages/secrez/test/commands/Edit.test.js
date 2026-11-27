@@ -105,6 +105,50 @@ describe("#Edit", function () {
     assert.equal(content, "updated via main prefix");
   });
 
+  it("should edit a numeric yaml field as text", async function () {
+    await C.touch.touch({
+      path: "/cards/pin.yml",
+      content: "a: 21212\nb: 332\n",
+    });
+
+    let seen;
+    mockEditor((opts) => {
+      seen = opts.content;
+      return "999";
+    });
+    inspect = stdout.inspect();
+    await C.edit.edit({ path: "/cards/pin.yml", field: "a" });
+    inspect.restore();
+    assertConsole(inspect, "File saved.");
+    assert.equal(seen, "21212");
+
+    let fields = yamlParse(
+      (await C.cat.cat({ path: "/cards/pin.yml", unformatted: true }))[0]
+        .content
+    );
+    assert.equal(fields.a, 999);
+    assert.equal(fields.b, 332);
+  });
+
+  it("should save a leading-zero field as a string", async function () {
+    await C.touch.touch({
+      path: "/cards/pin.yml",
+      content: "a: 234\nb: 1\nc: 33\n",
+    });
+
+    mockEditor("0002");
+    await C.edit.edit({ path: "/cards/pin.yml", field: "b" });
+
+    const raw = (
+      await C.cat.cat({ path: "/cards/pin.yml", unformatted: true })
+    )[0].content;
+    assert.include(raw, 'b: "0002"');
+    const fields = yamlParse(raw);
+    assert.strictEqual(fields.a, 234);
+    assert.strictEqual(fields.b, "0002");
+    assert.strictEqual(fields.c, 33);
+  });
+
   it("should edit a single yaml field", async function () {
     await C.touch.touch({
       path: "/cards/site.yml",
@@ -255,7 +299,7 @@ describe("#Edit", function () {
 
     mockEditor("new password");
     prompt.inquirer = {};
-    C.edit.useConfirm = async () => true;
+    C.edit.useSelect = async () => "Update the repo and restart";
     const check = Promise.resolve({
       hasRisk: true,
       allowBypass: true,
@@ -286,8 +330,7 @@ describe("#Edit", function () {
 
     mockEditor("new");
     prompt.inquirer = {};
-    C.edit.useConfirm = async () => false;
-    C.edit.useInput = async () => true;
+    C.edit.useSelect = async () => "Run it anyway";
     const check = Promise.resolve({
       hasRisk: true,
       allowBypass: true,
@@ -309,12 +352,7 @@ describe("#Edit", function () {
 
   it("should not pull when the repo has local commits", async function () {
     prompt.inquirer = {};
-    let asked = false;
-    C.rm.useConfirm = async () => {
-      asked = true;
-      return true;
-    };
-    C.rm.useInput = async () => false;
+    C.rm.useSelect = async () => "Cancel the operation";
     C.rm.readGitConflictStatus = async () => ({
       hasRisk: true,
       allowBypass: true,
@@ -328,7 +366,6 @@ describe("#Edit", function () {
     inspect.restore();
     let output = inspect.output.map((e) => decolorize(e)).join("\n");
     assert.isFalse(proceed);
-    assert.isFalse(asked);
     assert.match(output, /align it by hand/);
     assert.match(output, /Operation cancelled/);
     assert.notMatch(output, /Would realign/);
@@ -336,10 +373,7 @@ describe("#Edit", function () {
 
   it("should restart without pulling when the repo changed outside Secrez", async function () {
     prompt.inquirer = {};
-    C.rm.useConfirm = async (opts) => {
-      assert.match(opts.message, /Do you want Secrez to update the repo and restart/);
-      return true;
-    };
+    C.rm.useSelect = async () => "Update the repo and restart";
     C.rm.readGitConflictStatus = async () => ({
       hasRisk: true,
       allowBypass: false,
@@ -356,6 +390,56 @@ describe("#Edit", function () {
     assert.match(output, /Would relaunch/);
     assert.notMatch(output, /Would realign/);
     assert.notMatch(output, /Operation blocked for data integrity/);
+  });
+
+  it("should not restart when the repo cannot be fast-forwarded", async function () {
+    prompt.inquirer = {};
+    C.rm.useSelect = async () => "Update the repo and restart";
+    C.rm.readGitConflictStatus = async () => ({
+      hasRisk: true,
+      allowBypass: false,
+      riskType: "external_change",
+      message: "repo changed",
+      status: { behind: 1, ahead: 0, uncommitted: 1 },
+    });
+
+    inspect = stdout.inspect();
+    let proceed = await C.rm.checkGitConflictsBeforeOperation();
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.isFalse(proceed);
+    assert.match(output, /cannot realign this repo automatically/);
+    assert.notMatch(output, /Would relaunch/);
+    assert.notMatch(output, /Would realign/);
+  });
+
+  it("should pull before restarting when the repo is only behind", async function () {
+    prompt.inquirer = {};
+    const remembered = [];
+    prompt.context = 0;
+    prompt.pendingCommandLine = "rm cico.yml";
+    prompt.prompts = {
+      addToHistory(context, line) {
+        remembered.push({ context, line });
+      },
+    };
+    C.rm.useSelect = async () => "Update the repo and restart";
+    C.rm.readGitConflictStatus = async () => ({
+      hasRisk: true,
+      allowBypass: false,
+      riskType: "external_change",
+      message: "repo changed",
+      status: { behind: 1, ahead: 0, uncommitted: 0 },
+    });
+
+    inspect = stdout.inspect();
+    let proceed = await C.rm.checkGitConflictsBeforeOperation();
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.isFalse(proceed);
+    assert.match(output, /Would realign and relaunch/);
+    assert.notMatch(output, /Operation blocked for data integrity/);
+    assert.deepEqual(remembered, [{ context: 0, line: "rm cico.yml" }]);
   });
 
   it("should ask to update the repo after login when it is behind", async function () {
