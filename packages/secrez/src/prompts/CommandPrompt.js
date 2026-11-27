@@ -260,6 +260,7 @@ class CommandPrompt {
             onClose: () => {
               fs.emptyDirSync(this.secrez.config.tmpPath);
             },
+            onEmptyInterrupt: () => sigintManager.interruptFromPrompt(),
             validate: (val) => {
               return val ? true : chalk.grey("Press TAB for suggestions.");
             },
@@ -270,6 +271,11 @@ class CommandPrompt {
       options.cmd = _.trim(cmd);
       await this.postRun(options);
     } catch (e) {
+      if (e && e.message === "The command was interrupted by the user.") {
+        Logger.red(e.message);
+        await this.run();
+        return;
+      }
       console.error(e);
       Logger.red(e.message);
     }

@@ -15,7 +15,7 @@ class SigintManager {
     }
   }
 
-  async onSigint() {
+  exitIfRepeated() {
     this.siginted = true;
     if (Date.now() - this.lastCalled < 500) {
       const prompt = this.prompts.find((p) => p.secrez);
@@ -25,9 +25,19 @@ class SigintManager {
       // eslint-disable-next-line no-process-exit
       process.exit(0);
     }
-    console.info("To exit, type quit or press ^C two times");
     this.lastCalled = Date.now();
+    return false;
+  }
+
+  async onSigint() {
+    this.exitIfRepeated();
+    console.info("To exit, type quit or press ^C two times");
     return this.prompts[this.prompts.length - 1].run();
+  }
+
+  interruptFromPrompt() {
+    if (this.exitIfRepeated()) return;
+    console.info("\nTo exit, type quit or press ^C two times");
   }
 
   async setPosition(prompt) {

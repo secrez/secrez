@@ -135,7 +135,7 @@ describe("#Welcome", function () {
     it("should exit when Ctrl-c closes the password prompt", async function () {
       Welcome.prompts = {
         ask: async () => {
-          throw new Error("User force closed the prompt");
+          throw new Error("The command was interrupted by the user.");
         },
       };
       const originalExit = process.exit;

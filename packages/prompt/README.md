@@ -31,7 +31,7 @@ const answers = await prompt.ask([
 ]);
 ```
 
-`ask(questions, options)` takes one question or a list. Each question has `name` and `message`. `type` defaults to `input`. The result maps each `name` to its answer. A confirm answer is a boolean. Ctrl-c rejects with `User force closed the prompt`.
+`ask(questions, options)` takes one question or a list. Each question has `name` and `message`. `type` defaults to `input`. The result maps each `name` to its answer. A confirm answer is a boolean. Ctrl-c rejects with `The command was interrupted by the user.` On a command line, Ctrl-c does that only when the line has text. On an empty command line it calls `onEmptyInterrupt` and stays open.
 
 `options.skipClear` defaults to `true`.
 
@@ -39,11 +39,11 @@ const answers = await prompt.ask([
 
 Reads one line. Enter on an empty line returns `default`, or `""` when `default` is omitted. `validate(value)` returns `true` to accept the line, or a string to print before asking again. Any other result prints `Please enter a value.`
 
-Left, right, Home, End, Ctrl-a, Ctrl-e, Backspace, and Delete edit the line.
+Left, right, Home, End, Ctrl-a, Ctrl-e, Backspace, and Delete edit the line. Ctrl-Left and Ctrl-Right move to the start of a word. That is the binding on Linux and Windows, and it also works on macOS. Option-Left and Option-Right, and Alt-b and Alt-f, make the same jump.
 
 ### password
 
-Same as `input`, but every character is drawn as `*`. The answer is the text that was typed.
+Same as `input`, but the typed characters are not drawn. The answer is the text that was typed. Set `mask: true` to draw each character as `*`.
 
 ### confirm
 
@@ -57,6 +57,7 @@ Draws `choices` and moves with the up and down arrows, wrapping at the ends. Ent
 
 A shell-style line. `context` names its history and defaults to `_default`.
 
+- Ctrl-c with text on the line rejects with `The command was interrupted by the user.` and does not save that text. Ctrl-c on an empty line calls `onEmptyInterrupt`, when set, and leaves the prompt open.
 - Up and down walk that history. Down past the last entry clears the line.
 - Tab completes `autoCompletion`, an array of strings or `async (line) => string[]`. A shared prefix is written into the line. Several matches are listed. The first array item may be `{ filter(value) }`, which rewrites a completed line.
 - `short(line, matches)` can replace the list that is printed. `autocompletePrompt` replaces the `Available commands` heading. `ellipsize`, `ellipsis`, and `maxSize` shape that list.
@@ -124,19 +125,19 @@ Question fields: `type`, `name`, `message`, `default`, `prefix`, `validate`, `ch
 ## Test coverage
 
 ```
-  59 passing (180ms)
+  64 passing (181ms)
 
--------------|---------|----------|---------|---------|---------------------------------------------
-File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                           
--------------|---------|----------|---------|---------|---------------------------------------------
-All files    |   97.85 |    86.08 |   98.18 |   99.83 |                                             
- complete.js |     100 |       96 |     100 |     100 | 7                                           
- editor.js   |   97.45 |    83.19 |   97.72 |    99.5 | 122                                         
- index.js    |   97.67 |    86.49 |     100 |     100 | ...-237,251-252,270,298,301,358,389,392-396 
- keys.js     |     100 |       75 |     100 |     100 | 7-24,28                                     
- line.js     |   97.11 |    86.84 |   94.44 |     100 | 5,18-36,59-66,93,127                        
- text.js     |     100 |       90 |     100 |     100 | 2-6,27                                      
--------------|---------|----------|---------|---------|---------------------------------------------
+-------------|---------|----------|---------|---------|---------------------------------
+File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
+-------------|---------|----------|---------|---------|---------------------------------
+All files    |    97.4 |    86.21 |   98.23 |   99.68 |                                 
+ complete.js |     100 |       96 |     100 |     100 | 7                               
+ editor.js   |   97.45 |    83.19 |   97.72 |    99.5 | 122                             
+ index.js    |   97.36 |    86.53 |     100 |   99.57 | 305                             
+ keys.js     |     100 |       75 |     100 |     100 | 7-24,28                         
+ line.js     |   95.31 |    87.15 |   95.23 |     100 | 5-18,21,35,54-72,95-102,129,170 
+ text.js     |     100 |       90 |     100 |     100 | 2-6,27                          
+-------------|---------|----------|---------|---------|---------------------------------
 ```
 
 ## Copyright
