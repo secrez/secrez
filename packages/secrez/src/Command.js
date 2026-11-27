@@ -1,3 +1,4 @@
+const { spawn } = require("child_process");
 const { chalk } = require("./utils/Logger");
 const Logger = require("./utils/Logger");
 const cliConfig = require("./cliConfig");
@@ -151,19 +152,46 @@ class Command extends PreCommand {
     }
   }
 
-  logGitConflictBlocked(conflictCheck) {
+  canFastForward(conflictCheck) {
+    if (!conflictCheck || conflictCheck.riskType !== "behind_remote") {
+      return false;
+    }
+    const status = conflictCheck.status;
+    if (!status) return false;
+    return (
+      (status.behind || 0) > 0 &&
+      (status.ahead || 0) === 0 &&
+      (status.uncommitted || 0) === 0
+    );
+  }
+
+  async offerRestart() {
+    if (!this.prompt || !this.prompt.inquirer) return false;
+    const restart = await this.useConfirm({
+      message: "Do you want Secrez to update the repo and restart?",
+      default: true,
+    });
+    if (!restart) return false;
+    await this.realignAndRelaunch({ pull: false });
+    return true;
+  }
+
+  async handleHardBlock(conflictCheck) {
     const checker = this.internalFs && this.internalFs.gitConflictChecker;
     if (!checker || !checker.sessionBlockAnnounced) {
       this.Logger.yellow(conflictCheck.message);
       if (checker) checker.sessionBlockAnnounced = true;
     }
+    if (await this.offerRestart()) return;
     this.Logger.red(
       "Operation blocked for data integrity. Quit Secrez, sync the repo by hand, then start Secrez again."
     );
   }
 
   async askToBypassGitConflict(conflictCheck, options = {}) {
-    this.Logger.yellow(conflictCheck.message);
+    if (!options.skipMessage) {
+      this.Logger.yellow(conflictCheck.message);
+    }
     const shouldContinue = await this.useInput({
       type: "confirm",
       message: "Do you want to continue anyway?",
@@ -176,6 +204,154 @@ class Command extends PreCommand {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Before a write: offer a fast-forward realign, or keep the current warning.
+   * Returns "proceed", "stop", or "reopen" (edit should show the draft again).
+   */
+  async resolveGitConflict(conflictCheck, options = {}) {
+    if (!conflictCheck.allowBypass) {
+      await this.handleHardBlock(conflictCheck);
+      return "stop";
+    }
+
+    const offer = this.canFastForward(conflictCheck);
+    const manual =
+      conflictCheck.riskType === "behind_remote" && !offer;
+
+    if (offer || manual) {
+      this.Logger.yellow(conflictCheck.message);
+    }
+    if (manual) {
+      this.Logger.red(
+        "Secrez cannot realign this repo automatically. Quit Secrez and align it by hand."
+      );
+    }
+    if (offer) {
+      this.Logger.yellow(
+        "You can quit Secrez and run git pull in the container.\nOr Secrez can pull for you. The next question is the confirmation: yes exits, pulls, and restarts; no leaves the repo as it is."
+      );
+      const realign = await this.useConfirm({
+        message: options.reopenEditor
+          ? "Do you want Secrez to pull the repo now? Unsaved text will be discarded."
+          : "Do you want Secrez to pull the repo now?",
+        default: true,
+      });
+      if (realign) {
+        await this.realignAndRelaunch({ pull: true });
+        return "stop";
+      }
+    }
+
+    const shouldContinue = await this.askToBypassGitConflict(conflictCheck, {
+      reopenEditor: options.reopenEditor,
+      skipMessage: offer || manual,
+    });
+    if (shouldContinue) return "proceed";
+    return options.reopenEditor ? "reopen" : "stop";
+  }
+
+  /**
+   * After login the fingerprint is already known. Ask once, before the prompt,
+   * when the repo is behind. No means enter anyway.
+   */
+  async offerUpdateAfterLogin(conflictCheck) {
+    if (
+      !conflictCheck ||
+      !conflictCheck.hasRisk ||
+      conflictCheck.riskType !== "behind_remote" ||
+      !this.prompt ||
+      !this.prompt.inquirer
+    ) {
+      return;
+    }
+
+    this.Logger.yellow(conflictCheck.message);
+    if (!this.canFastForward(conflictCheck)) {
+      this.Logger.red(
+        "Secrez cannot realign this repo automatically. Quit Secrez and align it by hand."
+      );
+      return;
+    }
+
+    const update = await this.useConfirm({
+      message: "Do you want Secrez to update the repo and restart?",
+      default: true,
+    });
+    if (update) {
+      await this.realignAndRelaunch({ pull: true });
+    }
+  }
+
+  releasePromptInput() {
+    try {
+      const rl = this.prompt && this.prompt.getRl && this.prompt.getRl();
+      if (rl) {
+        rl.removeAllListeners();
+        if (typeof rl.pause === "function") rl.pause();
+      }
+    } catch (e) {
+      // The prompt may already be closed.
+    }
+  }
+
+  runGit(args) {
+    const containerPath = this.secrez.config.container;
+    return new Promise((resolve) => {
+      const child = spawn("git", args, {
+        cwd: containerPath,
+        stdio: "inherit",
+      });
+      child.on("exit", (code) => resolve(code == null ? 1 : code));
+      child.on("error", () => resolve(1));
+    });
+  }
+
+  relaunchSecrez() {
+    const child = spawn(process.execPath, process.argv.slice(1), {
+      cwd: process.cwd(),
+      env: process.env,
+      stdio: "inherit",
+    });
+    child.on("exit", (code) => {
+      process.exit(code == null ? 1 : code);
+    });
+    child.on("error", (error) => {
+      this.Logger.red(error.message);
+      process.exit(1);
+    });
+  }
+
+  async realignAndRelaunch({ pull }) {
+    if (process.env.NODE_ENV === "test") {
+      this.Logger.reset(
+        pull ? "Would realign and relaunch." : "Would relaunch."
+      );
+      return;
+    }
+
+    const wasLoggedIn = Boolean(this.secrez.masterKeyHash);
+    if (wasLoggedIn) {
+      await this.prompt.saveHistory();
+      this.secrez.signout();
+    }
+    this.releasePromptInput();
+
+    if (pull) {
+      this.Logger.reset("Pulling the repo...");
+      const code = await this.runGit(["pull", "--ff-only"]);
+      if (code !== 0) {
+        this.Logger.red(
+          "git pull failed. Align the repo by hand, then start Secrez again."
+        );
+        process.exit(1);
+      }
+    }
+
+    this.Logger.reset("Restarting Secrez...");
+    this.relaunchSecrez();
+    await new Promise(() => {});
   }
 
   /**
@@ -196,12 +372,8 @@ class Command extends PreCommand {
       return true;
     }
 
-    if (!conflictCheck.allowBypass) {
-      this.logGitConflictBlocked(conflictCheck);
-      return false;
-    }
-
-    return this.askToBypassGitConflict(conflictCheck);
+    const decision = await this.resolveGitConflict(conflictCheck);
+    return decision === "proceed";
   }
 }
 

@@ -471,7 +471,14 @@ class InternalFs {
       return this.gitConflictChecker.sessionBlock;
     }
 
-    const currentStatus = await this.gitConflictChecker.getGitStatus();
+    let currentStatus;
+    if (this.gitConflictChecker.hasEntryStatus) {
+      currentStatus = this.gitConflictChecker.entryStatus;
+      this.gitConflictChecker.hasEntryStatus = false;
+      this.gitConflictChecker.entryStatus = null;
+    } else {
+      currentStatus = await this.gitConflictChecker.getGitStatus();
+    }
     const riskInfo = this.gitConflictChecker.hasConflictRisk(currentStatus);
 
     if (riskInfo.hasRisk) {

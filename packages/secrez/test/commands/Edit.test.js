@@ -246,4 +246,141 @@ describe("#Edit", function () {
     )[0].content;
     assert.equal(content, "new");
   });
+
+  it("should offer to realign before saving when the repo is only behind", async function () {
+    await C.touch.touch({
+      path: "/folder2/realign",
+      content: "old",
+    });
+
+    mockEditor("new password");
+    prompt.inquirer = {};
+    C.edit.useConfirm = async () => true;
+    const check = Promise.resolve({
+      hasRisk: true,
+      allowBypass: true,
+      riskType: "behind_remote",
+      message: "behind remote",
+      status: { behind: 1, ahead: 0, uncommitted: 0 },
+    });
+
+    inspect = stdout.inspect();
+    await C.edit.edit({ path: "/folder2/realign" }, check);
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.match(output, /behind remote/);
+    assert.match(output, /Would realign and relaunch/);
+    assert.notMatch(output, /File saved/);
+
+    let content = (
+      await C.cat.cat({ path: "/folder2/realign", unformatted: true })
+    )[0].content;
+    assert.equal(content, "old");
+  });
+
+  it("should keep the current warning when realign is declined", async function () {
+    await C.touch.touch({
+      path: "/folder2/no-realign",
+      content: "old",
+    });
+
+    mockEditor("new");
+    prompt.inquirer = {};
+    C.edit.useConfirm = async () => false;
+    C.edit.useInput = async () => true;
+    const check = Promise.resolve({
+      hasRisk: true,
+      allowBypass: true,
+      riskType: "behind_remote",
+      message: "behind remote",
+      status: { behind: 1, ahead: 0, uncommitted: 0 },
+    });
+
+    inspect = stdout.inspect();
+    await C.edit.edit({ path: "/folder2/no-realign" }, check);
+    inspect.restore();
+    assertConsole(inspect, ["behind remote", "File saved."]);
+
+    let content = (
+      await C.cat.cat({ path: "/folder2/no-realign", unformatted: true })
+    )[0].content;
+    assert.equal(content, "new");
+  });
+
+  it("should not pull when the repo has local commits", async function () {
+    prompt.inquirer = {};
+    let asked = false;
+    C.rm.useConfirm = async () => {
+      asked = true;
+      return true;
+    };
+    C.rm.useInput = async () => false;
+    C.rm.readGitConflictStatus = async () => ({
+      hasRisk: true,
+      allowBypass: true,
+      riskType: "behind_remote",
+      message: "behind remote",
+      status: { behind: 1, ahead: 2, uncommitted: 0 },
+    });
+
+    inspect = stdout.inspect();
+    let proceed = await C.rm.checkGitConflictsBeforeOperation();
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.isFalse(proceed);
+    assert.isFalse(asked);
+    assert.match(output, /align it by hand/);
+    assert.match(output, /Operation cancelled/);
+    assert.notMatch(output, /Would realign/);
+  });
+
+  it("should restart without pulling when the repo changed outside Secrez", async function () {
+    prompt.inquirer = {};
+    C.rm.useConfirm = async (opts) => {
+      assert.match(opts.message, /Do you want Secrez to update the repo and restart/);
+      return true;
+    };
+    C.rm.readGitConflictStatus = async () => ({
+      hasRisk: true,
+      allowBypass: false,
+      riskType: "external_change",
+      message: "repo changed",
+    });
+
+    inspect = stdout.inspect();
+    let proceed = await C.rm.checkGitConflictsBeforeOperation();
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.isFalse(proceed);
+    assert.match(output, /repo changed/);
+    assert.match(output, /Would relaunch/);
+    assert.notMatch(output, /Would realign/);
+    assert.notMatch(output, /Operation blocked for data integrity/);
+  });
+
+  it("should ask to update the repo after login when it is behind", async function () {
+    prompt.inquirer = {};
+    let question;
+    C.git.useConfirm = async (opts) => {
+      question = opts.message;
+      return true;
+    };
+
+    inspect = stdout.inspect();
+    await C.git.offerUpdateAfterLogin({
+      hasRisk: true,
+      allowBypass: true,
+      riskType: "behind_remote",
+      message: "behind remote",
+      status: { behind: 1, ahead: 0, uncommitted: 0 },
+    });
+    inspect.restore();
+    let output = inspect.output.map((e) => decolorize(e)).join("\n");
+    assert.equal(
+      question,
+      "Do you want Secrez to update the repo and restart?"
+    );
+    assert.match(output, /behind remote/);
+    assert.match(output, /Would realign and relaunch/);
+  });
 });

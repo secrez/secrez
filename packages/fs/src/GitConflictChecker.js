@@ -10,6 +10,8 @@ class GitConflictChecker {
     this.initialGitState = null; // Initial state captured at account entry
     this.sessionBlock = null; // Known repo risk kept until Secrez is restarted
     this.sessionBlockAnnounced = false;
+    this.entryStatus = null;
+    this.hasEntryStatus = false;
     this.lastCheck = null;
     this.checkInterval = 30000; // 30 seconds between checks
   }
@@ -38,6 +40,8 @@ class GitConflictChecker {
    */
   async captureInitialState() {
     const status = await this.getGitStatus();
+    this.entryStatus = status;
+    this.hasEntryStatus = true;
     if (status && !status.error) {
       this.initialGitState = this.getGitFingerprint(status);
     }
@@ -299,10 +303,7 @@ Any changes you make now might conflict with remote changes that we cannot detec
       return `⚠️  Git Conflict Risk Detected!
       
 Your local repository is ${status.behind} commit(s) behind the remote '${status.remoteBranch}' branch.
-Any changes you make now could lead to merge conflicts when you try to sync later.
-
-Consider quitting Secrez and running in the container:
-  git pull  # to sync with remote changes first`;
+Any changes you make now could lead to merge conflicts when you try to sync later.`;
     }
 
     return null;
@@ -317,6 +318,8 @@ Consider quitting Secrez and running in the container:
     this.initialGitState = null;
     this.sessionBlock = null;
     this.sessionBlockAnnounced = false;
+    this.entryStatus = null;
+    this.hasEntryStatus = false;
     this.lastCheck = null;
   }
 }

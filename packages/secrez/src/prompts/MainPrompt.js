@@ -41,6 +41,8 @@ class MainPrompt extends require("./CommandPrompt") {
       this.internalFs.init().then(() => delete this.showLoading);
       this.loadingMessage = "Initializing";
       await this.loading();
+      const gitStatus = await this.commands.git.readGitConflictStatus();
+      await this.commands.git.offerUpdateAfterLogin(gitStatus);
       await this.loadSavedHistory();
       this.loggedIn = true;
       let alerts = this.internalFs.tree.alerts;

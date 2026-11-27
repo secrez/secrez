@@ -119,6 +119,30 @@ describe("#GitConflictChecker", function () {
     assert.isTrue(first.allowBypass);
   });
 
+  it("should use the login fingerprint without fetching again", async function () {
+    const checker = testInternalFs.gitConflictChecker;
+    let calls = 0;
+    const status = {
+      localBranch: "main",
+      remoteBranch: "origin/main",
+      headCommit: "abc",
+      behind: 1,
+      ahead: 0,
+      uncommitted: 0,
+    };
+    checker.getGitStatus = async () => {
+      calls += 1;
+      return status;
+    };
+
+    await checker.captureInitialState();
+    const result = await testInternalFs.checkGitSyncStatus();
+
+    assert.equal(calls, 1);
+    assert.equal(result.riskType, "behind_remote");
+    assert.isFalse(checker.hasEntryStatus);
+  });
+
   it("should check git again when the risk can be bypassed", async function () {
     const checker = testInternalFs.gitConflictChecker;
     let calls = 0;
