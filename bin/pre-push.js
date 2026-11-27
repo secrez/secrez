@@ -24,6 +24,7 @@ checkAndGetCoverage("crypto");
 checkAndGetCoverage("eth");
 checkAndGetCoverage("core");
 checkAndGetCoverage("fs");
+checkAndGetCoverage("prompt");
 checkAndGetCoverage("secrez");
 
 if (!changes) {

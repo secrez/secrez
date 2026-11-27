@@ -36,6 +36,7 @@ checkIfMustBePublished("crypto", "@secrez");
 checkIfMustBePublished("eth", "@secrez");
 checkIfMustBePublished("core", "@secrez");
 checkIfMustBePublished("fs", "@secrez");
+checkIfMustBePublished("prompt", "@secrez");
 // the deployed version is latest one
 // checkIfMustBePublished('migrate', '@secrez')
 checkIfMustBePublished("secrez");
