@@ -1,12 +1,7 @@
 const chalk = require("chalk");
 const _ = require("lodash");
 const fs = require("fs-extra");
-const inquirer = require("inquirer");
-
-// eslint-disable-next-line node/no-unpublished-require
-// const inquirerCommandPrompt = require('../../../../../inquirer-command-prompt')
-const inquirerCommandPrompt = require("inquirer-command-prompt");
-inquirer.registerPrompt("command", inquirerCommandPrompt);
+const { formatColumns } = require("@secrez/prompt");
 
 const { sleep, getKeyValue } = require("@secrez/utils");
 const Completion = require("./Completion");
@@ -15,43 +10,34 @@ const { VaultPermissions } = require("@secrez/core");
 const Logger = require("../utils/Logger");
 const cliConfig = require("../cliConfig");
 const sigintManager = require("./SigintManager");
+const Prompt = require("./Prompt");
 
 let thiz;
 
 class CommandPrompt {
   constructor() {
-    this.timeoutId = null;
     this.clearScreenTimeout = 180;
-  }
-
-  clearScreen() {
-    process.stdout.write("\u001b[2J\u001b[0;0H");
-    process.stdout.write(
-      `Screen cleared. Press any key to reactivate the terminal`
-    );
+    this.prompts = new Prompt(this);
   }
 
   resetTimeout() {
-    const s = 180000;
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
-    this.timeoutId = setTimeout(() => {
-      this.clearScreen();
-    }, this.clearScreenTimeout * 1000);
+    this.prompts.armClear();
   }
 
   async getReady(options) {
     thiz = this;
-    this.inquirer = inquirer;
-    this.commandPrompt = inquirerCommandPrompt;
+    this.inquirer = this.prompts;
+    this.commandPrompt = {
+      formatList(elems, maxSize, ellipsized, ellipsis) {
+        return formatColumns(elems, maxSize, ellipsized, ellipsis);
+      },
+    };
     this.historyPath = options.historyPath;
-    inquirerCommandPrompt.setConfig({
+    this.prompts.setConfig({
       history: {
-        save: false,
         limit: 100,
       },
-      onCtrlEnd: thiz.reorderCommandLineWithDefaultAtEnd,
+      onCtrlEnd: (line) => thiz.reorderCommandLineWithDefaultAtEnd(line),
     });
     this.completion = cliConfig[options.completion];
     this.commands = options.commands;
@@ -145,7 +131,7 @@ class CommandPrompt {
   }
 
   async saveHistory() {
-    let histories = JSON.stringify(inquirerCommandPrompt.getHistories(true));
+    let histories = JSON.stringify(this.prompts.getHistories(true));
     let encryptedHistory = this.secrez.encryptData(histories);
     await VaultPermissions.writeFile(this.historyPath, encryptedHistory);
   }
@@ -155,9 +141,7 @@ class CommandPrompt {
     if (await fs.pathExists(this.historyPath)) {
       let encryptedHistory = await fs.readFile(this.historyPath, "utf8");
       previousHistories = JSON.parse(this.secrez.decryptData(encryptedHistory));
-      inquirerCommandPrompt.setHistoryFromPreviousSavedHistories(
-        previousHistories
-      );
+      this.prompts.setHistory(previousHistories);
     }
   }
 
@@ -257,29 +241,32 @@ class CommandPrompt {
     }
     try {
       let prefix = (this.lastPrefix = this.prePromptMessage(options));
-      let { cmd } = await inquirer.prompt([
-        {
-          type: "command",
-          name: "cmd",
-          autoCompletion: this.getCommands,
-          short: this.short,
-          prefix,
-          noColorOnAnswered: this.noColorOnAnswered(),
-          colorOnAnswered: this.colorOnAnswered(),
-          message: this.promptMessage(),
-          ellipsize: true,
-          autocompletePrompt: this.availableOptionsMessage(),
-          onBeforeKeyPress: undefined,
-          onBeforeRewrite: this.onBeforeRewrite,
-          context: this.context,
-          onClose: () => {
-            fs.emptyDirSync(this.secrez.config.tmpPath);
+      let { cmd } = await this.prompts.ask(
+        [
+          {
+            type: "command",
+            name: "cmd",
+            autoCompletion: this.getCommands,
+            short: this.short,
+            prefix,
+            noColorOnAnswered: this.noColorOnAnswered(),
+            colorOnAnswered: this.colorOnAnswered(),
+            message: this.promptMessage(),
+            ellipsize: true,
+            autocompletePrompt: this.availableOptionsMessage(),
+            onBeforeKeyPress: undefined,
+            onBeforeRewrite: this.onBeforeRewrite,
+            context: this.context,
+            onClose: () => {
+              fs.emptyDirSync(this.secrez.config.tmpPath);
+            },
+            validate: (val) => {
+              return val ? true : chalk.grey("Press TAB for suggestions.");
+            },
           },
-          validate: (val) => {
-            return val ? true : chalk.grey("Press TAB for suggestions.");
-          },
-        },
-      ]);
+        ],
+        { skipClear: false }
+      );
       options.cmd = _.trim(cmd);
       await this.postRun(options);
     } catch (e) {
@@ -289,7 +276,7 @@ class CommandPrompt {
   }
 
   getRl() {
-    return inquirerCommandPrompt.getRl();
+    return this.prompts.getRl();
   }
 
   async exec(cmds, noRun) {

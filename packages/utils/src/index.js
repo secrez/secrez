@@ -13,6 +13,42 @@ const player = require("play-sound")();
 
 const UglyDate = require("./UglyDate");
 
+function walkYaml(node, visit) {
+  if (!node) return;
+  if (node.items) {
+    node.items.forEach((item) => walkYaml(item, visit));
+    return;
+  }
+  if (node.key) {
+    walkYaml(node.key, visit);
+    walkYaml(node.value, visit);
+    return;
+  }
+  visit(node);
+}
+
+function plainNumberSource(str, node) {
+  if (
+    !node ||
+    node.type !== "PLAIN" ||
+    typeof node.value !== "number" ||
+    !node.range
+  ) {
+    return null;
+  }
+  const raw = str.slice(node.range[0], node.range[1]);
+  if (raw === String(node.value)) return null;
+  return { start: node.range[0], end: node.range[1], raw };
+}
+
+function yamlDocument(str) {
+  const doc = YAML.parseDocument(str);
+  if (doc.errors && doc.errors.length) {
+    throw new Error("Cannot parse a malformed yaml");
+  }
+  return doc;
+}
+
 const utils = {
   yamlParse(str) {
     // workaround to avoid parsing ETH addresses and private keys
@@ -20,10 +56,42 @@ const utils = {
       str = str.replace(/: (0x[a-fA-F0-9]+)(\n|$)/g, ": '$1'$2");
     }
     try {
-      return YAML.parse(str);
+      const doc = yamlDocument(str);
+      // 0002 is not the number 2. Keep the digits the author wrote.
+      walkYaml(doc.contents, (node) => {
+        const odd = plainNumberSource(str, node);
+        if (odd) node.value = odd.raw;
+      });
+      return doc.toJSON();
     } catch (e) {
       throw new Error("Cannot parse a malformed yaml");
     }
+  },
+
+  // Quote plain numbers whose text is not the canonical number, so the next
+  // parse still sees a string. 234 stays 234. 0002 becomes "0002".
+  yamlQuoteNumbers(str) {
+    const text = String(str);
+    let doc;
+    try {
+      doc = yamlDocument(text);
+    } catch (e) {
+      return text;
+    }
+    const replacements = [];
+    walkYaml(doc.contents, (node) => {
+      const odd = plainNumberSource(text, node);
+      if (odd) replacements.push(odd);
+    });
+    let out = text;
+    replacements.sort((a, b) => b.start - a.start);
+    for (const item of replacements) {
+      out =
+        out.slice(0, item.start) +
+        JSON.stringify(item.raw) +
+        out.slice(item.end);
+    }
+    return out;
   },
 
   yamlStringify(obj) {

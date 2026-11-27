@@ -35,7 +35,7 @@ class MainPrompt extends require("./CommandPrompt") {
 
   async preRun(options = {}) {
     if (!this.loggedIn) {
-      await welcome.start(this.secrez, options);
+      await welcome.start(this.secrez, options, this.prompts);
       await VaultPermissions.secureVaultIfNeeded(this.secrez.config);
       this.startSigintManager();
       this.internalFs.init().then(() => delete this.showLoading);
@@ -146,6 +146,7 @@ class MainPrompt extends require("./CommandPrompt") {
       this.run();
       return;
     }
+    this.pendingCommandLine = cmd;
     await this.exec([cmd]);
     this.previousCommandLine = cmd;
   }

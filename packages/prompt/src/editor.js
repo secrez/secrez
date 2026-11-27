@@ -1,14 +1,10 @@
 "use strict";
 
-/* istanbul ignore file -- interactive TUI editor; tests use prompt.editorProvider */
-
 // In-memory terminal editor vendored from tiny-cli-editor (ISC) and prompt-skeleton.
 // https://github.com/derhuerst/tiny-cli-editor
 
-const { PassThrough } = require("stream");
-const { EventEmitter } = require("events");
-const esc = require("ansi-escapes");
-const onKeypress = require("./onKeypress");
+const fs = require("fs");
+const { listen } = require("./keys");
 
 const insert = (s, x, c) => s.slice(0, x) + c + s.slice(x);
 
@@ -20,20 +16,24 @@ const EDITOR_STATUS =
 // the file text is drawn and then invisible. Erase the viewport, home the
 // cursor, and restore the default colors before painting the buffer.
 function clearViewport() {
-  return "\u001b[0m" + esc.eraseScreen + esc.cursorTo(0, 0);
+  return "\u001b[0m\u001b[2J\u001b[1;1H";
 }
 
-function terminalRows() {
-  return process.stdout.rows || 24;
+function cursorTo(x, y) {
+  return `\u001b[${y + 1};${x + 1}H`;
 }
 
-function terminalColumns() {
-  return Math.max(2, process.stdout.columns || 80);
+function terminalRows(output) {
+  return (output && output.rows) || process.stdout.rows || 24;
 }
 
-// The footer is drawn on its own rows, one column short of the edge.
-// A character in the last column wraps, and a wrap on the last row scrolls
-// the viewport, which moves the text above the footer.
+function terminalColumns(output) {
+  return Math.max(
+    2,
+    (output && output.columns) || process.stdout.columns || 80
+  );
+}
+
 function statusChunks(status, columns) {
   const width = Math.max(1, columns - 1);
   const chunks = [];
@@ -69,7 +69,7 @@ const Editor = {
   },
 
   reset() {
-    this.lines = this.initialLines;
+    this.lines = this.initialLines.slice();
     this.cursorX = 0;
     this.cursorY = 0;
     this.update();
@@ -78,8 +78,8 @@ const Editor = {
 
   abort(c) {
     this.done = true;
-    this.aborted = !(c.ctrl && c.name === "d");
-    this.out.write(clearViewport());
+    this.aborted = !(c && c.ctrl && c.name === "d");
+    this.write(clearViewport());
     this.close();
   },
 
@@ -118,9 +118,9 @@ const Editor = {
       if (this.cursorY === 0) return;
       this.cursorY--;
       this.cursorX = this.lines[this.cursorY].length;
-      return;
+    } else {
+      this.cursorX--;
     }
-    this.cursorX--;
     this.update();
     this.render();
   },
@@ -131,9 +131,9 @@ const Editor = {
       if (this.cursorY === this.lines.length - 1) return;
       this.cursorY++;
       this.cursorX = 0;
-      return;
+    } else {
+      this.cursorX++;
     }
-    this.cursorX++;
     this.update();
     this.render();
   },
@@ -196,37 +196,34 @@ const Editor = {
   },
 
   bell() {
-    this.out.write(esc.beep);
+    this.write("\u0007");
   },
 
   render() {
-    const rows = terminalRows();
-    const columns = terminalColumns();
+    const rows = terminalRows(this.output);
+    const columns = terminalColumns(this.output);
     const chunks = statusChunks(EDITOR_STATUS, columns);
     const statusTop = Math.max(0, rows - chunks.length);
     const { lines, cursorX, cursorY } = this;
     let out = clearViewport() + lines.join("\n");
     chunks.forEach((chunk, i) => {
       out +=
-        esc.cursorTo(0, statusTop + i) +
-        esc.eraseLine +
-        "\x1b[2m" +
-        chunk +
-        "\x1b[0m";
+        cursorTo(0, statusTop + i) + "\u001b[2K\u001b[2m" + chunk + "\u001b[0m";
     });
     const cursorRow = Math.min(cursorY, Math.max(0, statusTop - 1));
     const cursorCol = Math.min(cursorX, columns - 1);
-    out += esc.cursorTo(cursorCol, cursorRow);
-    this.out.write(out);
+    out += cursorTo(cursorCol, cursorRow);
+    this.write(out);
   },
 };
 
-function createEditor(text) {
+function createEditor(text, hooks = {}) {
   if (typeof text !== "string") {
     throw new Error("Text must be string.");
   }
 
-  const emitter = new EventEmitter();
+  const output = hooks.output;
+  const input = hooks.input;
   const p = Object.assign(Object.create(Editor), {
     lines: [],
     initialLines: [],
@@ -235,40 +232,43 @@ function createEditor(text) {
     done: false,
     aborted: false,
     value: "",
-    out: new PassThrough(),
+    output,
+    write(chunk) {
+      if (output && typeof output.write === "function") output.write(chunk);
+    },
   });
 
   const lb = /\r?\n/;
   p.initialLines = text.split(lb);
   p.lines = text.split(lb);
-  p.out.pipe(process.stdout);
 
-  p.emit = () => {
-    emitter.emit("change", {
-      value: p.value,
-      aborted: !!p.aborted,
-    });
+  const listeners = [];
+  const notify = (name, value) => {
+    for (const listener of listeners) listener(name, value);
   };
 
-  if (typeof p._ !== "function") {
-    p._ = () => p.bell();
-  }
+  p.emit = () => {
+    notify("change", { value: p.value, aborted: !!p.aborted });
+  };
 
-  let offKeypress;
+  let stopKeys = () => {};
+  let listening = false;
   const pause = () => {
-    if (!offKeypress) return;
-    offKeypress();
-    offKeypress = null;
+    if (!listening) return;
+    listening = false;
+    stopKeys();
   };
 
   const resume = () => {
-    if (offKeypress) return;
-    offKeypress = onKeypress(process.stdin, (key) => {
-      const action = keyAction(key);
-      if (action === false) {
-        p._(key.raw);
-      } else if (action in p) {
-        p[action](key);
+    if (listening) return;
+    listening = true;
+    stopKeys = listen(input, (str, key) => {
+      const info = key || {};
+      const action = keyAction(info);
+      if (action && typeof p[action] === "function") {
+        p[action](info);
+      } else if (str && !info.ctrl && !info.meta) {
+        p._(str);
       } else {
         p.bell();
       }
@@ -280,42 +280,71 @@ function createEditor(text) {
     if (isClosed) return;
     isClosed = true;
     pause();
-    p.out.unpipe(process.stdout);
-    process.stdout.write(esc.cursorShow);
-    if (p.aborted) {
-      emitter.emit("abort", p.value);
-    } else {
-      emitter.emit("submit", p.value);
-    }
-    emitter.emit("close");
+    p.write("\u001b[?25h");
+    if (p.aborted) notify("abort", p.value);
+    else notify("submit", p.value);
+    notify("close");
+  };
+
+  const editor = {
+    on(name, fn) {
+      const listener = (event, value) => {
+        if (event === name) fn(value);
+      };
+      listeners.push(listener);
+    },
+    abort() {
+      if (isClosed) return;
+      p.abort({});
+    },
+    pause,
+    resume,
+    setText(nextText) {
+      p.lines = String(nextText).split(lb);
+      if (!p.lines[p.cursorY]) p.cursorY = p.lines.length - 1;
+      p.cursorX = Math.min(p.cursorX, p.lines[p.cursorY].length);
+      p.update();
+      p.render();
+    },
   };
 
   resume();
   p.update();
   p.render();
+  return editor;
+}
 
-  emitter.abort = () => {
-    if (isClosed) return;
-    p.abort({});
-  };
-  emitter.pause = pause;
-  emitter.resume = resume;
-  emitter.setText = (nextText) => {
-    p.lines = nextText.split(lb);
-    if (!p.lines[p.cursorY]) {
-      p.cursorY = p.lines.length - 1;
-    }
-    p.cursorX = Math.min(p.cursorX, p.lines[p.cursorY].length);
-    p.update();
-    p.render();
-  };
+async function readEditorText(options = {}) {
+  const hasFile = options.filePath != null;
+  const hasContent = Object.prototype.hasOwnProperty.call(options, "content");
+  if (hasFile && hasContent) {
+    throw new Error("useEditor takes either content or filePath.");
+  }
+  if (!hasFile) return options.content || "";
+  if (typeof options.filePath !== "string" || options.filePath === "") {
+    throw new Error("useEditor filePath must be a file path.");
+  }
+  try {
+    return await fs.promises.readFile(options.filePath, "utf8");
+  } catch (err) {
+    if (err && err.code === "ENOENT") return "";
+    throw err;
+  }
+}
 
-  return emitter;
+function writeEditorText(filePath, text) {
+  return fs.promises.writeFile(filePath, text);
 }
 
 function editInMemory(text, hooks = {}) {
-  return new Promise((resolve) => {
-    const editor = createEditor(text);
+  return new Promise((resolve, reject) => {
+    let editor;
+    try {
+      editor = createEditor(text, hooks);
+    } catch (err) {
+      reject(err);
+      return;
+    }
     let settled = false;
     const finish = (value) => {
       if (settled) return;
@@ -330,12 +359,17 @@ function editInMemory(text, hooks = {}) {
         abort() {
           editor.abort();
         },
+        setText(next) {
+          editor.setText(next);
+        },
       });
     }
   });
 }
 
 module.exports = {
-  createEditor,
   editInMemory,
+  createEditor,
+  readEditorText,
+  writeEditorText,
 };

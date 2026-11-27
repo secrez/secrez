@@ -164,6 +164,7 @@ describe("#Git", function () {
     let output = inspect.output.map((e) => decolorize(e)).join("");
 
     assert.match(output, /Pushed successfully\. Fingerprint updated\./);
+    assert.isFalse(prompt2.internalFs.gitConflictChecker.hasEntryStatus);
 
     const status = await prompt2.internalFs.gitConflictChecker.getGitStatus();
     const afterFingerprint =
