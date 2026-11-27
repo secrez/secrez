@@ -66,11 +66,12 @@ class Edit extends require("../Command") {
     let hardBlocked = false;
     let userLeftEditor = false;
 
+    let hardBlockResult = null;
     const reportHardBlock = (result) => {
       if (hardBlocked) return;
       hardBlocked = true;
+      hardBlockResult = result;
       if (editorAbort) editorAbort();
-      this.logGitConflictBlocked(result);
     };
 
     if (checkPromise) {
@@ -175,10 +176,11 @@ class Edit extends require("../Command") {
             reportHardBlock(result);
             return;
           } else if (result.hasRisk) {
-            const shouldContinue = await this.askToBypassGitConflict(result, {
+            const decision = await this.resolveGitConflict(result, {
               reopenEditor: true,
             });
-            if (!shouldContinue) continue;
+            if (decision === "reopen") continue;
+            if (decision === "stop") return;
           }
         }
 
@@ -204,6 +206,9 @@ class Edit extends require("../Command") {
       this.Logger.reset("File saved.");
     } finally {
       userLeftEditor = true;
+      if (hardBlocked) {
+        await this.handleHardBlock(hardBlockResult);
+      }
     }
   }
 
