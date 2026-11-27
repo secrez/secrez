@@ -14,7 +14,7 @@
   "dependencies": {
     "base58": "^2.0.1",
     "case": "^1.6.3",
-    "csv-parse": "^4.16.3",
+    "csv-parse": "^7.0.2",
     "fs-extra": "^9.1.0",
     "isbinaryfile": "^4.0.10",
     "lodash": "^4.17.21",
